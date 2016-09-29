@@ -1,10 +1,10 @@
 #pragma once
 
-#include "CSPClient.h"
 #include <vector>
 #include <string>
+#include "MdmProvision.h"
 
-class UpdateCSP : public CSPClient
+class UpdateCSP
 {
 public:
     static bool GetInstalledUpdates(std::vector<std::wstring>& guids);

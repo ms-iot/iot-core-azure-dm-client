@@ -2,7 +2,6 @@
 
 #include <string>
 #include "iothub_client.h"
-#include "parson.h"
 
 class AzureAgent
 {
@@ -23,10 +22,12 @@ private:
     static void OnReportedPropertiesSent(int status_code, void* userContextCallback);
     static void OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payLoad, size_t size, void* userContextCallback);
     static IOTHUBMESSAGE_DISPOSITION_RESULT OnMessageReceived(IOTHUB_MESSAGE_HANDLE message, void* userContextCallback);
-    static bool GetInnerJSon(DEVICE_TWIN_UPDATE_STATE update_state, JSON_Value* allJSON, bool& partial, std::string& innerJSon);
+    static bool GetInnerJSon(DEVICE_TWIN_UPDATE_STATE update_state, const std::string& allJson, Windows::Data::Json::IJsonValue^& desiredValue);
 
     bool ProcessMessage(const std::string& command);
-    bool ProcessDesiredProperties(const std::string& jsonString);
+    bool ProcessDesiredProperties(Windows::Data::Json::IJsonValue^ value);
+
+    // Sample code for desired properties.
     bool OnReboot(Windows::Data::Json::IJsonValue^ rebootNode);
 
     // Data members

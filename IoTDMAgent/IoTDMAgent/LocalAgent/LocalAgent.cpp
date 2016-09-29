@@ -107,37 +107,37 @@ unsigned int LocalAgent::GetBatteryStatus()
 bool LocalAgent::RunSyncML(const wstring& request, wstring& response)
 {
     wstring sid = L""; // only supports device-wide operations for now.
-    return CSPClient::RunSyncML(sid, request, response);
+    return MdmProvision::RunSyncML(sid, request, response);
 }
 
 bool LocalAgent::RunSyncMLAdd(const wstring& path, wstring& value)
 {
     wstring sid = L""; // only supports device-wide operations for now.
-    return CSPClient::RunAdd(sid, path, value);
+    return MdmProvision::RunAdd(sid, path, value);
 }
 
 bool LocalAgent::RunSyncMLGet(const wstring& path, wstring& value)
 {
     wstring sid = L""; // only supports device-wide operations for now.
-    return CSPClient::RunGet(sid, path, value);
+    return MdmProvision::RunGet(sid, path, value);
 }
 
 bool LocalAgent::RunSyncMLGet(const wstring& path, unsigned int& value)
 {
     wstring sid = L""; // only supports device-wide operations for now.
-    return CSPClient::RunGet(sid, path, value);
+    return MdmProvision::RunGet(sid, path, value);
 }
 
 bool LocalAgent::RunSyncMLSet(const wstring& path, const wstring& value)
 {
     wstring sid = L""; // only supports device-wide operations for now.
-    return CSPClient::RunSet(sid, path, value);
+    return MdmProvision::RunSet(sid, path, value);
 }
 
 bool LocalAgent::RunSyncMLSet(const wstring& path, unsigned int value)
 {
     wstring sid = L""; // only supports device-wide operations for now.
-    return CSPClient::RunSet(sid, path, value);
+    return MdmProvision::RunSet(sid, path, value);
 }
 
 bool LocalAgent::GetInstalledUpdates(vector<wstring>& guids)

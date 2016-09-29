@@ -12,7 +12,7 @@ using namespace std;
 bool PolicyCSP::GetActiveHoursStart(unsigned int& hours)
 {
     TRACE(L"\n---- Get Active Hours Start\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/ActiveHoursStart", hours))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/ActiveHoursStart", hours))
     {
         TRACEP(L"    :", hours);
         return true;
@@ -30,7 +30,7 @@ bool PolicyCSP::SetActiveHoursStart(unsigned int hours)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", hours))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", hours))
     {
         TRACEP(L"    :", hours);
         return true;
@@ -41,7 +41,7 @@ bool PolicyCSP::SetActiveHoursStart(unsigned int hours)
 bool PolicyCSP::GetActiveHoursEnd(unsigned int& hours)
 {
     TRACE(L"\n---- Get Active Hours End\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/ActiveHoursEnd", hours))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/ActiveHoursEnd", hours))
     {
         TRACEP(L"    :", hours);
         return true;
@@ -59,7 +59,7 @@ bool PolicyCSP::SetActiveHoursEnd(unsigned int hours)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", hours))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", hours))
     {
         TRACEP(L"    :", hours);
         return true;
@@ -70,7 +70,7 @@ bool PolicyCSP::SetActiveHoursEnd(unsigned int hours)
 bool PolicyCSP::GetAllowAutoUpdate(unsigned int& allowLevel)
 {
     TRACE(L"\n---- Get Allow Auto Update\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowAutoUpdate", allowLevel))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowAutoUpdate", allowLevel))
     {
         TRACEP(L"    :", allowLevel);
         return true;
@@ -88,7 +88,7 @@ bool PolicyCSP::SetAllowAutoUpdate(unsigned int allowLevel)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", allowLevel))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", allowLevel))
     {
         TRACEP(L"    :", allowLevel);
         return true;
@@ -99,7 +99,7 @@ bool PolicyCSP::SetAllowAutoUpdate(unsigned int allowLevel)
 bool PolicyCSP::GetAllowMUUpdateService(unsigned int& allowLevel)
 {
     TRACE(L"\n---- Get Allow MU Update Service\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowMUUpdateService", allowLevel))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowMUUpdateService", allowLevel))
     {
         TRACEP(L"    :", allowLevel);
         return true;
@@ -117,7 +117,7 @@ bool PolicyCSP::SetAllowMUUpdateService(unsigned int allowLevel)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowMUUpdateService", allowLevel))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowMUUpdateService", allowLevel))
     {
         TRACEP(L"    :", allowLevel);
         return true;
@@ -128,7 +128,7 @@ bool PolicyCSP::SetAllowMUUpdateService(unsigned int allowLevel)
 bool PolicyCSP::GetAllowNonMicrosoftSignedUpdate(unsigned int& allowLevel)
 {
     TRACE(L"\n---- Allow Allow Non-Microsoft Signed Update\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowNonMicrosoftSignedUpdate", allowLevel))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowNonMicrosoftSignedUpdate", allowLevel))
     {
         TRACEP(L"    :", allowLevel);
         return true;
@@ -146,7 +146,7 @@ bool PolicyCSP::SetAllowNonMicrosoftSignedUpdate(unsigned int allowLevel)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowNonMicrosoftSignedUpdate", allowLevel))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowNonMicrosoftSignedUpdate", allowLevel))
     {
         TRACEP(L"    :", allowLevel);
         return true;
@@ -157,7 +157,7 @@ bool PolicyCSP::SetAllowNonMicrosoftSignedUpdate(unsigned int allowLevel)
 bool PolicyCSP::GetAllowUpdateService(unsigned int& allowLevel)
 {
     TRACE(L"\n---- Get Allow Update Service\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowUpdateService", allowLevel))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowUpdateService", allowLevel))
     {
         TRACEP(L"    :", allowLevel);
         return true;
@@ -175,7 +175,7 @@ bool PolicyCSP::SetAllowUpdateService(unsigned int allowLevel)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", allowLevel))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", allowLevel))
     {
         TRACEP(L"    :", allowLevel);
         return true;
@@ -186,7 +186,7 @@ bool PolicyCSP::SetAllowUpdateService(unsigned int allowLevel)
 bool PolicyCSP::GetBranchReadinessLevel(unsigned int& level)
 {
     TRACE(L"\n---- Get Branch Readiness Level\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/BranchReadinessLevel", level))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/BranchReadinessLevel", level))
     {
         TRACEP(L"    :", level);
         return true;
@@ -204,7 +204,7 @@ bool PolicyCSP::SetBranchReadinessLevel(unsigned int level)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", level))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", level))
     {
         TRACEP(L"    :", level);
         return true;
@@ -215,7 +215,7 @@ bool PolicyCSP::SetBranchReadinessLevel(unsigned int level)
 bool PolicyCSP::GetDeferFeatureUpdatesPeriodInDays(unsigned int& days)
 {
     TRACE(L"\n---- Get Defer Feature Updates Period In Days\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferFeatureUpdatesPeriodInDays", days))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferFeatureUpdatesPeriodInDays", days))
     {
         TRACEP(L"    :", days);
         return true;
@@ -233,7 +233,7 @@ bool PolicyCSP::SetDeferFeatureUpdatesPeriodInDays(unsigned int days)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", days))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", days))
     {
         TRACEP(L"    :", days);
         return true;
@@ -244,7 +244,7 @@ bool PolicyCSP::SetDeferFeatureUpdatesPeriodInDays(unsigned int days)
 bool PolicyCSP::GetDeferQualityUpdatesPeriodInDays(unsigned int& days)
 {
     TRACE(L"\n---- Get Defer Quality Updates Period In Days\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferQualityUpdatesPeriodInDays", days))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferQualityUpdatesPeriodInDays", days))
     {
         TRACEP(L"    :", days);
         return true;
@@ -262,7 +262,7 @@ bool PolicyCSP::SetDeferQualityUpdatesPeriodInDays(unsigned int days)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", days))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", days))
     {
         TRACEP(L"    :", days);
         return true;
@@ -273,7 +273,7 @@ bool PolicyCSP::SetDeferQualityUpdatesPeriodInDays(unsigned int days)
 bool PolicyCSP::GetDeferUpdatePeriod(unsigned int& weeks)
 {
     TRACE(L"\n---- Get Defer Update Period\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferUpdatePeriod", weeks))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferUpdatePeriod", weeks))
     {
         TRACEP(L"    :", weeks);
         return true;
@@ -291,7 +291,7 @@ bool PolicyCSP::SetDeferUpdatePeriod(unsigned int weeks)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferUpdatePeriod", weeks))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferUpdatePeriod", weeks))
     {
         TRACEP(L"    :", weeks);
         return true;
@@ -302,7 +302,7 @@ bool PolicyCSP::SetDeferUpdatePeriod(unsigned int weeks)
 bool PolicyCSP::GetDeferUpgradePeriod(unsigned int& months)
 {
     TRACE(L"\n---- Get Defer Upgrade Period\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferUpgradePeriod", months))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferUpgradePeriod", months))
     {
         TRACEP(L"    :", months);
         return true;
@@ -320,7 +320,7 @@ bool PolicyCSP::SetDeferUpgradePeriod(unsigned int months)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferUpgradePeriod", months))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferUpgradePeriod", months))
     {
         TRACEP(L"    :", months);
         return true;
@@ -331,7 +331,7 @@ bool PolicyCSP::SetDeferUpgradePeriod(unsigned int months)
 bool PolicyCSP::GetExcludeWUDrivers(unsigned int& excludeLevel)
 {
     TRACE(L"\n---- Get ExcludeWUDrivers\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/ExcludeWUDrivers", excludeLevel))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/ExcludeWUDrivers", excludeLevel))
     {
         TRACEP(L"    :", excludeLevel);
         return true;
@@ -349,7 +349,7 @@ bool PolicyCSP::SetExcludeWUDrivers(unsigned int excludeLevel)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ExcludeWUDrivers", excludeLevel))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ExcludeWUDrivers", excludeLevel))
     {
         TRACEP(L"    :", excludeLevel);
         return true;
@@ -360,7 +360,7 @@ bool PolicyCSP::SetExcludeWUDrivers(unsigned int excludeLevel)
 bool PolicyCSP::GetPauseDeferrals(unsigned int& pauseLevel)
 {
     TRACE(L"\n---- Get PauseDeferrals\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseDeferrals", pauseLevel))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseDeferrals", pauseLevel))
     {
         TRACEP(L"    :", pauseLevel);
         return true;
@@ -378,7 +378,7 @@ bool PolicyCSP::SetPauseDeferrals(unsigned int pauseLevel)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseDeferrals", pauseLevel))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseDeferrals", pauseLevel))
     {
         TRACEP(L"    :", pauseLevel);
         return true;
@@ -389,7 +389,7 @@ bool PolicyCSP::SetPauseDeferrals(unsigned int pauseLevel)
 bool PolicyCSP::GetPauseFeatureUpdates(unsigned int& pauseLevel)
 {
     TRACE(L"\n---- Get PauseFeatureUpdates\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseFeatureUpdates", pauseLevel))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseFeatureUpdates", pauseLevel))
     {
         TRACEP(L"    :", pauseLevel);
         return true;
@@ -407,7 +407,7 @@ bool PolicyCSP::SetPauseFeatureUpdates(unsigned int pauseLevel)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", pauseLevel))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", pauseLevel))
     {
         TRACEP(L"    :", pauseLevel);
         return true;
@@ -418,7 +418,7 @@ bool PolicyCSP::SetPauseFeatureUpdates(unsigned int pauseLevel)
 bool PolicyCSP::GetPauseQualityUpdates(unsigned int& pauseLevel)
 {
     TRACE(L"\n---- Get PauseQualityUpdates\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseQualityUpdates", pauseLevel))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseQualityUpdates", pauseLevel))
     {
         TRACEP(L"    :", pauseLevel);
         return true;
@@ -436,7 +436,7 @@ bool PolicyCSP::SetPauseQualityUpdates(unsigned int pauseLevel)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", pauseLevel))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", pauseLevel))
     {
         TRACEP(L"    :", pauseLevel);
         return true;
@@ -447,7 +447,7 @@ bool PolicyCSP::SetPauseQualityUpdates(unsigned int pauseLevel)
 bool PolicyCSP::GetRequireDeferUpgrade(unsigned int& value)
 {
     TRACE(L"\n---- Get RequireDeferUpgrade\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/RequireDeferUpgrade", value))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/RequireDeferUpgrade", value))
     {
         TRACEP(L"    :", value);
         return true;
@@ -465,7 +465,7 @@ bool PolicyCSP::SetRequireDeferUpgrade(unsigned int value)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/RequireDeferUpgrade", value))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/RequireDeferUpgrade", value))
     {
         TRACEP(L"    :", value);
         return true;
@@ -476,7 +476,7 @@ bool PolicyCSP::SetRequireDeferUpgrade(unsigned int value)
 bool PolicyCSP::GetRequireUpdateApproval(unsigned int& value)
 {
     TRACE(L"\n---- Get RequireUpdateApproval\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/RequireUpdateApproval", value))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/RequireUpdateApproval", value))
     {
         TRACEP(L"    :", value);
         return true;
@@ -494,7 +494,7 @@ bool PolicyCSP::SetRequireUpdateApproval(unsigned int value)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/RequireUpdateApproval", value))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/RequireUpdateApproval", value))
     {
         TRACEP(L"    :", value);
         return true;
@@ -505,7 +505,7 @@ bool PolicyCSP::SetRequireUpdateApproval(unsigned int value)
 bool PolicyCSP::GetScheduledInstallDay(unsigned int& dayOfWeek)
 {
     TRACE(L"\n---- Get ScheduledInstallDay\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallDay", dayOfWeek))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallDay", dayOfWeek))
     {
         TRACEP(L"    :", dayOfWeek);
         return true;
@@ -523,7 +523,7 @@ bool PolicyCSP::SetScheduledInstallDay(unsigned int dayOfWeek)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", dayOfWeek))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", dayOfWeek))
     {
         TRACEP(L"    :", dayOfWeek);
         return true;
@@ -534,7 +534,7 @@ bool PolicyCSP::SetScheduledInstallDay(unsigned int dayOfWeek)
 bool PolicyCSP::GetScheduledInstallTime(unsigned int& hour)
 {
     TRACE(L"\n---- Get Scheduled Install Time\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallTime", hour))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallTime", hour))
     {
         TRACEP(L"    :", hour);
         return true;
@@ -552,7 +552,7 @@ bool PolicyCSP::SetScheduledInstallTime(unsigned int hour)
         return false;
     }
 
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", hour))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", hour))
     {
         TRACEP(L"    :", hour);
         return true;
@@ -563,7 +563,7 @@ bool PolicyCSP::SetScheduledInstallTime(unsigned int hour)
 bool PolicyCSP::GetUpdateServiceUrl(std::wstring& serviceUrl)
 {
     TRACE(L"\n---- Get UpdateServiceUrl\n");
-    if (RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/UpdateServiceUrl", serviceUrl))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Policy/Result/Update/UpdateServiceUrl", serviceUrl))
     {
         TRACEP(L"    ", serviceUrl.c_str());
         return true;
@@ -576,7 +576,7 @@ bool PolicyCSP::SetUpdateServiceUrl(const std::wstring& serviceUrl)
     TRACE(L"\n---- Set UpdateServiceUrl\n");
 
     wstring valueString = serviceUrl;
-    if (RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/UpdateServiceUrl", valueString))
+    if (MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/UpdateServiceUrl", valueString))
     {
         TRACEP(L"    ", valueString.c_str());
         return true;

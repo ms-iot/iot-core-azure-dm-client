@@ -1,8 +1,9 @@
 #include "stdafx.h"
-#include "Utils.h"
 #include <time.h>
 #include <string>
 #include <vector>
+#include "Utils.h"
+#include "..\resource.h"
 
 using namespace std;
 
@@ -115,6 +116,20 @@ bool StringToInt(const std::wstring& s, unsigned int& i)
         result = false;
     }
     return result;
+}
+
+wstring GetResourceString(int id)
+{
+    const int bufferSize = 1024;
+    wchar_t buffer[bufferSize];
+    if (!LoadString(GetModuleHandle(NULL), 101, buffer, bufferSize))
+    {
+        if (!LoadString(GetModuleHandle(NULL), IDS_OMA_SYNCML_STATUS_UNKNOWN, buffer, bufferSize))
+        {
+            return wstring(L"Unknown OMA SyncML status code.");
+        }
+    }
+    return wstring(buffer);
 }
 
 }

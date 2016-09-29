@@ -3,7 +3,7 @@
 #include "UpdateCSP.h"
 #include "..\..\Utilities\Utils.h"
 #include "..\..\Utilities\Logger.h"
-#include "SyncMLHelper.h"
+#include "MdmProvision.h"
 
 using namespace std;
 
@@ -29,7 +29,7 @@ bool UpdateCSP::GetInstalledUpdates(vector<wstring>& guids)
     TRACE(L"\n---- Get Installed Updates\n");
 
     wstring resultsString;
-    if (!RunGet(L"./Device/Vendor/MSFT/Update/InstalledUpdates", resultsString))
+    if (!MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/InstalledUpdates", resultsString))
     {
         return false;
     }
@@ -49,7 +49,7 @@ bool UpdateCSP::GetApprovedUpdates(vector<wstring>& guids)
     TRACE(L"\n---- Get Approved Updates\n");
 
     wstring resultsString;
-    if (!RunGet(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", resultsString))
+    if (!MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", resultsString))
     {
         return false;
     }
@@ -75,7 +75,7 @@ bool UpdateCSP::AddApprovedUpdates(const wstring& guid)
     }
 
     wstring value;
-    if (!RunAdd(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", value))
+    if (!MdmProvision::RunAdd(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", value))
     {
         return false;
     }
@@ -88,7 +88,7 @@ bool UpdateCSP::GetFailedUpdates(vector<wstring>& guids)
     TRACE(L"\n---- Get Failed Updates\n");
 
     wstring resultsString;
-    if (!RunGet(L"./Device/Vendor/MSFT/Update/FailedUpdates", resultsString))
+    if (!MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/FailedUpdates", resultsString))
     {
         return false;
     }
@@ -110,7 +110,7 @@ bool UpdateCSP::GetInstallableUpdates(vector<wstring>& guids)
     TRACE(L"\n---- Get Installable Updates\n");
 
     wstring resultsString;
-    if (!RunGet(L"./Device/Vendor/MSFT/Update/InstallableUpdates", resultsString))
+    if (!MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/InstallableUpdates", resultsString))
     {
         return false;
     }
@@ -132,7 +132,7 @@ bool UpdateCSP::GetPendingRebootUpdates(vector<wstring>& guids)
     TRACE(L"\n---- Get Pending Reboot Updates\n");
 
     wstring resultsString;
-    if (!RunGet(L"./Device/Vendor/MSFT/Update/PendingRebootUpdates", resultsString))
+    if (!MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/PendingRebootUpdates", resultsString))
     {
         return false;
     }
@@ -153,7 +153,7 @@ bool UpdateCSP::GetLastSuccessfulScanTime(wstring& lastScanTime)
 {
     TRACE(L"\n---- Get Last Successful Scan Time\n");
 
-    if (RunGet(L"./Device/Vendor/MSFT/Update/LastSuccessfulScanTime", lastScanTime))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/LastSuccessfulScanTime", lastScanTime))
     {
         TRACEP(L"  ",  lastScanTime.c_str());
         return true;
@@ -167,7 +167,7 @@ bool UpdateCSP::GetDeferUpgrade(bool& deferUpgrade)
     TRACE(L"\n---- Get Defer Upgrade\n");
 
     wstring resultsString;
-    if (RunGet(L"./Device/Vendor/MSFT/Update/DeferUpgrade", resultsString))
+    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/DeferUpgrade", resultsString))
     {
         TRACEP(L"  ",  resultsString.c_str());
         deferUpgrade = (0 == _wcsicmp(L"true", resultsString.c_str()));

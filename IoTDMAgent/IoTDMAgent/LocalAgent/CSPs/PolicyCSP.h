@@ -1,10 +1,9 @@
 #pragma once
 
 #include <string>
-#include "CSPClient.h"
+#include "MdmProvision.h"
 
-
-class PolicyCSP : public CSPClient
+class PolicyCSP
 {
 public:
     static bool GetActiveHoursStart(unsigned int& hours);

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "IoTDMService.h"
 #include "ThreadPool.h"
+#include "LocalAgent\LocalAgent.h"
 
 // Device twin update interval in seconds
 #define DEVICE_TWIN_UPDATE_INTERVAL 5
@@ -77,31 +78,30 @@ void IoTDMService::ServiceWorkerThread(void)
 {
     TRACE("IoTDMService.ServiceWorkerThread()");
 
-    bool initialized = false;
-    while (!_stopping)
+    if (_cloudAgent.Setup(AZURE_TEST_CONNECTION_STRING))
     {
-        TRACE("IoTDMService.ServiceWorkerThread()->Loop");
-
-        // Perform main service function here...
-        if (!initialized)
+        while (!_stopping)
         {
-            _cloudAgent.Setup(AZURE_TEST_CONNECTION_STRING);
-            initialized = true;
+            TRACE("IoTDMService.ServiceWorkerThread()->Loop");
+
+            // Sync the device twin...
+            _cloudAgent.SetTotalMemoryMB(LocalAgent::GetTotalMemoryMB());
+            _cloudAgent.SetAvailableMemoryMB(LocalAgent::GetAvailableMemoryMB());
+            _cloudAgent.SetBatteryLevel(LocalAgent::GetBatteryLevel());
+            _cloudAgent.SetBatteryStatus(LocalAgent::GetBatteryStatus());
+            _cloudAgent.ReportProperties();
+
+            ::Sleep(DEVICE_TWIN_UPDATE_INTERVAL * 1000);
         }
-        
-        // Sync the device twin...
-        _cloudAgent.SetTotalMemoryMB(_localAgent.GetTotalMemoryMB());
-        _cloudAgent.SetAvailableMemoryMB(_localAgent.GetAvailableMemoryMB());
-        _cloudAgent.SetBatteryLevel(_localAgent.GetBatteryLevel());
-        _cloudAgent.SetBatteryStatus(_localAgent.GetBatteryStatus());
-        _cloudAgent.ReportProperties();
 
-        ::Sleep(DEVICE_TWIN_UPDATE_INTERVAL * 1000);
+        TRACE("IoTDMService.ServiceWorkerThread()->Done.");
+        _cloudAgent.Shutdown();
     }
-
-    TRACE("IoTDMService.ServiceWorkerThread()->Done.");
-    _cloudAgent.Shutdown();
-
+    else
+    {
+        // If the connection to the cloud fails, there is not much the DM can do.
+        TRACE("Error: Failed to setup the azure cloud agent!");
+    }
     // Signal the stopped event.
     SetEvent(_stoppedEvent);
 }

@@ -1,25 +1,314 @@
 #include "stdafx.h"
-#include <map>
-#include "SyncMLHelper.h"
-#include "..\..\Utilities\Utils.h"
+#include <vector>
 #include "..\..\Utilities\Logger.h"
+#include "..\..\Utilities\Utils.h"
+#include "..\..\Utilities\XmlParser.h"
+#include "PrivateAPIs\CSPController.h"
+#include "MdmProvision.h"
+
+#define ROOT_XML L"Root"
+#define ROOT_START_TAG L"<" ROOT_XML L">"
+#define ROOT_END_TAG L"</" ROOT_XML L">"
+#define STATUS_XML_PATH ROOT_XML L"\\Status\\Data\\"
+#define RESULTS_XML_PATH ROOT_XML L"\\Results\\Item\\Data\\"
 
 using namespace std;
 
-map<wstring, wstring> SyncML::s_errorCodeToMessage;
+map<wstring, wstring> MdmProvision::s_errorCodeToMessage;
 
-bool SyncML::s_errorVerbosity = false;
+bool MdmProvision::s_errorVerbosity = false;
 
-void SyncML::SetErrorVerbosity(bool verbosity)
+void MdmProvision::SetErrorVerbosity(bool verbosity)
 {
     s_errorVerbosity = verbosity;
 }
 
-void SyncML::InitializeErrorMessages()
+bool MdmProvision::RunSyncML(const wstring& sid, const wstring& inputSyncML, wstring& outputSyncML)
+{
+    // Potentially two attributes (session variables) you might need.
+    // 1) OMADM_TARGETEDUSERSID_VARIABLE_NAME: this is the user SID for configuration that's per-user.
+    //    This example is using the DefApps SID from the Phone, which is ignored for the sample XML.
+    //    Use "whoami /user" to get your SID on the desktop.
+    // 2) OMADM_ACCOUNTID_VARIABLE_NAME: this is the enrollment ID.
+    //    Currently sample is using the default enrollment, so we don't specify anything here.
+
+    PWSTR output = nullptr;
+    HRESULT hr = E_FAIL;
+    if (sid.length())
+    {
+        SYNCMLATTRIBUTE attrib[1] = { 0 };
+        attrib[0].pszName = OMADM_TARGETEDUSERSID_VARIABLE_NAME;
+        attrib[0].pszValue = sid.c_str();
+
+        hr = MdmProvisionSyncBodyWithAttributes(inputSyncML.c_str(), nullptr, ARRAYSIZE(attrib), attrib, &output);
+    }
+    else
+    {
+        hr = MdmProvisionSyncBodyWithAttributes(inputSyncML.c_str(), nullptr, 0, nullptr, &output);
+    }
+    if (FAILED(hr))
+    {
+        return false;
+    }
+
+    if (output)
+    {
+        outputSyncML = output;
+    }
+    LocalFree(output);
+
+    return true;
+}
+
+bool MdmProvision::RunAdd(const wstring& sid, const wstring& path, wstring& value)
+{
+    wstring inputSyncML = LR"(
+        <SyncBody>
+            <Add>
+                <CmdID>1</CmdID>
+                <Item>
+                    <Target>
+                        <LocURI>)";
+    inputSyncML += path;
+    inputSyncML += value;
+    inputSyncML += LR"(</LocURI>
+                    </Target>
+                </Item>
+            </Add>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    if (!RunSyncML(sid, inputSyncML, resultSyncML))
+    {
+        return false;
+    }
+
+    if (!IsSuccessful(inputSyncML, resultSyncML))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool MdmProvision::RunGet(const wstring& sid, const wstring& path, wstring& value)
+{
+    wstring inputSyncML = LR"(
+        <SyncBody>
+            <Get>
+              <CmdID>1</CmdID>
+              <Item>
+                <Target>
+                  <LocURI>)";
+    inputSyncML += path;
+    inputSyncML += LR"(</LocURI>
+                </Target>
+                <Meta>
+                    <Type xmlns="syncml:metinf">text/plain</Type>
+                </Meta>
+              </Item>
+            </Get>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    if (!RunSyncML(sid, inputSyncML, resultSyncML))
+    {
+        return false;
+    }
+
+    if (!IsSuccessful(inputSyncML, resultSyncML))
+    {
+        return false;
+    }
+
+    // Extract the result data
+    wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
+    if (!XmlParser::ReadXmlValue(wrappedResult, RESULTS_XML_PATH, value))
+    {
+        TRACEP(L"Error: Failed to read: ", RESULTS_XML_PATH);
+        ReportError(inputSyncML, wrappedResult);
+        return false;
+    }
+
+    return true;
+}
+
+bool MdmProvision::RunGet(const wstring& sid, const wstring& path, unsigned int& value)
+{
+    wstring inputSyncML = LR"(
+        <SyncBody>
+            <Get>
+              <CmdID>1</CmdID>
+              <Item>
+                <Target>
+                  <LocURI>)";
+    inputSyncML += path.c_str();
+    inputSyncML += LR"(</LocURI>
+                </Target>
+                <Meta><Format xmlns="syncml:metinf">int</Format></Meta>
+              </Item>
+            </Get>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    if (!RunSyncML(sid, inputSyncML, resultSyncML))
+    {
+        return false;
+    }
+
+    if (!IsSuccessful(inputSyncML, resultSyncML))
+    {
+        return false;
+    }
+
+    // Extract the result data
+    wstring valueString;
+    wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
+    if (!XmlParser::ReadXmlValue(wrappedResult, RESULTS_XML_PATH, valueString))
+    {
+        TRACEP(L"Error: Failed to read: ", RESULTS_XML_PATH);
+        ReportError(inputSyncML, wrappedResult);
+        return false;
+    }
+
+    return Utils::StringToInt(valueString, value);
+}
+
+bool MdmProvision::RunSet(const wstring& sid, const wstring& path, const wstring& value)
+{
+    wstring inputSyncML = LR"(
+        <SyncBody>
+            <Replace>
+              <CmdID>1</CmdID>
+              <Item>
+                <Target>
+                  <LocURI>)";
+    inputSyncML += path;
+    inputSyncML += LR"(</LocURI>
+                </Target>
+                <Meta>
+                    <Type xmlns="syncml:metinf">text/plain</Type>
+                </Meta>
+                <Data>)";
+    inputSyncML += value;
+    inputSyncML += LR"(</Data>
+              </Item>
+            </Replace>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    if (!RunSyncML(sid, inputSyncML, resultSyncML))
+    {
+        return false;
+    }
+
+    if (!IsSuccessful(inputSyncML, resultSyncML))
+    {
+        return false;
+    }
+    return true;
+}
+
+bool MdmProvision::RunSet(const wstring& sid, const wstring& path, unsigned int value)
+{
+    wstring inputSyncML = LR"(
+        <SyncBody>
+            <Replace>
+              <CmdID>1</CmdID>
+              <Item>
+                <Target>
+                  <LocURI>)";
+    inputSyncML += path;
+    inputSyncML += LR"(</LocURI>
+                </Target>
+                <Meta><Format xmlns="syncml:metinf">int</Format></Meta>
+                <Data>)";
+    inputSyncML += std::to_wstring(value);
+    inputSyncML += LR"(</Data>
+              </Item>
+            </Replace>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    if (!RunSyncML(sid, inputSyncML, resultSyncML))
+    {
+        return false;
+    }
+
+    if (!IsSuccessful(inputSyncML, resultSyncML))
+    {
+        return false;
+    }
+    return true;
+}
+
+bool MdmProvision::RunAdd(const std::wstring& path, std::wstring& value)
+{
+    // empty sid is okay for device-wide CSPs.
+    return RunAdd(L"", path, value);
+}
+
+bool MdmProvision::RunGet(const std::wstring& path, std::wstring& value)
+{
+    // empty sid is okay for device-wide CSPs.
+    return RunGet(L"", path, value);
+}
+
+bool MdmProvision::RunGet(const std::wstring& path, unsigned int& value)
+{
+    // empty sid is okay for device-wide CSPs.
+    return RunGet(L"", path, value);
+}
+
+bool MdmProvision::RunSet(const std::wstring& path, const std::wstring& value)
+{
+    // empty sid is okay for device-wide CSPs.
+    return RunSet(L"", path, value);
+}
+
+bool MdmProvision::RunSet(const std::wstring& path, unsigned int value)
+{
+    // empty sid is okay for device-wide CSPs.
+    return RunSet(L"", path, value);
+}
+
+bool MdmProvision::IsSuccessful(const std::wstring& requestSyncML, const std::wstring& resultSyncML)
+{
+    // The results have two top elements: Status and Results.
+    // Xml parser does not allow two top-level roots, so we have to wrap it in a root element first.
+    wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
+
+    wstring returnCodeString;
+    if (!XmlParser::ReadXmlValue(wrappedResult, STATUS_XML_PATH, returnCodeString))
+    {
+        TRACEP(L"Error: Failed to read: ", STATUS_XML_PATH);
+        ReportError(requestSyncML, resultSyncML, returnCodeString);
+        return false;
+    }
+
+    unsigned int returnCode = 0;
+    if (!Utils::StringToInt(returnCodeString, returnCode))
+    {
+        return false;
+    }
+    if (200 <= returnCode && returnCode < 300)
+    {
+        return true;
+    }
+    ReportError(requestSyncML, resultSyncML, returnCodeString);
+    return false;
+}
+
+void MdmProvision::InitializeErrorMessages()
 {
     // http://technical.openmobilealliance.org/Technical/release_program/docs/Common/V1_2_2-20090724-A/OMA-TS-SyncML-RepPro-V1_2_2-20090724-A.pdf
     // 10. Response Status Codes 
-    s_errorCodeToMessage[L"101"] = L"(Informational)In progress. The specified SyncML command is being carried out, but has not yet completed.";
+    s_errorCodeToMessage[L"101"] = L"(Informational) In progress. The specified SyncML command is being carried out, but has not yet completed.";
 
     s_errorCodeToMessage[L"200"] = L"(Successful)OK.  The SyncML command completed successfully.";
     s_errorCodeToMessage[L"201"] = L"(Successful)Item added.  The requested item was added.";
@@ -95,7 +384,7 @@ void SyncML::InitializeErrorMessages()
     s_errorCodeToMessage[L"517"] = L"(Recipient Exception) Atomic response too large to fit. The response to an atomic command was too large to fit in a single message.";
 }
 
-wstring SyncML::ErrorMessage(const wstring& errorCodeString)
+wstring MdmProvision::GetErrorMessage(const wstring& errorCodeString)
 {
     static bool initialized = false;
 
@@ -115,32 +404,25 @@ wstring SyncML::ErrorMessage(const wstring& errorCodeString)
     return errorMessage;
 }
 
-bool SyncML::IsSuccess(const std::wstring& returnCodeString)
-{
-    unsigned int returnCode = 0;
-    if (!Utils::StringToInt(returnCodeString, returnCode))
-    {
-        return false;
-    }
-    if (200 <= returnCode && returnCode < 300)
-    {
-        return true;
-    }
-    return false;
-}
-
-void SyncML::ReportError(const std::wstring& syncMLRequest, const std::wstring& syncMLResponse, const std::wstring& errorCodeString)
+void MdmProvision::ReportError(const std::wstring& syncMLRequest, const std::wstring& syncMLResponse, const std::wstring& errorCodeString)
 {
     if (s_errorVerbosity)
     {
         TRACE(L"Error:\n\n");
-        TRACEP(L"Request:\n",  syncMLRequest.c_str());
-        TRACEP(L"Response:\n",  syncMLResponse.c_str());
-        TRACEP(L"Error:\n",  errorCodeString.c_str());
-        TRACEP(L"Error Message:\n",  ErrorMessage(errorCodeString).c_str());
+        TRACEP(L"Request:\n", syncMLRequest.c_str());
+        TRACEP(L"Response:\n", syncMLResponse.c_str());
+        TRACEP(L"Error:\n", errorCodeString.c_str());
+        TRACEP(L"Error Message:\n", GetErrorMessage(errorCodeString).c_str());
     }
     else
     {
-        TRACEP(L"Error:\n",  ErrorMessage(errorCodeString).c_str());
+        TRACEP(L"Error:\n", GetErrorMessage(errorCodeString).c_str());
     }
+}
+
+void MdmProvision::ReportError(const std::wstring& syncMLRequest, const std::wstring& syncMLResponse)
+{
+    TRACE(L"Error:\n\n");
+    TRACEP(L"Request:\n", syncMLRequest.c_str());
+    TRACEP(L"Response:\n", syncMLResponse.c_str());
 }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ServiceBase.h"
-#include "..\LocalAgent\LocalAgent.h"
 #include "AzureAgent.h"
 
 class IoTDMService : public CServiceBase
@@ -27,5 +26,4 @@ private:
     HANDLE _stoppedEvent;
 
     AzureAgent _cloudAgent;
-    LocalAgent _localAgent;
 };

@@ -9,11 +9,10 @@
 #include "iothubtransportmqtt.h"
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/threadapi.h"
-#include "parson.h"
 
-#include "..\Utilities\Logger.h"
-#include "..\Utilities\Utils.h"
-#include "..\LocalAgent\LocalAgent.h"
+#include "Utilities\Logger.h"
+#include "Utilities\Utils.h"
+#include "LocalAgent\LocalAgent.h"
 
 using namespace Windows::Data::Json;
 using namespace Windows::Foundation::Collections;
@@ -29,6 +28,9 @@ using namespace std;
 #define JsonBatteryStatus "Status"
 
 #define JsonReboot "Reboot"
+#define JsonRebootW L"Reboot"
+
+#define JsonDesiredNode L"desired"
 
 AzureAgent::AzureAgent() :
     _batteryLevel(0),
@@ -121,77 +123,63 @@ void AzureAgent::OnReportedPropertiesSent(int status_code, void* userContextCall
     // AzureAgent* pThis = static_cast<AzureAgent*>(userContextCallback);
     // assert(pThis);
 
+    // ToDo: Log a message to the event log in case of failure code.
     TRACEP("IoTHub: reported properties delivered with status_code :", status_code);
 }
 
-bool AzureAgent::GetInnerJSon(DEVICE_TWIN_UPDATE_STATE update_state, JSON_Value* allJSON, bool& partial, string& innerJSon)
+#pragma push_macro("GetObject")
+#undef GetObject
+
+bool AzureAgent::GetInnerJSon(DEVICE_TWIN_UPDATE_STATE update_state, const string& allJson, IJsonValue^& desiredValue)
 {
-    JSON_Object *allObject = json_value_get_object(allJSON);
-    if (allObject == NULL)
+    TRACE(L"AzureAgent::GetInnerJSon()");
+    wstring wideJsonString = Utils::MultibyteToWide(allJson.c_str());
+
+    JsonValue^ value;
+    if (!JsonValue::TryParse(ref new String(wideJsonString.c_str()), &value) || (value == nullptr))
     {
-        TRACE("Error: Failure in json_value_get_object");
+        TRACE("Error: Failed to parse Json.");
         return false;
     }
 
-    switch (update_state)
+    if (update_state == DEVICE_TWIN_UPDATE_PARTIAL)
     {
-        case DEVICE_TWIN_UPDATE_COMPLETE:
-        {
-            TRACE("Complete");
-
-            JSON_Object* desired = json_object_get_object(allObject, "desired");
-            if (desired == NULL)
-            {
-                TRACE("Error: failure in json_object_get_object");
-            }
-            else
-            {
-                json_object_remove(desired, "$version"); //it might not exist
-                JSON_Value* desiredAfterRemove = json_object_get_value(allObject, "desired");
-                if (desiredAfterRemove != NULL)
-                {
-                    char* pretty = json_serialize_to_string(desiredAfterRemove);
-                    if (pretty == NULL)
-                    {
-                        TRACE("Error: failure in json_serialize_to_string");
-                    }
-                    else
-                    {
-                        TRACEP("Received inner json (complete):\n", pretty);
-                        partial = false;
-                        innerJSon = pretty;
-                        free(pretty);
-                    }
-                }
-            }
-            break;
-        }
-        case DEVICE_TWIN_UPDATE_PARTIAL:
-        {
-            TRACE("Partial");
-
-            json_object_remove(allObject, "$version");
-            char* pretty = json_serialize_to_string(allJSON);
-            if (pretty == NULL)
-            {
-                TRACE("Error: failure in json_serialize_to_string");
-            }
-            else
-            {
-                TRACEP("Received inner json (partial):\n", pretty);
-                partial = true;
-                innerJSon = pretty;
-                free(pretty);
-            }
-            break;
-        }
-        default:
-        {
-            TRACEP("Error: IotHub SDK Internal Error: unexpected value for update_state =", (int)update_state);
-        }
+        desiredValue = value;
+        return true;
     }
 
-    return true;
+    if (update_state != DEVICE_TWIN_UPDATE_COMPLETE)
+    {
+        return false;
+    }
+
+    // Locate the 'desired' node.
+    if (value->ValueType != JsonValueType::Object)
+    {
+        return false;
+    }
+
+    JsonObject^ object = value->GetObject();
+    if (object == nullptr)
+    {
+        return false;
+    }
+
+    for (IIterator<IKeyValuePair<String^, IJsonValue^>^>^ iter = object->First();
+        iter->HasCurrent;
+        iter->MoveNext())
+    {
+        IKeyValuePair<String^, IJsonValue^>^ pair = iter->Current;
+        String^ childKey = pair->Key;
+
+        // Look for "desired"
+        if (0 == wcscmp(childKey->Data(), JsonDesiredNode) && (pair->Value != nullptr))
+        {
+            desiredValue = pair->Value;
+            return true;
+        }
+    }
+    return false;
 }
 
 void AzureAgent::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payLoad, size_t bufferSize, void* userContextCallback)
@@ -201,26 +189,49 @@ void AzureAgent::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, cons
     AzureAgent* pThis = static_cast<AzureAgent*>(userContextCallback);
     assert(pThis);
 
-    vector<char> copyOfPayload(bufferSize + 1);
-    memcpy(copyOfPayload.data(), payLoad, bufferSize);
-    copyOfPayload[bufferSize] = '\0';
+    // Incoming buffer is not null terminated, let's make it into a null-terminated string before parsing.
+    string copyOfPayload(reinterpret_cast<const char*>(payLoad), bufferSize);
 
-    JSON_Value* allJSON = json_parse_string(copyOfPayload.data());
-    if (allJSON == NULL)
+    TRACEP("Desired Propertie String: ", copyOfPayload.c_str());
+
+    IJsonValue^ desiredValue;
+    if (GetInnerJSon(update_state, copyOfPayload, desiredValue))
     {
-        TRACE("Error: Failure in json_parse_string");
-        return;
+        pThis->ProcessDesiredProperties(desiredValue);
     }
-
-    bool partial = true;
-    string innerJSon;
-    if (GetInnerJSon(update_state, allJSON, partial, innerJSon))
-    {
-        pThis->ProcessDesiredProperties(innerJSon);
-    }
-
-    json_value_free(allJSON);
 }
+
+bool AzureAgent::ProcessDesiredProperties(IJsonValue^ desiredPropertyValue)
+{
+    TRACE(L"ProcessDesiredProperties()");
+    switch (desiredPropertyValue->ValueType)
+    {
+    case JsonValueType::Object:
+    {
+        // Iterate through the desired properties top-level nodes.
+        JsonObject^ object = desiredPropertyValue->GetObject();
+        if (object != nullptr)
+        {
+            // auto iter = object->First();
+            for (IIterator<IKeyValuePair<String^, IJsonValue^>^>^ iter = object->First();
+                 iter->HasCurrent;
+                 iter->MoveNext())
+            {
+                IKeyValuePair<String^, IJsonValue^>^ pair = iter->Current;
+                String^ childKey = pair->Key;
+                if (0 == wcscmp(childKey->Data(), JsonRebootW))
+                {
+                    OnReboot(pair->Value);
+                }
+            }
+        }
+    }
+    break;
+    }
+    return true;
+}
+
+#pragma pop_macro("GetObject")
 
 bool AzureAgent::ProcessMessage(const string& command)
 {
@@ -233,54 +244,6 @@ bool AzureAgent::ProcessMessage(const string& command)
     return true;
 }
 
-#pragma push_macro("GetObject")
-#undef GetObject
-
-bool AzureAgent::ProcessDesiredProperties(const string& jsonString)
-{
-    TRACE(L"ProcessDesiredProperties()");
-    wstring wideJsonString = Utils::MultibyteToWide(jsonString.c_str());
-
-    JsonValue^ value;
-    if (!JsonValue::TryParse(ref new String(wideJsonString.c_str()), &value) || (value == nullptr))
-    {
-        TRACE("Error: Failed to parse Json.");
-        return false;
-    }
-
-    switch (value->ValueType)
-    {
-    case JsonValueType::Object:
-    {
-        // Iterate through the desired properties top-level nodes.
-        JsonObject^ object = value->GetObject();
-        if (object != nullptr)
-        {
-            // auto iter = object->First();
-            for (IIterator<IKeyValuePair<String^, IJsonValue^>^>^ iter = object->First();
-                 iter->HasCurrent;
-                 iter->MoveNext())
-            {
-#if 0
-                // Sample code (note that reboot is implemented as a message right now).
-                IKeyValuePair<String^, IJsonValue^>^ pair = iter->Current;
-                String^ childKey = pair->Key;
-                if (0 == wcscmp(childKey->Data(), JsonReboot))
-                {
-                    OnReboot(pair->Value);
-                }
-#endif
-            }
-        }
-    }
-    break;
-    }
-    return true;
-}
-
-#pragma pop_macro("GetObject")
-
-#if 0
 // Sample code for desired properties.
 bool AzureAgent::OnReboot(IJsonValue^ rebootNode)
 {
@@ -290,11 +253,10 @@ bool AzureAgent::OnReboot(IJsonValue^ rebootNode)
     {
         String^ childValueString = rebootNode->GetString();
         TRACE(L"OnReboot() should not be called through the 'desired' properties.");
-        LocalAgent::Reboot();
+        // LocalAgent::Reboot();
     }
     return true;
 }
-#endif
 
 void AzureAgent::SetBatteryLevel(unsigned int level)
 {

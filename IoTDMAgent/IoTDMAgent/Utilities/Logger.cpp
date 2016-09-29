@@ -20,10 +20,6 @@ void Logger::Log(const char*  message)
     SYSTEMTIME systemTime;
     GetLocalTime(&systemTime);
 
-    // save format
-    ios state(nullptr);
-    state.copyfmt(cout);
-
     // format time
     ostringstream formattedTime; 
     formattedTime << setw(2) << setfill('0') << (systemTime.wHour > 12 ? (systemTime.wHour - 12) : systemTime.wHour) 
@@ -53,8 +49,6 @@ void Logger::Log(const char*  message)
         outFile << messageWithTime;
         outFile.close();
     }
-    // restore format
-    cout.copyfmt(state);
 }
 
 void Logger::Log(const wchar_t*  message)

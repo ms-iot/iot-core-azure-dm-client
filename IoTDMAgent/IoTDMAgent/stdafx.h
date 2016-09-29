@@ -10,5 +10,5 @@
 #include <stdio.h>
 #include <tchar.h>
 
-#include "..\Utilities\Logger.h"
-#include "..\Utilities\Utils.h"
+#include "Utilities\Logger.h"
+#include "Utilities\Utils.h"

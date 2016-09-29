@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ServiceBase.h"
-#include "..\Utilities\Utils.h"
-#include "..\Utilities\Logger.h"
+#include "Utilities\Utils.h"
+#include "Utilities\Logger.h"
 #include <assert.h>
 #include <strsafe.h>
 

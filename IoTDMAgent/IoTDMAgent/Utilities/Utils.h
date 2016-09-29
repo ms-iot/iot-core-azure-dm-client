@@ -16,4 +16,6 @@ namespace Utils
     void SplitString(const std::wstring& s, wchar_t c, std::vector<std::wstring>& tokens);
 
     bool StringToInt(const std::wstring& s, unsigned int& i);
+
+    std::wstring GetResourceString(int id);
 }
