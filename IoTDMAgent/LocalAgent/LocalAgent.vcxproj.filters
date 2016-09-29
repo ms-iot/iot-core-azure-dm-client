@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="CSPs">
+      <UniqueIdentifier>{30c701c8-7332-4ff8-823d-540aeada4ef1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CSPs\PrivateAPIs">
+      <UniqueIdentifier>{2d2506f0-9576-4607-99dc-137f70fa728f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CSPs">
+      <UniqueIdentifier>{fa995930-ef52-4e38-829b-3b3b5317c9f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CSPs\PrivateAPIs">
+      <UniqueIdentifier>{e7285506-6e4c-4d0b-acc7-1fe2bd8bee68}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalAgent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\PrivateAPIs\CSPController.h">
+      <Filter>Header Files\CSPs\PrivateAPIs</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\PrivateAPIs\IProvisioningDPULocal.h">
+      <Filter>Header Files\CSPs\PrivateAPIs</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\CSPClient.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\PolicyCSP.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\SyncMLHelper.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\UpdateCSP.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalAgent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\PrivateAPIs\CSPController.cpp">
+      <Filter>CSPs\PrivateAPIs</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\CSPClient.cpp">
+      <Filter>CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\PolicyCSP.cpp">
+      <Filter>CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\SyncMLHelper.cpp">
+      <Filter>CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\UpdateCSP.cpp">
+      <Filter>CSPs</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
