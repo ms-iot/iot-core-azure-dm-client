@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IoTDMAgent", "IoTDMAgent\IoTDMAgent.vcxproj", "{BC896087-BD60-4D31-B3B6-24F725FFD7DF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0D029F75-2978-42EB-897C-B3B138E2F561} = {0D029F75-2978-42EB-897C-B3B138E2F561}
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3} = {2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utilities", "Utilities\Utilities.vcxproj", "{0D029F75-2978-42EB-897C-B3B138E2F561}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LocalAgent", "LocalAgent\LocalAgent.vcxproj", "{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0D029F75-2978-42EB-897C-B3B138E2F561} = {0D029F75-2978-42EB-897C-B3B138E2F561}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|ARM = Release|ARM
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BC896087-BD60-4D31-B3B6-24F725FFD7DF}.Debug|ARM.ActiveCfg = Debug|ARM
+		{BC896087-BD60-4D31-B3B6-24F725FFD7DF}.Debug|ARM.Build.0 = Debug|ARM
+		{BC896087-BD60-4D31-B3B6-24F725FFD7DF}.Debug|x64.ActiveCfg = Debug|x64
+		{BC896087-BD60-4D31-B3B6-24F725FFD7DF}.Debug|x64.Build.0 = Debug|x64
+		{BC896087-BD60-4D31-B3B6-24F725FFD7DF}.Debug|x86.ActiveCfg = Debug|Win32
+		{BC896087-BD60-4D31-B3B6-24F725FFD7DF}.Debug|x86.Build.0 = Debug|Win32
+		{BC896087-BD60-4D31-B3B6-24F725FFD7DF}.Release|ARM.ActiveCfg = Release|ARM
+		{BC896087-BD60-4D31-B3B6-24F725FFD7DF}.Release|ARM.Build.0 = Release|ARM
+		{BC896087-BD60-4D31-B3B6-24F725FFD7DF}.Release|x64.ActiveCfg = Release|x64
+		{BC896087-BD60-4D31-B3B6-24F725FFD7DF}.Release|x64.Build.0 = Release|x64
+		{BC896087-BD60-4D31-B3B6-24F725FFD7DF}.Release|x86.ActiveCfg = Release|Win32
+		{BC896087-BD60-4D31-B3B6-24F725FFD7DF}.Release|x86.Build.0 = Release|Win32
+		{0D029F75-2978-42EB-897C-B3B138E2F561}.Debug|ARM.ActiveCfg = Debug|ARM
+		{0D029F75-2978-42EB-897C-B3B138E2F561}.Debug|ARM.Build.0 = Debug|ARM
+		{0D029F75-2978-42EB-897C-B3B138E2F561}.Debug|x64.ActiveCfg = Debug|x64
+		{0D029F75-2978-42EB-897C-B3B138E2F561}.Debug|x64.Build.0 = Debug|x64
+		{0D029F75-2978-42EB-897C-B3B138E2F561}.Debug|x86.ActiveCfg = Debug|Win32
+		{0D029F75-2978-42EB-897C-B3B138E2F561}.Debug|x86.Build.0 = Debug|Win32
+		{0D029F75-2978-42EB-897C-B3B138E2F561}.Release|ARM.ActiveCfg = Release|ARM
+		{0D029F75-2978-42EB-897C-B3B138E2F561}.Release|ARM.Build.0 = Release|ARM
+		{0D029F75-2978-42EB-897C-B3B138E2F561}.Release|x64.ActiveCfg = Release|x64
+		{0D029F75-2978-42EB-897C-B3B138E2F561}.Release|x64.Build.0 = Release|x64
+		{0D029F75-2978-42EB-897C-B3B138E2F561}.Release|x86.ActiveCfg = Release|Win32
+		{0D029F75-2978-42EB-897C-B3B138E2F561}.Release|x86.Build.0 = Release|Win32
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}.Debug|ARM.ActiveCfg = Debug|ARM
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}.Debug|ARM.Build.0 = Debug|ARM
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}.Debug|x64.ActiveCfg = Debug|x64
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}.Debug|x64.Build.0 = Debug|x64
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}.Debug|x86.ActiveCfg = Debug|Win32
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}.Debug|x86.Build.0 = Debug|Win32
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}.Release|ARM.ActiveCfg = Release|ARM
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}.Release|ARM.Build.0 = Release|ARM
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}.Release|x64.ActiveCfg = Release|x64
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}.Release|x64.Build.0 = Release|x64
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}.Release|x86.ActiveCfg = Release|Win32
+		{2E4CC9AC-5B89-4DDC-A9F8-6389D99BD3C3}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
