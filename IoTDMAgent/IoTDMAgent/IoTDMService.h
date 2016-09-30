@@ -1,4 +1,7 @@
 #pragma once
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include "ServiceBase.h"
 #include "AzureAgent.h"
@@ -11,19 +14,22 @@ public:
         BOOL canStop = TRUE,
         BOOL canShutdown = TRUE,
         BOOL canPauseContinue = FALSE);
-    virtual ~IoTDMService(void);
 
 protected:
 
     virtual void OnStart(DWORD argc, PWSTR *argv);
     virtual void OnStop();
 
-    void ServiceWorkerThread(void);
+     static void ServiceWorkerThread(void);
+     void ServiceWorkerThreadHelper(void);
 
 private:
+    static IoTDMService* _this;
 
-    BOOL _stopping;
-    HANDLE _stoppedEvent;
+    bool _stopping;
+
+    std::mutex _mutex;
+    std::condition_variable _workDone;
 
     AzureAgent _cloudAgent;
 };

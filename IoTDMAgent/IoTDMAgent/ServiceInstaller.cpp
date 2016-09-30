@@ -4,27 +4,6 @@
 #include "ServiceInstaller.h"
 #include "Utilities\Logger.h"
 
-//
-//   FUNCTION: InstallService
-//
-//   PURPOSE: Install the current application as a service to the local 
-//   service control manager database.
-//
-//   PARAMETERS:
-//   * serviceName - the name of the service to be installed
-//   * pszDisplayName - the display name of the service
-//   * dwStartType - the service start option. This parameter can be one of 
-//     the following values: SERVICE_AUTO_START, SERVICE_BOOT_START, 
-//     SERVICE_DEMAND_START, SERVICE_DISABLED, SERVICE_SYSTEM_START.
-//   * pszDependencies - a pointer to a double null-terminated array of null-
-//     separated names of services or load ordering groups that the system 
-//     must start before this service.
-//   * pszAccount - the name of the account under which the service runs.
-//   * pszPassword - the password to the account name.
-//
-//   NOTE: If the function fails to install the service, it prints the error 
-//   in the standard output stream for users to diagnose the problem.
-//
 void InstallService(PWSTR serviceName, 
                     PWSTR pszDisplayName, 
                     DWORD dwStartType,
@@ -33,27 +12,20 @@ void InstallService(PWSTR serviceName,
                     PWSTR pszPassword)
 {
     wchar_t szPath[MAX_PATH];
-    SC_HANDLE schSCManager = NULL;
-    SC_HANDLE schService = NULL;
-
     if (GetModuleFileName(NULL, szPath, ARRAYSIZE(szPath)) == 0)
     {
         TRACEP(L"GetModuleFileName failed w/err :",  GetLastError());
-
-        goto Cleanup;
+        return;
     }
 
-    // Open the local default service control manager database
-    schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT | SC_MANAGER_CREATE_SERVICE);
+    SC_HANDLE schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT | SC_MANAGER_CREATE_SERVICE);
     if (schSCManager == NULL)
     {
-        TRACEP(L"OpenSCManager failed w/err :",  GetLastError());
-
-        goto Cleanup;
+        TRACEP(L"OpenSCManager failed w/err :", GetLastError());
     }
 
     // Install the service into SCM by calling CreateService
-    schService = CreateService(
+    SC_HANDLE schService = CreateService(
         schSCManager,                   // SCManager database
         serviceName,                 // Name of service
         pszDisplayName,                 // Name to display
@@ -67,31 +39,21 @@ void InstallService(PWSTR serviceName,
         pszDependencies,                // Dependencies
         pszAccount,                     // Service running account
         pszPassword                     // Password of the account
-        );
-    if (schService == NULL)
-    {
-        TRACEP(L"CreateService failed w/err :",  GetLastError());
-
-        goto Cleanup;
-    }
-
-    TRACE(L"Installed successfully!");
-
-
-Cleanup:
-    // Centralized cleanup for all allocated resources.
-    if (schSCManager)
-    {
-        CloseServiceHandle(schSCManager);
-        schSCManager = NULL;
-    }
-    if (schService)
+    );
+    if (schService != NULL)
     {
         CloseServiceHandle(schService);
         schService = NULL;
+        TRACE(L"Installed successfully!");
     }
-}
+    else
+    {
+        TRACEP(L"CreateService failed w/err :", GetLastError());
+    }
 
+    CloseServiceHandle(schSCManager);
+    schSCManager = NULL;
+}
 
 //
 //   FUNCTION: UninstallService
@@ -107,76 +69,65 @@ Cleanup:
 //
 void UninstallService(PWSTR serviceName)
 {
-    SC_HANDLE schSCManager = NULL;
-    SC_HANDLE schService = NULL;
-    SERVICE_STATUS ssSvcStatus = {};
-
-    // Open the local default service control manager database
-    schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+    SC_HANDLE schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
     if (schSCManager == NULL)
     {
-        TRACEP(L"OpenSCManager failed w/err :",  GetLastError());
-
-        goto Cleanup;
+        TRACEP(L"OpenSCManager failed w/err :", GetLastError());
+        return;
     }
 
     // Open the service with delete, stop, and query status permissions
-    schService = OpenService(schSCManager, serviceName, SERVICE_STOP | 
-        SERVICE_QUERY_STATUS | DELETE);
-    if (schService == NULL)
+    SC_HANDLE schService = OpenService(schSCManager, serviceName, SERVICE_STOP | SERVICE_QUERY_STATUS | DELETE);
+    if (schService != NULL)
     {
-        TRACEP(L"OpenService failed w/err :",  GetLastError());
-
-        goto Cleanup;
-    }
-
-    // Try to stop the service
-    if (ControlService(schService, SERVICE_CONTROL_STOP, &ssSvcStatus))
-    {
-        TRACEP(L"Stopping ",  serviceName);
-
-        Sleep(1000);
-
-        while (QueryServiceStatus(schService, &ssSvcStatus))
+        // Try to stop the service
+        SERVICE_STATUS ssSvcStatus = {};
+        if (ControlService(schService, SERVICE_CONTROL_STOP, &ssSvcStatus))
         {
-            if (ssSvcStatus.dwCurrentState == SERVICE_STOP_PENDING)
+            TRACEP(L"Stopping ", serviceName);
+            Sleep(1000);
+
+            while (QueryServiceStatus(schService, &ssSvcStatus))
             {
-                TRACE(L".");
-                Sleep(1000);
+                if (ssSvcStatus.dwCurrentState == SERVICE_STOP_PENDING)
+                {
+                    TRACE(L".");
+                    Sleep(1000);
+                }
+                else
+                {
+                    break;
+                }
             }
-            else break;
+
+            if (ssSvcStatus.dwCurrentState == SERVICE_STOPPED)
+            {
+                TRACE(L"\nStopped.");
+            }
+            else
+            {
+                TRACE(L"\nError: Failed to stop.");
+            }
         }
 
-        if (ssSvcStatus.dwCurrentState == SERVICE_STOPPED)
+        // Now remove the service by calling DeleteService.
+        if (DeleteService(schService))
         {
-            TRACE(L"\nStopped.");
-
+            TRACE(L"Service uninstalled.");
         }
         else
         {
-            TRACE(L"\nError: Failed to stop.");
+            TRACEP(L"DeleteService failed w/err :", GetLastError());
         }
-    }
 
-    // Now remove the service by calling DeleteService.
-    if (!DeleteService(schService))
-    {
-        TRACEP(L"DeleteService failed w/err :",  GetLastError());
-        goto Cleanup;
-    }
-
-    TRACE(L"Service uninstalled.");
-
-Cleanup:
-    // Centralized cleanup for all allocated resources.
-    if (schSCManager)
-    {
-        CloseServiceHandle(schSCManager);
-        schSCManager = NULL;
-    }
-    if (schService)
-    {
         CloseServiceHandle(schService);
         schService = NULL;
     }
+    else
+    {
+        TRACEP(L"OpenService failed w/err :", GetLastError());
+    }
+
+    CloseServiceHandle(schSCManager);
+    schSCManager = NULL;
 }
