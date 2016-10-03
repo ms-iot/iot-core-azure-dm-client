@@ -244,17 +244,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AzureAgent.h" />
+    <ClInclude Include="AzureProxy.h" />
     <ClInclude Include="IoTDMService.h" />
-    <ClInclude Include="LocalAgent\CSPs\MdmProvision.h" />
-    <ClInclude Include="LocalAgent\CSPs\PolicyCSP.h" />
-    <ClInclude Include="LocalAgent\CSPs\PrivateAPIs\CSPController.h" />
-    <ClInclude Include="LocalAgent\CSPs\PrivateAPIs\IProvisioningDPULocal.h" />
-    <ClInclude Include="LocalAgent\CSPs\UpdateCSP.h" />
-    <ClInclude Include="LocalAgent\LocalAgent.h" />
+    <ClInclude Include="LocalMachine\CSPs\MdmProvision.h" />
+    <ClInclude Include="LocalMachine\CSPs\PolicyCSP.h" />
+    <ClInclude Include="LocalMachine\CSPs\PrivateAPIs\CSPController.h" />
+    <ClInclude Include="LocalMachine\CSPs\PrivateAPIs\IProvisioningDPULocal.h" />
+    <ClInclude Include="LocalMachine\CSPs\UpdateCSP.h" />
+    <ClInclude Include="LocalMachine\LocalMachine.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ServiceBase.h" />
     <ClInclude Include="ServiceInstaller.h" />
@@ -265,14 +262,14 @@
     <ClInclude Include="Utilities\XmlParser.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AzureAgent.cpp" />
+    <ClCompile Include="AzureProxy.cpp" />
     <ClCompile Include="IoTDMAgent.cpp" />
     <ClCompile Include="IoTDMService.cpp" />
-    <ClCompile Include="LocalAgent\CSPs\MdmProvision.cpp" />
-    <ClCompile Include="LocalAgent\CSPs\PolicyCSP.cpp" />
-    <ClCompile Include="LocalAgent\CSPs\PrivateAPIs\CSPController.cpp" />
-    <ClCompile Include="LocalAgent\CSPs\UpdateCSP.cpp" />
-    <ClCompile Include="LocalAgent\LocalAgent.cpp" />
+    <ClCompile Include="LocalMachine\CSPs\MdmProvision.cpp" />
+    <ClCompile Include="LocalMachine\CSPs\PolicyCSP.cpp" />
+    <ClCompile Include="LocalMachine\CSPs\PrivateAPIs\CSPController.cpp" />
+    <ClCompile Include="LocalMachine\CSPs\UpdateCSP.cpp" />
+    <ClCompile Include="LocalMachine\LocalMachine.cpp" />
     <ClCompile Include="ServiceBase.cpp" />
     <ClCompile Include="ServiceInstaller.cpp" />
     <ClCompile Include="stdafx.cpp">

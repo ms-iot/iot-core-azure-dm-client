@@ -13,22 +13,22 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\LocalAgent">
+    <Filter Include="Header Files\LocalMachine">
       <UniqueIdentifier>{2525e957-6ddb-47b1-9d51-51bd7f4d9167}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\LocalAgent">
+    <Filter Include="Source Files\LocalMachine">
       <UniqueIdentifier>{50443752-6611-4297-9ef7-7c5cef01178b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\LocalAgent\CSPs">
+    <Filter Include="Header Files\LocalMachine\CSPs">
       <UniqueIdentifier>{6af7b9b8-c9d6-4120-86f1-0c784f3479b4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\LocalAgent\CSPs">
+    <Filter Include="Source Files\LocalMachine\CSPs">
       <UniqueIdentifier>{cc0431ff-ec77-463d-84bb-c33ac673262e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\LocalAgent\CSPs\PrivateAPIs">
+    <Filter Include="Header Files\LocalMachine\CSPs\PrivateAPIs">
       <UniqueIdentifier>{48cd2fe3-4a8d-4f2a-853d-baa21585c687}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\LocalAgent\CSPs\PrivateAPIs">
+    <Filter Include="Source Files\LocalMachine\CSPs\PrivateAPIs">
       <UniqueIdentifier>{ffc89973-8470-4404-88ce-b6401f04d9c1}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Utilities">
@@ -37,9 +37,6 @@
     <Filter Include="Source Files\Utilities">
       <UniqueIdentifier>{c6b59a64-3fcd-4cba-8d32-1ced6d753393}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -57,29 +54,23 @@
     <ClInclude Include="ServiceInstaller.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AzureAgent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LocalAgent\CSPs\PrivateAPIs\CSPController.h">
-      <Filter>Header Files\LocalAgent\CSPs\PrivateAPIs</Filter>
+    <ClInclude Include="LocalMachine\CSPs\PrivateAPIs\CSPController.h">
+      <Filter>Header Files\LocalMachine\CSPs\PrivateAPIs</Filter>
     </ClInclude>
-    <ClInclude Include="LocalAgent\CSPs\PrivateAPIs\IProvisioningDPULocal.h">
-      <Filter>Header Files\LocalAgent\CSPs\PrivateAPIs</Filter>
+    <ClInclude Include="LocalMachine\CSPs\PrivateAPIs\IProvisioningDPULocal.h">
+      <Filter>Header Files\LocalMachine\CSPs\PrivateAPIs</Filter>
     </ClInclude>
-    <ClInclude Include="LocalAgent\CSPs\MdmProvision.h">
-      <Filter>Header Files\LocalAgent\CSPs</Filter>
+    <ClInclude Include="LocalMachine\CSPs\MdmProvision.h">
+      <Filter>Header Files\LocalMachine\CSPs</Filter>
     </ClInclude>
-    <ClInclude Include="LocalAgent\CSPs\PolicyCSP.h">
-      <Filter>Header Files\LocalAgent\CSPs</Filter>
+    <ClInclude Include="LocalMachine\CSPs\PolicyCSP.h">
+      <Filter>Header Files\LocalMachine\CSPs</Filter>
     </ClInclude>
-    <ClInclude Include="LocalAgent\CSPs\UpdateCSP.h">
-      <Filter>Header Files\LocalAgent\CSPs</Filter>
-    </ClInclude>
-    <ClInclude Include="LocalAgent\LocalAgent.h">
-      <Filter>Header Files\LocalAgent</Filter>
+    <ClInclude Include="LocalMachine\CSPs\UpdateCSP.h">
+      <Filter>Header Files\LocalMachine\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Logger.h">
       <Filter>Header Files\Utilities</Filter>
@@ -89,6 +80,12 @@
     </ClInclude>
     <ClInclude Include="Utilities\XmlParser.h">
       <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="AzureProxy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalMachine\LocalMachine.h">
+      <Filter>Header Files\LocalMachine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -107,23 +104,17 @@
     <ClCompile Include="ServiceInstaller.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AzureAgent.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="LocalMachine\CSPs\PrivateAPIs\CSPController.cpp">
+      <Filter>Source Files\LocalMachine\CSPs\PrivateAPIs</Filter>
     </ClCompile>
-    <ClCompile Include="LocalAgent\CSPs\PrivateAPIs\CSPController.cpp">
-      <Filter>Source Files\LocalAgent\CSPs\PrivateAPIs</Filter>
+    <ClCompile Include="LocalMachine\CSPs\UpdateCSP.cpp">
+      <Filter>Source Files\LocalMachine\CSPs</Filter>
     </ClCompile>
-    <ClCompile Include="LocalAgent\CSPs\UpdateCSP.cpp">
-      <Filter>Source Files\LocalAgent\CSPs</Filter>
+    <ClCompile Include="LocalMachine\CSPs\PolicyCSP.cpp">
+      <Filter>Source Files\LocalMachine\CSPs</Filter>
     </ClCompile>
-    <ClCompile Include="LocalAgent\CSPs\PolicyCSP.cpp">
-      <Filter>Source Files\LocalAgent\CSPs</Filter>
-    </ClCompile>
-    <ClCompile Include="LocalAgent\CSPs\MdmProvision.cpp">
-      <Filter>Source Files\LocalAgent\CSPs</Filter>
-    </ClCompile>
-    <ClCompile Include="LocalAgent\LocalAgent.cpp">
-      <Filter>Source Files\LocalAgent</Filter>
+    <ClCompile Include="LocalMachine\CSPs\MdmProvision.cpp">
+      <Filter>Source Files\LocalMachine\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\Logger.cpp">
       <Filter>Source Files\Utilities</Filter>
@@ -133,6 +124,12 @@
     </ClCompile>
     <ClCompile Include="Utilities\XmlParser.cpp">
       <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="AzureProxy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalMachine\LocalMachine.cpp">
+      <Filter>Source Files\LocalMachine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

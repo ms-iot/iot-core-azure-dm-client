@@ -8,7 +8,7 @@
 using namespace std;
 
 #if _DEBUG
-void UpdateCSP::LogGuids(const vector<wstring> guids)
+void UpdateCSP::LogGuids(const vector<wstring>& guids)
 {
     if (guids.size() > 0)
     {

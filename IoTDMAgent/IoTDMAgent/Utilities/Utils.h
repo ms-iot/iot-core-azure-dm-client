@@ -13,7 +13,7 @@ namespace Utils
 
     time_t TimeFromSystemTime(const SYSTEMTIME& time);
 
-    void SplitString(const std::wstring& s, wchar_t c, std::vector<std::wstring>& tokens);
+    void SplitString(const std::wstring& s, wchar_t delim, std::vector<std::wstring>& tokens);
 
     bool StringToInt(const std::wstring& s, unsigned int& i);
 

@@ -17,55 +17,55 @@ Logger::Logger(bool console, const wchar_t* logFileName) :
 
 void Logger::Log(const char*  message)
 {
+    std::wstring s = Utils::MultibyteToWide(message);
+    Log(s.c_str());
+}
+
+void Logger::Log(const wchar_t*  message)
+{
     SYSTEMTIME systemTime;
     GetLocalTime(&systemTime);
 
     // format time
-    ostringstream formattedTime; 
-    formattedTime << setw(2) << setfill('0') << (systemTime.wHour > 12 ? (systemTime.wHour - 12) : systemTime.wHour) 
-        << '-' << setw(2) << setfill('0') << systemTime.wMinute
-        << '-' << setw(2) << setfill('0') << systemTime.wSecond;
+    basic_ostringstream<wchar_t> formattedTime; 
+    formattedTime << setw(2) << setfill(L'0') << (systemTime.wHour > 12 ? (systemTime.wHour - 12) : systemTime.wHour) 
+        << L'-' << setw(2) << setfill(L'0') << systemTime.wMinute
+        << L'-' << setw(2) << setfill(L'0') << systemTime.wSecond;
 
     // format thread id
-    ostringstream formattedThreadId;
-    formattedThreadId << setw(8) << setfill('0') << GetThreadId(GetCurrentThread());
+    basic_ostringstream<wchar_t> formattedThreadId;
+    formattedThreadId << setw(8) << setfill(L'0') << GetThreadId(GetCurrentThread());
 
     // build message
-    string messageWithTime = formattedTime.str() + " "
-                            + (systemTime.wHour >= 12 ? "PM " : "AM ")
-                            + "[" + formattedThreadId.str() + "] "
+    wstring messageWithTime = formattedTime.str() + L" "
+                            + (systemTime.wHour >= 12 ? L"PM " : L"AM ")
+                            + L"[" + formattedThreadId.str() + L"] "
                             + message
-                            + "\r\n";
+                            + L"\r\n";
 
     // share...
     if (_console)
     {
-        cout << messageWithTime;
+        wcout << messageWithTime;
     }
 
     if (_logFileName.size())
     {
-        ofstream outFile(_logFileName, fstream::app);
+        basic_ofstream<wchar_t> outFile(_logFileName, fstream::app);
         outFile << messageWithTime;
         outFile.close();
     }
 }
 
-void Logger::Log(const wchar_t*  message)
+void Logger::Log(const char*  format, const char* param)
 {
-    std::string s = Utils::WideToMultibyte(message);
-    Log(s.c_str());
+    std::wstring f = Utils::MultibyteToWide(format);
+    std::wstring p = Utils::MultibyteToWide(param);
+    Log<const wchar_t*>(f.c_str(), p.c_str());
 }
 
-void Logger::Log(const wchar_t*  format, const wchar_t* param)
+void Logger::Log(const char*  format, int param)
 {
-    std::string m = Utils::WideToMultibyte(format);
-    std::string p = Utils::WideToMultibyte(param);
-    Log<const char*>(m.c_str(), p.c_str());
-}
-
-void Logger::Log(const wchar_t*  format, int param)
-{
-    std::string m = Utils::WideToMultibyte(format);
-    Log<int>(m.c_str(), param);
+    std::wstring f = Utils::MultibyteToWide(format);
+    Log<int>(f.c_str(), param);
 }

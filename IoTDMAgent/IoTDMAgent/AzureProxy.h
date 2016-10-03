@@ -20,7 +20,7 @@ public:
 
 private:
     static void OnReportedPropertiesSent(int status_code, void* userContextCallback);
-    static void OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payLoad, size_t size, void* userContextCallback);
+    static void OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payload, size_t size, void* userContextCallback);
     static IOTHUBMESSAGE_DISPOSITION_RESULT OnMessageReceived(IOTHUB_MESSAGE_HANDLE message, void* userContextCallback);
     static bool GetInnerJSon(DEVICE_TWIN_UPDATE_STATE update_state, const std::string& allJson, Windows::Data::Json::IJsonValue^& desiredValue);
 
@@ -29,6 +29,7 @@ private:
 
     // Sample code for desired properties.
     bool OnReboot(Windows::Data::Json::IJsonValue^ rebootNode);
+    bool OnProp1(Windows::Data::Json::IJsonValue^ prop1Node);
 
     // Data members
     IOTHUB_CLIENT_HANDLE _iotHubClientHandle;

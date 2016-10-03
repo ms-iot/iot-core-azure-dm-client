@@ -17,15 +17,15 @@ public:
     void Log(const wchar_t*  message);
 
     template<class T>
-    void Log(const char* format, T param)
+    void Log(const wchar_t* format, T param)
     {
-        ostringstream message;
-        message << format << ' ' << param;
+        std::basic_ostringstream<wchar_t> message;
+        message << format << L' ' << param;
         Log(message.str().c_str());
     }
 
-    void Log(const wchar_t*  format, const wchar_t* param);
-    void Log(const wchar_t*  format, int param);
+    void Log(const char* format, const char* param);
+    void Log(const char* format, int param);
 
 private:
     bool _console;

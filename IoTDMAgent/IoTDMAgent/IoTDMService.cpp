@@ -1,36 +1,33 @@
 #include "stdafx.h"
 #include <thread>
 #include "IoTDMService.h"
-#include "LocalAgent\LocalAgent.h"
+#include "LocalMachine\LocalMachine.h"
 
 // Device twin update interval in seconds
 #define DEVICE_TWIN_UPDATE_INTERVAL 5
-#define AZURE_TEST_CONNECTION_STRING "<Device Connection String>"
+#define AZURE_TEST_CONNECTION_STRING "HostName=rc-test-005.private.azure-devices-int.net;DeviceId=gmileka01;SharedAccessKey=McvlYZ/NmgECyMwQOOflGbmAwjYxk/u613vD9E9mwxY="
 
 using namespace std;
 
-IoTDMService* IoTDMService::_this;
-
 IoTDMService::IoTDMService(PWSTR serviceName, BOOL canStop, BOOL canShutdown, BOOL canPauseContinue)
-    : CServiceBase(serviceName, canStop, canShutdown, canPauseContinue)
+    : CServiceBase(serviceName, canStop, canShutdown, canPauseContinue),
+    _stopSignaled(false)
 {
     TRACE("IoTDMService.ctor()");
-
-    _this = this;
-    _stopping = false;
 }
 
 void IoTDMService::OnStart(DWORD argc, LPWSTR *lpszArgv)
 {
     TRACE("IoTDMService.OnStart()");
 
-    thread dmThread(ServiceWorkerThread);
+    thread dmThread(ServiceWorkerThread, this);
     dmThread.detach();
 }
 
-void IoTDMService::ServiceWorkerThread(void)
+void IoTDMService::ServiceWorkerThread(void* context)
 {
-    _this->ServiceWorkerThreadHelper();
+    IoTDMService* iotDMService = static_cast<IoTDMService*>(context);
+    iotDMService->ServiceWorkerThreadHelper();
 }
 
 void IoTDMService::ServiceWorkerThreadHelper(void)
@@ -39,15 +36,15 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
 
     if (_cloudAgent.Setup(AZURE_TEST_CONNECTION_STRING))
     {
-        while (!_stopping)
+        while (!_stopSignaled)
         {
             TRACE("IoTDMService.ServiceWorkerThread()->Loop");
 
             // Sync the device twin...
-            _cloudAgent.SetTotalMemoryMB(LocalAgent::GetTotalMemoryMB());
-            _cloudAgent.SetAvailableMemoryMB(LocalAgent::GetAvailableMemoryMB());
-            _cloudAgent.SetBatteryLevel(LocalAgent::GetBatteryLevel());
-            _cloudAgent.SetBatteryStatus(LocalAgent::GetBatteryStatus());
+            _cloudAgent.SetTotalMemoryMB(LocalMachine::GetTotalMemoryMB());
+            _cloudAgent.SetAvailableMemoryMB(LocalMachine::GetAvailableMemoryMB());
+            _cloudAgent.SetBatteryLevel(LocalMachine::GetBatteryLevel());
+            _cloudAgent.SetBatteryStatus(LocalMachine::GetBatteryStatus());
             _cloudAgent.ReportProperties();
 
             ::Sleep(DEVICE_TWIN_UPDATE_INTERVAL * 1000);
@@ -62,14 +59,13 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
         TRACE("Error: Failed to setup the azure cloud agent!");
     }
 
-    _workDone.notify_one();
+    _stoppedPromised.set_value();
 }
 
 void IoTDMService::OnStop()
 {
     TRACE("IoTDMService.OnStop()");
 
-    _stopping = true;
-    unique_lock<mutex> lk(_mutex);
-    _workDone.wait(lk);
+    _stopSignaled = true;
+    _stoppedPromised.get_future().wait();
 }

@@ -3,7 +3,7 @@
 #include <string>
 #include <assert.h>
 
-#include "AzureAgent.h"
+#include "AzureProxy.h"
 #include "serializer.h"
 #include "iothub_client.h"
 #include "iothubtransportmqtt.h"
@@ -12,12 +12,15 @@
 
 #include "Utilities\Logger.h"
 #include "Utilities\Utils.h"
-#include "LocalAgent\LocalAgent.h"
+#include "LocalMachine\LocalMachine.h"
 
 using namespace Windows::Data::Json;
 using namespace Windows::Foundation::Collections;
 using namespace Platform;
 using namespace std;
+
+#define JsonTest "Test"
+#define JsonTestProp1 "Prop1"
 
 #define JsonMemory "Memory"
 #define JsonTotalMemory "TotalMemory"
@@ -31,6 +34,8 @@ using namespace std;
 #define JsonRebootW L"Reboot"
 
 #define JsonDesiredNode L"desired"
+
+#define JsonDesiredProp1 L"Prop1"
 
 AzureAgent::AzureAgent() :
     _batteryLevel(0),
@@ -104,13 +109,10 @@ IOTHUBMESSAGE_DISPOSITION_RESULT AzureAgent::OnMessageReceived(IOTHUB_MESSAGE_HA
     }
     else
     {
-        vector<char> message(bufferSize + 1);
-        memcpy(message.data(), buffer, bufferSize);
-        message[bufferSize] = '\0';
-
-        TRACEP("Received Message with Data:", message.data());
-
-        pThis->ProcessMessage(message.data());
+        // Need to add a null terminator.
+        string message(buffer, bufferSize);
+        TRACEP("Received Message with Data:", message.c_str());
+        pThis->ProcessMessage(message);
     }
 
     return IOTHUBMESSAGE_ACCEPTED;
@@ -182,7 +184,7 @@ bool AzureAgent::GetInnerJSon(DEVICE_TWIN_UPDATE_STATE update_state, const strin
     return false;
 }
 
-void AzureAgent::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payLoad, size_t bufferSize, void* userContextCallback)
+void AzureAgent::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payload, size_t bufferSize, void* userContextCallback)
 {
     TRACE("AzureAgent::OnDesiredProperties()");
 
@@ -190,7 +192,7 @@ void AzureAgent::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, cons
     assert(pThis);
 
     // Incoming buffer is not null terminated, let's make it into a null-terminated string before parsing.
-    string copyOfPayload(reinterpret_cast<const char*>(payLoad), bufferSize);
+    string copyOfPayload(reinterpret_cast<const char*>(payload), bufferSize);
 
     TRACEP("Desired Propertie String: ", copyOfPayload.c_str());
 
@@ -223,6 +225,10 @@ bool AzureAgent::ProcessDesiredProperties(IJsonValue^ desiredPropertyValue)
                 {
                     OnReboot(pair->Value);
                 }
+                else if (0 == wcscmp(childKey->Data(), JsonDesiredProp1))
+                {
+                    OnProp1(pair->Value);
+                }
             }
         }
     }
@@ -239,7 +245,7 @@ bool AzureAgent::ProcessMessage(const string& command)
     if (command == JsonReboot)
     {
         wprintf(L"Invoking local agent reboot!\n");
-        LocalAgent::Reboot();
+        LocalMachine::Reboot();
     }
     return true;
 }
@@ -253,7 +259,19 @@ bool AzureAgent::OnReboot(IJsonValue^ rebootNode)
     {
         String^ childValueString = rebootNode->GetString();
         TRACE(L"OnReboot() should not be called through the 'desired' properties.");
-        // LocalAgent::Reboot();
+        // LocalMachine::Reboot();
+    }
+    return true;
+}
+
+bool AzureAgent::OnProp1(Windows::Data::Json::IJsonValue^ prop1Node)
+{
+    TRACE(L"OnProp1()");
+    JsonValueType type = prop1Node->ValueType;
+    if (type == JsonValueType::String)
+    {
+        String^ childValueString = prop1Node->GetString();
+        // LocalMachine::SetProp1(Utils::WideToMultibyte(childValueString->Data()));
     }
     return true;
 }

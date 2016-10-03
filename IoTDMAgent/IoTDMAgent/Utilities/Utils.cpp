@@ -2,6 +2,8 @@
 #include <time.h>
 #include <string>
 #include <vector>
+#include <sstream>
+#include <codecvt>
 #include "Utils.h"
 #include "..\resource.h"
 
@@ -81,23 +83,14 @@ time_t TimeFromSystemTime(const SYSTEMTIME& time)
     return mktime(&tm);
 }
 
-void SplitString(const wstring& s, wchar_t c, vector<wstring>& tokens)
-{
-    const wchar_t* p0 = s.c_str();
-    const wchar_t* p1 = p0;
-    wstring token;
-    while (*p1)
+void SplitString(const wstring &s, wchar_t delim, vector<wstring> &tokens) {
+    basic_stringstream<wchar_t> ss;
+    ss.str(s);
+    wstring item;
+    while (getline<wchar_t>(ss, item, delim))
     {
-        if (*p1 == c)
-        {
-            token = s.substr(p0 - s.c_str(), p1 - p0);
-            tokens.push_back(token);
-            p0 = p1 + 1;
-        }
-        ++p1;
+        tokens.push_back(item);
     }
-    token = s.substr(p0 - s.c_str(), p1 - p0);
-    tokens.push_back(token);
 }
 
 bool StringToInt(const std::wstring& s, unsigned int& i)
@@ -122,7 +115,7 @@ wstring GetResourceString(int id)
 {
     const int bufferSize = 1024;
     wchar_t buffer[bufferSize];
-    if (!LoadString(GetModuleHandle(NULL), 101, buffer, bufferSize))
+    if (!LoadString(GetModuleHandle(NULL), id, buffer, bufferSize))
     {
         if (!LoadString(GetModuleHandle(NULL), IDS_OMA_SYNCML_STATUS_UNKNOWN, buffer, bufferSize))
         {

@@ -21,6 +21,6 @@ public:
 
 private:
 #if _DEBUG
-    static void LogGuids(const std::vector<std::wstring> guids);
+    static void LogGuids(const std::vector<std::wstring>& guids);
 #endif
 };

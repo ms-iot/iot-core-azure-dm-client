@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-class LocalAgent
+class LocalMachine
 {
 public:
     static void Reboot();
