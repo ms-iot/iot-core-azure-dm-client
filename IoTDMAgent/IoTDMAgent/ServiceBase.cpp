@@ -5,9 +5,11 @@
 #include <assert.h>
 #include <strsafe.h>
 
+using namespace std;
+
 CServiceBase *CServiceBase::s_service = NULL;
 
-BOOL CServiceBase::Run(CServiceBase &service)
+void CServiceBase::Run(CServiceBase &service)
 {
     TRACE("CServiceBase::Run()");
 
@@ -15,98 +17,90 @@ BOOL CServiceBase::Run(CServiceBase &service)
 
     SERVICE_TABLE_ENTRY serviceTable[] = 
     {
-        { service.m_name, ServiceMain },
+        { const_cast<LPWSTR>(service._name.c_str()), ServiceMain },
         { NULL, NULL }
     };
 
-    return StartServiceCtrlDispatcher(serviceTable);
+    if (!StartServiceCtrlDispatcher(serviceTable))
+    {
+        throw exception();
+    }
 }
 
 void WINAPI CServiceBase::ServiceMain(DWORD argc, PWSTR *argv)
 {
     TRACE("CServiceBase::ServiceMain()");
-
     assert(s_service != NULL);
 
-    // Register the handler function for the service
-    s_service->m_statusHandle = RegisterServiceCtrlHandler(
-        s_service->m_name, ServiceCtrlHandler);
-    if (s_service->m_statusHandle == NULL)
+    s_service->_statusHandle = RegisterServiceCtrlHandler(s_service->_name.c_str(), ServiceCtrlHandler);
+    if (s_service->_statusHandle == NULL)
     {
         throw GetLastError();
     }
 
-    // Start the service.
     s_service->Start(argc, argv);
 }
 
-void WINAPI CServiceBase::ServiceCtrlHandler(DWORD dwCtrl)
+void WINAPI CServiceBase::ServiceCtrlHandler(DWORD ctrl)
 {
     TRACE("CServiceBase::ServiceCtrlHandler()");
 
-    switch (dwCtrl)
+    switch (ctrl)
     {
-    case SERVICE_CONTROL_STOP: s_service->Stop(); break;
-    case SERVICE_CONTROL_PAUSE: s_service->Pause(); break;
-    case SERVICE_CONTROL_CONTINUE: s_service->Continue(); break;
-    case SERVICE_CONTROL_SHUTDOWN: s_service->Shutdown(); break;
-    case SERVICE_CONTROL_INTERROGATE: break;
-    default: break;
+        case SERVICE_CONTROL_STOP:
+            s_service->Stop();
+            break;
+        case SERVICE_CONTROL_PAUSE:
+            s_service->Pause();
+            break;
+        case SERVICE_CONTROL_CONTINUE:
+            s_service->Continue();
+            break;
+        case SERVICE_CONTROL_SHUTDOWN:
+            s_service->Shutdown();
+            break;
+        case SERVICE_CONTROL_INTERROGATE:
+            break;
+        default: break;
     }
 }
 
-CServiceBase::CServiceBase(PWSTR serviceName, 
-                           BOOL canStop, 
-                           BOOL canShutdown, 
-                           BOOL canPauseContinue)
+CServiceBase::CServiceBase(const std::wstring& serviceName)
 {
     TRACE("CServiceBase.ctor()");
+    assert(serviceName.size() != 0);
 
-    // Service name must be a valid string and cannot be NULL.
-    m_name = (serviceName == NULL) ? L"" : serviceName;
+    _name = serviceName;
+    _statusHandle = NULL;
 
-    m_statusHandle = NULL;
+    _status.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+    _status.dwCurrentState = SERVICE_START_PENDING;
 
-    // The service runs in its own process.
-    m_status.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
-
-    // The service is starting.
-    m_status.dwCurrentState = SERVICE_START_PENDING;
-
-    // The accepted commands of the service.
     DWORD dwControlsAccepted = 0;
-    if (canStop) 
-        dwControlsAccepted |= SERVICE_ACCEPT_STOP;
-    if (canShutdown) 
-        dwControlsAccepted |= SERVICE_ACCEPT_SHUTDOWN;
-    if (canPauseContinue) 
-        dwControlsAccepted |= SERVICE_ACCEPT_PAUSE_CONTINUE;
-    m_status.dwControlsAccepted = dwControlsAccepted;
+    dwControlsAccepted |= SERVICE_ACCEPT_STOP;
+    dwControlsAccepted |= SERVICE_ACCEPT_SHUTDOWN;
+    dwControlsAccepted |= SERVICE_ACCEPT_PAUSE_CONTINUE;
+    _status.dwControlsAccepted = dwControlsAccepted;
 
-    m_status.dwWin32ExitCode = NO_ERROR;
-    m_status.dwServiceSpecificExitCode = 0;
-    m_status.dwCheckPoint = 0;
-    m_status.dwWaitHint = 0;
+    _status.dwWin32ExitCode = NO_ERROR;
+    _status.dwServiceSpecificExitCode = 0;
+    _status.dwCheckPoint = 0;
+    _status.dwWaitHint = 0;
 }
 
-CServiceBase::~CServiceBase(void)
-{
-    TRACE("CServiceBase::dtor()");
-}
-
-void CServiceBase::Start(DWORD argc, PWSTR *argv)
+void CServiceBase::Start(DWORD argc, LPWSTR *lpszArgv)
 {
     TRACE("CServiceBase::Start()");
     try
     {
         SetServiceStatus(SERVICE_START_PENDING);
-        OnStart(argc, argv);
+        OnStart(argc, lpszArgv);
         SetServiceStatus(SERVICE_RUNNING);
     }
-    catch (DWORD dwError)
+    catch (DWORD errorCode)
     {
-        WriteErrorLogEntry(L"Service Start", dwError);
-        SetServiceStatus(SERVICE_STOPPED, dwError);
+        WriteErrorLogEntry(L"Service Start", errorCode);
+        SetServiceStatus(SERVICE_STOPPED, errorCode);
     }
     catch (...)
     {
@@ -115,7 +109,7 @@ void CServiceBase::Start(DWORD argc, PWSTR *argv)
     }
 }
 
-void CServiceBase::OnStart(DWORD argc, PWSTR *argv)
+void CServiceBase::OnStart(DWORD argc, LPWSTR *lpszArgv)
 {
     TRACE("CServiceBase::OnStart()");
 }
@@ -124,22 +118,22 @@ void CServiceBase::Stop()
 {
     TRACE("CServiceBase::Stop()");
 
-    DWORD dwOriginalState = m_status.dwCurrentState;
+    DWORD originalState = _status.dwCurrentState;
     try
     {
         SetServiceStatus(SERVICE_STOP_PENDING);
         OnStop();
         SetServiceStatus(SERVICE_STOPPED);
     }
-    catch (DWORD dwError)
+    catch (DWORD errorCode)
     {
-        WriteErrorLogEntry(L"Service Stop", dwError);
-        SetServiceStatus(dwOriginalState);
+        WriteErrorLogEntry(L"Service Stop", errorCode);
+        SetServiceStatus(originalState);
     }
     catch (...)
     {
         WriteEventLogEntry(L"Service failed to stop.", EVENTLOG_ERROR_TYPE);
-        SetServiceStatus(dwOriginalState);
+        SetServiceStatus(originalState);
     }
 }
 
@@ -155,12 +149,12 @@ void CServiceBase::Pause()
     try
     {
         SetServiceStatus(SERVICE_PAUSE_PENDING);
-        OnPause();
+        // ToDo: Add support for pausing.
         SetServiceStatus(SERVICE_PAUSED);
     }
-    catch (DWORD dwError)
+    catch (DWORD errorCode)
     {
-        WriteErrorLogEntry(L"Service Pause", dwError);
+        WriteErrorLogEntry(L"Service Pause", errorCode);
         SetServiceStatus(SERVICE_RUNNING);
     }
     catch (...)
@@ -170,11 +164,6 @@ void CServiceBase::Pause()
     }
 }
 
-void CServiceBase::OnPause()
-{
-    TRACE("CServiceBase::OnPause()");
-}
-
 void CServiceBase::Continue()
 {
     TRACE("CServiceBase::Continue()");
@@ -182,12 +171,12 @@ void CServiceBase::Continue()
     try
     {
         SetServiceStatus(SERVICE_CONTINUE_PENDING);
-        OnContinue();
+        // ToDo: Add support for continuing.
         SetServiceStatus(SERVICE_RUNNING);
     }
-    catch (DWORD dwError)
+    catch (DWORD errorCode)
     {
-        WriteErrorLogEntry(L"Service Continue", dwError);
+        WriteErrorLogEntry(L"Service Continue", errorCode);
         SetServiceStatus(SERVICE_PAUSED);
     }
     catch (...)
@@ -197,23 +186,18 @@ void CServiceBase::Continue()
     }
 }
 
-void CServiceBase::OnContinue()
-{
-    TRACE("CServiceBase::OnContinue()");
-}
-
 void CServiceBase::Shutdown()
 {
     TRACE("CServiceBase::Shutdown()");
 
     try
     {
-        OnShutdown();
+        // ToDo: Add support for shutting down.
         SetServiceStatus(SERVICE_STOPPED);
     }
-    catch (DWORD dwError)
+    catch (DWORD errorCode)
     {
-        WriteErrorLogEntry(L"Service Shutdown", dwError);
+        WriteErrorLogEntry(L"Service Shutdown", errorCode);
     }
     catch (...)
     {
@@ -221,61 +205,45 @@ void CServiceBase::Shutdown()
     }
 }
 
-void CServiceBase::OnShutdown()
+void CServiceBase::SetServiceStatus(DWORD currentState, DWORD win32ExitCode)
 {
-    TRACE("CServiceBase::OnShutdown()");
+    static DWORD checkPoint = 1;
+
+    _status.dwCurrentState = currentState;
+    _status.dwWin32ExitCode = win32ExitCode;
+    _status.dwWaitHint = 0;
+    _status.dwCheckPoint = ((currentState == SERVICE_RUNNING) || (currentState == SERVICE_STOPPED)) ? 0 : checkPoint++;
+
+    ::SetServiceStatus(_statusHandle, &_status);
 }
 
-void CServiceBase::SetServiceStatus(DWORD dwCurrentState, 
-                                    DWORD dwWin32ExitCode, 
-                                    DWORD dwWaitHint)
+void CServiceBase::WriteEventLogEntry(const wstring& message, WORD type)
 {
-    static DWORD dwCheckPoint = 1;
-
-    // Fill in the SERVICE_STATUS structure of the service.
-
-    m_status.dwCurrentState = dwCurrentState;
-    m_status.dwWin32ExitCode = dwWin32ExitCode;
-    m_status.dwWaitHint = dwWaitHint;
-
-    m_status.dwCheckPoint = 
-        ((dwCurrentState == SERVICE_RUNNING) ||
-        (dwCurrentState == SERVICE_STOPPED)) ? 
-        0 : dwCheckPoint++;
-
-    ::SetServiceStatus(m_statusHandle, &m_status);
-}
-
-void CServiceBase::WriteEventLogEntry(const wchar_t* pszMessage, WORD wType)
-{
-    HANDLE hEventSource = NULL;
-    LPCWSTR lpszStrings[2] = { NULL, NULL };
-
-    hEventSource = RegisterEventSource(NULL, m_name);
-    if (hEventSource)
+    HANDLE eventSource = RegisterEventSource(NULL, _name.c_str());
+    if (eventSource)
     {
-        lpszStrings[0] = m_name;
-        lpszStrings[1] = pszMessage;
+        LPCWSTR strings[2] = { NULL, NULL };
+        strings[0] = _name.c_str();
+        strings[1] = message.c_str();
 
-        ReportEvent(hEventSource,  // Event log handle
-            wType,                 // Event type
+        ReportEvent(eventSource,   // Event log handle
+            type,                  // Event type
             0,                     // Event category
             0,                     // Event identifier
             NULL,                  // No security identifier
-            2,                     // Size of lpszStrings array
+            2,                     // Size of strings array
             0,                     // No binary data
-            lpszStrings,           // Array of strings
+            strings,               // Array of strings
             NULL                   // No binary data
             );
 
-        DeregisterEventSource(hEventSource);
+        DeregisterEventSource(eventSource);
     }
 }
 
-void CServiceBase::WriteErrorLogEntry(PWSTR pszFunction, DWORD dwError)
+void CServiceBase::WriteErrorLogEntry(const wstring& function, DWORD errorCode)
 {
-    wchar_t szMessage[260];
-    StringCchPrintf(szMessage, ARRAYSIZE(szMessage), 
-        L"%s failed w/err 0x%08lx", pszFunction, dwError);
-    WriteEventLogEntry(szMessage, EVENTLOG_ERROR_TYPE);
+    basic_ostringstream<wchar_t> message;
+    message << function << L" failed w/err " << errorCode;
+    WriteEventLogEntry(message.str(), EVENTLOG_ERROR_TYPE);
 }

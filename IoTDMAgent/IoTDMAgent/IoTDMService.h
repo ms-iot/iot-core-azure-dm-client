@@ -9,11 +9,7 @@
 class IoTDMService : public CServiceBase
 {
 public:
-
-    IoTDMService(PWSTR serviceName,
-        BOOL canStop = TRUE,
-        BOOL canShutdown = TRUE,
-        BOOL canPauseContinue = FALSE);
+    IoTDMService(const std::wstring& serviceName);
 
 protected:
 

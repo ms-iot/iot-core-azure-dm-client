@@ -44,10 +44,7 @@ int wmain(int argc, wchar_t *argv[])
         TRACE(L"Running service...");
 
         IoTDMService service(SERVICE_NAME);
-        if (!CServiceBase::Run(service))
-        {
-            TRACEP(L"Service failed to run w/err :", GetLastError());
-        }
+        CServiceBase::Run(service);
     }
 
     TRACE("Exiting wmain.");

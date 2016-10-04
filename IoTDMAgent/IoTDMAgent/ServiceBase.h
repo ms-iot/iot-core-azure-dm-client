@@ -1,51 +1,39 @@
 #pragma once
 
 #include <windows.h>
-
+#include <string>
 
 class CServiceBase
 {
 public:
 
-    static BOOL Run(CServiceBase &service);
-    CServiceBase(PWSTR serviceName, 
-        BOOL canStop = TRUE, 
-        BOOL canShutdown = TRUE, 
-        BOOL canPauseContinue = FALSE);
+    CServiceBase(const std::wstring& serviceName);
 
-    virtual ~CServiceBase(void);
-
-    void Stop();
+    static void Run(CServiceBase &service);
 
 protected:
 
-    virtual void OnStart(DWORD argc, PWSTR *argv);
+    virtual void OnStart(DWORD argc, LPWSTR *lpszArgv);
     virtual void OnStop();
-    virtual void OnPause();
-    virtual void OnContinue();
-    virtual void OnShutdown();
 
-    void SetServiceStatus(DWORD dwCurrentState, 
-        DWORD dwWin32ExitCode = NO_ERROR, 
-        DWORD dwWaitHint = 0);
+    void SetServiceStatus(DWORD currentState, DWORD win32ExitCode = NO_ERROR);
 
-    void WriteEventLogEntry(const wchar_t* pszMessage, WORD wType);
-
-    void WriteErrorLogEntry(PWSTR pszFunction, 
-        DWORD dwError = GetLastError());
+    void WriteEventLogEntry(const std::wstring& message, WORD type);
+    void WriteErrorLogEntry(const std::wstring& function, DWORD errorCode = GetLastError());
 
 private:
 
     static void WINAPI ServiceMain(DWORD argc, LPWSTR *lpszArgv);
-    static void WINAPI ServiceCtrlHandler(DWORD dwCtrl);
+    static void WINAPI ServiceCtrlHandler(DWORD ctrl);
     void Start(DWORD argc, PWSTR *argv);
+    void Stop();
     void Pause();
     void Continue();
     void Shutdown();
 
     static CServiceBase *s_service;
 
-    PWSTR m_name;
-    SERVICE_STATUS m_status;
-    SERVICE_STATUS_HANDLE m_statusHandle;
+    std::wstring _name;
+    SERVICE_STATUS _status;
+    SERVICE_STATUS_HANDLE _statusHandle;
 };

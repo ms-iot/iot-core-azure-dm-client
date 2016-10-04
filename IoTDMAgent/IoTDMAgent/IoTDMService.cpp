@@ -9,8 +9,8 @@
 
 using namespace std;
 
-IoTDMService::IoTDMService(PWSTR serviceName, BOOL canStop, BOOL canShutdown, BOOL canPauseContinue)
-    : CServiceBase(serviceName, canStop, canShutdown, canPauseContinue),
+IoTDMService::IoTDMService(const wstring& serviceName)
+    : CServiceBase(serviceName),
     _stopSignaled(false)
 {
     TRACE("IoTDMService.ctor()");
@@ -57,7 +57,7 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
     catch(exception& e)
     {
         // If the connection to the cloud fails, there is not much the DM can do.
-        WriteEventLogEntry(Utils::MultibyteToWide(e.what()).c_str(), EVENTLOG_ERROR_TYPE);
+        WriteEventLogEntry(Utils::MultibyteToWide(e.what()), EVENTLOG_ERROR_TYPE);
 
         // ToDo: No point of continuing at this stage.
         //       - We need to notify the service so that it exist
