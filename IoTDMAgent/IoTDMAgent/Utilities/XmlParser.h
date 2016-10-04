@@ -6,8 +6,8 @@
 class XmlParser
 {
 public:
-    static bool ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);
+    static void ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);
 
 private:
-    static bool ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);
+    static void ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);
 };

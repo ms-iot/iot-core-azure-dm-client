@@ -105,278 +105,278 @@ unsigned int LocalMachine::GetBatteryStatus()
     return 2;
 }
 
-bool LocalMachine::RunSyncML(const wstring& request, wstring& response)
+void LocalMachine::RunSyncML(const wstring& request, wstring& response)
 {
     wstring sid = L""; // only supports device-wide operations for now.
-    return MdmProvision::RunSyncML(sid, request, response);
+    MdmProvision::RunSyncML(sid, request, response);
 }
 
-bool LocalMachine::RunSyncMLAdd(const wstring& path, wstring& value)
+void LocalMachine::RunSyncMLAdd(const wstring& path, const wstring& value)
 {
     wstring sid = L""; // only supports device-wide operations for now.
-    return MdmProvision::RunAdd(sid, path, value);
+    MdmProvision::RunAdd(sid, path, value);
 }
 
-bool LocalMachine::RunSyncMLGet(const wstring& path, wstring& value)
+wstring LocalMachine::RunSyncMLGetString(const wstring& path)
 {
     wstring sid = L""; // only supports device-wide operations for now.
-    return MdmProvision::RunGet(sid, path, value);
+    return MdmProvision::RunGetString(sid, path);
 }
 
-bool LocalMachine::RunSyncMLGet(const wstring& path, unsigned int& value)
+unsigned int LocalMachine::RunSyncMLGetInt(const wstring& path)
 {
     wstring sid = L""; // only supports device-wide operations for now.
-    return MdmProvision::RunGet(sid, path, value);
+    return MdmProvision::RunGetUInt(sid, path);
 }
 
-bool LocalMachine::RunSyncMLSet(const wstring& path, const wstring& value)
+void LocalMachine::RunSyncMLSet(const wstring& path, const wstring& value)
 {
     wstring sid = L""; // only supports device-wide operations for now.
-    return MdmProvision::RunSet(sid, path, value);
+    MdmProvision::RunSet(sid, path, value);
 }
 
-bool LocalMachine::RunSyncMLSet(const wstring& path, unsigned int value)
+void LocalMachine::RunSyncMLSet(const wstring& path, unsigned int value)
 {
     wstring sid = L""; // only supports device-wide operations for now.
-    return MdmProvision::RunSet(sid, path, value);
+    MdmProvision::RunSet(sid, path, value);
 }
 
-bool LocalMachine::GetInstalledUpdates(vector<wstring>& guids)
+void LocalMachine::GetInstalledUpdates(vector<wstring>& guids)
 {
-    return UpdateCSP::GetInstalledUpdates(guids);
+    UpdateCSP::GetInstalledUpdates(guids);
 }
 
-bool LocalMachine::GetApprovedUpdates(vector<wstring>& guids)
+void LocalMachine::GetApprovedUpdates(vector<wstring>& guids)
 {
-    return UpdateCSP::GetInstalledUpdates(guids);
+    UpdateCSP::GetInstalledUpdates(guids);
 }
 
-bool LocalMachine::AddApprovedUpdates(const wstring& guid)
+void LocalMachine::AddApprovedUpdates(const wstring& guid)
 {
-    return UpdateCSP::AddApprovedUpdates(guid);
+    UpdateCSP::AddApprovedUpdates(guid);
 }
 
-bool LocalMachine::GetFailedUpdates(vector<wstring>& guids)
+void LocalMachine::GetFailedUpdates(vector<wstring>& guids)
 {
-    return UpdateCSP::GetFailedUpdates(guids);
+    UpdateCSP::GetFailedUpdates(guids);
 }
 
-bool LocalMachine::GetInstallableUpdates(vector<wstring>& guids)
+void LocalMachine::GetInstallableUpdates(vector<wstring>& guids)
 {
-    return UpdateCSP::GetInstallableUpdates(guids);
+    UpdateCSP::GetInstallableUpdates(guids);
 }
 
-bool LocalMachine::GetPendingRebootUpdates(vector<wstring>& guids)
+void LocalMachine::GetPendingRebootUpdates(vector<wstring>& guids)
 {
-    return UpdateCSP::GetPendingRebootUpdates(guids);
+    UpdateCSP::GetPendingRebootUpdates(guids);
 }
 
-bool LocalMachine::GetLastSuccessfulScanTime(wstring& lastScanTime)
+wstring LocalMachine::GetLastSuccessfulScanTime()
 {
-    return UpdateCSP::GetLastSuccessfulScanTime(lastScanTime);
+    return UpdateCSP::GetLastSuccessfulScanTime();
 }
 
-bool LocalMachine::GetDeferUpgrade(bool& deferUpgrade)
+bool LocalMachine::GetDeferUpgrade()
 {
-    return UpdateCSP::GetDeferUpgrade(deferUpgrade);
+    return UpdateCSP::GetDeferUpgrade();
 }
 
-bool LocalMachine::GetActiveHoursStart(unsigned int& hours)
+unsigned int LocalMachine::GetActiveHoursStart()
 {
-    return PolicyCSP::GetActiveHoursStart(hours);
+    return PolicyCSP::GetActiveHoursStart();
 }
 
-bool LocalMachine::SetActiveHoursStart(unsigned int hours)
+void LocalMachine::SetActiveHoursStart(unsigned int hours)
 {
-    return PolicyCSP::SetActiveHoursStart(hours);
+    PolicyCSP::SetActiveHoursStart(hours);
 }
 
-bool LocalMachine::GetActiveHoursEnd(unsigned int& hours)
+unsigned int LocalMachine::GetActiveHoursEnd()
 {
-    return PolicyCSP::GetActiveHoursEnd(hours);
+    return PolicyCSP::GetActiveHoursEnd();
 }
 
-bool LocalMachine::SetActiveHoursEnd(unsigned int hours)
+void LocalMachine::SetActiveHoursEnd(unsigned int hours)
 {
-    return PolicyCSP::SetActiveHoursEnd(hours);
+    PolicyCSP::SetActiveHoursEnd(hours);
 }
 
-bool LocalMachine::GetAllowAutoUpdate(unsigned int& allowLevel)
+unsigned int LocalMachine::GetAllowAutoUpdate()
 {
-    return PolicyCSP::GetAllowAutoUpdate(allowLevel);
+    return PolicyCSP::GetAllowAutoUpdate();
 }
 
-bool LocalMachine::SetAllowAutoUpdate(unsigned int allowLevel)
+void LocalMachine::SetAllowAutoUpdate(unsigned int allowLevel)
 {
-    return PolicyCSP::SetAllowAutoUpdate(allowLevel);
+    PolicyCSP::SetAllowAutoUpdate(allowLevel);
 }
 
-bool LocalMachine::GetAllowMUUpdateService(unsigned int& allowLevel)
+unsigned int LocalMachine::GetAllowMUUpdateService()
 {
-    return PolicyCSP::GetAllowMUUpdateService(allowLevel);
+    return PolicyCSP::GetAllowMUUpdateService();
 }
 
-bool LocalMachine::SetAllowMUUpdateService(unsigned int allowLevel)
+void LocalMachine::SetAllowMUUpdateService(unsigned int allowLevel)
 {
-    return PolicyCSP::SetAllowMUUpdateService(allowLevel);
+    PolicyCSP::SetAllowMUUpdateService(allowLevel);
 }
 
-bool LocalMachine::GetAllowNonMicrosoftSignedUpdate(unsigned int& allowLevel)
+unsigned int LocalMachine::GetAllowNonMicrosoftSignedUpdate()
 {
-    return PolicyCSP::GetAllowNonMicrosoftSignedUpdate(allowLevel);
+    return PolicyCSP::GetAllowNonMicrosoftSignedUpdate();
 }
 
-bool LocalMachine::SetAllowNonMicrosoftSignedUpdate(unsigned int allowLevel)
+void LocalMachine::SetAllowNonMicrosoftSignedUpdate(unsigned int allowLevel)
 {
-    return PolicyCSP::SetAllowNonMicrosoftSignedUpdate(allowLevel);
+    PolicyCSP::SetAllowNonMicrosoftSignedUpdate(allowLevel);
 }
 
-bool LocalMachine::GetAllowUpdateService(unsigned int& allowLevel)
+unsigned int LocalMachine::GetAllowUpdateService()
 {
-    return PolicyCSP::GetAllowUpdateService(allowLevel);
+    return PolicyCSP::GetAllowUpdateService();
 }
 
-bool LocalMachine::SetAllowUpdateService(unsigned int allowLevel)
+void LocalMachine::SetAllowUpdateService(unsigned int allowLevel)
 {
-    return PolicyCSP::SetAllowUpdateService(allowLevel);
+    PolicyCSP::SetAllowUpdateService(allowLevel);
 }
 
-bool LocalMachine::GetBranchReadinessLevel(unsigned int& level)
+unsigned int LocalMachine::GetBranchReadinessLevel()
 {
-    return PolicyCSP::GetBranchReadinessLevel(level);
+    return PolicyCSP::GetBranchReadinessLevel();
 }
 
-bool LocalMachine::SetBranchReadinessLevel(unsigned int level)
+void LocalMachine::SetBranchReadinessLevel(unsigned int level)
 {
-    return PolicyCSP::SetBranchReadinessLevel(level);
+    PolicyCSP::SetBranchReadinessLevel(level);
 }
 
-bool LocalMachine::GetDeferFeatureUpdatesPeriodInDays(unsigned int& days)
+unsigned int LocalMachine::GetDeferFeatureUpdatesPeriodInDays()
 {
-    return PolicyCSP::GetDeferFeatureUpdatesPeriodInDays(days);
+    return PolicyCSP::GetDeferFeatureUpdatesPeriodInDays();
 }
 
-bool LocalMachine::SetDeferFeatureUpdatesPeriodInDays(unsigned int days)
+void LocalMachine::SetDeferFeatureUpdatesPeriodInDays(unsigned int days)
 {
-    return PolicyCSP::SetDeferFeatureUpdatesPeriodInDays(days);
+    PolicyCSP::SetDeferFeatureUpdatesPeriodInDays(days);
 }
 
-bool LocalMachine::GetDeferQualityUpdatesPeriodInDays(unsigned int& days)
+unsigned int LocalMachine::GetDeferQualityUpdatesPeriodInDays()
 {
-    return PolicyCSP::GetDeferQualityUpdatesPeriodInDays(days);
+    return PolicyCSP::GetDeferQualityUpdatesPeriodInDays();
 }
 
-bool LocalMachine::SetDeferQualityUpdatesPeriodInDays(unsigned int days)
+void LocalMachine::SetDeferQualityUpdatesPeriodInDays(unsigned int days)
 {
-    return PolicyCSP::SetDeferQualityUpdatesPeriodInDays(days);
+    PolicyCSP::SetDeferQualityUpdatesPeriodInDays(days);
 }
 
-bool LocalMachine::GetDeferUpdatePeriod(unsigned int& weeks)
+unsigned int LocalMachine::GetDeferUpdatePeriod()
 {
-    return PolicyCSP::GetDeferUpdatePeriod(weeks);
+    return PolicyCSP::GetDeferUpdatePeriod();
 }
 
-bool LocalMachine::SetDeferUpdatePeriod(unsigned int weeks)
+void LocalMachine::SetDeferUpdatePeriod(unsigned int weeks)
 {
-    return PolicyCSP::SetDeferUpdatePeriod(weeks);
+    PolicyCSP::SetDeferUpdatePeriod(weeks);
 }
 
-bool LocalMachine::GetDeferUpgradePeriod(unsigned int& months)
+unsigned int LocalMachine::GetDeferUpgradePeriod()
 {
-    return PolicyCSP::GetDeferUpgradePeriod(months);
+    return PolicyCSP::GetDeferUpgradePeriod();
 }
 
-bool LocalMachine::SetDeferUpgradePeriod(unsigned int months)
+void LocalMachine::SetDeferUpgradePeriod(unsigned int months)
 {
-    return PolicyCSP::SetDeferUpgradePeriod(months);
+    PolicyCSP::SetDeferUpgradePeriod(months);
 }
 
-bool LocalMachine::GetExcludeWUDrivers(unsigned int& excludeLevel)
+unsigned int LocalMachine::GetExcludeWUDrivers()
 {
-    return PolicyCSP::GetExcludeWUDrivers(excludeLevel);
+    return PolicyCSP::GetExcludeWUDrivers();
 }
 
-bool LocalMachine::SetExcludeWUDrivers(unsigned int excludeLevel)
+void LocalMachine::SetExcludeWUDrivers(unsigned int excludeLevel)
 {
-    return PolicyCSP::SetExcludeWUDrivers(excludeLevel);
+    PolicyCSP::SetExcludeWUDrivers(excludeLevel);
 }
 
-bool LocalMachine::GetPauseDeferrals(unsigned int& pauseLevel)
+unsigned int LocalMachine::GetPauseDeferrals()
 {
-    return PolicyCSP::GetPauseDeferrals(pauseLevel);
+    return PolicyCSP::GetPauseDeferrals();
 }
 
-bool LocalMachine::SetPauseDeferrals(unsigned int pauseLevel)
+void LocalMachine::SetPauseDeferrals(unsigned int pauseLevel)
 {
-    return PolicyCSP::SetPauseDeferrals(pauseLevel);
+    PolicyCSP::SetPauseDeferrals(pauseLevel);
 }
 
-bool LocalMachine::GetPauseFeatureUpdates(unsigned int& pauseLevel)
+unsigned int LocalMachine::GetPauseFeatureUpdates()
 {
-    return PolicyCSP::GetPauseFeatureUpdates(pauseLevel);
+    return PolicyCSP::GetPauseFeatureUpdates();
 }
 
-bool LocalMachine::SetPauseFeatureUpdates(unsigned int pauseLevel)
+void LocalMachine::SetPauseFeatureUpdates(unsigned int pauseLevel)
 {
-    return PolicyCSP::SetPauseFeatureUpdates(pauseLevel);
+    PolicyCSP::SetPauseFeatureUpdates(pauseLevel);
 }
 
-bool LocalMachine::GetPauseQualityUpdates(unsigned int& pauseLevel)
+unsigned int LocalMachine::GetPauseQualityUpdates()
 {
-    return PolicyCSP::GetPauseQualityUpdates(pauseLevel);
+    return PolicyCSP::GetPauseQualityUpdates();
 }
 
-bool LocalMachine::SetPauseQualityUpdates(unsigned int pauseLevel)
+void LocalMachine::SetPauseQualityUpdates(unsigned int pauseLevel)
 {
-    return PolicyCSP::SetPauseQualityUpdates(pauseLevel);
+    PolicyCSP::SetPauseQualityUpdates(pauseLevel);
 }
 
-bool LocalMachine::GetRequireDeferUpgrade(unsigned int& value)
+unsigned int LocalMachine::GetRequireDeferUpgrade()
 {
-    return PolicyCSP::GetRequireDeferUpgrade(value);
+    return PolicyCSP::GetRequireDeferUpgrade();
 }
 
-bool LocalMachine::SetRequireDeferUpgrade(unsigned int value)
+void LocalMachine::SetRequireDeferUpgrade(unsigned int value)
 {
-    return PolicyCSP::SetRequireDeferUpgrade(value);
+    PolicyCSP::SetRequireDeferUpgrade(value);
 }
 
-bool LocalMachine::GetRequireUpdateApproval(unsigned int& value)
+unsigned int LocalMachine::GetRequireUpdateApproval()
 {
-    return PolicyCSP::GetRequireUpdateApproval(value);
+    return PolicyCSP::GetRequireUpdateApproval();
 }
 
-bool LocalMachine::SetRequireUpdateApproval(unsigned int value)
+void LocalMachine::SetRequireUpdateApproval(unsigned int value)
 {
-    return PolicyCSP::SetRequireUpdateApproval(value);
+    PolicyCSP::SetRequireUpdateApproval(value);
 }
 
-bool LocalMachine::GetScheduledInstallDay(unsigned int& dayOfWeek)
+unsigned int LocalMachine::GetScheduledInstallDay()
 {
-    return PolicyCSP::GetScheduledInstallDay(dayOfWeek);
+    return PolicyCSP::GetScheduledInstallDay();
 }
 
-bool LocalMachine::SetScheduledInstallDay(unsigned int dayOfWeek)
+void LocalMachine::SetScheduledInstallDay(unsigned int dayOfWeek)
 {
-    return PolicyCSP::SetScheduledInstallDay(dayOfWeek);
+    PolicyCSP::SetScheduledInstallDay(dayOfWeek);
 }
 
-bool LocalMachine::GetScheduledInstallTime(unsigned int& hour)
+unsigned int LocalMachine::GetScheduledInstallTime()
 {
-    return PolicyCSP::GetScheduledInstallTime(hour);
+    return PolicyCSP::GetScheduledInstallTime();
 }
 
-bool LocalMachine::SetScheduledInstallTime(unsigned int hour)
+void LocalMachine::SetScheduledInstallTime(unsigned int hour)
 {
-    return PolicyCSP::SetScheduledInstallTime(hour);
+    PolicyCSP::SetScheduledInstallTime(hour);
 }
 
-bool LocalMachine::GetUpdateServiceUrl(std::wstring& serviceUrl)
+wstring LocalMachine::GetUpdateServiceUrl()
 {
-    return PolicyCSP::GetUpdateServiceUrl(serviceUrl);
+    return PolicyCSP::GetUpdateServiceUrl();
 }
 
-bool LocalMachine::SetUpdateServiceUrl(const std::wstring& serviceUrl)
+void LocalMachine::SetUpdateServiceUrl(const std::wstring& serviceUrl)
 {
-    return PolicyCSP::SetUpdateServiceUrl(serviceUrl);
+    PolicyCSP::SetUpdateServiceUrl(serviceUrl);
 }

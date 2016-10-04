@@ -34,8 +34,9 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
 {
     TRACE("IoTDMService.ServiceWorkerThread()");
 
-    if (_cloudAgent.Setup(AZURE_TEST_CONNECTION_STRING))
+    try
     {
+        _cloudAgent.Setup(AZURE_TEST_CONNECTION_STRING);
         while (!_stopSignaled)
         {
             TRACE("IoTDMService.ServiceWorkerThread()->Loop");
@@ -45,7 +46,7 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
             _cloudAgent.SetAvailableMemoryMB(LocalMachine::GetAvailableMemoryMB());
             _cloudAgent.SetBatteryLevel(LocalMachine::GetBatteryLevel());
             _cloudAgent.SetBatteryStatus(LocalMachine::GetBatteryStatus());
-            _cloudAgent.ReportProperties();
+            _cloudAgent.ReportProperties(); // noexcept
 
             ::Sleep(DEVICE_TWIN_UPDATE_INTERVAL * 1000);
         }
@@ -53,10 +54,14 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
         TRACE("IoTDMService.ServiceWorkerThread()->Done.");
         _cloudAgent.Shutdown();
     }
-    else
+    catch(exception& e)
     {
         // If the connection to the cloud fails, there is not much the DM can do.
-        TRACE("Error: Failed to setup the azure cloud agent!");
+        WriteEventLogEntry(Utils::MultibyteToWide(e.what()).c_str(), EVENTLOG_ERROR_TYPE);
+
+        // ToDo: No point of continuing at this stage.
+        //       - We need to notify the service so that it exist
+        //       - Also, we need a way to get errors from the Azure thread...
     }
 
     _stoppedPromised.set_value();

@@ -24,156 +24,86 @@ void UpdateCSP::LogGuids(const vector<wstring>& guids)
 }
 #endif
 
-bool UpdateCSP::GetInstalledUpdates(vector<wstring>& guids)
+void UpdateCSP::GetInstalledUpdates(vector<wstring>& guids)
 {
     TRACE(L"\n---- Get Installed Updates\n");
 
     wstring resultsString;
-    if (!MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/InstalledUpdates", resultsString))
-    {
-        return false;
-    }
-
-    if (resultsString.length() > 0)
-    {
-        Utils::SplitString(resultsString, L'/', guids);
-    }
+    MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Update/InstalledUpdates", resultsString);
+    Utils::SplitString(resultsString, L'/', guids);
 #if _DEBUG
     LogGuids(guids);
 #endif
-    return true;
 }
 
-bool UpdateCSP::GetApprovedUpdates(vector<wstring>& guids)
+void UpdateCSP::GetApprovedUpdates(vector<wstring>& guids)
 {
     TRACE(L"\n---- Get Approved Updates\n");
 
     wstring resultsString;
-    if (!MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", resultsString))
-    {
-        return false;
-    }
-
-    if (resultsString.length() > 0)
-    {
-        Utils::SplitString(resultsString, L'/', guids);
-    }
-
+    MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", resultsString);
+    Utils::SplitString(resultsString, L'/', guids);
 #if _DEBUG
     LogGuids(guids);
 #endif
-    return true;
 }
 
-bool UpdateCSP::AddApprovedUpdates(const wstring& guid)
+void UpdateCSP::AddApprovedUpdates(const wstring& guid)
 {
     TRACE(L"\n---- Add Approved Updates\n");
-    if (guid.length() > 36)
-    {
-        TRACE(L"Error: invalid guid to add!\n");
-        return false;
-    }
-
-    wstring value;
-    if (!MdmProvision::RunAdd(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", value))
-    {
-        return false;
-    }
-
-    return true;
+    MdmProvision::RunAdd(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", guid);
 }
 
-bool UpdateCSP::GetFailedUpdates(vector<wstring>& guids)
+void UpdateCSP::GetFailedUpdates(vector<wstring>& guids)
 {
     TRACE(L"\n---- Get Failed Updates\n");
 
     wstring resultsString;
-    if (!MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/FailedUpdates", resultsString))
-    {
-        return false;
-    }
-
-    if (resultsString.length() > 0)
-    {
-        Utils::SplitString(resultsString, L'/', guids);
-    }
-
+    MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Update/FailedUpdates", resultsString);
+    Utils::SplitString(resultsString, L'/', guids);
 #if _DEBUG
     LogGuids(guids);
 #endif
-
-    return true;
 }
 
-bool UpdateCSP::GetInstallableUpdates(vector<wstring>& guids)
+void UpdateCSP::GetInstallableUpdates(vector<wstring>& guids)
 {
     TRACE(L"\n---- Get Installable Updates\n");
 
     wstring resultsString;
-    if (!MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/InstallableUpdates", resultsString))
-    {
-        return false;
-    }
-
-    if (resultsString.length() > 0)
-    {
-        Utils::SplitString(resultsString, L'/', guids);
-    }
-
+    MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Update/InstallableUpdates", resultsString);
+    Utils::SplitString(resultsString, L'/', guids);
 #if _DEBUG
     LogGuids(guids);
 #endif
-
-    return true;
 }
 
-bool UpdateCSP::GetPendingRebootUpdates(vector<wstring>& guids)
+void UpdateCSP::GetPendingRebootUpdates(vector<wstring>& guids)
 {
     TRACE(L"\n---- Get Pending Reboot Updates\n");
 
     wstring resultsString;
-    if (!MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/PendingRebootUpdates", resultsString))
-    {
-        return false;
-    }
-
-    if (resultsString.length() > 0)
-    {
-        Utils::SplitString(resultsString, L'/', guids);
-    }
-
+    MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Update/PendingRebootUpdates", resultsString);
+    Utils::SplitString(resultsString, L'/', guids);
 #if _DEBUG
     LogGuids(guids);
 #endif
-
-    return true;
 }
 
-bool UpdateCSP::GetLastSuccessfulScanTime(wstring& lastScanTime)
+wstring UpdateCSP::GetLastSuccessfulScanTime()
 {
     TRACE(L"\n---- Get Last Successful Scan Time\n");
-
-    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/LastSuccessfulScanTime", lastScanTime))
-    {
-        TRACEP(L"  ",  lastScanTime.c_str());
-        return true;
-    }
-
-    return false;
+    wstring lastScanTime = MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Update/LastSuccessfulScanTime", lastScanTime);
+    TRACEP(L"  ",  lastScanTime.c_str());
+    return lastScanTime;
 }
 
-bool UpdateCSP::GetDeferUpgrade(bool& deferUpgrade)
+bool UpdateCSP::GetDeferUpgrade()
 {
     TRACE(L"\n---- Get Defer Upgrade\n");
-
     wstring resultsString;
-    if (MdmProvision::RunGet(L"./Device/Vendor/MSFT/Update/DeferUpgrade", resultsString))
-    {
-        TRACEP(L"  ",  resultsString.c_str());
-        deferUpgrade = (0 == _wcsicmp(L"true", resultsString.c_str()));
-        return true;
-    }
-
-    return false;
+    MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Update/DeferUpgrade", resultsString);
+    TRACEP(L"  ",  resultsString.c_str());
+    return (0 == _wcsicmp(L"true", resultsString.c_str()));
 }
 

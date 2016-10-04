@@ -8,28 +8,26 @@
 using namespace std;
 using namespace Microsoft::WRL;
 
-bool XmlParser::ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value)
+void XmlParser::ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value)
 {
     DWORD bufferSize = static_cast<DWORD>(resultSyncML.size() * sizeof(resultSyncML[0]));
     char* buffer = (char*)GlobalAlloc(GMEM_FIXED, bufferSize);
     memcpy(buffer, resultSyncML.c_str(), bufferSize);
 
-    bool result = false;
+    ComPtr<IStream> dataStream;
+    HRESULT hr = ::CreateStreamOnHGlobal(buffer, TRUE /*delete on release*/, dataStream.GetAddressOf());
+    if (FAILED(hr))
     {
-        ComPtr<IStream> dataStream;
-        HRESULT hr = ::CreateStreamOnHGlobal(buffer, TRUE /*delete on release*/, dataStream.GetAddressOf());
-        if (SUCCEEDED(hr))
-        {
-            result = ReadXmlValue(dataStream.Get(), targetXmlPath, value);
-        }
+        GlobalFree(buffer);
+        throw exception();
     }
+    ReadXmlValue(dataStream.Get(), targetXmlPath, value);
 
     // GlobalFree() is not needed since 'delete on release' is enabled.
     // GlobalFree(buffer);
-    return result;
 }
 
-bool XmlParser::ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXmlPath, std::wstring& value)
+void XmlParser::ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXmlPath, std::wstring& value)
 {
     ComPtr<IXmlReader> xmlReader;
 
@@ -37,21 +35,21 @@ bool XmlParser::ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXm
     if (FAILED(hr))
     {
         TRACEP(L"Error: Failed to create xml reader. Code :",  hr);
-        return false;
+        throw exception();
     }
 
     hr = xmlReader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
     if (FAILED(hr))
     {
         TRACEP(L"Error: XmlReaderProperty_DtdProcessing() failed. Code :\n",  hr);
-        return false;
+        throw exception();
     }
 
     hr = xmlReader->SetInput(resultSyncML);
     if (FAILED(hr))
     {
         TRACEP(L"Error: SetInput() failed. Code :\n",  hr);
-        return false;
+        throw exception();
     }
 
     deque<wstring> pathStack;
@@ -74,7 +72,7 @@ bool XmlParser::ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXm
             if (FAILED(hr))
             {
                 TRACEP(L"Error: GetPrefix() failed. Code :\n",  hr);
-                return false;
+                throw exception();
             }
 
             const wchar_t* localName;
@@ -82,7 +80,7 @@ bool XmlParser::ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXm
             if (FAILED(hr))
             {
                 TRACEP(L"Error: GetLocalName() failed. Code :\n",  hr);
-                return false;
+                throw exception();
             }
 
             wstring elementName;
@@ -119,7 +117,7 @@ bool XmlParser::ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXm
             if (FAILED(hr))
             {
                 TRACEP(L"Error: GetPrefix() failed. Code :",  hr);
-                return false;
+                throw exception();
             }
 
             const wchar_t* localName = NULL;
@@ -127,7 +125,7 @@ bool XmlParser::ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXm
             if (FAILED(hr))
             {
                 TRACEP(L"Error: GetLocalName() failed. Code :",  hr);
-                return false;
+                throw exception();
             }
 
             pathStack.pop_back();
@@ -141,7 +139,7 @@ bool XmlParser::ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXm
             if (FAILED(hr))
             {
                 TRACEP(L"Error: GetValue() failed. Code :",  hr);
-                return false;
+                throw exception();
             }
 
             if (targetXmlPath == currentPath)
@@ -154,5 +152,9 @@ bool XmlParser::ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXm
         }
     }
 
-    return pathFound;
+    if (!pathFound)
+    {
+        TRACEP(L"Error: Failed to read: ", targetXmlPath.c_str());
+        throw exception();
+    }
 }

@@ -6,63 +6,63 @@
 class PolicyCSP
 {
 public:
-    static bool GetActiveHoursStart(unsigned int& hours);
-    static bool SetActiveHoursStart(unsigned int hours);
+    static unsigned int GetActiveHoursStart();
+    static void SetActiveHoursStart(unsigned int hours);
 
-    static bool GetActiveHoursEnd(unsigned int& hours);
-    static bool SetActiveHoursEnd(unsigned int hours);
+    static unsigned int GetActiveHoursEnd();
+    static void SetActiveHoursEnd(unsigned int hours);
 
-    static bool GetAllowAutoUpdate(unsigned int& allowLevel);
-    static bool SetAllowAutoUpdate(unsigned int allowLevel);
+    static unsigned int GetAllowAutoUpdate();
+    static void SetAllowAutoUpdate(unsigned int allowLevel);
 
-    static bool GetAllowMUUpdateService(unsigned int& allowLevel);
-    static bool SetAllowMUUpdateService(unsigned int allowLevel);
+    static unsigned int GetAllowMUUpdateService();
+    static void SetAllowMUUpdateService(unsigned int allowLevel);
 
-    static bool GetAllowNonMicrosoftSignedUpdate(unsigned int& allowLevel);
-    static bool SetAllowNonMicrosoftSignedUpdate(unsigned int allowLevel);
+    static unsigned int GetAllowNonMicrosoftSignedUpdate();
+    static void SetAllowNonMicrosoftSignedUpdate(unsigned int allowLevel);
 
-    static bool GetAllowUpdateService(unsigned int& allowLevel);
-    static bool SetAllowUpdateService(unsigned int allowLevel);
+    static unsigned int GetAllowUpdateService();
+    static void SetAllowUpdateService(unsigned int allowLevel);
 
-    static bool GetBranchReadinessLevel(unsigned int& level);
-    static bool SetBranchReadinessLevel(unsigned int level);
+    static unsigned int GetBranchReadinessLevel();
+    static void SetBranchReadinessLevel(unsigned int level);
 
-    static bool GetDeferFeatureUpdatesPeriodInDays(unsigned int& days);
-    static bool SetDeferFeatureUpdatesPeriodInDays(unsigned int days);
+    static unsigned int GetDeferFeatureUpdatesPeriodInDays();
+    static void SetDeferFeatureUpdatesPeriodInDays(unsigned int days);
 
-    static bool GetDeferQualityUpdatesPeriodInDays(unsigned int& days);
-    static bool SetDeferQualityUpdatesPeriodInDays(unsigned int days);
+    static unsigned int GetDeferQualityUpdatesPeriodInDays();
+    static void SetDeferQualityUpdatesPeriodInDays(unsigned int days);
 
-    static bool GetDeferUpdatePeriod(unsigned int& weeks);
-    static bool SetDeferUpdatePeriod(unsigned int weeks);
+    static unsigned int GetDeferUpdatePeriod();
+    static void SetDeferUpdatePeriod(unsigned int weeks);
 
-    static bool GetDeferUpgradePeriod(unsigned int& months);
-    static bool SetDeferUpgradePeriod(unsigned int months);
+    static unsigned int GetDeferUpgradePeriod();
+    static void SetDeferUpgradePeriod(unsigned int months);
 
-    static bool GetExcludeWUDrivers(unsigned int& excludeLevel);
-    static bool SetExcludeWUDrivers(unsigned int excludeLevel);
+    static unsigned int GetExcludeWUDrivers();
+    static void SetExcludeWUDrivers(unsigned int excludeLevel);
 
-    static bool GetPauseDeferrals(unsigned int& pauseLevel);
-    static bool SetPauseDeferrals(unsigned int pauseLevel);
+    static unsigned int GetPauseDeferrals();
+    static void SetPauseDeferrals(unsigned int pauseLevel);
 
-    static bool GetPauseFeatureUpdates(unsigned int& pauseLevel);
-    static bool SetPauseFeatureUpdates(unsigned int pauseLevel);
+    static unsigned int GetPauseFeatureUpdates();
+    static void SetPauseFeatureUpdates(unsigned int pauseLevel);
 
-    static bool GetPauseQualityUpdates(unsigned int& pauseLevel);
-    static bool SetPauseQualityUpdates(unsigned int pauseLevel);
+    static unsigned int GetPauseQualityUpdates();
+    static void SetPauseQualityUpdates(unsigned int pauseLevel);
 
-    static bool GetRequireDeferUpgrade(unsigned int& value);
-    static bool SetRequireDeferUpgrade(unsigned int value);
+    static unsigned int GetRequireDeferUpgrade();
+    static void SetRequireDeferUpgrade(unsigned int value);
 
-    static bool GetRequireUpdateApproval(unsigned int& value);
-    static bool SetRequireUpdateApproval(unsigned int value);
+    static unsigned int GetRequireUpdateApproval();
+    static void SetRequireUpdateApproval(unsigned int value);
 
-    static bool GetScheduledInstallDay(unsigned int& dayOfWeek);
-    static bool SetScheduledInstallDay(unsigned int dayOfWeek);
+    static unsigned int GetScheduledInstallDay();
+    static void SetScheduledInstallDay(unsigned int dayOfWeek);
 
-    static bool GetScheduledInstallTime(unsigned int& hour);
-    static bool SetScheduledInstallTime(unsigned int hour);
+    static unsigned int GetScheduledInstallTime();
+    static void SetScheduledInstallTime(unsigned int hour);
 
-    static bool GetUpdateServiceUrl(std::wstring& serviceUrl);
-    static bool SetUpdateServiceUrl(const std::wstring& serviceUrl);
+    static std::wstring GetUpdateServiceUrl();
+    static void SetUpdateServiceUrl(const std::wstring& serviceUrl);
 };

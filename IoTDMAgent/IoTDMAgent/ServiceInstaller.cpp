@@ -55,18 +55,6 @@ void InstallService(PWSTR serviceName,
     schSCManager = NULL;
 }
 
-//
-//   FUNCTION: UninstallService
-//
-//   PURPOSE: Stop and remove the service from the local service control 
-//   manager database.
-//
-//   PARAMETERS: 
-//   * serviceName - the name of the service to be removed.
-//
-//   NOTE: If the function fails to uninstall the service, it prints the 
-//   error in the standard output stream for users to diagnose the problem.
-//
 void UninstallService(PWSTR serviceName)
 {
     SC_HANDLE schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);

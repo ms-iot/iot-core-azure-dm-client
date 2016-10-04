@@ -8,7 +8,7 @@ class AzureAgent
 public:
     AzureAgent();
 
-    bool Setup(const std::string& connectionString);
+    void Setup(const std::string& connectionString);
     void Shutdown();
 
     void SetBatteryLevel(unsigned int level);
@@ -16,20 +16,20 @@ public:
     void SetTotalMemoryMB(unsigned int memoryInMBs);
     void SetAvailableMemoryMB(unsigned int memoryInMBs);
 
-    bool ReportProperties();
+    void ReportProperties() noexcept;
 
 private:
     static void OnReportedPropertiesSent(int status_code, void* userContextCallback);
     static void OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payload, size_t size, void* userContextCallback);
     static IOTHUBMESSAGE_DISPOSITION_RESULT OnMessageReceived(IOTHUB_MESSAGE_HANDLE message, void* userContextCallback);
-    static bool GetInnerJSon(DEVICE_TWIN_UPDATE_STATE update_state, const std::string& allJson, Windows::Data::Json::IJsonValue^& desiredValue);
+    static Windows::Data::Json::IJsonValue^ GetInnerJSon(DEVICE_TWIN_UPDATE_STATE update_state, const std::string& allJson);
 
-    bool ProcessMessage(const std::string& command);
-    bool ProcessDesiredProperties(Windows::Data::Json::IJsonValue^ value);
+    void ProcessMessage(const std::string& command);
+    void ProcessDesiredProperties(Windows::Data::Json::IJsonValue^ value);
 
     // Sample code for desired properties.
-    bool OnReboot(Windows::Data::Json::IJsonValue^ rebootNode);
-    bool OnProp1(Windows::Data::Json::IJsonValue^ prop1Node);
+    void OnReboot(Windows::Data::Json::IJsonValue^ rebootNode);
+    void OnProp1(Windows::Data::Json::IJsonValue^ prop1Node);
 
     // Data members
     IOTHUB_CLIENT_HANDLE _iotHubClientHandle;
