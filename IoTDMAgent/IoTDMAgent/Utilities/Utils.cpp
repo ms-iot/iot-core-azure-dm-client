@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <windows.h>
 #include <time.h>
 #include <string>
 #include <vector>
@@ -21,10 +22,6 @@ std::string WideToMultibyte(const wchar_t* s)
     }
 
     size_t requiredCharCount = WideCharToMultiByte(CP_UTF8, 0, s, static_cast<int>(length), nullptr, 0, nullptr, nullptr);
-    if (!requiredCharCount)
-    {
-        return string();
-    }
 
     // add room for \0
     ++requiredCharCount;
@@ -48,10 +45,6 @@ std::wstring MultibyteToWide(const char* s)
     }
 
     size_t requiredCharCount = MultiByteToWideChar(CP_UTF8, 0, s, static_cast<int>(length), nullptr, 0);
-    if (!requiredCharCount)
-    {
-        return wstring();
-    }
 
     // add room for \0
     ++requiredCharCount;
@@ -66,23 +59,6 @@ std::wstring MultibyteToWide(const char* s)
     return wstring(wideString.data());
 }
 
-
-time_t TimeFromSystemTime(const SYSTEMTIME& time)
-{
-    struct tm tm;
-    memset(&tm, 0, sizeof(tm));
-
-    tm.tm_year = time.wYear - 1900;
-    tm.tm_mon = time.wMonth - 1;
-    tm.tm_mday = time.wDay;
-
-    tm.tm_hour = time.wHour;
-    tm.tm_min = time.wMinute;
-    tm.tm_sec = time.wSecond;
-
-    return mktime(&tm);
-}
-
 void SplitString(const wstring &s, wchar_t delim, vector<wstring> &tokens) {
     basic_stringstream<wchar_t> ss;
     ss.str(s);
@@ -91,24 +67,6 @@ void SplitString(const wstring &s, wchar_t delim, vector<wstring> &tokens) {
     {
         tokens.push_back(item);
     }
-}
-
-bool StringToInt(const std::wstring& s, unsigned int& i)
-{
-    bool result = true;
-    try
-    {
-        i = std::stoi(s);
-    }
-    catch (std::invalid_argument&)
-    {
-        result = false;
-    }
-    catch (std::out_of_range&)
-    {
-        result = false;
-    }
-    return result;
 }
 
 wstring GetResourceString(int id)

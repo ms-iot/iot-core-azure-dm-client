@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include <stdio.h>
 #include <windows.h>
-#include "ServiceInstaller.h"
-#include "ServiceBase.h"
 #include "IoTDMService.h"
 
 #define SERVICE_NAME             L"IoTDMAgent"
@@ -21,7 +19,7 @@ int wmain(int argc, wchar_t *argv[])
     {
         if (_wcsicmp(L"install", argv[1] + 1) == 0)
         {
-            InstallService(
+            IoTDMService::Install(
                 SERVICE_NAME,               // Name of service
                 SERVICE_DISPLAY_NAME,       // Name to display
                 SERVICE_START_TYPE,         // Service start type
@@ -32,7 +30,7 @@ int wmain(int argc, wchar_t *argv[])
         }
         else if (_wcsicmp(L"remove", argv[1] + 1) == 0)
         {
-            UninstallService(SERVICE_NAME);
+            IoTDMService::Uninstall(SERVICE_NAME);
         }
     }
     else
@@ -44,7 +42,7 @@ int wmain(int argc, wchar_t *argv[])
         TRACE(L"Running service...");
 
         IoTDMService service(SERVICE_NAME);
-        CServiceBase::Run(service);
+        IoTDMService::Run(service);
     }
 
     TRACE("Exiting wmain.");

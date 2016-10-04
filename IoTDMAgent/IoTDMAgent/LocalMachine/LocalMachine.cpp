@@ -1,7 +1,9 @@
 #include "stdafx.h"
+#include <windows.h>
 #include "LocalMachine.h"
 #include "..\Utilities\Utils.h"
 #include "..\Utilities\Logger.h"
+#include "..\Utilities\DMException.h"
 #include "CSPs\UpdateCSP.h"
 #include "CSPs\PolicyCSP.h"
 #include  <algorithm>
@@ -12,13 +14,10 @@ void LocalMachine::Reboot()
 {
     TRACE("LocalMachine::OnDeviceRebootExecute()");
 
-    HANDLE hToken;
-
-    // Get a token for this process. 
-    if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
+    HANDLE processToken;
+    if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &processToken))
     {
-        TRACE("Error: Failed to open process token...");
-        return;
+        throw DMException("Failed to open process token...");
     }
 
     // Get the LUID for the shutdown privilege. 
@@ -29,36 +28,38 @@ void LocalMachine::Reboot()
         tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
         // Get the shutdown privilege for this process. 
-        AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0);
-        if (GetLastError() != ERROR_SUCCESS)
+        if (AdjustTokenPrivileges(processToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0) && GetLastError() == ERROR_SUCCESS)
         {
-            TRACE("Error: Failed to adjust process token privileges...");
-            return;
-        }
-
-        if (!InitiateSystemShutdownEx(
-            NULL,   // machine name
-            NULL,   // message
-            10,     // timeout in seconds
-            TRUE,   // force restart without waiting for apps to save
-            TRUE,   // restart
-            SHTDN_REASON_MAJOR_OPERATINGSYSTEM | SHTDN_REASON_MINOR_MAINTENANCE | SHTDN_REASON_FLAG_PLANNED))
-        {
-            char msg[512];
-            sprintf_s(msg, "Error: Reboot failed to be scheduled.! Error code = %d", GetLastError());
-            TRACE(msg);
+            if (!InitiateSystemShutdownEx(
+                NULL,   // machine name
+                NULL,   // message
+                10,     // timeout in seconds
+                TRUE,   // force restart without waiting for apps to save
+                TRUE,   // restart
+                SHTDN_REASON_MAJOR_OPERATINGSYSTEM | SHTDN_REASON_MINOR_MAINTENANCE | SHTDN_REASON_FLAG_PLANNED))
+            {
+                TRACEP("Error: Reboot failed to be scheduled.! Error code = ", GetLastError());
+            }
+            else
+            {
+                TRACE("Reboot scheduled successfully.");
+            }
         }
         else
         {
-            TRACE("Reboot scheduled successfully.");
+            // ToDo: Need to implement a mechanism for reporting errors from the Azure DM thread to 
+            //       the service/Azure reported properties.
+            TRACE("Error: Failed to adjust process token privileges...");
         }
     }
     else
     {
+        // ToDo: Need to implement a mechanism for reporting errors from the Azure DM thread to 
+        //       the service/Azure reported properties.
         TRACE("Error: Failed to look up privilege value...");
     }
 
-    CloseHandle(hToken);
+    CloseHandle(processToken);
 }
 
 unsigned int LocalMachine::GetTotalMemoryMB()

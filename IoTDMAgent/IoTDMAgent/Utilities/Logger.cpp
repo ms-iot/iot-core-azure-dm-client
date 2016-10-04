@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <windows.h>
 #include <iostream>
 #include <fstream>
 #include <ostream>
@@ -15,13 +16,13 @@ Logger::Logger(bool console, const wchar_t* logFileName) :
     Log("----New Session----------------------------------------------------------------");
 }
 
-void Logger::Log(const char*  message)
+void Logger::Log(const char* message)
 {
     std::wstring s = Utils::MultibyteToWide(message);
     Log(s.c_str());
 }
 
-void Logger::Log(const wchar_t*  message)
+void Logger::Log(const wchar_t* message)
 {
     SYSTEMTIME systemTime;
     GetLocalTime(&systemTime);
@@ -46,11 +47,13 @@ void Logger::Log(const wchar_t*  message)
     // share...
     if (_console)
     {
+        lock_guard<mutex> guard(_mutex);
         wcout << messageWithTime;
     }
 
     if (_logFileName.size())
     {
+        lock_guard<mutex> guard(_mutex);
         basic_ofstream<wchar_t> outFile(_logFileName, fstream::app);
         outFile << messageWithTime;
         outFile.close();

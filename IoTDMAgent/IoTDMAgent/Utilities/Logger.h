@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Windows.h>
+#include <mutex>
 #include <string>
 #include <sstream>
 #include "Utils.h"
@@ -28,6 +28,8 @@ public:
     void Log(const char* format, int param);
 
 private:
+    std::mutex _mutex;
+
     bool _console;
     std::wstring _logFileName;
 };

@@ -48,12 +48,6 @@
     <ClInclude Include="IoTDMService.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ServiceBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ServiceInstaller.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -87,6 +81,9 @@
     <ClInclude Include="LocalMachine\LocalMachine.h">
       <Filter>Header Files\LocalMachine</Filter>
     </ClInclude>
+    <ClInclude Include="Utilities\DMException.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -96,12 +93,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="IoTDMService.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ServiceBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ServiceInstaller.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LocalMachine\CSPs\PrivateAPIs\CSPController.cpp">
