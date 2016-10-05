@@ -153,38 +153,6 @@ void PolicyCSP::SetDeferQualityUpdatesPeriodInDays(unsigned int days)
     TRACEP(L"    :", days);
 }
 
-unsigned int PolicyCSP::GetDeferUpdatePeriod()
-{
-    TRACE(L"\n---- Get Defer Update Period\n");
-    unsigned int weeks = MdmProvision::RunGetUInt(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferUpdatePeriod");
-    TRACEP(L"    :", weeks);
-    return weeks;
-}
-
-// Valid values: 0-4
-void PolicyCSP::SetDeferUpdatePeriod(unsigned int weeks)
-{
-    TRACE(L"\n---- Set Defer Update Period\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferUpdatePeriod", weeks);
-    TRACEP(L"    :", weeks);
-}
-
-unsigned int PolicyCSP::GetDeferUpgradePeriod()
-{
-    TRACE(L"\n---- Get Defer Upgrade Period\n");
-    unsigned int months = MdmProvision::RunGetUInt(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferUpgradePeriod");
-    TRACEP(L"    :", months);
-    return months;
-}
-
-// Valid values: 0-8
-void PolicyCSP::SetDeferUpgradePeriod(unsigned int months)
-{
-    TRACE(L"\n---- Set Defer Upgrade Period\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferUpgradePeriod", months);
-    TRACEP(L"    :", months);
-}
-
 unsigned int PolicyCSP::GetExcludeWUDrivers()
 {
     TRACE(L"\n---- Get ExcludeWUDrivers\n");
@@ -199,22 +167,6 @@ void PolicyCSP::SetExcludeWUDrivers(unsigned int excludeLevel)
     TRACE(L"\n---- Set ExcludeWUDrivers\n");
     MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ExcludeWUDrivers", excludeLevel);
     TRACEP(L"    :", excludeLevel);
-}
-
-unsigned int PolicyCSP::GetPauseDeferrals()
-{
-    TRACE(L"\n---- Get PauseDeferrals\n");
-    unsigned int pauseLevel = MdmProvision::RunGetUInt(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseDeferrals");
-    TRACEP(L"    :", pauseLevel);
-    return pauseLevel;
-}
-
-// Valid values: 0-1
-void PolicyCSP::SetPauseDeferrals(unsigned int pauseLevel)
-{
-    TRACE(L"\n---- Set PauseDeferrals\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseDeferrals", pauseLevel);
-    TRACEP(L"    :", pauseLevel);
 }
 
 unsigned int PolicyCSP::GetPauseFeatureUpdates()
@@ -247,22 +199,6 @@ void PolicyCSP::SetPauseQualityUpdates(unsigned int pauseLevel)
     TRACE(L"\n---- Set PauseQualityUpdates\n");
     MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", pauseLevel);
     TRACEP(L"    :", pauseLevel);
-}
-
-unsigned int PolicyCSP::GetRequireDeferUpgrade()
-{
-    TRACE(L"\n---- Get RequireDeferUpgrade\n");
-    unsigned int value = MdmProvision::RunGetUInt(L"./Device/Vendor/MSFT/Policy/Result/Update/RequireDeferUpgrade");
-    TRACEP(L"    :", value);
-    return value;
-}
-
-// Valid values: 0-1
-void PolicyCSP::SetRequireDeferUpgrade(unsigned int value)
-{
-    TRACE(L"\n---- Set RequireDeferUpgrade\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/RequireDeferUpgrade", value);
-    TRACEP(L"    :", value);
 }
 
 unsigned int PolicyCSP::GetRequireUpdateApproval()

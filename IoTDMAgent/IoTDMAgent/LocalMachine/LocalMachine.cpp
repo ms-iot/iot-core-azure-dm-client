@@ -272,26 +272,6 @@ void LocalMachine::SetDeferQualityUpdatesPeriodInDays(unsigned int days)
     PolicyCSP::SetDeferQualityUpdatesPeriodInDays(days);
 }
 
-unsigned int LocalMachine::GetDeferUpdatePeriod()
-{
-    return PolicyCSP::GetDeferUpdatePeriod();
-}
-
-void LocalMachine::SetDeferUpdatePeriod(unsigned int weeks)
-{
-    PolicyCSP::SetDeferUpdatePeriod(weeks);
-}
-
-unsigned int LocalMachine::GetDeferUpgradePeriod()
-{
-    return PolicyCSP::GetDeferUpgradePeriod();
-}
-
-void LocalMachine::SetDeferUpgradePeriod(unsigned int months)
-{
-    PolicyCSP::SetDeferUpgradePeriod(months);
-}
-
 unsigned int LocalMachine::GetExcludeWUDrivers()
 {
     return PolicyCSP::GetExcludeWUDrivers();
@@ -300,16 +280,6 @@ unsigned int LocalMachine::GetExcludeWUDrivers()
 void LocalMachine::SetExcludeWUDrivers(unsigned int excludeLevel)
 {
     PolicyCSP::SetExcludeWUDrivers(excludeLevel);
-}
-
-unsigned int LocalMachine::GetPauseDeferrals()
-{
-    return PolicyCSP::GetPauseDeferrals();
-}
-
-void LocalMachine::SetPauseDeferrals(unsigned int pauseLevel)
-{
-    PolicyCSP::SetPauseDeferrals(pauseLevel);
 }
 
 unsigned int LocalMachine::GetPauseFeatureUpdates()
@@ -330,16 +300,6 @@ unsigned int LocalMachine::GetPauseQualityUpdates()
 void LocalMachine::SetPauseQualityUpdates(unsigned int pauseLevel)
 {
     PolicyCSP::SetPauseQualityUpdates(pauseLevel);
-}
-
-unsigned int LocalMachine::GetRequireDeferUpgrade()
-{
-    return PolicyCSP::GetRequireDeferUpgrade();
-}
-
-void LocalMachine::SetRequireDeferUpgrade(unsigned int value)
-{
-    PolicyCSP::SetRequireDeferUpgrade(value);
 }
 
 unsigned int LocalMachine::GetRequireUpdateApproval()

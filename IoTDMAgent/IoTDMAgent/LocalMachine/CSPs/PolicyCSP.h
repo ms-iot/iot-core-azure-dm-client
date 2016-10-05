@@ -33,26 +33,14 @@ public:
     static unsigned int GetDeferQualityUpdatesPeriodInDays();
     static void SetDeferQualityUpdatesPeriodInDays(unsigned int days);
 
-    static unsigned int GetDeferUpdatePeriod();
-    static void SetDeferUpdatePeriod(unsigned int weeks);
-
-    static unsigned int GetDeferUpgradePeriod();
-    static void SetDeferUpgradePeriod(unsigned int months);
-
     static unsigned int GetExcludeWUDrivers();
     static void SetExcludeWUDrivers(unsigned int excludeLevel);
-
-    static unsigned int GetPauseDeferrals();
-    static void SetPauseDeferrals(unsigned int pauseLevel);
 
     static unsigned int GetPauseFeatureUpdates();
     static void SetPauseFeatureUpdates(unsigned int pauseLevel);
 
     static unsigned int GetPauseQualityUpdates();
     static void SetPauseQualityUpdates(unsigned int pauseLevel);
-
-    static unsigned int GetRequireDeferUpgrade();
-    static void SetRequireDeferUpgrade(unsigned int value);
 
     static unsigned int GetRequireUpdateApproval();
     static void SetRequireUpdateApproval(unsigned int value);

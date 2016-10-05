@@ -258,7 +258,6 @@
     <ClInclude Include="Utilities\DMException.h" />
     <ClInclude Include="Utilities\Logger.h" />
     <ClInclude Include="Utilities\Utils.h" />
-    <ClInclude Include="Utilities\XmlParser.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AzureProxy.cpp" />
@@ -279,7 +278,6 @@
     </ClCompile>
     <ClCompile Include="Utilities\Logger.cpp" />
     <ClCompile Include="Utilities\Utils.cpp" />
-    <ClCompile Include="Utilities\XmlParser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="IoTDMAgent.rc" />

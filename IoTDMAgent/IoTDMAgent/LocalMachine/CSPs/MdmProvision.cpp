@@ -3,7 +3,6 @@
 #include <vector>
 #include "..\..\Utilities\Logger.h"
 #include "..\..\Utilities\Utils.h"
-#include "..\..\Utilities\XmlParser.h"
 #include "PrivateAPIs\CSPController.h"
 #include "MdmProvision.h"
 
@@ -61,7 +60,7 @@ void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, w
     // Xml parser does not allow two top-level roots, so we have to wrap it in a root element first.
     wstring returnCodeString;
     wstring wrappedResult = ROOT_START_TAG + outputSyncML + ROOT_END_TAG;
-    XmlParser::ReadXmlValue(wrappedResult, STATUS_XML_PATH, returnCodeString);
+    Utils::ReadXmlValue(wrappedResult, STATUS_XML_PATH, returnCodeString);
 
     unsigned int returnCode = stoi(returnCodeString);
     if (returnCode >= 300)
@@ -120,7 +119,7 @@ wstring MdmProvision::RunGetString(const wstring& sid, const wstring& path)
     wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
 
     wstring value;
-    XmlParser::ReadXmlValue(wrappedResult, RESULTS_XML_PATH, value);
+    Utils::ReadXmlValue(wrappedResult, RESULTS_XML_PATH, value);
     return value;
 }
 
@@ -148,7 +147,7 @@ unsigned int MdmProvision::RunGetUInt(const wstring& sid, const wstring& path)
     // Extract the result data
     wstring valueString;
     wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
-    XmlParser::ReadXmlValue(wrappedResult, RESULTS_XML_PATH, valueString);
+    Utils::ReadXmlValue(wrappedResult, RESULTS_XML_PATH, valueString);
     return stoi(valueString);
 }
 

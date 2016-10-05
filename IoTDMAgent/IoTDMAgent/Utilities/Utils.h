@@ -13,4 +13,6 @@ namespace Utils
     void SplitString(const std::wstring& s, wchar_t delim, std::vector<std::wstring>& tokens);
 
     std::wstring GetResourceString(int id);
+
+    void ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);
 }
