@@ -2,10 +2,10 @@
 #include "IoTDMService.h"
 #include "AzureProxy.h"
 #include "LocalMachine\LocalMachine.h"
+#include "Utilities\Limpet.h"
 
 // Device twin update interval in seconds
 #define DEVICE_TWIN_UPDATE_INTERVAL 5
-#define AZURE_TEST_CONNECTION_STRING "<connection string>"
 
 using namespace std;
 
@@ -230,6 +230,13 @@ void IoTDMService::WriteErrorLogEntry(const wstring& function, DWORD errorCode)
     WriteEventLogEntry(message.str(), EVENTLOG_ERROR_TYPE);
 }
 
+std::string IoTDMService::GetConnectionString(const std::chrono::system_clock::time_point& expiration)
+{
+    auto connectionString = Limpet::GetInstance().GetSASToken(0, expiration);
+    TRACE(connectionString.c_str());
+    return connectionString;
+}
+
 void IoTDMService::OnStart(DWORD argc, LPWSTR *argv)
 {
     TRACE("IoTDMService.OnStart()");
@@ -248,30 +255,44 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
 {
     TRACE("IoTDMService.ServiceWorkerThread()");
 
+    using namespace std::chrono;
+
+    const auto threshold = minutes(15); // 15 minutes
+    const auto expirationTimeSpan = hours(24); // 1 day
+
     try
     {
-        AzureProxy cloudProxy(AZURE_TEST_CONNECTION_STRING);
         while (!_stopSignaled)
         {
-            TRACE("IoTDMService.ServiceWorkerThread()->Loop");
+            auto expiration = system_clock::now() + expirationTimeSpan;
+            auto connectionString = GetConnectionString(expiration);
+            AzureProxy cloudProxy(connectionString);
 
-            // Sync the device twin...
-            cloudProxy.SetTotalMemoryMB(LocalMachine::GetTotalMemoryMB());
-            cloudProxy.SetAvailableMemoryMB(LocalMachine::GetAvailableMemoryMB());
-            cloudProxy.SetBatteryLevel(LocalMachine::GetBatteryLevel());
-            cloudProxy.SetBatteryStatus(LocalMachine::GetBatteryStatus());
-
-            try
+            while (!_stopSignaled && expiration - system_clock::now() > threshold)
             {
-                cloudProxy.ReportMonitoredProperties();
-            }
-            catch (exception&)
-            {
-                // An error during the reporting of properties might be an intermittent one.
-                // No need to stop the service. Let it run.
+                TRACE("IoTDMService.ServiceWorkerThread()->Loop");
+
+                // Sync the device twin...
+                cloudProxy.SetTotalMemoryMB(LocalMachine::GetTotalMemoryMB());
+                cloudProxy.SetAvailableMemoryMB(LocalMachine::GetAvailableMemoryMB());
+                cloudProxy.SetBatteryLevel(LocalMachine::GetBatteryLevel());
+                cloudProxy.SetBatteryStatus(LocalMachine::GetBatteryStatus());
+
+                try
+                {
+                    cloudProxy.ReportMonitoredProperties();
+                }
+                catch (exception&)
+                {
+                    // An error during the reporting of properties might be an intermittent one.
+                    // No need to stop the service. Let it run.
+                }
+
+                ::Sleep(DEVICE_TWIN_UPDATE_INTERVAL * 1000);
             }
 
-            ::Sleep(DEVICE_TWIN_UPDATE_INTERVAL * 1000);
+            // TODO: Before we destroy the existing iot client, we need to get all the un-send messages 
+            // and re-queue them with the new client.
         }
 
         TRACE("IoTDMService.ServiceWorkerThread()->Done.");

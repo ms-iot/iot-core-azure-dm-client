@@ -96,6 +96,9 @@
     <ClInclude Include="AzureModels\TimeModel.h">
       <Filter>Header Files\AzureModels</Filter>
     </ClInclude>
+    <ClInclude Include="Utilities\Limpet.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -139,6 +142,9 @@
     </ClCompile>
     <ClCompile Include="AzureModels\TimeModel.cpp">
       <Filter>Source Files\AzureModels</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\Limpet.cpp">
+      <Filter>Source Files\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
