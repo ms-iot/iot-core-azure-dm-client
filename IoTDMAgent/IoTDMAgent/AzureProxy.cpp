@@ -29,11 +29,8 @@ using namespace std;
 #define JsonBatteryLevel "Level"
 #define JsonBatteryStatus "Status"
 
-#define JsonRebootW L"Reboot"
-
 #define JsonDesiredNode L"desired"
 
-//#define JsonLastRebootTime L"lastReboot"
 const char* RebootMethod = "Reboot";
 
 AzureProxy::AzureProxy(const string& connectionString) :
