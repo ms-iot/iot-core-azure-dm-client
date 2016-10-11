@@ -1,65 +1,22 @@
 #include "stdafx.h"
 #include <windows.h>
+#include  <algorithm>
 #include "LocalMachine.h"
 #include "..\Utilities\Utils.h"
 #include "..\Utilities\Logger.h"
 #include "..\Utilities\DMException.h"
+#include "CSPs\MdmProvision.h"
+#include "CSPs\RebootCSP.h"
 #include "CSPs\UpdateCSP.h"
 #include "CSPs\PolicyCSP.h"
-#include  <algorithm>
 
 using namespace std;
 
 void LocalMachine::Reboot()
 {
     TRACE("LocalMachine::OnDeviceRebootExecute()");
-
-    HANDLE processToken;
-    if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &processToken))
-    {
-        throw DMException("Failed to open process token...");
-    }
-
-    // Get the LUID for the shutdown privilege. 
-    TOKEN_PRIVILEGES tkp;
-    if (LookupPrivilegeValue(NULL, SE_SHUTDOWN_NAME, &tkp.Privileges[0].Luid))
-    {
-        tkp.PrivilegeCount = 1;  // one privilege to set    
-        tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-
-        // Get the shutdown privilege for this process. 
-        if (AdjustTokenPrivileges(processToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0) && GetLastError() == ERROR_SUCCESS)
-        {
-            if (!InitiateSystemShutdownEx(
-                NULL,   // machine name
-                NULL,   // message
-                10,     // timeout in seconds
-                TRUE,   // force restart without waiting for apps to save
-                TRUE,   // restart
-                SHTDN_REASON_MAJOR_OPERATINGSYSTEM | SHTDN_REASON_MINOR_MAINTENANCE | SHTDN_REASON_FLAG_PLANNED))
-            {
-                TRACEP("Error: Reboot failed to be scheduled.! Error code = ", GetLastError());
-            }
-            else
-            {
-                TRACE("Reboot scheduled successfully.");
-            }
-        }
-        else
-        {
-            // ToDo: Need to implement a mechanism for reporting errors from the Azure DM thread to 
-            //       the service/Azure reported properties.
-            TRACE("Error: Failed to adjust process token privileges...");
-        }
-    }
-    else
-    {
-        // ToDo: Need to implement a mechanism for reporting errors from the Azure DM thread to 
-        //       the service/Azure reported properties.
-        TRACE("Error: Failed to look up privilege value...");
-    }
-
-    CloseHandle(processToken);
+    RebootCSP::ExecRebootNow();
+    return;
 }
 
 unsigned int LocalMachine::GetTotalMemoryMB()

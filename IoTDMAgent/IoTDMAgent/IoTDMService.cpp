@@ -265,7 +265,7 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
 
             try
             {
-                cloudProxy.ReportProperties();
+                cloudProxy.ReportMonitoredProperties();
             }
             catch (exception&)
             {

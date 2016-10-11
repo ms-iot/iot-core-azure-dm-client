@@ -244,12 +244,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AzureModels\RebootModel.h" />
+    <ClInclude Include="AzureModels\TimeModel.h" />
     <ClInclude Include="AzureProxy.h" />
     <ClInclude Include="IoTDMService.h" />
     <ClInclude Include="LocalMachine\CSPs\MdmProvision.h" />
     <ClInclude Include="LocalMachine\CSPs\PolicyCSP.h" />
     <ClInclude Include="LocalMachine\CSPs\PrivateAPIs\CSPController.h" />
     <ClInclude Include="LocalMachine\CSPs\PrivateAPIs\IProvisioningDPULocal.h" />
+    <ClInclude Include="LocalMachine\CSPs\RebootCSP.h" />
     <ClInclude Include="LocalMachine\CSPs\UpdateCSP.h" />
     <ClInclude Include="LocalMachine\LocalMachine.h" />
     <ClInclude Include="resource.h" />
@@ -260,12 +263,15 @@
     <ClInclude Include="Utilities\Utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AzureModels\RebootModel.cpp" />
+    <ClCompile Include="AzureModels\TimeModel.cpp" />
     <ClCompile Include="AzureProxy.cpp" />
     <ClCompile Include="IoTDMAgent.cpp" />
     <ClCompile Include="IoTDMService.cpp" />
     <ClCompile Include="LocalMachine\CSPs\MdmProvision.cpp" />
     <ClCompile Include="LocalMachine\CSPs\PolicyCSP.cpp" />
     <ClCompile Include="LocalMachine\CSPs\PrivateAPIs\CSPController.cpp" />
+    <ClCompile Include="LocalMachine\CSPs\RebootCSP.cpp" />
     <ClCompile Include="LocalMachine\CSPs\UpdateCSP.cpp" />
     <ClCompile Include="LocalMachine\LocalMachine.cpp" />
     <ClCompile Include="stdafx.cpp">

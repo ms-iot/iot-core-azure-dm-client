@@ -2,6 +2,7 @@
 #include "PolicyCSP.h"
 #include "..\..\Utilities\Utils.h"
 #include "..\..\Utilities\Logger.h"
+#include "MdmProvision.h"
 
 using namespace std;
 
