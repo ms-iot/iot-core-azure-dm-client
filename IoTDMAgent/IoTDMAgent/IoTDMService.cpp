@@ -5,7 +5,7 @@
 
 // Device twin update interval in seconds
 #define DEVICE_TWIN_UPDATE_INTERVAL 5
-#define AZURE_TEST_CONNECTION_STRING "HostName=GMilekaStd.azure-devices.net;DeviceId=gmilekastd02;SharedAccessKey=8V/NExeGvYkmVRTDshrn2QjlQOKpyy86s8ySmN/aMTQ="
+#define AZURE_TEST_CONNECTION_STRING "<connection string>"
 
 using namespace std;
 
