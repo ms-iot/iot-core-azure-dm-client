@@ -254,23 +254,6 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
         while (!_stopSignaled)
         {
             TRACE("IoTDMService.ServiceWorkerThread()->Loop");
-
-            // Sync the device twin...
-            cloudProxy.SetTotalMemoryMB(LocalMachine::GetTotalMemoryMB());
-            cloudProxy.SetAvailableMemoryMB(LocalMachine::GetAvailableMemoryMB());
-            cloudProxy.SetBatteryLevel(LocalMachine::GetBatteryLevel());
-            cloudProxy.SetBatteryStatus(LocalMachine::GetBatteryStatus());
-
-            try
-            {
-                cloudProxy.ReportMonitoredProperties();
-            }
-            catch (exception&)
-            {
-                // An error during the reporting of properties might be an intermittent one.
-                // No need to stop the service. Let it run.
-            }
-
             ::Sleep(DEVICE_TWIN_UPDATE_INTERVAL * 1000);
         }
 

@@ -245,6 +245,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AzureModels\RebootModel.h" />
+    <ClInclude Include="AzureModels\SystemInfoModel.h" />
     <ClInclude Include="AzureModels\TimeModel.h" />
     <ClInclude Include="AzureProxy.h" />
     <ClInclude Include="IoTDMService.h" />
@@ -264,6 +265,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AzureModels\RebootModel.cpp" />
+    <ClCompile Include="AzureModels\SystemInfoModel.cpp" />
     <ClCompile Include="AzureModels\TimeModel.cpp" />
     <ClCompile Include="AzureProxy.cpp" />
     <ClCompile Include="IoTDMAgent.cpp" />

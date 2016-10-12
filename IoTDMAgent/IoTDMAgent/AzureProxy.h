@@ -4,6 +4,7 @@
 #include "iothub_client.h"
 #include "AzureModels\RebootModel.h"
 #include "AzureModels\TimeModel.h"
+#include "AzureModels\SystemInfoModel.h"
 
 class AzureProxy
 {
@@ -11,12 +12,7 @@ public:
     AzureProxy(const std::string& connectionString);
     ~AzureProxy();
 
-    void SetBatteryLevel(unsigned int level);
-    void SetBatteryStatus(unsigned int status);
-    void SetTotalMemoryMB(unsigned int memoryInMBs);
-    void SetAvailableMemoryMB(unsigned int memoryInMBs);
-
-    void ReportMonitoredProperties();
+    void ReportAllProperties();
 
 private:
     static void OnReportedPropertiesSent(int status_code, void* userContextCallback);
@@ -34,12 +30,7 @@ private:
     // Data members
     IOTHUB_CLIENT_HANDLE _iotHubClientHandle;
 
-    // Reported Properties
-    unsigned int _batteryLevel;
-    unsigned int _batteryStatus;
-    unsigned int _totalMemoryInMB;
-    unsigned int _availableMemoryInMB;
-
+    SystemInfoModel _systemInfoModel;
     TimeModel _timeModel;
     RebootModel _rebootModel;
 

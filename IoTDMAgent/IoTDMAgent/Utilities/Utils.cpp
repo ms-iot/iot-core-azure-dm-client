@@ -7,6 +7,7 @@
 
 using namespace std;
 using namespace Microsoft::WRL;
+using namespace Windows::System::Profile;
 
 namespace Utils
 {
@@ -281,6 +282,25 @@ wstring ReadRegistryValue(const wstring& subkey, const wstring& propName)
 
     // return wstring(reinterpret_cast<const wchar_t*>(data.data()));
     return wstring(reinterpret_cast<const wchar_t*>(data.data()));
+}
+
+wstring GetOSVersionString()
+{
+    AnalyticsVersionInfo^ info = AnalyticsInfo::VersionInfo;
+    Platform::String^ s = info->DeviceFamilyVersion;
+
+    wchar_t* endPtr = nullptr;
+    __int64 v = std::wcstoll(s->Data(), &endPtr, 10);
+
+    unsigned long v1 = (v & 0xFFFF000000000000L) >> 48;
+    unsigned long v2 = (v & 0x0000FFFF00000000L) >> 32;
+    unsigned long v3 = (v & 0x00000000FFFF0000L) >> 16;
+    unsigned long v4 = v & 0x000000000000FFFFL;
+
+    basic_ostringstream<wchar_t> formattedVersion;
+    formattedVersion << v1 << L"." << v2 << L"." << v3 << L"." << v4;
+
+    return formattedVersion.str();
 }
 
 }

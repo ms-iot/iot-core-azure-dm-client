@@ -15,24 +15,13 @@ using namespace Windows::Foundation::Collections;
 using namespace Platform;
 using namespace std;
 
-#define JsonMemory "Memory"
-#define JsonTotalMemory "TotalMemory"
-#define JsonAvailableMemory "AvailableMemory"
-
-#define JsonBattery "Battery"
-#define JsonBatteryLevel "Level"
-#define JsonBatteryStatus "Status"
-
 #define JsonDesiredNode L"desired"
 
+const char* ReportMethod = "Report";
 const char* RebootMethod = "Reboot";
 
 AzureProxy::AzureProxy(const string& connectionString) :
-    _iotHubClientHandle(nullptr),
-    _batteryLevel(0),
-    _batteryStatus(0),
-    _totalMemoryInMB(0),
-    _availableMemoryInMB(0)
+    _iotHubClientHandle(nullptr)
 {
     TRACE("AzureProxy::ctor()");
 
@@ -122,7 +111,11 @@ int AzureProxy::ProcessMethodCall(const std::string& name, const std::string& pa
 
     try
     {
-        if (name == RebootMethod)
+        if (name == ReportMethod)
+        {
+            ReportAllProperties();
+        }
+        else if (name == RebootMethod)
         {
             _rebootModel.ExecRebootNow();
             ReportProperties(_rebootModel.GetReportedProperties());
@@ -280,30 +273,6 @@ void AzureProxy::ProcessDesiredProperties(IJsonValue^ desiredPropertyValue)
     }
 }
 
-void AzureProxy::SetBatteryLevel(unsigned int level)
-{
-    TRACEP(L"SetBatteryLevel() :", level);
-    _batteryLevel = level;
-}
-
-void AzureProxy::SetBatteryStatus(unsigned int status)
-{
-    TRACEP(L"SetBatteryStatus() :", status);
-    _batteryStatus = status;
-}
-
-void AzureProxy::SetTotalMemoryMB(unsigned int memoryInMBs)
-{
-    TRACEP(L"SetTotalMemory() :", memoryInMBs);
-    _totalMemoryInMB = memoryInMBs;
-}
-
-void AzureProxy::SetAvailableMemoryMB(unsigned int memoryInMBs)
-{
-    TRACEP(L"SetAvailableMemory() :", memoryInMBs);
-    _availableMemoryInMB = memoryInMBs;
-}
-
 void AzureProxy::ReportProperties(JsonObject^ root) const
 {
     TRACE(L"AzureProxy::ReportProperties()");
@@ -318,23 +287,14 @@ void AzureProxy::ReportProperties(JsonObject^ root) const
     TRACE("Reported state has been delivered to IoTHub");
 }
 
-void AzureProxy::ReportMonitoredProperties()
+void AzureProxy::ReportAllProperties()
 {
     TRACE(L"AzureProxy::ReportMonitoredProperties()");
 
     JsonObject^ root = ref new JsonObject();
     {
-        // Memory properties
-        JsonObject^ memoryProperties = ref new JsonObject();
-        memoryProperties->Insert(JsonTotalMemory, JsonValue::CreateNumberValue(_totalMemoryInMB));
-        memoryProperties->Insert(JsonAvailableMemory, JsonValue::CreateNumberValue(_availableMemoryInMB));
-        root->Insert(JsonMemory, memoryProperties);
-
-        // Battery properties
-        JsonObject^ batteryProperties = ref new JsonObject();
-        batteryProperties->Insert(JsonBatteryLevel, JsonValue::CreateNumberValue(_batteryLevel));
-        batteryProperties->Insert(JsonBatteryStatus, JsonValue::CreateNumberValue(_batteryStatus));
-        root->Insert(JsonBattery, batteryProperties);
+        // System Info properties
+        root->Insert(ref new String(SystemInfoModel::NodeName().c_str()), _systemInfoModel.GetReportedProperties());
 
         // Time properties
         root->Insert(ref new String(TimeModel::NodeName().c_str()), _timeModel.GetReportedProperties());

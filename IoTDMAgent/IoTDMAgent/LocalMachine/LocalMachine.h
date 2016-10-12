@@ -8,10 +8,9 @@ class LocalMachine
 public:
     static void Reboot();
 
-    static unsigned int GetTotalMemoryMB();
-    static unsigned int GetAvailableMemoryMB();
-    static unsigned int GetBatteryLevel();
-    static unsigned int GetBatteryStatus();
+    static std::wstring GetOSVersionString();
+    static void GetMemoryInfoMB(unsigned int& totalMB, unsigned int& availableMB);
+    static void GetStorageInfoMB(unsigned int& totalMB, unsigned int& availableMB);
 
     // Generic SyncML
     static void RunSyncML(const std::wstring& request, std::wstring& response);

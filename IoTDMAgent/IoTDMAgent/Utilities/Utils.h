@@ -22,4 +22,5 @@ namespace Utils
     void WriteRegistryValue(const std::wstring& subkey, const std::wstring& propName, const std::wstring& propValue);
     std::wstring ReadRegistryValue(const std::wstring& subkey, const std::wstring& propName);
 
+    std::wstring GetOSVersionString();
 }

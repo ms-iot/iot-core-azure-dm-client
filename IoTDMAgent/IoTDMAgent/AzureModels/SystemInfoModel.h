@@ -1,14 +1,12 @@
 #pragma once
+
 #include <string>
 
-class TimeModel
+class SystemInfoModel
 {
 public:
-    TimeModel();
+    SystemInfoModel();
     static std::wstring NodeName();
-
-    // Desired
-    // ToDo: set time zone, etc
 
     // Reported
     Windows::Data::Json::JsonObject^ GetReportedProperties() const;

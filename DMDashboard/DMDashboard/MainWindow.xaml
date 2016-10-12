@@ -28,6 +28,62 @@
             <Button Grid.Row="2" Margin="3" Content="Connect" Click="OnConnect" IsEnabled="False" x:Name="ConnectButton"/>
         </Grid>
         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical" x:Name="ConnectedProperties" IsEnabled="False" Grid.RowSpan="2">
+            <TextBlock Margin="3" Text="System Info" FontSize="12" FontWeight="Bold" HorizontalAlignment="Left"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="180"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Margin="3"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Margin="3" Text="Desired"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" Margin="3" Text="Reported"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="OS Version"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" Text="n/a"/>
+                <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="OSVersion"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Memory (Total)"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a"/>
+                <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
+                    <TextBlock Margin="3" Text="0" x:Name="TotalMemoryMB"/>
+                    <TextBlock Margin="3" Text="MB"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Memory (Available)"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" Text="n/a"/>
+                <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
+                    <TextBlock Margin="3" Text="0" x:Name="AvailableMemoryMB"/>
+                    <TextBlock Margin="3" Text="MB"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Storage (Total)"/>
+                <TextBlock Grid.Row="4" Grid.Column="1" Margin="3" Text="n/a"/>
+                <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
+                    <TextBlock Margin="3" Text="0" x:Name="TotalStorageMB"/>
+                    <TextBlock Margin="3" Text="MB"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Storage (Available)"/>
+                <TextBlock Grid.Row="5" Grid.Column="1" Margin="3" Text="n/a"/>
+                <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal">
+                    <TextBlock Margin="3" Text="0" x:Name="AvailableStorageMB"/>
+                    <TextBlock Margin="3" Text="MB"/>
+                </StackPanel>
+
+            </Grid>
+
+            <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
+
             <TextBlock Margin="3" Text="Time" FontSize="12" FontWeight="Bold" HorizontalAlignment="Left"/>
             <Grid>
                 <Grid.RowDefinitions>
@@ -57,66 +113,6 @@
                 <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" Text="n/a"/>
                 <TextBlock Grid.Row="3" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneDaytimeName"/>
 
-            </Grid>
-
-            <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
-            <TextBlock Margin="3" Text="Memory" FontSize="12" FontWeight="Bold" HorizontalAlignment="Left"/>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="180"/>
-                    <ColumnDefinition Width="180"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Grid.Row="0" Grid.Column="0" Margin="3"/>
-                <TextBlock Grid.Row="0" Grid.Column="1" Margin="3" Text="Desired"/>
-                <TextBlock Grid.Row="0" Grid.Column="2" Margin="3" Text="Reported"/>
-
-                <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Total"/>
-                <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" Text="n/a"/>
-                <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                    <TextBlock Margin="3" Text="0" x:Name="TotalMemoryMB"/>
-                    <TextBlock Margin="3" Text="MB"/>
-                </StackPanel>
-
-                <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Available"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a"/>
-                <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
-                    <TextBlock Margin="3" Text="0" x:Name="AvailableMemoryMB"/>
-                    <TextBlock Margin="3" Text="MB"/>
-                </StackPanel>
-            </Grid>
-
-            <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
-            <TextBlock Margin="3" Text="Battery" FontSize="12" FontWeight="Bold" />
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="180"/>
-                    <ColumnDefinition Width="180"/>
-                </Grid.ColumnDefinitions>
-                
-                <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" />
-                <TextBlock Grid.Row="0" Grid.Column="1" Margin="3" Text="Desired"/>
-                <TextBlock Grid.Row="0" Grid.Column="2" Margin="3" Text="Reported"/>
-
-                <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Level"/>
-                <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" Text="n/a"/>
-                <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" Text="0" x:Name="BatteryLevel"/>
-
-                <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Status"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a"/>
-                <TextBlock Grid.Row="2" Grid.Column="2" Margin="3" Text="0" x:Name="BatteryStatus"/>
             </Grid>
 
             <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
@@ -160,8 +156,13 @@
                     <ColumnDefinition Width="180"/>
                     <ColumnDefinition Width="180"/>
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="Apply Desired" Click="OnApplyDesired"/>
-                <Button Grid.Row="0" Grid.Column="2" Margin="3" Content="Refresh Reported" Click="OnRefreshReported"/>
+                <Button Grid.Row="0" Grid.Column="2" Margin="3" Content="Read Reported" Click="OnReadReported"/>
+                <Button Grid.Row="1" Grid.Column="2" Margin="3" Content="Deep Read Reported" Click="OnDeepReadReported"/>
             </Grid>
         </StackPanel>
     </Grid>

@@ -192,3 +192,4 @@ FakesAssemblies/
 /DeviceCenter/DeviceCenter.VC.db
 # ImageFlashingTool.exe 
 /DeviceCenter/**/ImageFlashingTool.exe
+*.db

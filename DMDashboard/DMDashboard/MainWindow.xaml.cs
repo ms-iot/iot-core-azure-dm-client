@@ -52,7 +52,27 @@ namespace DMDashboard
 
         private void UpdateUI(string path, string value)
         {
-            if (path == "time.current")
+            if (path == "systemInfo.osVersion")
+            {
+                OSVersion.Text = value;
+            }
+            else if (path == "systemInfo.totalMemory")
+            {
+                TotalMemoryMB.Text = value;
+            }
+            else if (path == "systemInfo.availableMemory")
+            {
+                AvailableMemoryMB.Text = value;
+            }
+            else if (path == "systemInfo.totalStorage")
+            {
+                TotalStorageMB.Text = value;
+            }
+            else if (path == "systemInfo.availableStorage")
+            {
+                AvailableStorageMB.Text = value;
+            }
+            else if (path == "time.current")
             {
                 DeviceCurrentTime.Text = value;
             }
@@ -63,22 +83,6 @@ namespace DMDashboard
             else if (path == "time.zoneDaylightName")
             {
                 ZoneDaytimeName.Text = value;
-            }
-            else if (path == "Memory.TotalMemory")
-            {
-                TotalMemoryMB.Text = value;
-            }
-            else if (path == "Memory.AvailableMemory")
-            {
-                AvailableMemoryMB.Text = value;
-            }
-            else if (path == "Battery.Level")
-            {
-                BatteryLevel.Text = value;
-            }
-            else if (path == "Battery.Status")
-            {
-                BatteryStatus.Text = value;
             }
             else if (path == "reboot.lastReboot")
             {
@@ -225,9 +229,22 @@ namespace DMDashboard
             SendReboot();
         }
 
-        private void OnRefreshReported(object sender, RoutedEventArgs e)
+        private void OnReadReported(object sender, RoutedEventArgs e)
         {
             ReadReportedProperties();
+        }
+
+        private async void SendDeepRead()
+        {
+            CancellationToken cancellationToken = new CancellationToken();
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("Report", "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            System.Threading.Thread.Sleep(5 * 1000);
+            ReadReportedProperties();
+        }
+
+        private void OnDeepReadReported(object sender, RoutedEventArgs e)
+        {
+            SendDeepRead();
         }
 
         // Data members

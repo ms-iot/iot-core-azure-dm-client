@@ -15,48 +15,43 @@ void LocalMachine::Reboot()
     return;
 }
 
-unsigned int LocalMachine::GetTotalMemoryMB()
+wstring LocalMachine::GetOSVersionString()
 {
-    TRACE("LocalMachine::GetTotalMemoryMB()");
+    return Utils::GetOSVersionString();
+}
+
+void LocalMachine::GetMemoryInfoMB(unsigned int& totalMB, unsigned int& availableMB)
+{
+    TRACE("LocalMachine::GetMemoryInfoMB()");
+
+    ULARGE_INTEGER totalBytes = { 0 };
+    ULARGE_INTEGER availableBytes = { 0 };
 
     MEMORYSTATUSEX statex;
     statex.dwLength = sizeof(statex);
-    GlobalMemoryStatusEx(&statex);
-    return static_cast<unsigned int>(statex.ullTotalPhys) / (1024 * 1024);
-}
-
-unsigned int LocalMachine::GetAvailableMemoryMB()
-{
-    TRACE("LocalMachine::GetAvailableMemoryKB()");
-
-    MEMORYSTATUSEX statex;
-    statex.dwLength = sizeof(statex);
-    GlobalMemoryStatusEx(&statex);
-    return static_cast<unsigned int>(statex.ullAvailPhys) / (1024 * 1024);
-}
-
-unsigned int LocalMachine::GetBatteryLevel()
-{
-    // ToDo: NotImpl
-    TRACE("LocalMachine::GetBatteryLevel()");
-
-    static unsigned int level = 100;
-    if (level >= 10)
+    if (!GlobalMemoryStatusEx(&statex))
     {
-        level -= 10;
+        throw DMException("Error: GlobalMemoryStatusEx() failed.");
     }
-    else
-    {
-        level = 100;
-    }
-    return level;
+
+    totalMB = static_cast<unsigned int>(statex.ullTotalPhys) / (1024 * 1024);
+    availableMB = static_cast<unsigned int>(statex.ullAvailPhys) / (1024 * 1024);
 }
 
-unsigned int LocalMachine::GetBatteryStatus()
+void LocalMachine::GetStorageInfoMB(unsigned int& totalMB, unsigned int& availableMB)
 {
-    // ToDo: NotImpl
-    TRACE("LocalMachine::GetBatteryStatus()");
-    return 2;
+    TRACE("LocalMachine::GetStorageInfoMB()");
+
+    ULARGE_INTEGER totalBytes = { 0 };
+    ULARGE_INTEGER availableBytes = { 0 };
+
+    if (!GetDiskFreeSpaceEx(NULL, NULL, &totalBytes, &availableBytes))
+    {
+        throw DMException("Error: GetDiskFreeSpaceEx() failed.");
+    }
+
+    totalMB = totalBytes.QuadPart / (1024 * 1024);
+    availableMB = availableBytes.QuadPart / (1024 * 1024);
 }
 
 void LocalMachine::RunSyncML(const wstring& request, wstring& response)
