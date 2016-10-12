@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include <deque>
 #include "UpdateCSP.h"
-#include "..\..\Utilities\Utils.h"
-#include "..\..\Utilities\Logger.h"
 #include "MdmProvision.h"
 
 using namespace std;

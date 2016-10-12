@@ -1,7 +1,4 @@
 #include "stdafx.h"
-#include <vector>
-#include <string>
-#include <assert.h>
 
 #include "AzureProxy.h"
 #include "serializer.h"
@@ -10,10 +7,8 @@
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/threadapi.h"
 
-#include "Utilities\Logger.h"
-#include "Utilities\Utils.h"
-#include "Utilities\DMException.h"
 #include "LocalMachine\LocalMachine.h"
+#include "LocalMachine\CSPs\RebootCSP.h"
 
 using namespace Windows::Data::Json;
 using namespace Windows::Foundation::Collections;
@@ -28,12 +23,9 @@ using namespace std;
 #define JsonBatteryLevel "Level"
 #define JsonBatteryStatus "Status"
 
-#define JsonReboot "Reboot"
-#define JsonRebootW L"Reboot"
-
 #define JsonDesiredNode L"desired"
 
-#define JsonDesiredProp1 L"Prop1"
+const char* RebootMethod = "Reboot";
 
 AzureProxy::AzureProxy(const string& connectionString) :
     _iotHubClientHandle(nullptr),
@@ -72,6 +64,11 @@ AzureProxy::AzureProxy(const string& connectionString) :
     {
         throw DMException("Unable to set message callback.");
     }
+
+    if (IoTHubClient_SetDeviceMethodCallback(_iotHubClientHandle, OnMethodCalled, this) != IOTHUB_CLIENT_OK)
+    {
+        throw DMException("Unable to set method callback.");
+    }
 }
 
 AzureProxy::~AzureProxy()
@@ -84,6 +81,62 @@ AzureProxy::~AzureProxy()
     }
 }
 
+int AzureProxy::OnMethodCalled(const char* method_name, const unsigned char* payload, size_t size, unsigned char** response, size_t* resp_size, void* userContextCallback)
+{
+    AzureProxy* pThis = static_cast<AzureProxy*>(userContextCallback);
+    assert(pThis);
+
+    string methodName = method_name;
+    string methodPayload(reinterpret_cast<const char*>(payload), size);
+    string methodResponse;
+
+    int retCode = pThis->ProcessMethodCall(methodName, methodPayload, methodResponse);
+    if (retCode == IOTHUB_CLIENT_IOTHUB_METHOD_STATUS_ERROR)
+    {
+        return retCode;
+    }
+
+    if (resp_size != nullptr)
+    {
+        *resp_size = 0;
+        if (response != nullptr)
+        {
+            *response = nullptr;
+
+            if (methodResponse.size())
+            {
+                // The caller is responsible for freeing this malloc.
+                *response = (unsigned char*)malloc(methodResponse.size());
+                memcpy(*response, methodResponse.c_str(), methodResponse.size());
+                *resp_size = methodResponse.size();
+            }
+        }
+    }
+
+    return retCode;
+}
+
+int AzureProxy::ProcessMethodCall(const std::string& name, const std::string& payload, std::string& response)
+{
+    int result = IOTHUB_CLIENT_IOTHUB_METHOD_STATUS_SUCCESS;
+
+    try
+    {
+        if (name == RebootMethod)
+        {
+            _rebootModel.ExecRebootNow();
+            ReportProperties(_rebootModel.GetReportedProperties());
+        }
+    }
+    catch (exception&)
+    {
+        result = IOTHUB_CLIENT_IOTHUB_METHOD_STATUS_ERROR;
+    }
+
+    return result;
+}
+
+// ToDo: Remove OnMessageReceived(). It is just a placeholder in case we need it.
 IOTHUBMESSAGE_DISPOSITION_RESULT AzureProxy::OnMessageReceived(IOTHUB_MESSAGE_HANDLE message, void* userContextCallback)
 {
     TRACE("AzureProxy::OnMessageReceived()");
@@ -104,7 +157,6 @@ IOTHUBMESSAGE_DISPOSITION_RESULT AzureProxy::OnMessageReceived(IOTHUB_MESSAGE_HA
         // Need to add a null terminator.
         string message(buffer, bufferSize);
         TRACEP("Received Message with Data:", message.c_str());
-        pThis->ProcessMessage(message);
     }
 
     return IOTHUBMESSAGE_ACCEPTED;
@@ -217,37 +269,14 @@ void AzureProxy::ProcessDesiredProperties(IJsonValue^ desiredPropertyValue)
             {
                 IKeyValuePair<String^, IJsonValue^>^ pair = iter->Current;
                 String^ childKey = pair->Key;
-                if (childKey == JsonRebootW)
+
+                if (0 == RebootModel::NodeName().compare(childKey->Data()))
                 {
-                    OnReboot(pair->Value);
+                    _rebootModel.SetDesiredProperties(pair->Value);
                 }
             }
         }
         break;
-    }
-}
-
-void AzureProxy::ProcessMessage(const string& command)
-{
-    TRACEP("AzureProxy::ProcessMessage() : ", command.c_str());
-    if (command == JsonReboot)
-    {
-        wprintf(L"Invoking local agent reboot!\n");
-        LocalMachine::Reboot();
-    }
-}
-
-// Sample code for desired properties.
-void AzureProxy::OnReboot(IJsonValue^ rebootNode)
-{
-    TRACE(L"OnReboot()");
-    JsonValueType type = rebootNode->ValueType;
-    if (type == JsonValueType::String)
-    {
-        String^ childValueString = rebootNode->GetString();
-        TRACE(L"OnReboot() should not be called through the 'desired' properties.");
-        // ToDo: implement the parsing of the Reboot node.
-        // LocalMachine::Reboot();
     }
 }
 
@@ -275,33 +304,44 @@ void AzureProxy::SetAvailableMemoryMB(unsigned int memoryInMBs)
     _availableMemoryInMB = memoryInMBs;
 }
 
-void AzureProxy::ReportProperties()
+void AzureProxy::ReportProperties(JsonObject^ root) const
 {
-    TRACE(L"ReportProperties()");
-
-    JsonObject^ memoryProperties = ref new JsonObject();
-    memoryProperties->Insert(JsonTotalMemory, JsonValue::CreateNumberValue(_totalMemoryInMB));
-    memoryProperties->Insert(JsonAvailableMemory, JsonValue::CreateNumberValue(_availableMemoryInMB));
-
-    JsonObject^ batteryProperties = ref new JsonObject();
-    batteryProperties->Insert(JsonBatteryLevel, JsonValue::CreateNumberValue(_batteryLevel));
-    batteryProperties->Insert(JsonBatteryStatus, JsonValue::CreateNumberValue(_batteryStatus));
-
-    JsonObject^ root = ref new JsonObject();
-    root->Insert(JsonMemory, memoryProperties);
-    root->Insert(JsonBattery, batteryProperties);
+    TRACE(L"AzureProxy::ReportProperties()");
 
     string jsonString = Utils::WideToMultibyte(root->Stringify()->Data());
     TRACEP("Json = ", jsonString.c_str());
 
-    // ToDo: const char* -> unsigned char*; why not use simple conversion?
-    vector<unsigned char> v(jsonString.size() + 1);
-    memcpy(v.data(), jsonString.c_str(), jsonString.size() + 1);
-
-    // Sending the serialized reported properties to IoTHub
-    if (IoTHubClient_SendReportedState(_iotHubClientHandle, v.data(), v.size(), OnReportedPropertiesSent, NULL) != IOTHUB_CLIENT_OK)
+    if (IoTHubClient_SendReportedState(_iotHubClientHandle, reinterpret_cast<const unsigned char*>(jsonString.c_str()), jsonString.size() + 1, OnReportedPropertiesSent, NULL) != IOTHUB_CLIENT_OK)
     {
         throw DMException("Failed to send reported properties.");
     }
     TRACE("Reported state has been delivered to IoTHub");
+}
+
+void AzureProxy::ReportMonitoredProperties()
+{
+    TRACE(L"AzureProxy::ReportMonitoredProperties()");
+
+    JsonObject^ root = ref new JsonObject();
+    {
+        // Memory properties
+        JsonObject^ memoryProperties = ref new JsonObject();
+        memoryProperties->Insert(JsonTotalMemory, JsonValue::CreateNumberValue(_totalMemoryInMB));
+        memoryProperties->Insert(JsonAvailableMemory, JsonValue::CreateNumberValue(_availableMemoryInMB));
+        root->Insert(JsonMemory, memoryProperties);
+
+        // Battery properties
+        JsonObject^ batteryProperties = ref new JsonObject();
+        batteryProperties->Insert(JsonBatteryLevel, JsonValue::CreateNumberValue(_batteryLevel));
+        batteryProperties->Insert(JsonBatteryStatus, JsonValue::CreateNumberValue(_batteryStatus));
+        root->Insert(JsonBattery, batteryProperties);
+
+        // Time properties
+        root->Insert(ref new String(TimeModel::NodeName().c_str()), _timeModel.GetReportedProperties());
+
+        // Reboot properties
+        root->Insert(ref new String(RebootModel::NodeName().c_str()), _rebootModel.GetReportedProperties());
+    }
+
+    ReportProperties(root);
 }

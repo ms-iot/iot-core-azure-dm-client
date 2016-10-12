@@ -1,6 +1,4 @@
 #include "stdafx.h"
-#include <thread>
-#include <assert.h>
 #include "IoTDMService.h"
 #include "AzureProxy.h"
 #include "LocalMachine\LocalMachine.h"
@@ -265,7 +263,7 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
 
             try
             {
-                cloudProxy.ReportProperties();
+                cloudProxy.ReportMonitoredProperties();
             }
             catch (exception&)
             {

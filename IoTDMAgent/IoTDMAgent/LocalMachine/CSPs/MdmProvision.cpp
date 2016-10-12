@@ -1,8 +1,4 @@
 #include "stdafx.h"
-#include <exception>
-#include <vector>
-#include "..\..\Utilities\Logger.h"
-#include "..\..\Utilities\Utils.h"
 #include "PrivateAPIs\CSPController.h"
 #include "MdmProvision.h"
 
@@ -55,6 +51,8 @@ void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, w
         outputSyncML = output;
     }
     LocalFree(output);
+
+    TRACEP(L"Response: ", outputSyncML.c_str());
 
     // The results have two top elements: Status and Results.
     // Xml parser does not allow two top-level roots, so we have to wrap it in a root element first.
@@ -203,6 +201,27 @@ void MdmProvision::RunSet(const wstring& sid, const wstring& path, unsigned int 
     RunSyncML(sid, requestSyncML, resultSyncML);
 }
 
+void MdmProvision::RunExec(const wstring& sid, const wstring& path)
+{
+    wstring requestSyncML = LR"(
+    <SyncBody>
+        <Exec>
+            <CmdID>1</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>)";
+    requestSyncML += path;
+    requestSyncML += LR"(</LocURI>
+                </Target>
+            </Item>
+        </Exec>
+    </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    RunSyncML(sid, requestSyncML, resultSyncML);
+}
+
 void MdmProvision::RunAdd(const std::wstring& path, const std::wstring& value)
 {
     // empty sid is okay for device-wide CSPs.
@@ -231,6 +250,12 @@ void MdmProvision::RunSet(const std::wstring& path, unsigned int value)
 {
     // empty sid is okay for device-wide CSPs.
     RunSet(L"", path, value);
+}
+
+void MdmProvision::RunExec(const wstring& path)
+{
+    // empty sid is okay for device-wide CSPs.
+    RunExec(L"", path);
 }
 
 void MdmProvision::ReportError(const std::wstring& syncMLRequest, const std::wstring& syncMLResponse, int errorCode)

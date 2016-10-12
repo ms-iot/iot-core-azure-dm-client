@@ -37,6 +37,12 @@
     <Filter Include="Source Files\Utilities">
       <UniqueIdentifier>{c6b59a64-3fcd-4cba-8d32-1ced6d753393}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\AzureModels">
+      <UniqueIdentifier>{3a2b714a-f1b6-4e84-b7d9-55c66e04b28a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AzureModels">
+      <UniqueIdentifier>{b4900c39-5dab-4da9-9555-a898edb2fe4f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -81,6 +87,15 @@
     <ClInclude Include="Utilities\DMException.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="LocalMachine\CSPs\RebootCSP.h">
+      <Filter>Header Files\LocalMachine\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="AzureModels\RebootModel.h">
+      <Filter>Header Files\AzureModels</Filter>
+    </ClInclude>
+    <ClInclude Include="AzureModels\TimeModel.h">
+      <Filter>Header Files\AzureModels</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -115,6 +130,15 @@
     </ClCompile>
     <ClCompile Include="LocalMachine\LocalMachine.cpp">
       <Filter>Source Files\LocalMachine</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalMachine\CSPs\RebootCSP.cpp">
+      <Filter>Source Files\LocalMachine\CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="AzureModels\RebootModel.cpp">
+      <Filter>Source Files\AzureModels</Filter>
+    </ClCompile>
+    <ClCompile Include="AzureModels\TimeModel.cpp">
+      <Filter>Source Files\AzureModels</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

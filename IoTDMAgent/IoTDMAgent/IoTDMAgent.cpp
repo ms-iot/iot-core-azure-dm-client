@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include <stdio.h>
 #include <windows.h>
 #include "IoTDMService.h"
 
@@ -8,7 +7,7 @@
 #define SERVICE_START_TYPE       SERVICE_DEMAND_START
 #define SERVICE_DEPENDENCIES     L""
 #define SERVICE_ACCOUNT          L"NT AUTHORITY\\SYSTEM"
-#define SERVICE_PASSWORD         NULL
+#define SERVICE_PASSWORD         L""
 
 [Platform::MTAThread]
 int wmain(int argc, wchar_t *argv[])

@@ -2,14 +2,7 @@
 #include <windows.h>
 #include <wrl/client.h>
 #include <xmllite.h>
-#include <time.h>
-#include <string>
-#include <vector>
-#include <deque>
-#include <sstream>
-#include <codecvt>
 #include "Utils.h"
-#include "Logger.h"
 #include "..\resource.h"
 
 using namespace std;
@@ -54,6 +47,26 @@ void SplitString(const wstring &s, wchar_t delim, vector<wstring> &tokens) {
     {
         tokens.push_back(item);
     }
+}
+
+std::wstring GetCurrentDateTimeString()
+{
+    SYSTEMTIME systemTime;
+    GetLocalTime(&systemTime);
+
+    return GetDateTimeString(systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute, systemTime.wSecond);
+}
+
+wstring GetDateTimeString(unsigned int year, unsigned int month, unsigned int day, unsigned int hour, unsigned int minute, unsigned int second)
+{
+    basic_ostringstream<wchar_t> formattedTime;
+    formattedTime << setw(2) << setfill(L'0') << year
+        << L'-' << setw(2) << setfill(L'0') << month
+        << L'-' << setw(2) << setfill(L'0') << day
+        << L'T' << setw(2) << setfill(L'0') << hour
+        << L':' << setw(2) << setfill(L'0') << minute
+        << L':' << setw(2) << setfill(L'0') << second;
+    return formattedTime.str();
 }
 
 wstring GetResourceString(int id)
@@ -219,6 +232,55 @@ void ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXm
 
     // GlobalFree() is not needed since 'delete on release' is enabled.
     // GlobalFree(buffer);
+}
+
+void WriteRegistryValue(const wstring& subkey, const wstring& propName, const wstring& propValue)
+{
+    bool success = false;
+    HKEY hKey = NULL;
+    if (ERROR_SUCCESS == RegCreateKeyEx(
+        HKEY_LOCAL_MACHINE,
+        subkey.c_str(),
+        0,      // reserved
+        NULL,   // user-defined class type of this key.
+        0,      // default; non-volatile
+        KEY_ALL_ACCESS,
+        NULL,   // inherit security descriptor from parent.
+        &hKey,
+        NULL    // disposition [optional, out]
+    ))
+    {
+        if (ERROR_SUCCESS == RegSetValueEx(hKey, propName.c_str(), 0, REG_SZ, reinterpret_cast<const BYTE*>(propValue.c_str()), (propValue.size() + 1) * sizeof(propValue[0])))
+        {
+            success = true;
+        }
+        RegCloseKey(hKey);
+    }
+
+    if (!success)
+    {
+        throw exception();
+    }
+}
+
+wstring ReadRegistryValue(const wstring& subkey, const wstring& propName)
+{
+    DWORD dataSize = 0;
+    if (ERROR_SUCCESS != RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, NULL, &dataSize))
+    {
+        TRACEP(L"Error: Could not read registry value size: ", (subkey + L"\\" + propName).c_str());
+        throw DMException("Failed to read registry value size.");
+    }
+
+    vector<char> data(dataSize);
+    if (ERROR_SUCCESS != RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, data.data(), &dataSize))
+    {
+        TRACEP(L"Error: Could not read registry value: ", (subkey + L"\\" + propName).c_str());
+        throw DMException("Failed to read registry value.");
+    }
+
+    // return wstring(reinterpret_cast<const wchar_t*>(data.data()));
+    return wstring(reinterpret_cast<const wchar_t*>(data.data()));
 }
 
 }
