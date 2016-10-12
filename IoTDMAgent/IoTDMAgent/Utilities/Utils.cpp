@@ -2,15 +2,7 @@
 #include <windows.h>
 #include <wrl/client.h>
 #include <xmllite.h>
-#include <time.h>
-#include <string>
-#include <vector>
-#include <deque>
-#include <sstream>
-#include <iostream>
-#include <iomanip>
 #include "Utils.h"
-#include "Logger.h"
 #include "..\resource.h"
 
 using namespace std;
@@ -276,15 +268,18 @@ wstring ReadRegistryValue(const wstring& subkey, const wstring& propName)
     DWORD dataSize = 0;
     if (ERROR_SUCCESS != RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, NULL, &dataSize))
     {
-        throw exception();
+        TRACEP(L"Error: Could not read registry value size: ", (subkey + L"\\" + propName).c_str());
+        throw DMException("Failed to read registry value size.");
     }
 
     vector<char> data(dataSize);
     if (ERROR_SUCCESS != RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, data.data(), &dataSize))
     {
-        throw exception();
+        TRACEP(L"Error: Could not read registry value: ", (subkey + L"\\" + propName).c_str());
+        throw DMException("Failed to read registry value.");
     }
 
+    // return wstring(reinterpret_cast<const wchar_t*>(data.data()));
     return wstring(reinterpret_cast<const wchar_t*>(data.data()));
 }
 

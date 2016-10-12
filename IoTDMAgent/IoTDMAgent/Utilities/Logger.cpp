@@ -1,10 +1,5 @@
 #include "stdafx.h"
 #include <windows.h>
-#include <iostream>
-#include <fstream>
-#include <ostream>
-#include <iomanip>
-#include <sstream>
 #include "Logger.h"
 
 using namespace std;

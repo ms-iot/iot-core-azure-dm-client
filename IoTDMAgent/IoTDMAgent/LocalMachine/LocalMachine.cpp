@@ -1,10 +1,6 @@
 #include "stdafx.h"
 #include <windows.h>
-#include  <algorithm>
 #include "LocalMachine.h"
-#include "..\Utilities\Utils.h"
-#include "..\Utilities\Logger.h"
-#include "..\Utilities\DMException.h"
 #include "CSPs\MdmProvision.h"
 #include "CSPs\RebootCSP.h"
 #include "CSPs\UpdateCSP.h"

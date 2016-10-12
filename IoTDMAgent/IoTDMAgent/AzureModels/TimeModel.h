@@ -12,8 +12,5 @@ public:
     // ToDo: set time zone, etc
 
     // Reported
-    Windows::Data::Json::JsonObject^ GetReportedProperties();
-
-private:
-    std::mutex _mutex;
+    Windows::Data::Json::JsonObject^ GetReportedProperties() const;
 };

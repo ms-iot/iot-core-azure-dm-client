@@ -1,7 +1,5 @@
 #include "stdafx.h"
 #include "RebootCSP.h"
-#include "..\..\Utilities\Utils.h"
-#include "..\..\Utilities\Logger.h"
 #include "MdmProvision.h"
 
 using namespace std;

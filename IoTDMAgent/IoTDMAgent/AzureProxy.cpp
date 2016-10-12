@@ -1,7 +1,4 @@
 #include "stdafx.h"
-#include <vector>
-#include <string>
-#include <assert.h>
 
 #include "AzureProxy.h"
 #include "serializer.h"
@@ -10,9 +7,6 @@
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/threadapi.h"
 
-#include "Utilities\Logger.h"
-#include "Utilities\Utils.h"
-#include "Utilities\DMException.h"
 #include "LocalMachine\LocalMachine.h"
 #include "LocalMachine\CSPs\RebootCSP.h"
 
@@ -310,7 +304,7 @@ void AzureProxy::SetAvailableMemoryMB(unsigned int memoryInMBs)
     _availableMemoryInMB = memoryInMBs;
 }
 
-void AzureProxy::ReportProperties(JsonObject^ root)
+void AzureProxy::ReportProperties(JsonObject^ root) const
 {
     TRACE(L"AzureProxy::ReportProperties()");
 

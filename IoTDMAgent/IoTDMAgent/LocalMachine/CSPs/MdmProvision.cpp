@@ -1,8 +1,4 @@
 #include "stdafx.h"
-#include <exception>
-#include <vector>
-#include "..\..\Utilities\Logger.h"
-#include "..\..\Utilities\Utils.h"
 #include "PrivateAPIs\CSPController.h"
 #include "MdmProvision.h"
 

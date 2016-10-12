@@ -20,13 +20,11 @@ RebootModel::RebootModel()
 {
     TRACE(L"RebootModel::RebootModel()");
 
-    lock_guard<mutex> lock(_mutex);
-
     try
     {
         _lastRebootCmdTime = Utils::ReadRegistryValue(IoTDMRegistryRoot, IoTDMRegistryLastRebootCmd);
     }
-    catch (exception)
+    catch (const exception&)
     {
         // An exception is throw if the value does not exist. This is okay.
     }
@@ -42,8 +40,6 @@ wstring RebootModel::NodeName()
 void RebootModel::SetDesiredProperties(Windows::Data::Json::IJsonValue^ rebootNode)
 {
     TRACE(L"RebootModel::SetDesiredProperties()");
-
-    lock_guard<mutex> lock(_mutex);
 
     // Empty out values...
     wstring singleRebootTime = L"";

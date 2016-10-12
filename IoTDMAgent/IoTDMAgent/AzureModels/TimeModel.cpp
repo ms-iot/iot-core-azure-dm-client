@@ -15,8 +15,6 @@ using namespace std;
 TimeModel::TimeModel()
 {
     TRACE(L"TimeModel::TimeModel()");
-
-    lock_guard<mutex> lock(_mutex);
 }
 
 wstring TimeModel::NodeName()
@@ -24,11 +22,9 @@ wstring TimeModel::NodeName()
     return TimeNode;
 }
 
-Windows::Data::Json::JsonObject^ TimeModel::GetReportedProperties()
+Windows::Data::Json::JsonObject^ TimeModel::GetReportedProperties() const
 {
     TRACE(L"TimeModel::GetReportedProperties()");
-
-    lock_guard<mutex> lock(_mutex);
 
     wstring zoneStandardName;
     wstring zoneDaylightName;
