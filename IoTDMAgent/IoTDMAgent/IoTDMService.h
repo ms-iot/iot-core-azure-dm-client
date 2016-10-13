@@ -45,6 +45,8 @@ private:
     void WriteEventLogEntry(const std::wstring& message, WORD type);
     void WriteErrorLogEntry(const std::wstring& function, DWORD errorCode = GetLastError());
 
+    std::string GetConnectionString(const std::chrono::system_clock::time_point& expiration);
+
     // Data members
     static IoTDMService* s_service;
 
