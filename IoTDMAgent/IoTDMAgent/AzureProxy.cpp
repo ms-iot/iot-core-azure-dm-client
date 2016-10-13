@@ -228,7 +228,7 @@ void AzureProxy::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, cons
     // Incoming buffer is not null terminated, let's make it into a null-terminated string before parsing.
     string copyOfPayload(reinterpret_cast<const char*>(payload), bufferSize);
 
-    TRACEP("Desired Propertie String: ", copyOfPayload.c_str());
+    TRACEP("Desired Properties String: ", copyOfPayload.c_str());
     try
     {
         IJsonValue^ desiredValue = GetDesiredPropertiesNode(update_state, copyOfPayload);
