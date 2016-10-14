@@ -137,7 +137,7 @@
       <ShowProgress>NotSet</ShowProgress>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /Y $(ProjectDir)..\..\external\limpet\dll\x86\*.* $(OutDir)</Command>
+      <Command>xcopy /Y "$(ProjectDir)..\..\external\limpet\dll\x86\*.*" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -160,7 +160,7 @@
       <ShowProgress>NotSet</ShowProgress>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /Y $(ProjectDir)..\..\external\limpet\dll\arm\*.* $(OutDir)</Command>
+      <Command>xcopy /Y "$(ProjectDir)..\..\external\limpet\dll\arm\*.*" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -183,7 +183,7 @@
       <ShowProgress>NotSet</ShowProgress>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /Y $(ProjectDir)..\..\external\limpet\dll\x64\*.* $(OutDir)</Command>
+      <Command>xcopy /Y "$(ProjectDir)..\..\external\limpet\dll\x64\*.*" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -208,7 +208,7 @@
       <AdditionalLibraryDirectories>..\..\external\limpet\lib\x86;..\Release;..\..\..\azure-iot-dt-sdks\cmake\azure-c-shared-utility\Release;..\..\..\azure-iot-dt-sdks\cmake\iothub_client\Release;..\..\..\azure-iot-dt-sdks\cmake\serializer\Release;..\..\..\azure-iot-dt-sdks\cmake\azure-umqtt-c\Release</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /Y $(ProjectDir)..\..\external\limpet\dll\x86\*.* $(OutDir)</Command>
+      <Command>xcopy /Y "$(ProjectDir)..\..\external\limpet\dll\x86\*.*" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -233,7 +233,7 @@
       <AdditionalLibraryDirectories>..\ARM\Release\;..\..\..\azure-iot-dt-sdks\cmake\ARM\Release;..\..\external\limpet\lib\arm</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /Y $(ProjectDir)..\..\external\limpet\dll\arm\*.* $(OutDir)</Command>
+      <Command>xcopy /Y "$(ProjectDir)..\..\external\limpet\dll\arm\*.*" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -258,7 +258,7 @@
       <AdditionalLibraryDirectories>..\..\external\limpet\lib\x64;..\x64\Release\;..\..\..\azure-iot-dt-sdks\cmake\x64\Release</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /Y $(ProjectDir)..\..\external\limpet\dll\x64\*.* $(OutDir)</Command>
+      <Command>xcopy /Y "$(ProjectDir)..\..\external\limpet\dll\x64\*.*" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
