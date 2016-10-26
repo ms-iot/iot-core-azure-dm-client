@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <mutex>
 
 class UpdateEngine
 {
@@ -13,10 +14,14 @@ class UpdateEngine
 
 public:
     void Scan();
-    bool IsInstalled(const std::wstring& id, const std::wstring& version) const;
+    bool IsInstalled(const std::wstring& packageId, const std::wstring& packageVersion) const;
     static void Stage(const std::wstring& cabFullFileName);
     static void CommitStaged();
 
 private:
+
+    // Data members
+    mutable std::mutex _mutex;
+
     std::vector<PackageData> _packageList;
 };

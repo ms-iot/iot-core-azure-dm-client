@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include <memory>
+#include <mutex>
 #include "..\LocalMachine\LocalMachine.h"
 #include "AzureUpdateModel.h"
 
@@ -35,6 +36,9 @@ private:
 
     static void SetDesiredOperations(Windows::Data::Json::IJsonValue^ cabsNode, std::vector<UpdateOperation>& cabOperations);
     void ExecuteDesiredOperations(const std::wstring& connectionString, const std::wstring& containerName, const std::vector<UpdateOperation>& cabOperations);
+
+    // Data members
+    mutable std::mutex _mutex;
 
     std::map<std::wstring, std::shared_ptr<AzureUpdateModel>> _localUpdates;
     UpdateEngine _updateEngine;

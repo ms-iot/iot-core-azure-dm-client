@@ -87,6 +87,8 @@ void AzureUpdateManager::LoadLocalState(const std::wstring& updatesLocalRoot, co
 {
     TRACE(L"AzureUpdateManager::LoadLocalState()");
 
+    lock_guard<mutex> lock(_mutex);
+
     // Make sure the update engine has the most up-to-date list of installed packages.
     _updateEngine.Scan();
 
@@ -112,6 +114,8 @@ void AzureUpdateManager::LoadLocalState(const std::wstring& updatesLocalRoot, co
 void AzureUpdateManager::ExecuteDesiredOperations(const wstring& connectionString, const wstring& containerName, const vector<UpdateOperation>& desiredOperations)
 {
     TRACE(L"AzureUpdateManager::ExecuteDesiredOperations()");
+
+    lock_guard<mutex> lock(_mutex);
 
     for (const UpdateOperation& operation : desiredOperations)
     {
@@ -207,6 +211,8 @@ void AzureUpdateManager::SetDesiredProperties(Windows::Data::Json::IJsonValue^ a
 Windows::Data::Json::JsonObject^ AzureUpdateManager::GetReportedProperties() const
 {
     TRACE(L"AzureUpdateManager::GetReportedProperties()");
+
+    lock_guard<mutex> lock(_mutex);
 
     JsonObject^ updateProperties = ref new JsonObject();
     for (const auto& p : _localUpdates)

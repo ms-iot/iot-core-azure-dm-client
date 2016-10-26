@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <mutex>
 #include "..\LocalMachine\UpdateEngine.h"
 
 #define AzureManifestsFolder L"manifests"
@@ -33,7 +34,9 @@ private:
     static bool VerifyCabsDownloaded(const std::wstring& updatesLocalRoot, const std::vector<CabData> cabsData);
     static bool VerifyCabsInstalled(const std::vector<CabData> cabsData, const UpdateEngine& updateEngine);
 
-    // data members
+    // Data members
+    mutable std::mutex _mutex;
+
     std::wstring _updatesRootFolder;
     std::wstring _manifestFullFileName;
     std::wstring _manifestFileName;

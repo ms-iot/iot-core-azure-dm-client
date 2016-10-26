@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include <windows.h>
-
 #include <filesystem>
 #include "UpdateEngine.h"
 
@@ -12,6 +11,8 @@ using namespace tr2::sys;
 void UpdateEngine::Scan()
 {
     TRACE("UpdateEngine::Scan()");
+
+    lock_guard<mutex> lock(_mutex);
 
     _packageList.clear();
 
@@ -65,13 +66,15 @@ void UpdateEngine::Scan()
     }
 }
 
-bool UpdateEngine::IsInstalled(const std::wstring& id, const std::wstring& version) const
+bool UpdateEngine::IsInstalled(const std::wstring& packageId, const std::wstring& packageVersion) const
 {
     TRACE("UpdateEngine::IsInstalled()");
 
+    lock_guard<mutex> lock(_mutex);
+
     for (const PackageData& packageData : _packageList)
     {
-        if (packageData.id == id && packageData.version == version)
+        if (packageData.id == packageId && packageData.version == packageVersion)
         {
             return true;
         }

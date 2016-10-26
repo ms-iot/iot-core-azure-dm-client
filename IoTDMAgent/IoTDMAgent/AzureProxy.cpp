@@ -265,7 +265,7 @@ void AzureProxy::ProcessDesiredProperties(IJsonValue^ desiredPropertyValue)
 
                 if (0 == RebootModel::NodeName().compare(childKey->Data()))
                 {
-                    // _rebootModel.SetDesiredProperties(pair->Value);
+                    _rebootModel.SetDesiredProperties(pair->Value);
                 }
                 else if (0 == AzureUpdateManager::NodeName().compare(childKey->Data()))
                 {
