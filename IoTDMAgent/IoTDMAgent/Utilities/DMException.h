@@ -11,4 +11,14 @@ public:
     {
         TRACEP("Exception: ", message);
     }
+
+    template<class T>
+    DMException(const char* message, T parameter) :
+        std::exception(message)
+    {
+        basic_ostringstream<char> messageString;
+        messageString << message << " " << parameter;
+
+        TRACEP("Exception: ", messageString.str().c_str());
+    }
 };

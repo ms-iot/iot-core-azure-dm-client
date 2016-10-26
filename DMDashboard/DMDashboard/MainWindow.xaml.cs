@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -19,15 +20,31 @@ using Microsoft.Azure.Devices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+using Microsoft.Azure;                      // Namespace for CloudConfigurationManager
+using Microsoft.WindowsAzure.Storage;       // Namespace for CloudStorageAccount
+using Microsoft.WindowsAzure.Storage.Blob;  // Namespace for Blob storage types
+
 namespace DMDashboard
 {
     public partial class MainWindow : Window
     {
         const string iotHubConnectionString = "<connection string>";
 
+        class UpdateInfo
+        {
+            public string ManifestFileName { get; set; }
+            public bool IsUploaded { get; set; }
+            public bool Download { get; set; }
+            public bool Install { get; set; }
+            public bool IsDownloaded { get; set; }
+            public bool IsInstalled { get; set; }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
+
+            _updateList = new List<UpdateInfo>();
             _registryManager = RegistryManager.CreateFromConnectionString(iotHubConnectionString);
 
             _dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
@@ -36,6 +53,27 @@ namespace DMDashboard
             // _dispatcherTimer.Start();
 
             PopulateDevices();
+        }
+
+        private void FillOutUpdateList(IList<string> blobNameList)
+        {
+            UpdateList.ItemsSource = null;
+
+            _updateList.Clear();
+
+            foreach (string blobName in blobNameList)
+            {
+                UpdateInfo data = new UpdateInfo();
+                data.ManifestFileName = blobName;
+                data.IsUploaded = true;
+                data.Install = false;
+                data.Download = false;
+                data.IsInstalled = false;
+                data.IsDownloaded = false;
+                _updateList.Add(data);
+            }
+
+            UpdateList.ItemsSource = _updateList;
         }
 
         private void OnDeviceSelected(object sender, SelectionChangedEventArgs e)
@@ -76,13 +114,33 @@ namespace DMDashboard
             {
                 DeviceCurrentTime.Text = value;
             }
+            else if (path == "time.bias")
+            {
+                ZoneBias.Text = value;
+            }
             else if (path == "time.zoneStandardName")
             {
                 ZoneStandardName.Text = value;
             }
+            else if (path == "time.zoneStandardDate")
+            {
+                ZoneStandardDate.Text = value;
+            }
+            else if (path == "time.zoneStandardBias")
+            {
+                ZoneStandardBias.Text = value;
+            }
             else if (path == "time.zoneDaylightName")
             {
                 ZoneDaytimeName.Text = value;
+            }
+            else if (path == "time.zoneDaylightDate")
+            {
+                ZoneDaytimeDate.Text = value;
+            }
+            else if (path == "time.zoneDaylightBias")
+            {
+                ZoneDaytimeBias.Text = value;
             }
             else if (path == "reboot.lastReboot")
             {
@@ -100,6 +158,59 @@ namespace DMDashboard
             {
                 ReportedDailyRebootTime.Text = value;
             }
+            else
+            {
+                string[] tokens = path.Split('.');
+                if (tokens.Length == 3)
+                {
+                    if (tokens[0] == "azureUpdates")
+                    {
+                        string id = tokens[1];
+                        string fileName = "";
+                        bool downloaded = false;
+                        bool installed = false;
+
+                        string[] valueTokens = value.Split(',');
+                        uint valueIndex = 0;
+                        foreach (string valueToken in valueTokens)
+                        {
+                            if (valueIndex == 0)
+                            {
+                                fileName = valueToken;
+                            }
+                            else
+                            {
+                                if (valueToken == "downloaded")
+                                {
+                                    downloaded = true;
+                                }
+                                else if (valueToken == "installed")
+                                {
+                                    installed = true;
+                                }
+                            }
+                            ++valueIndex;
+                        }
+                        UpdateAzureUpdateEntry(id, fileName, downloaded, installed);
+                    }
+                }
+            }
+        }
+
+        void UpdateAzureUpdateEntry(string id, string fileName, bool downloaded, bool installed)
+        {
+            UpdateList.ItemsSource = null;
+            foreach (UpdateInfo updateInfo in _updateList)
+            {
+                if (updateInfo.ManifestFileName == fileName)
+                {
+                    updateInfo.IsInstalled = installed;
+                    updateInfo.IsDownloaded = downloaded;
+                    break;
+                }
+            }
+
+            UpdateList.ItemsSource = _updateList;
         }
 
         private void ReadProperty(string indent, JProperty jsonProp)
@@ -182,22 +293,75 @@ namespace DMDashboard
             ReadReportedProperties();
         }
 
+        string ToPropertyName(string s)
+        {
+            return s.Replace('.', '_').Replace('-', '_');
+        }
+
+        private JProperty GetDesiredUpdates()
+        {
+            JObject updateProperties = new JObject();
+            {
+                JProperty connStrProperty = new JProperty("connStr", StorageConnectionString.Text);
+                updateProperties.Add(connStrProperty);
+
+                JProperty containerProperty = new JProperty("container", StorageContainer.Text);
+                updateProperties.Add(containerProperty);
+
+                JObject manifests = new JObject();
+
+                uint index = 0;
+                foreach (UpdateInfo manifestData in _updateList)
+                {
+                    // Are there any operations desired?
+                    if (manifestData.Download || manifestData.Install)
+                    {
+                        string parameters = manifestData.ManifestFileName;
+
+                        if (manifestData.Download)
+                        {
+                            parameters += ",";
+                            parameters += "download";
+                        }
+
+                        if (manifestData.Install)
+                        {
+                            parameters += ",";
+                            parameters += "apply";
+                        }
+                        // i.e. there's some action to do...
+                        manifests.Add(new JProperty(ToPropertyName(manifestData.ManifestFileName), parameters));
+                    }
+                    ++index;
+                }
+                updateProperties.Add(new JProperty("manifests", manifests));
+            }
+
+            JProperty updateProperty = new JProperty("azureUpdates", updateProperties);
+
+            Debug.WriteLine("manifest info:\n" + updateProperty.ToString());
+
+            return updateProperty;
+        }
+
         private void OnApplyDesired(object sender, RoutedEventArgs e)
         {
             JObject rebootProperties = new JObject();
+            {
+                JValue singleRebootTimeValue = new JValue(DesiredSingleRebootTime.Text);
+                JProperty singleRebootTimeProperty = new JProperty("singleReboot", singleRebootTimeValue);
+                rebootProperties.Add(singleRebootTimeProperty);
 
-            JValue singleRebootTimeValue = new JValue(DesiredSingleRebootTime.Text);
-            JProperty singleRebootTimeProperty = new JProperty("singleReboot", singleRebootTimeValue);
-            rebootProperties.Add(singleRebootTimeProperty);
-
-            JValue dailyRebootTimeValue = new JValue(DesiredDailyRebootTime.Text);
-            JProperty dailyRebootTimeProperty = new JProperty("dailyReboot", dailyRebootTimeValue);
-            rebootProperties.Add(dailyRebootTimeProperty);
+                JValue dailyRebootTimeValue = new JValue(DesiredDailyRebootTime.Text);
+                JProperty dailyRebootTimeProperty = new JProperty("dailyReboot", dailyRebootTimeValue);
+                rebootProperties.Add(dailyRebootTimeProperty);
+            }
 
             JProperty rebootProperty = new JProperty("reboot", rebootProperties);
 
             JObject desiredProperties = new JObject();
             desiredProperties.Add(rebootProperty);
+            desiredProperties.Add(GetDesiredUpdates());
 
             JProperty desiredProperty = new JProperty("desired", desiredProperties);
 
@@ -247,10 +411,123 @@ namespace DMDashboard
             SendDeepRead();
         }
 
+        private void OnExpandSystemInfo(object sender, RoutedEventArgs e)
+        {
+            if (SystemInfoGrid.Visibility == Visibility.Collapsed)
+            {
+                SystemInfoGrid.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                SystemInfoGrid.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void OnExpandTime(object sender, RoutedEventArgs e)
+        {
+            if (TimeGrid.Visibility == Visibility.Collapsed)
+            {
+                TimeGrid.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                TimeGrid.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void OnExpandReboot(object sender, RoutedEventArgs e)
+        {
+            if (RebootGrid.Visibility == Visibility.Collapsed)
+            {
+                RebootGrid.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                RebootGrid.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void OnExpandUpdate(object sender, RoutedEventArgs e)
+        {
+            if (UpdateGrid.Visibility == Visibility.Collapsed)
+            {
+                UpdateGrid.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                UpdateGrid.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private List<string> GetBlobList(string connectionString, string containerName)
+        {
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobContainer container = blobClient.GetContainerReference(containerName);
+
+            List<string> blobNameList = new List<string>();
+            foreach (IListBlobItem item in container.ListBlobs(null, false))
+            {
+                if (item.GetType() == typeof(CloudBlockBlob))
+                {
+                    CloudBlockBlob blob = (CloudBlockBlob)item;
+                    Console.WriteLine("Block blob of length {0}: {1}", blob.Properties.Length, blob.Uri);
+                    blobNameList.Add(blob.Name);
+
+                }
+                else if (item.GetType() == typeof(CloudPageBlob))
+                {
+                    CloudPageBlob pageBlob = (CloudPageBlob)item;
+                    Console.WriteLine("Page blob of length {0}: {1}", pageBlob.Properties.Length, pageBlob.Uri);
+                }
+                else if (item.GetType() == typeof(CloudBlobDirectory))
+                {
+                    CloudBlobDirectory directory = (CloudBlobDirectory)item;
+                    Console.WriteLine("Directory: {0}", directory.Uri);
+                }
+            }
+
+            return blobNameList;
+        }
+
+        private void UpdateBlobList()
+        {
+            List<string> blobList = GetBlobList(StorageConnectionString.Text, StorageContainer.Text);
+            FillOutUpdateList(blobList);
+            GetDesiredUpdates();
+        }
+
+        private void OnStorageConnect(object sender, RoutedEventArgs e)
+        {
+            UpdateBlobList();
+        }
+
+        /*
+        void AzureStorageUpload(string connectionString, string containerName, string fullFileName)
+        {
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobContainer container = blobClient.GetContainerReference(containerName);
+
+            FileInfo fileInfo = new FileInfo(fullFileName);
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileInfo.Name);
+            using (var fileStream = System.IO.File.OpenRead(fullFileName))
+            {
+                blockBlob.UploadFromStream(fileStream);
+            }
+        }
+        */
+
+        private void OnTest(object sender, RoutedEventArgs e)
+        {
+            GetDesiredUpdates();
+        }
+
         // Data members
         private RegistryManager _registryManager;
         private DeviceTwinAndMethod _deviceTwin;
         private DispatcherTimer _dispatcherTimer;
+        private List<UpdateInfo> _updateList;
 
     }
 }

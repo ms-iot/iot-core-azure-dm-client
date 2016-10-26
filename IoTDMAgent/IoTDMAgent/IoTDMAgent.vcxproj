@@ -262,6 +262,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AzureModels\AzureUpdateManager.h" />
+    <ClInclude Include="AzureModels\AzureUpdateModel.h" />
     <ClInclude Include="AzureModels\RebootModel.h" />
     <ClInclude Include="AzureModels\SystemInfoModel.h" />
     <ClInclude Include="AzureModels\TimeModel.h" />
@@ -274,15 +276,19 @@
     <ClInclude Include="LocalMachine\CSPs\RebootCSP.h" />
     <ClInclude Include="LocalMachine\CSPs\UpdateCSP.h" />
     <ClInclude Include="LocalMachine\LocalMachine.h" />
+    <ClInclude Include="LocalMachine\UpdateEngine.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Utilities\AzureStorage.h" />
     <ClInclude Include="Utilities\DMException.h" />
     <ClInclude Include="Utilities\Limpet.h" />
     <ClInclude Include="Utilities\Logger.h" />
     <ClInclude Include="Utilities\Utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AzureModels\AzureUpdateManager.cpp" />
+    <ClCompile Include="AzureModels\AzureUpdateModel.cpp" />
     <ClCompile Include="AzureModels\RebootModel.cpp" />
     <ClCompile Include="AzureModels\SystemInfoModel.cpp" />
     <ClCompile Include="AzureModels\TimeModel.cpp" />
@@ -295,6 +301,7 @@
     <ClCompile Include="LocalMachine\CSPs\RebootCSP.cpp" />
     <ClCompile Include="LocalMachine\CSPs\UpdateCSP.cpp" />
     <ClCompile Include="LocalMachine\LocalMachine.cpp" />
+    <ClCompile Include="LocalMachine\UpdateEngine.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Create</PrecompiledHeader>
@@ -303,6 +310,18 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Utilities\AzureStorage.cpp">
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsWinRT>
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</MinimalRebuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeaderFile>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsWinRT>
+      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</MinimalRebuild>
+    </ClCompile>
     <ClCompile Include="Utilities\Limpet.cpp" />
     <ClCompile Include="Utilities\Logger.cpp" />
     <ClCompile Include="Utilities\Utils.cpp" />
@@ -310,7 +329,23 @@
   <ItemGroup>
     <ResourceCompile Include="IoTDMAgent.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('..\packages\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" />
+    <Import Project="..\packages\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('..\packages\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" />
+    <Import Project="..\packages\wastorage.v120.2.4.0\build\native\wastorage.v120.targets" Condition="Exists('..\packages\wastorage.v120.2.4.0\build\native\wastorage.v120.targets')" />
+    <Import Project="..\packages\wastorage.v140.2.4.0\build\native\wastorage.v140.targets" Condition="Exists('..\packages\wastorage.v140.2.4.0\build\native\wastorage.v140.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v120.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
+    <Error Condition="!Exists('..\packages\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
+    <Error Condition="!Exists('..\packages\wastorage.v120.2.4.0\build\native\wastorage.v120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\wastorage.v120.2.4.0\build\native\wastorage.v120.targets'))" />
+    <Error Condition="!Exists('..\packages\wastorage.v140.2.4.0\build\native\wastorage.v140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\wastorage.v140.2.4.0\build\native\wastorage.v140.targets'))" />
+  </Target>
 </Project>

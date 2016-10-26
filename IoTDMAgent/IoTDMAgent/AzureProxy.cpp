@@ -265,7 +265,11 @@ void AzureProxy::ProcessDesiredProperties(IJsonValue^ desiredPropertyValue)
 
                 if (0 == RebootModel::NodeName().compare(childKey->Data()))
                 {
-                    _rebootModel.SetDesiredProperties(pair->Value);
+                    // _rebootModel.SetDesiredProperties(pair->Value);
+                }
+                else if (0 == AzureUpdateManager::NodeName().compare(childKey->Data()))
+                {
+                    _azureUpdateManager.SetDesiredProperties(pair->Value);
                 }
             }
         }
@@ -301,6 +305,9 @@ void AzureProxy::ReportAllProperties()
 
         // Reboot properties
         root->Insert(ref new String(RebootModel::NodeName().c_str()), _rebootModel.GetReportedProperties());
+
+        // Update properties
+        root->Insert(ref new String(AzureUpdateManager::NodeName().c_str()), _azureUpdateManager.GetReportedProperties());
     }
 
     ReportProperties(root);

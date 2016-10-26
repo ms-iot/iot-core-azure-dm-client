@@ -3,16 +3,52 @@
 #include <wrl/client.h>
 #include <xmllite.h>
 #include "Utils.h"
+#include "DMException.h"
 #include "..\resource.h"
 
 using namespace std;
 using namespace Microsoft::WRL;
 using namespace Windows::System::Profile;
 
+#define ERROR_PIPE_HAS_BEEN_ENDED 109
+
 namespace Utils
 {
 
-std::string WideToMultibyte(const wchar_t* s)
+class HandleRAII
+{
+public:
+    HandleRAII() :
+        _handle(NULL)
+    {}
+
+    HANDLE Get() { return _handle; }
+    HANDLE* GetAddress() { return &_handle; }
+
+    BOOL Close()
+    {
+        BOOL result = TRUE;
+        if (_handle != NULL)
+        {
+            result = CloseHandle(_handle);
+            _handle = NULL;
+        }
+        return result;
+    }
+
+    ~HandleRAII()
+    {
+        Close();
+    }
+
+private:
+    HandleRAII(const HandleRAII&);            // prevent copy
+    HandleRAII& operator=(const HandleRAII&); // prevent assignment
+
+    HANDLE _handle;
+};
+
+string WideToMultibyte(const wchar_t* s)
 {
     size_t length = s ? wcslen(s) : 0;
     size_t requiredCharCount = WideCharToMultiByte(CP_UTF8, 0, s, static_cast<int>(length), nullptr, 0, nullptr, nullptr);
@@ -26,7 +62,7 @@ std::string WideToMultibyte(const wchar_t* s)
     return string(multibyteString.data());
 }
 
-std::wstring MultibyteToWide(const char* s)
+wstring MultibyteToWide(const char* s)
 {
     size_t length = s ? strlen(s) : 0;
     size_t requiredCharCount = MultiByteToWideChar(CP_UTF8, 0, s, static_cast<int>(length), nullptr, 0);
@@ -40,17 +76,7 @@ std::wstring MultibyteToWide(const char* s)
     return wstring(wideString.data());
 }
 
-void SplitString(const wstring &s, wchar_t delim, vector<wstring> &tokens) {
-    basic_stringstream<wchar_t> ss;
-    ss.str(s);
-    wstring item;
-    while (getline<wchar_t>(ss, item, delim))
-    {
-        tokens.push_back(item);
-    }
-}
-
-std::wstring GetCurrentDateTimeString()
+wstring GetCurrentDateTimeString()
 {
     SYSTEMTIME systemTime;
     GetLocalTime(&systemTime);
@@ -84,7 +110,7 @@ wstring GetResourceString(int id)
     return wstring(buffer);
 }
 
-void ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXmlPath, std::wstring& value)
+void ReadXmlValue(IStream* resultSyncML, const wstring& targetXmlPath, wstring& value)
 {
     ComPtr<IXmlReader> xmlReader;
 
@@ -216,7 +242,7 @@ void ReadXmlValue(IStream* resultSyncML, const std::wstring& targetXmlPath, std:
     }
 }
 
-void ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value)
+void ReadXmlValue(const wstring& resultSyncML, const wstring& targetXmlPath, wstring& value)
 {
     DWORD bufferSize = static_cast<DWORD>(resultSyncML.size() * sizeof(resultSyncML[0]));
     char* buffer = (char*)GlobalAlloc(GMEM_FIXED, bufferSize);
@@ -290,7 +316,7 @@ wstring GetOSVersionString()
     Platform::String^ s = info->DeviceFamilyVersion;
 
     wchar_t* endPtr = nullptr;
-    __int64 v = std::wcstoll(s->Data(), &endPtr, 10);
+    __int64 v = wcstoll(s->Data(), &endPtr, 10);
 
     unsigned long v1 = (v & 0xFFFF000000000000L) >> 48;
     unsigned long v2 = (v & 0x0000FFFF00000000L) >> 32;
@@ -301,6 +327,152 @@ wstring GetOSVersionString()
     formattedVersion << v1 << L"." << v2 << L"." << v3 << L"." << v4;
 
     return formattedVersion.str();
+}
+
+bool FileExists(const wstring& fullFileName)
+{
+    ifstream infile(fullFileName);
+    return infile.good();
+}
+
+void EnsureFolderExists(const wstring& folder)
+{
+    vector<wstring> tokens;
+    SplitString(folder, L'\\', tokens);
+    size_t index = 0;
+    wstring path = L"";
+    for (const wstring& s : tokens)
+    {
+        if (index == 0)
+        {
+            path += s;
+        }
+        else
+        {
+            path += L"\\";
+            path += s;
+            if (ERROR_SUCCESS != CreateDirectory(path.c_str(), NULL))
+            {
+                if (ERROR_ALREADY_EXISTS != GetLastError())
+                {
+                    throw DMException("Failed to create folder.", folder.c_str());
+                }
+            }
+        }
+        ++index;
+    }
+}
+
+std::wstring ToJsonPropoertyName(const std::wstring& propertyName)
+{
+    wstring jsonPropertyName = propertyName;
+    std::replace(jsonPropertyName.begin(), jsonPropertyName.end(), L'.', L'_');
+    std::replace(jsonPropertyName.begin(), jsonPropertyName.end(), L'-', L'_');
+    return jsonPropertyName;
+}
+
+void LaunchProcess(const std::wstring& commandString, unsigned long& returnCode, std::string& output)
+{
+    TRACEP(L"Launching: ", commandString.c_str());
+
+    SECURITY_ATTRIBUTES securityAttributes;
+    securityAttributes.nLength = sizeof(SECURITY_ATTRIBUTES);
+    securityAttributes.bInheritHandle = TRUE;
+    securityAttributes.lpSecurityDescriptor = NULL;
+
+    HandleRAII stdOutReadHandle;
+    HandleRAII stdOutWriteHandle;
+    DWORD  pipeBufferSize = 4096;
+
+    if (!CreatePipe(stdOutReadHandle.GetAddress(), stdOutWriteHandle.GetAddress(), &securityAttributes, pipeBufferSize))
+    {
+        throw DMException("Error: Failed to create pipe. GetLastError() = ", GetLastError());
+    }
+
+    if (!SetHandleInformation(stdOutReadHandle.Get(), HANDLE_FLAG_INHERIT, 0 /*flags*/))
+    {
+        throw DMException("Error: Failed to configure the stdout read handle. GetLastError() = ", GetLastError());
+    }
+
+    PROCESS_INFORMATION piProcInfo;
+    ZeroMemory(&piProcInfo, sizeof(PROCESS_INFORMATION));
+
+    STARTUPINFO siStartInfo;
+    ZeroMemory(&siStartInfo, sizeof(STARTUPINFO));
+    siStartInfo.cb = sizeof(STARTUPINFO);
+    siStartInfo.hStdError = stdOutWriteHandle.Get();
+    siStartInfo.hStdOutput = stdOutWriteHandle.Get();
+    siStartInfo.hStdInput = NULL;
+    siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+
+    if (!CreateProcess(NULL,
+        const_cast<wchar_t*>(commandString.c_str()), // command line 
+        NULL,         // process security attributes 
+        NULL,         // primary thread security attributes 
+        TRUE,         // handles are inherited 
+        0,            // creation flags 
+        NULL,         // use parent's environment 
+        NULL,         // use parent's current directory 
+        &siStartInfo, // STARTUPINFO pointer 
+        &piProcInfo)) // receives PROCESS_INFORMATION
+    {
+        throw DMException("Error: Failed to create process. GetLastError() = ", GetLastError());
+    }
+    TRACE("Child process has been launched.");
+
+    bool doneWriting = false;
+    while (!doneWriting)
+    {
+        // Let the child process run for 1 second, and then check if there is anything to read...
+        DWORD waitStatus = WaitForSingleObject(piProcInfo.hProcess, 1000);
+        if (waitStatus == WAIT_OBJECT_0)
+        {
+            TRACE("Child process has exited.");
+            if (!GetExitCodeProcess(piProcInfo.hProcess, &returnCode))
+            {
+                TRACEP("Warning: Failed to get process exist code. GetLastError() = ", GetLastError());
+                // ToDo: do we ignore?
+            }
+            CloseHandle(piProcInfo.hProcess);
+            CloseHandle(piProcInfo.hThread);
+
+            // Child process has exited, no more writing will take place.
+            // Without closing the write channel, the ReadFile will keep waiting.
+            doneWriting = true;
+            stdOutWriteHandle.Close();
+        }
+        else
+        {
+            TRACE("Child process is still running...");
+        }
+
+        DWORD bytesAvailable = 0;
+        if (PeekNamedPipe(stdOutReadHandle.Get(), NULL, 0, NULL, &bytesAvailable, NULL))
+        {
+            if (bytesAvailable > 0)
+            {
+                DWORD readByteCount = 0;
+                vector<char> readBuffer(bytesAvailable + 1);
+                if (ReadFile(stdOutReadHandle.Get(), readBuffer.data(), readBuffer.size() - 1, &readByteCount, NULL) || readByteCount == 0)
+                {
+                    readBuffer[readByteCount] = '\0';
+                    output += readBuffer.data();
+                }
+            }
+        }
+        else
+        {
+            DWORD retCode = GetLastError();
+            if (ERROR_PIPE_HAS_BEEN_ENDED != retCode)
+            {
+                printf("error code = %d\n", retCode);
+            }
+            break;
+        }
+    }
+
+    TRACEP("Command return Code: ", returnCode);
+    TRACEP("Command output : ", output.c_str());
 }
 
 }
