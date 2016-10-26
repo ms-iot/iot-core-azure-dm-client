@@ -1,0 +1,11 @@
+Blob Containers
+ |
+ |-- container00
+ |      |
+ |      |-- Microsoft-IotUAP-EULA-Package.cab
+ |
+ |-- container01
+ |
+ |-- manifests
+        |
+        |-- update00.man
