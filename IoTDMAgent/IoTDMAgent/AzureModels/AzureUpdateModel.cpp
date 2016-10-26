@@ -10,7 +10,6 @@ using namespace Platform;
 using namespace std;
 using namespace tr2::sys;
 
-// ToDo: locking?!
 #define UpdateDownloaded L"downloaded"
 #define UpdateInstalled L"installed"
 #define UpdateState L"state"
@@ -46,7 +45,7 @@ AzureUpdateModel::AzureUpdateModel(const wstring& updatesRootFolder, const wstri
     }
 }
 
-void AzureUpdateModel::ParseManifest(const wstring& updatesLocalRoot, const wstring& manifestFileName, std::vector<CabData>& cabsData)
+void AzureUpdateModel::ParseManifest(const wstring& updatesLocalRoot, const wstring& manifestFileName, vector<CabData>& cabsData)
 {
     TRACE(L"AzureUpdateModel::ParseUpdateManifest()");
 
@@ -115,7 +114,7 @@ bool AzureUpdateModel::VerifyCabsDownloaded(const wstring& updatesLocalRoot, con
     return downloaded;
 }
 
-bool AzureUpdateModel::VerifyCabsInstalled(const std::vector<CabData> cabsData, const UpdateEngine& updateEngine)
+bool AzureUpdateModel::VerifyCabsInstalled(const vector<CabData> cabsData, const UpdateEngine& updateEngine)
 {
     TRACE(L"AzureUpdateModel::VerifyInstalled()");
 
@@ -141,7 +140,7 @@ bool AzureUpdateModel::VerifyCabsInstalled(const std::vector<CabData> cabsData, 
     return applied;
 }
 
-void AzureUpdateModel::Download(const std::wstring& connectionString)
+void AzureUpdateModel::Download(const wstring& connectionString)
 {
     TRACE(L"AzureUpdateModel::Download()");
 

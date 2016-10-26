@@ -256,7 +256,7 @@ wstring PolicyCSP::GetUpdateServiceUrl()
     return serviceUrl;
 }
 
-void PolicyCSP::SetUpdateServiceUrl(const std::wstring& serviceUrl)
+void PolicyCSP::SetUpdateServiceUrl(const wstring& serviceUrl)
 {
     TRACE(L"\n---- Set UpdateServiceUrl\n");
     wstring valueString = serviceUrl;

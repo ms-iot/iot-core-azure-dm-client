@@ -66,7 +66,7 @@ void UpdateEngine::Scan()
     }
 }
 
-bool UpdateEngine::IsInstalled(const std::wstring& packageId, const std::wstring& packageVersion) const
+bool UpdateEngine::IsInstalled(const wstring& packageId, const wstring& packageVersion) const
 {
     TRACE("UpdateEngine::IsInstalled()");
 
@@ -82,7 +82,7 @@ bool UpdateEngine::IsInstalled(const std::wstring& packageId, const std::wstring
     return false;
 }
 
-void UpdateEngine::Stage(const std::wstring& cabFullFileName)
+void UpdateEngine::Stage(const wstring& cabFullFileName)
 {
     TRACEP(L"UpdateEngine::Stage = ", cabFullFileName.c_str());
 

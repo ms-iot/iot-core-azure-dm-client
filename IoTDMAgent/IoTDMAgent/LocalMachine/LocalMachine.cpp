@@ -282,7 +282,7 @@ wstring LocalMachine::GetUpdateServiceUrl()
     return PolicyCSP::GetUpdateServiceUrl();
 }
 
-void LocalMachine::SetUpdateServiceUrl(const std::wstring& serviceUrl)
+void LocalMachine::SetUpdateServiceUrl(const wstring& serviceUrl)
 {
     PolicyCSP::SetUpdateServiceUrl(serviceUrl);
 }

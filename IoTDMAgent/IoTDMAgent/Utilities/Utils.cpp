@@ -363,15 +363,15 @@ void EnsureFolderExists(const wstring& folder)
     }
 }
 
-std::wstring ToJsonPropoertyName(const std::wstring& propertyName)
+wstring ToJsonPropoertyName(const wstring& propertyName)
 {
     wstring jsonPropertyName = propertyName;
-    std::replace(jsonPropertyName.begin(), jsonPropertyName.end(), L'.', L'_');
-    std::replace(jsonPropertyName.begin(), jsonPropertyName.end(), L'-', L'_');
+    replace(jsonPropertyName.begin(), jsonPropertyName.end(), L'.', L'_');
+    replace(jsonPropertyName.begin(), jsonPropertyName.end(), L'-', L'_');
     return jsonPropertyName;
 }
 
-void LaunchProcess(const std::wstring& commandString, unsigned long& returnCode, std::string& output)
+void LaunchProcess(const wstring& commandString, unsigned long& returnCode, string& output)
 {
     TRACEP(L"Launching: ", commandString.c_str());
 

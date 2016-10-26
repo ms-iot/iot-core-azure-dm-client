@@ -13,7 +13,7 @@ Logger::Logger(bool console, const wchar_t* logFileName) :
 
 void Logger::Log(const char* message)
 {
-    std::wstring s = Utils::MultibyteToWide(message);
+    wstring s = Utils::MultibyteToWide(message);
     Log(s.c_str());
 }
 
@@ -57,13 +57,13 @@ void Logger::Log(const wchar_t* message)
 
 void Logger::Log(const char*  format, const char* param)
 {
-    std::wstring f = Utils::MultibyteToWide(format);
-    std::wstring p = Utils::MultibyteToWide(param);
+    wstring f = Utils::MultibyteToWide(format);
+    wstring p = Utils::MultibyteToWide(param);
     Log<const wchar_t*>(f.c_str(), p.c_str());
 }
 
 void Logger::Log(const char*  format, int param)
 {
-    std::wstring f = Utils::MultibyteToWide(format);
+    wstring f = Utils::MultibyteToWide(format);
     Log<int>(f.c_str(), param);
 }

@@ -83,7 +83,7 @@ void AzureUpdateManager::SetDesiredOperations(Windows::Data::Json::IJsonValue^ c
     }
 }
 
-void AzureUpdateManager::LoadLocalState(const std::wstring& updatesLocalRoot, const std::wstring& manifestsFolder)
+void AzureUpdateManager::LoadLocalState(const wstring& updatesLocalRoot, const wstring& manifestsFolder)
 {
     TRACE(L"AzureUpdateManager::LoadLocalState()");
 
