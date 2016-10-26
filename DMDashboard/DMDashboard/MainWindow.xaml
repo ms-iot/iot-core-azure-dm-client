@@ -194,7 +194,7 @@
                     <StackPanel Margin="3" Orientation="Vertical">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Width="120" Margin="0,3" Text="Connection String" HorizontalAlignment="Left"/>
-                            <TextBox Width="280" Margin="0,3" Text="DefaultEndpointsProtocol=https;AccountName=gmilekastore00;AccountKey=J3Gr0Hz2HZR/OMxCur2oXkIp/V8+N5k5JNgRwlrZcSGtw7u6TFqJ2IkMbA6VOwnji02PnW4mKDWU96nFGVeAmQ==;" x:Name="StorageConnectionString"/>
+                            <TextBox Width="280" Margin="0,3" Text="&lt;azure storage connections string&gt;" x:Name="StorageConnectionString"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Width="120" Margin="0,3" Text="Container" HorizontalAlignment="Left"/>
