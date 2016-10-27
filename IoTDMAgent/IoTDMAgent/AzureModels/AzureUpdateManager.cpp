@@ -15,7 +15,10 @@ using namespace tr2::sys;
 #define AzureContainerName L"container"
 #define ManifestsNode L"manifests"
 
-#define LocalUpdatesFolder L"c:\\temp\\updates"
+// Note that saving on the C:\ drive is not recommended because there is limited space.
+// Instead, we are saving the manifests and cabs on the data partition (c:\data).
+// The data partition gets wiped during a reset.
+#define LocalUpdatesFolder L"c:\\Data\\ProgramData\\IotDMAgent\\Updates"
 
 AzureUpdateManager::AzureUpdateManager()
 {
@@ -62,6 +65,9 @@ void AzureUpdateManager::SetDesiredOperations(Windows::Data::Json::IJsonValue^ c
         wstring cabOperationsString = pair->Value->GetString()->Data();
         vector<wstring> tokens;
         Utils::SplitString(cabOperationsString, L',', tokens);
+
+        // We are looking for "<filename>[,download][,install]
+        // Note that installed and downloaded can appear in any order.
         size_t index = 0;
         for (const wstring& s : tokens)
         {
@@ -69,13 +75,13 @@ void AzureUpdateManager::SetDesiredOperations(Windows::Data::Json::IJsonValue^ c
             {
                 operation.manifestFileName = s;
             }
-            else if (s == L"apply")
-            {
-                operation.apply = true;
-            }
             else if (s == L"download")
             {
                 operation.download = true;
+            }
+            else if (s == L"install")
+            {
+                operation.install = true;
             }
             ++index;
         }
@@ -107,7 +113,7 @@ void AzureUpdateManager::LoadLocalState(const wstring& updatesLocalRoot, const w
         wstring manifestName = Utils::MultibyteToWide(it->path().filename().string().c_str());
         TRACEP(L"Found: ", manifestName.c_str());
 
-        _localUpdates[manifestName] = shared_ptr<AzureUpdateModel>(new AzureUpdateModel(updatesLocalRoot, manifestName, _updateEngine));
+        _localUpdates[manifestName] = make_shared<AzureUpdateModel>(updatesLocalRoot, manifestName, _updateEngine);
     }
 }
 
@@ -141,12 +147,12 @@ void AzureUpdateManager::ExecuteDesiredOperations(const wstring& connectionStrin
             }
         }
 
-        if (operation.apply)
+        if (operation.install)
         {
-            TRACE(L"Operation = apply");
+            TRACE(L"Operation = install");
             if (!azureUpdateModel.IsInstalled())
             {
-                TRACE(L"It is not already applied...");
+                TRACE(L"It is not already installed...");
                 azureUpdateModel.Install();
             }
         }

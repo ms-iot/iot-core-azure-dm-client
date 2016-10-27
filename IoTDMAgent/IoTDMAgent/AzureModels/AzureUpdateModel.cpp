@@ -13,7 +13,6 @@ using namespace tr2::sys;
 #define UpdateDownloaded L"downloaded"
 #define UpdateInstalled L"installed"
 #define UpdateState L"state"
-#define StagingFolder L"C:\\Data\\ProgramData\\USOShared\\Data"
 
 AzureUpdateModel::AzureUpdateModel(const wstring& updatesRootFolder, const wstring& manifestFileName, const UpdateEngine& updateEngine) :
     _manifestDownloaded(false),
@@ -40,7 +39,7 @@ AzureUpdateModel::AzureUpdateModel(const wstring& updatesRootFolder, const wstri
         // update the downloaded state
         _cabsDownloaded = VerifyCabsDownloaded(_updatesRootFolder, _cabsData);
 
-        // update the applied state
+        // update the installed state
         _cabsInstalled = VerifyCabsInstalled(_cabsData, updateEngine);
     }
 }
@@ -114,21 +113,21 @@ bool AzureUpdateModel::VerifyCabsDownloaded(const wstring& updatesLocalRoot, con
     return downloaded;
 }
 
-bool AzureUpdateModel::VerifyCabsInstalled(const vector<CabData> cabsData, const UpdateEngine& updateEngine)
+bool AzureUpdateModel::VerifyCabsInstalled(const vector<CabData>& cabsData, const UpdateEngine& updateEngine)
 {
     TRACE(L"AzureUpdateModel::VerifyInstalled()");
 
-    bool applied = true;
+    bool installed = true;
     for (const CabData& cabData : cabsData)
     {
-        applied = updateEngine.IsInstalled(cabData.id, cabData.version);
-        if (!applied)
+        installed = updateEngine.IsInstalled(cabData.id, cabData.version);
+        if (!installed)
         {
             break;
         }
     }
 
-    if (applied)
+    if (installed)
     {
         TRACE(L"All cabs are installed.");
     }
@@ -137,7 +136,21 @@ bool AzureUpdateModel::VerifyCabsInstalled(const vector<CabData> cabsData, const
         TRACE(L"Not all cabs are installed.");
     }
 
-    return applied;
+    return installed;
+}
+
+bool AzureUpdateModel::IsDownloaded() const
+{
+    lock_guard<mutex> lock(_mutex);
+
+    return _manifestDownloaded && _cabsDownloaded;
+}
+
+bool AzureUpdateModel::IsInstalled() const
+{
+    lock_guard<mutex> lock(_mutex);
+
+    return _cabsInstalled;
 }
 
 void AzureUpdateModel::Download(const wstring& connectionString)
@@ -165,7 +178,7 @@ void AzureUpdateModel::Download(const wstring& connectionString)
 
 void AzureUpdateModel::Install()
 {
-    TRACE(L"AzureUpdateModel::Apply()");
+    TRACE(L"AzureUpdateModel::Install()");
 
     lock_guard<mutex> lock(_mutex);
 

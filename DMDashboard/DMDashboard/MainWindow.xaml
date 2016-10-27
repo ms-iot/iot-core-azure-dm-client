@@ -27,264 +27,265 @@
             <ListBox Grid.Row="1" Margin="3" x:Name="DeviceListBox" SelectionChanged="OnDeviceSelected" />
             <Button Grid.Row="2" Margin="3" Content="Connect" Click="OnConnect" IsEnabled="False" x:Name="ConnectButton"/>
         </Grid>
-        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical" x:Name="ConnectedProperties" IsEnabled="True" Grid.RowSpan="2">
-            <Grid>
-                <TextBlock Margin="3" Text="System Info" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
-                <Button HorizontalAlignment="Right" Click="OnExpandSystemInfo" Width="30" Content="+/-"/>
-            </Grid>
-            <Grid x:Name="SystemInfoGrid" Visibility="Collapsed">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="200"/>
-                    <ColumnDefinition Width="200"/>
-                </Grid.ColumnDefinitions>
+        <ScrollViewer Grid.Row="1" Grid.Column="1">
+            <StackPanel Orientation="Vertical" x:Name="ConnectedProperties" IsEnabled="True" Grid.RowSpan="2">
+                <Grid>
+                    <TextBlock Margin="3" Text="System Info" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                    <Button HorizontalAlignment="Right" Click="OnExpandSystemInfo" Width="30" Content="+/-"/>
+                </Grid>
+                <Grid x:Name="SystemInfoGrid" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="200"/>
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Margin="3"/>
-                <TextBlock Grid.Row="0" Grid.Column="1" Margin="3" Text="Desired"/>
-                <TextBlock Grid.Row="0" Grid.Column="2" Margin="3" Text="Reported"/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="3"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Margin="3" Text="Desired"/>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Margin="3" Text="Reported"/>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="OS Version"/>
-                <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" Text="n/a"/>
-                <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="OSVersion"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="OS Version"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="OSVersion"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Memory (Total)"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a"/>
-                <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
-                    <TextBlock Margin="3" Text="0" x:Name="TotalMemoryMB"/>
-                    <TextBlock Margin="3" Text="MB"/>
-                </StackPanel>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Memory (Total)"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
+                        <TextBlock Margin="3" Text="0" x:Name="TotalMemoryMB"/>
+                        <TextBlock Margin="3" Text="MB"/>
+                    </StackPanel>
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Memory (Available)"/>
-                <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" Text="n/a"/>
-                <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
-                    <TextBlock Margin="3" Text="0" x:Name="AvailableMemoryMB"/>
-                    <TextBlock Margin="3" Text="MB"/>
-                </StackPanel>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Memory (Available)"/>
+                    <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
+                        <TextBlock Margin="3" Text="0" x:Name="AvailableMemoryMB"/>
+                        <TextBlock Margin="3" Text="MB"/>
+                    </StackPanel>
 
-                <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Storage (Total)"/>
-                <TextBlock Grid.Row="4" Grid.Column="1" Margin="3" Text="n/a"/>
-                <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
-                    <TextBlock Margin="3" Text="0" x:Name="TotalStorageMB"/>
-                    <TextBlock Margin="3" Text="MB"/>
-                </StackPanel>
+                    <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Storage (Total)"/>
+                    <TextBlock Grid.Row="4" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
+                        <TextBlock Margin="3" Text="0" x:Name="TotalStorageMB"/>
+                        <TextBlock Margin="3" Text="MB"/>
+                    </StackPanel>
 
-                <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Storage (Available)"/>
-                <TextBlock Grid.Row="5" Grid.Column="1" Margin="3" Text="n/a"/>
-                <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal">
-                    <TextBlock Margin="3" Text="0" x:Name="AvailableStorageMB"/>
-                    <TextBlock Margin="3" Text="MB"/>
-                </StackPanel>
+                    <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Storage (Available)"/>
+                    <TextBlock Grid.Row="5" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal">
+                        <TextBlock Margin="3" Text="0" x:Name="AvailableStorageMB"/>
+                        <TextBlock Margin="3" Text="MB"/>
+                    </StackPanel>
 
-            </Grid>
+                </Grid>
 
-            <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
-            <Grid>
-                <TextBlock Margin="3" Text="Time" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
-                <Button HorizontalAlignment="Right" Click="OnExpandTime" Width="30" Content="+/-"/>
-            </Grid>
-            <Grid x:Name="TimeGrid" Visibility="Collapsed">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="200"/>
-                    <ColumnDefinition Width="200"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0" Margin="3"/>
-                <TextBlock Grid.Row="0" Grid.Column="1" Margin="3" Text="Desired"/>
-                <TextBlock Grid.Row="0" Grid.Column="2" Margin="3" Text="Reported"/>
+                <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
+                <Grid>
+                    <TextBlock Margin="3" Text="Time" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                    <Button HorizontalAlignment="Right" Click="OnExpandTime" Width="30" Content="+/-"/>
+                </Grid>
+                <Grid x:Name="TimeGrid" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="200"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="3"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Margin="3" Text="Desired"/>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Margin="3" Text="Reported"/>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Current Time"/>
-                <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" Text="n/a"/>
-                <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" Text="0" x:Name="DeviceCurrentTime"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Current Time"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" Text="0" x:Name="DeviceCurrentTime"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Bias"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a"/>
-                <TextBlock Grid.Row="2" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneBias"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Bias"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <TextBlock Grid.Row="2" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneBias"/>
                 
-                <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Zone Standard Name"/>
-                <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" Text="n/a"/>
-                <TextBlock Grid.Row="3" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneStandardName"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Zone Standard Name"/>
+                    <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <TextBlock Grid.Row="3" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneStandardName"/>
 
-                <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Zone Standard Date"/>
-                <TextBlock Grid.Row="4" Grid.Column="1" Margin="3" Text="n/a"/>
-                <TextBlock Grid.Row="4" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneStandardDate"/>
+                    <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Zone Standard Date"/>
+                    <TextBlock Grid.Row="4" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <TextBlock Grid.Row="4" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneStandardDate"/>
 
-                <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Zone Standard Bias"/>
-                <TextBlock Grid.Row="5" Grid.Column="1" Margin="3" Text="n/a"/>
-                <TextBlock Grid.Row="5" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneStandardBias"/>
+                    <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Zone Standard Bias"/>
+                    <TextBlock Grid.Row="5" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <TextBlock Grid.Row="5" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneStandardBias"/>
 
-                <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Zone Daytime Name"/>
-                <TextBlock Grid.Row="6" Grid.Column="1" Margin="3" Text="n/a"/>
-                <TextBlock Grid.Row="6" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneDaytimeName"/>
+                    <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Zone Daytime Name"/>
+                    <TextBlock Grid.Row="6" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <TextBlock Grid.Row="6" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneDaytimeName"/>
 
-                <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Zone Daytime Date"/>
-                <TextBlock Grid.Row="7" Grid.Column="1" Margin="3" Text="n/a"/>
-                <TextBlock Grid.Row="7" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneDaytimeDate"/>
+                    <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Zone Daytime Date"/>
+                    <TextBlock Grid.Row="7" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <TextBlock Grid.Row="7" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneDaytimeDate"/>
 
-                <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Zone Daytime Bias"/>
-                <TextBlock Grid.Row="8" Grid.Column="1" Margin="3" Text="n/a"/>
-                <TextBlock Grid.Row="8" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneDaytimeBias"/>
+                    <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Zone Daytime Bias"/>
+                    <TextBlock Grid.Row="8" Grid.Column="1" Margin="3" Text="n/a"/>
+                    <TextBlock Grid.Row="8" Grid.Column="2" Margin="3" Text="0" x:Name="ZoneDaytimeBias"/>
 
-            </Grid>
+                </Grid>
 
-            <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
-            <Grid>
-                <TextBlock Margin="3" Text="Reboot" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
-                <Button HorizontalAlignment="Right" Click="OnExpandReboot" Width="30" Content="+/-"/>
-            </Grid>
-            <Grid x:Name="RebootGrid" Visibility="Visible">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="200"/>
-                    <ColumnDefinition Width="200"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-                <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Last Reboot Command"/>
-                <Button  Grid.Row="1" Grid.Column="1" Margin="3" Content="Reboot Now" Click="OnSendReboot"/>
-                <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="LastRebootTime" />
+                <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
+                <Grid>
+                    <TextBlock Margin="3" Text="Reboot" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                    <Button HorizontalAlignment="Right" Click="OnExpandReboot" Width="30" Content="+/-"/>
+                </Grid>
+                <Grid x:Name="RebootGrid" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="200"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Last Reboot Command"/>
+                    <Button  Grid.Row="1" Grid.Column="1" Margin="3" Content="Reboot Now" Click="OnSendReboot"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="LastRebootTime" />
                 
-                <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Last Restart" />
-                <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a" />
-                <TextBlock Grid.Row="2" Grid.Column="2" Margin="3" x:Name="LastRestartTime" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Last Restart" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a" />
+                    <TextBlock Grid.Row="2" Grid.Column="2" Margin="3" x:Name="LastRestartTime" />
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Single Reboot" />
-                <TextBox Grid.Row="3" Grid.Column="1" Margin="3" Text="2016-10-10T17:00:00Z" x:Name="DesiredSingleRebootTime"/>
-                <TextBox Grid.Row="3" Grid.Column="2" Margin="3" Text="" x:Name="ReportedSingleRebootTime"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Single Reboot" />
+                    <TextBox Grid.Row="3" Grid.Column="1" Margin="3" Text="2016-10-10T17:00:00Z" x:Name="DesiredSingleRebootTime"/>
+                    <TextBox Grid.Row="3" Grid.Column="2" Margin="3" Text="" x:Name="ReportedSingleRebootTime"/>
 
-                <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Daily Reboot" />
-                <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="" x:Name="DesiredDailyRebootTime"/>
-                <TextBox Grid.Row="4" Grid.Column="2" Margin="3" Text="" x:Name="ReportedDailyRebootTime"/>
+                    <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Daily Reboot" />
+                    <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="" x:Name="DesiredDailyRebootTime"/>
+                    <TextBox Grid.Row="4" Grid.Column="2" Margin="3" Text="" x:Name="ReportedDailyRebootTime"/>
 
-            </Grid>
+                </Grid>
 
-            <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
-            <Grid>
-                <TextBlock Margin="3" Text="Update" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
-                <Button HorizontalAlignment="Right" Click="OnExpandUpdate" Width="30" Content="+/-"/>
-            </Grid>
-            <StackPanel Orientation="Vertical" x:Name="UpdateGrid">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Width="150" Text="Azure Storage" />
-                    <StackPanel Margin="3" Orientation="Vertical">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Width="120" Margin="0,3" Text="Connection String" HorizontalAlignment="Left"/>
-                            <TextBox Width="280" Margin="0,3" Text="&lt;azure storage connections string&gt;" x:Name="StorageConnectionString"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Width="120" Margin="0,3" Text="Container" HorizontalAlignment="Left"/>
-                            <TextBox Width="280" Margin="0,3" Text="manifests" x:Name="StorageContainer" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <Button Width="100" Margin="0,3" Content="Connect" Click="OnStorageConnect" HorizontalAlignment="Left"/>
-                            <TextBlock Width="280" Margin="23,3" Text="not connected" HorizontalAlignment="Left" />
+                <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
+                <Grid>
+                    <TextBlock Margin="3" Text="Update" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                    <Button HorizontalAlignment="Right" Click="OnExpandUpdate" Width="30" Content="+/-"/>
+                </Grid>
+                <StackPanel Orientation="Vertical" x:Name="UpdateGrid">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Width="150" Text="Azure Storage" />
+                        <StackPanel Margin="3" Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Width="120" Margin="0,3" Text="Connection String" HorizontalAlignment="Left"/>
+                                    <TextBox Width="280" Margin="0,3" Text="&lt;azure storage connections string&gt;" x:Name="StorageConnectionString"/>
+                                </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Width="120" Margin="0,3" Text="Container" HorizontalAlignment="Left"/>
+                                <TextBox Width="280" Margin="0,3" Text="manifests" x:Name="StorageContainer" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Width="100" Margin="0,3" Content="Connect" Click="OnStorageConnect" HorizontalAlignment="Left"/>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
+                    <Border Height="20" Background="Transparent"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="50" />
+                            <ColumnDefinition Width="400" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Cloud" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Device" HorizontalAlignment="Left"/>
+                    </Grid>
+                    <Border BorderThickness="1" BorderBrush="Black" Width="550" HorizontalAlignment="Left" Height="1"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="200" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" HorizontalAlignment="Left"/>
+                    </Grid>
+                    <Border BorderThickness="1" BorderBrush="Black" Width="550" HorizontalAlignment="Left" Height="1"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="50" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="100" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Cab Name" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Download" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Row="0" Grid.Column="3" Text="Install" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Row="0" Grid.Column="4" Text="Downloaded" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Row="0" Grid.Column="5" Text="Installed" HorizontalAlignment="Left"/>
+                    </Grid>
+                    <Border BorderThickness="1" BorderBrush="Black" Width="550" HorizontalAlignment="Left" Height="1"/>
+                    <ListView x:Name="UpdateList" Width="550" HorizontalAlignment="Left" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Height="200">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="50"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="100"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding ManifestFileName}"/>
+                                    <CheckBox Grid.Column="1" IsChecked="{Binding IsUploaded}" HorizontalAlignment="Left" IsHitTestVisible="False"/>
+                                    <Border Grid.Column="2">
+                                        <CheckBox IsChecked="{Binding Download, Mode=TwoWay}" HorizontalAlignment="Left"/>
+                                    </Border>
+                                    <Border Grid.Column="3">
+                                        <CheckBox IsChecked="{Binding Install, Mode=TwoWay}" HorizontalAlignment="Left"/>
+                                    </Border>
+                                    <CheckBox Grid.Column="4" IsChecked="{Binding IsDownloaded}" HorizontalAlignment="Left" IsHitTestVisible="False"/>
+                                    <CheckBox Grid.Column="5" IsChecked="{Binding IsInstalled}" HorizontalAlignment="Left" IsHitTestVisible="False"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </StackPanel>
-                <Border Height="20" Background="Transparent"/>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="100"/>
-                        <ColumnDefinition Width="50" />
-                        <ColumnDefinition Width="400" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Cloud" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Device" HorizontalAlignment="Left"/>
-                </Grid>
-                <Border BorderThickness="1" BorderBrush="Black" Width="550" HorizontalAlignment="Left" Height="1"/>
+                <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="150"/>
-                        <ColumnDefinition Width="200" />
-                        <ColumnDefinition Width="200" />
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="200"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" HorizontalAlignment="Left"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="Apply Desired" Click="OnApplyDesired"/>
+                    <Button Grid.Row="0" Grid.Column="2" Margin="3" Content="Read Reported" Click="OnReadReported"/>
+                    <Button Grid.Row="1" Grid.Column="2" Margin="3" Content="Deep Read Reported" Click="OnDeepReadReported"/>
                 </Grid>
-                <Border BorderThickness="1" BorderBrush="Black" Width="550" HorizontalAlignment="Left" Height="1"/>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="100"/>
-                        <ColumnDefinition Width="50" />
-                        <ColumnDefinition Width="100" />
-                        <ColumnDefinition Width="100" />
-                        <ColumnDefinition Width="100" />
-                        <ColumnDefinition Width="100" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Cab Name" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Download" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Install" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Downloaded" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Row="0" Grid.Column="5" Text="Installed" HorizontalAlignment="Left"/>
-                </Grid>
-                <Border BorderThickness="1" BorderBrush="Black" Width="550" HorizontalAlignment="Left" Height="1"/>
-                <ListView x:Name="UpdateList" Width="550" HorizontalAlignment="Left" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Height="200">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100"/>
-                                    <ColumnDefinition Width="50"/>
-                                    <ColumnDefinition Width="100"/>
-                                    <ColumnDefinition Width="100"/>
-                                    <ColumnDefinition Width="100"/>
-                                    <ColumnDefinition Width="100"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding ManifestFileName}"/>
-                                <CheckBox Grid.Column="1" IsChecked="{Binding IsUploaded}" HorizontalAlignment="Left" IsHitTestVisible="False"/>
-                                <Border Grid.Column="2">
-                                    <CheckBox IsChecked="{Binding Download, Mode=TwoWay}" HorizontalAlignment="Left"/>
-                                </Border>
-                                <Border Grid.Column="3">
-                                    <CheckBox IsChecked="{Binding Install, Mode=TwoWay}" HorizontalAlignment="Left"/>
-                                </Border>
-                                <CheckBox Grid.Column="4" IsChecked="{Binding IsDownloaded}" HorizontalAlignment="Left" IsHitTestVisible="False"/>
-                                <CheckBox Grid.Column="5" IsChecked="{Binding IsInstalled}" HorizontalAlignment="Left" IsHitTestVisible="False"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
             </StackPanel>
-            <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="200"/>
-                    <ColumnDefinition Width="200"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="Apply Desired" Click="OnApplyDesired"/>
-                <Button Grid.Row="0" Grid.Column="2" Margin="3" Content="Read Reported" Click="OnReadReported"/>
-                <Button Grid.Row="1" Grid.Column="2" Margin="3" Content="Deep Read Reported" Click="OnDeepReadReported"/>
-            </Grid>
-        </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>

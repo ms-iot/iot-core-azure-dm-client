@@ -12,11 +12,11 @@ class AzureUpdateManager
     {
         std::wstring manifestFileName;
         bool download;
-        bool apply;
+        bool install;
 
         UpdateOperation() :
             download(false),
-            apply(false)
+            install(false)
         {}
     };
 

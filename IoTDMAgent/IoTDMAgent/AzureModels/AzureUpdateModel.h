@@ -20,8 +20,8 @@ public:
 
     AzureUpdateModel(const std::wstring& updatesLocalRoot, const std::wstring& manifestFileName, const UpdateEngine& updateEngine);
 
-    bool IsDownloaded() const { return _manifestDownloaded && _cabsDownloaded; }
-    bool IsInstalled() const { return _cabsInstalled; }
+    bool IsDownloaded() const;
+    bool IsInstalled() const;
 
     void Download(const std::wstring& connectionString);
     void Install();
@@ -32,7 +32,7 @@ private:
 
     static void ParseManifest(const std::wstring& updatesLocalRoot, const std::wstring& manifestFileName, std::vector<CabData>& cabsData);
     static bool VerifyCabsDownloaded(const std::wstring& updatesLocalRoot, const std::vector<CabData> cabsData);
-    static bool VerifyCabsInstalled(const std::vector<CabData> cabsData, const UpdateEngine& updateEngine);
+    static bool VerifyCabsInstalled(const std::vector<CabData>& cabsData, const UpdateEngine& updateEngine);
 
     // Data members
     mutable std::mutex _mutex;

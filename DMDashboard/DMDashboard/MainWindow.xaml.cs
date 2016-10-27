@@ -161,6 +161,7 @@ namespace DMDashboard
             else
             {
                 string[] tokens = path.Split('.');
+                // We are looking for "azureUpdates.<id>.state". So, 3 tokens exactly are expected.
                 if (tokens.Length == 3)
                 {
                     if (tokens[0] == "azureUpdates")
@@ -171,6 +172,9 @@ namespace DMDashboard
                         bool installed = false;
 
                         string[] valueTokens = value.Split(',');
+
+                        // We are looking for "<filename>[,downloaded][,installed]
+                        // Note that installed and downloaded can appear in any order.
                         uint valueIndex = 0;
                         foreach (string valueToken in valueTokens)
                         {
@@ -310,7 +314,6 @@ namespace DMDashboard
 
                 JObject manifests = new JObject();
 
-                uint index = 0;
                 foreach (UpdateInfo manifestData in _updateList)
                 {
                     // Are there any operations desired?
@@ -327,12 +330,11 @@ namespace DMDashboard
                         if (manifestData.Install)
                         {
                             parameters += ",";
-                            parameters += "apply";
+                            parameters += "install";
                         }
                         // i.e. there's some action to do...
                         manifests.Add(new JProperty(ToPropertyName(manifestData.ManifestFileName), parameters));
                     }
-                    ++index;
                 }
                 updateProperties.Add(new JProperty("manifests", manifests));
             }
