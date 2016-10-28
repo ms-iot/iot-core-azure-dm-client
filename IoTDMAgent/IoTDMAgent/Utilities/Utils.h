@@ -52,6 +52,7 @@ namespace Utils
     std::wstring GetCurrentDateTimeString();
     std::wstring GetDateTimeString(unsigned int year, unsigned int month, unsigned int day, unsigned int hour, unsigned int minute, unsigned int second);
     std::wstring GetOSVersionString();
+    std::wstring GetEnvironmentVariable(const std::wstring& variableName);
     std::wstring GetSystemRootFolder();
     std::wstring GetProgramDataFolder();
 
@@ -64,7 +65,6 @@ namespace Utils
     // Registry helpers
     void WriteRegistryValue(const std::wstring& subkey, const std::wstring& propName, const std::wstring& propValue);
     std::wstring ReadRegistryValue(const std::wstring& subkey, const std::wstring& propName);
-
 
     // File helpers
     bool FileExists(const std::wstring& fullFileName);

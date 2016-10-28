@@ -43,7 +43,7 @@ public:
 
 private:
     AutoCloseHandle(const AutoCloseHandle &);            // prevent copy
-    AutoCloseHandle& operator=(const AutoCloseHandle&); // prevent assignment
+    AutoCloseHandle& operator=(const AutoCloseHandle&);  // prevent assignment
 
     HANDLE _handle;
 };
@@ -329,26 +329,32 @@ wstring GetOSVersionString()
     return formattedVersion.str();
 }
 
+wstring GetEnvironmentVariable(const wstring& variableName)
+{
+    DWORD charCount = ::GetEnvironmentVariable(variableName.c_str(), NULL, 0);
+    if (charCount == 0)
+    {
+        throw DMException("Error: failed to get environment variable.", Utils::WideToMultibyte(variableName.c_str()));
+    }
+
+    vector<wchar_t> buffer(charCount);
+    charCount = ::GetEnvironmentVariable(variableName.c_str(), buffer.data(), buffer.size());
+    if (charCount == 0)
+    {
+        throw DMException("Error: failed to get environment variable.", Utils::WideToMultibyte(variableName.c_str()));
+    }
+
+    return wstring(buffer.data());
+}
+
 wstring GetSystemRootFolder()
 {
-    wchar_t systemRoot[MAX_PATH] = { 0 };
-    wchar_t cmdLine[MAX_PATH] = { 0 };
-    if (0 == GetEnvironmentVariable(L"SystemRoot", systemRoot, ARRAYSIZE(systemRoot)))
-    {
-        throw DMException("Error: failed to get system root folder.");
-    }
-    return wstring(systemRoot);
+    return GetEnvironmentVariable(L"SystemRoot");
 }
 
 std::wstring GetProgramDataFolder()
 {
-    wchar_t programData[MAX_PATH] = { 0 };
-    wchar_t cmdLine[MAX_PATH] = { 0 };
-    if (0 == GetEnvironmentVariable(L"ProgramData", programData, ARRAYSIZE(programData)))
-    {
-        throw DMException("Error: failed to get program data folder.");
-    }
-    return wstring(programData);
+    return GetEnvironmentVariable(L"ProgramData");
 }
 
 bool FileExists(const wstring& fullFileName)
@@ -404,7 +410,7 @@ void LaunchProcess(const wstring& commandString, unsigned long& returnCode, stri
 
     AutoCloseHandle stdOutReadHandle;
     AutoCloseHandle stdOutWriteHandle;
-    DWORD  pipeBufferSize = 4096;
+    DWORD pipeBufferSize = 4096;
 
     if (!CreatePipe(stdOutReadHandle.GetAddress(), stdOutWriteHandle.GetAddress(), &securityAttributes, pipeBufferSize))
     {
