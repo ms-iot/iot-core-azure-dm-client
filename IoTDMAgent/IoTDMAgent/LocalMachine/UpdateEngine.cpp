@@ -6,7 +6,11 @@
 using namespace std;
 using namespace tr2::sys;
 
-#define StagingFolder L"C:\\Data\\ProgramData\\USOShared\\Data"
+wstring& GetStagingFolder()
+{
+    static wstring folder = Utils::GetProgramDataFolder() + L"\\USOShared\\Data";
+    return folder;
+}
 
 void UpdateEngine::Scan()
 {
@@ -16,13 +20,7 @@ void UpdateEngine::Scan()
 
     _packageList.clear();
 
-    // build the command line
-    wchar_t systemRoot[MAX_PATH] = { 0 };
-    wchar_t cmdLine[MAX_PATH] = { 0 };
-    if (0 != GetEnvironmentVariable(L"SystemRoot", systemRoot, ARRAYSIZE(systemRoot)))
-    {
-        swprintf_s(cmdLine, MAX_PATH, L"%s\\servicing\\UpdateApp.exe getinstalledpackages", systemRoot);
-    }
+    wstring cmdLine = Utils::GetSystemRootFolder() + L"\\servicing\\UpdateApp.exe getinstalledpackages";
 
     // ToDo: Replace UpdateApp.exe with ApplyUpdate.exe when it starts supporting getinstalledpackages.
     //       UpdateApp.exe is a test app and its output is not guaranteed to stay the same.
@@ -86,7 +84,7 @@ void UpdateEngine::Stage(const wstring& cabFullFileName)
 {
     TRACEP(L"UpdateEngine::Stage = ", cabFullFileName.c_str());
 
-    wstring stagingFolder(StagingFolder);
+    wstring stagingFolder(GetStagingFolder());
     Utils::EnsureFolderExists(stagingFolder);
     stagingFolder += L"\\";
 
@@ -102,13 +100,7 @@ void UpdateEngine::CommitStaged()
     unsigned long returnCode = 0;
     string output;
 
-    // build the command line
-    wchar_t systemRoot[MAX_PATH] = { 0 };
-    wchar_t cmdLine[MAX_PATH] = { 0 };
-    if (0 != GetEnvironmentVariable(L"SystemRoot", systemRoot, ARRAYSIZE(systemRoot)))
-    {
-        swprintf_s(cmdLine, MAX_PATH, L"%s\\system32\\applyupdate.exe -commit", systemRoot);
-    }
+    wstring cmdLine = Utils::GetSystemRootFolder() + L"\\system32\\applyupdate.exe -commit";
 
     Utils::LaunchProcess(cmdLine, returnCode, output);
     if (0 != returnCode)

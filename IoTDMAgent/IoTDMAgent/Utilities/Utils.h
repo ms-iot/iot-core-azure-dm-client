@@ -52,6 +52,8 @@ namespace Utils
     std::wstring GetCurrentDateTimeString();
     std::wstring GetDateTimeString(unsigned int year, unsigned int month, unsigned int day, unsigned int hour, unsigned int minute, unsigned int second);
     std::wstring GetOSVersionString();
+    std::wstring GetSystemRootFolder();
+    std::wstring GetProgramDataFolder();
 
     // Resource helpers
     std::wstring GetResourceString(int id);

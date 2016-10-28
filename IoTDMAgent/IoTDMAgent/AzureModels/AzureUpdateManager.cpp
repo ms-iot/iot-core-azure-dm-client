@@ -18,12 +18,16 @@ using namespace tr2::sys;
 // Note that saving on the C:\ drive is not recommended because there is limited space.
 // Instead, we are saving the manifests and cabs on the data partition (c:\data).
 // The data partition gets wiped during a reset.
-#define LocalUpdatesFolder L"c:\\Data\\ProgramData\\IotDMAgent\\Updates"
+wstring& GetLocalUpdatesFolder()
+{
+    static wstring folder = Utils::GetProgramDataFolder() + L"\\IotDMAgent\\Updates";
+    return folder;
+}
 
 AzureUpdateManager::AzureUpdateManager()
 {
     TRACE("AzureUpdateManager::AzureUpdateManager()");
-    LoadLocalState(LocalUpdatesFolder, AzureManifestsFolder);
+    LoadLocalState(GetLocalUpdatesFolder(), AzureManifestsFolder);
 }
 
 wstring AzureUpdateManager::NodeName()
@@ -130,7 +134,7 @@ void AzureUpdateManager::ExecuteDesiredOperations(const wstring& connectionStrin
         if (it == _localUpdates.end())
         {
             TRACE(L"Reference to new cab...");
-            shared_ptr<AzureUpdateModel> azureUpdateModel(new AzureUpdateModel(LocalUpdatesFolder, operation.manifestFileName, _updateEngine));
+            shared_ptr<AzureUpdateModel> azureUpdateModel(new AzureUpdateModel(GetLocalUpdatesFolder(), operation.manifestFileName, _updateEngine));
             _localUpdates[operation.manifestFileName] = azureUpdateModel;
             it = _localUpdates.find(operation.manifestFileName);
         }

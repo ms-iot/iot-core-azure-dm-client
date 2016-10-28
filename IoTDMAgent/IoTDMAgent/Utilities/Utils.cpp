@@ -15,10 +15,10 @@ using namespace Windows::System::Profile;
 namespace Utils
 {
 
-class HandleRAII
+class AutoCloseHandle
 {
 public:
-    HandleRAII() :
+    AutoCloseHandle() :
         _handle(NULL)
     {}
 
@@ -36,14 +36,14 @@ public:
         return result;
     }
 
-    ~HandleRAII()
+    ~AutoCloseHandle()
     {
         Close();
     }
 
 private:
-    HandleRAII(const HandleRAII&);            // prevent copy
-    HandleRAII& operator=(const HandleRAII&); // prevent assignment
+    AutoCloseHandle(const AutoCloseHandle &);            // prevent copy
+    AutoCloseHandle& operator=(const AutoCloseHandle&); // prevent assignment
 
     HANDLE _handle;
 };
@@ -329,6 +329,28 @@ wstring GetOSVersionString()
     return formattedVersion.str();
 }
 
+wstring GetSystemRootFolder()
+{
+    wchar_t systemRoot[MAX_PATH] = { 0 };
+    wchar_t cmdLine[MAX_PATH] = { 0 };
+    if (0 == GetEnvironmentVariable(L"SystemRoot", systemRoot, ARRAYSIZE(systemRoot)))
+    {
+        throw DMException("Error: failed to get system root folder.");
+    }
+    return wstring(systemRoot);
+}
+
+std::wstring GetProgramDataFolder()
+{
+    wchar_t programData[MAX_PATH] = { 0 };
+    wchar_t cmdLine[MAX_PATH] = { 0 };
+    if (0 == GetEnvironmentVariable(L"ProgramData", programData, ARRAYSIZE(programData)))
+    {
+        throw DMException("Error: failed to get program data folder.");
+    }
+    return wstring(programData);
+}
+
 bool FileExists(const wstring& fullFileName)
 {
     ifstream infile(fullFileName);
@@ -380,8 +402,8 @@ void LaunchProcess(const wstring& commandString, unsigned long& returnCode, stri
     securityAttributes.bInheritHandle = TRUE;
     securityAttributes.lpSecurityDescriptor = NULL;
 
-    HandleRAII stdOutReadHandle;
-    HandleRAII stdOutWriteHandle;
+    AutoCloseHandle stdOutReadHandle;
+    AutoCloseHandle stdOutWriteHandle;
     DWORD  pipeBufferSize = 4096;
 
     if (!CreatePipe(stdOutReadHandle.GetAddress(), stdOutWriteHandle.GetAddress(), &securityAttributes, pipeBufferSize))
