@@ -1,0 +1,1 @@
+container00,Microsoft-IoTUAP-EULA-Package.cab,Microsoft-IoTUAP-EULA-Package,10.0.14953.1000

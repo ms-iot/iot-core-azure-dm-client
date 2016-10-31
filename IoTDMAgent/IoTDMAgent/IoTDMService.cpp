@@ -67,7 +67,7 @@ void WINAPI IoTDMService::ServiceCtrlHandler(DWORD ctrl)
     }
 }
 
-IoTDMService::IoTDMService(const std::wstring& serviceName) :
+IoTDMService::IoTDMService(const wstring& serviceName) :
     _stopSignaled(false)
 {
     TRACE("IoTDMService.ctor()");
@@ -230,7 +230,7 @@ void IoTDMService::WriteErrorLogEntry(const wstring& function, DWORD errorCode)
     WriteEventLogEntry(message.str(), EVENTLOG_ERROR_TYPE);
 }
 
-std::string IoTDMService::GetConnectionString(const std::chrono::system_clock::time_point& expiration)
+string IoTDMService::GetConnectionString(const chrono::system_clock::time_point& expiration)
 {
     auto connectionString = Limpet::GetInstance().GetSASToken(0, expiration);
     TRACE(connectionString.c_str());
@@ -255,7 +255,7 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
 {
     TRACE("IoTDMService.ServiceWorkerThread()");
 
-    using namespace std::chrono;
+    using namespace chrono;
 
     const auto threshold = minutes(15); // 15 minutes
     const auto expirationTimeSpan = hours(24); // 1 day
@@ -302,12 +302,12 @@ void IoTDMService::OnStop()
 }
 
 void IoTDMService::Install(
-    const std::wstring& serviceName,
-    const std::wstring& displayName,
+    const wstring& serviceName,
+    const wstring& displayName,
     DWORD startType,
-    const std::wstring& dependencies,
-    const std::wstring& account,
-    const std::wstring& password)
+    const wstring& dependencies,
+    const wstring& account,
+    const wstring& password)
 {
     wchar_t szPath[MAX_PATH];
     if (GetModuleFileName(NULL, szPath, ARRAYSIZE(szPath)) == 0)
@@ -353,7 +353,7 @@ void IoTDMService::Install(
     schSCManager = NULL;
 }
 
-void IoTDMService::Uninstall(const std::wstring& serviceName)
+void IoTDMService::Uninstall(const wstring& serviceName)
 {
     SC_HANDLE schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
     if (schSCManager == NULL)

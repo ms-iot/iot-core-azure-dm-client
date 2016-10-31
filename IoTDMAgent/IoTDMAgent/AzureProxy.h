@@ -5,6 +5,7 @@
 #include "AzureModels\RebootModel.h"
 #include "AzureModels\TimeModel.h"
 #include "AzureModels\SystemInfoModel.h"
+#include "AzureModels\AzureUpdateManager.h"
 
 class AzureProxy
 {
@@ -33,7 +34,7 @@ private:
     SystemInfoModel _systemInfoModel;
     TimeModel _timeModel;
     RebootModel _rebootModel;
-
+    AzureUpdateManager _azureUpdateManager;
 };
 
 

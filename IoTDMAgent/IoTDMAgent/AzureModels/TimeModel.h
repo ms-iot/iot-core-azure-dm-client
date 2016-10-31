@@ -4,7 +4,6 @@
 class TimeModel
 {
 public:
-    TimeModel();
     static std::wstring NodeName();
 
     // Desired

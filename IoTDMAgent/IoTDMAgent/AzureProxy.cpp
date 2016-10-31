@@ -105,7 +105,7 @@ int AzureProxy::OnMethodCalled(const char* method_name, const unsigned char* pay
     return retCode;
 }
 
-int AzureProxy::ProcessMethodCall(const std::string& name, const std::string& payload, std::string& response)
+int AzureProxy::ProcessMethodCall(const string& name, const string& payload, string& response)
 {
     int result = IOTHUB_CLIENT_IOTHUB_METHOD_STATUS_SUCCESS;
 
@@ -267,6 +267,10 @@ void AzureProxy::ProcessDesiredProperties(IJsonValue^ desiredPropertyValue)
                 {
                     _rebootModel.SetDesiredProperties(pair->Value);
                 }
+                else if (0 == AzureUpdateManager::NodeName().compare(childKey->Data()))
+                {
+                    _azureUpdateManager.SetDesiredProperties(pair->Value);
+                }
             }
         }
         break;
@@ -301,6 +305,9 @@ void AzureProxy::ReportAllProperties()
 
         // Reboot properties
         root->Insert(ref new String(RebootModel::NodeName().c_str()), _rebootModel.GetReportedProperties());
+
+        // Update properties
+        root->Insert(ref new String(AzureUpdateManager::NodeName().c_str()), _azureUpdateManager.GetReportedProperties());
     }
 
     ReportProperties(root);

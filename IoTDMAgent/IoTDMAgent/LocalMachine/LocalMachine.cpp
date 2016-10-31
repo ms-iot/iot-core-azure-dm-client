@@ -24,9 +24,6 @@ void LocalMachine::GetMemoryInfoMB(unsigned int& totalMB, unsigned int& availabl
 {
     TRACE("LocalMachine::GetMemoryInfoMB()");
 
-    ULARGE_INTEGER totalBytes = { 0 };
-    ULARGE_INTEGER availableBytes = { 0 };
-
     MEMORYSTATUSEX statex;
     statex.dwLength = sizeof(statex);
     if (!GlobalMemoryStatusEx(&statex))
@@ -50,8 +47,8 @@ void LocalMachine::GetStorageInfoMB(unsigned int& totalMB, unsigned int& availab
         throw DMException("Error: GetDiskFreeSpaceEx() failed.");
     }
 
-    totalMB = totalBytes.QuadPart / (1024 * 1024);
-    availableMB = availableBytes.QuadPart / (1024 * 1024);
+    totalMB = static_cast<unsigned int>(totalBytes.QuadPart / (1024 * 1024));
+    availableMB = static_cast<unsigned int>(availableBytes.QuadPart / (1024 * 1024));
 }
 
 void LocalMachine::RunSyncML(const wstring& request, wstring& response)
@@ -285,7 +282,7 @@ wstring LocalMachine::GetUpdateServiceUrl()
     return PolicyCSP::GetUpdateServiceUrl();
 }
 
-void LocalMachine::SetUpdateServiceUrl(const std::wstring& serviceUrl)
+void LocalMachine::SetUpdateServiceUrl(const wstring& serviceUrl)
 {
     PolicyCSP::SetUpdateServiceUrl(serviceUrl);
 }

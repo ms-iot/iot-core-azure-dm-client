@@ -190,7 +190,7 @@ void MdmProvision::RunSet(const wstring& sid, const wstring& path, unsigned int 
                 </Target>
                 <Meta><Format xmlns="syncml:metinf">int</Format></Meta>
                 <Data>)";
-    requestSyncML += std::to_wstring(value);
+    requestSyncML += to_wstring(value);
     requestSyncML += LR"(</Data>
               </Item>
             </Replace>
@@ -222,31 +222,31 @@ void MdmProvision::RunExec(const wstring& sid, const wstring& path)
     RunSyncML(sid, requestSyncML, resultSyncML);
 }
 
-void MdmProvision::RunAdd(const std::wstring& path, const std::wstring& value)
+void MdmProvision::RunAdd(const wstring& path, const wstring& value)
 {
     // empty sid is okay for device-wide CSPs.
     RunAdd(L"", path, value);
 }
 
-std::wstring MdmProvision::RunGetString(const std::wstring& path)
+wstring MdmProvision::RunGetString(const wstring& path)
 {
     // empty sid is okay for device-wide CSPs.
     return RunGetString(L"", path);
 }
 
-unsigned int MdmProvision::RunGetUInt(const std::wstring& path)
+unsigned int MdmProvision::RunGetUInt(const wstring& path)
 {
     // empty sid is okay for device-wide CSPs.
     return RunGetUInt(L"", path);
 }
 
-void MdmProvision::RunSet(const std::wstring& path, const std::wstring& value)
+void MdmProvision::RunSet(const wstring& path, const wstring& value)
 {
     // empty sid is okay for device-wide CSPs.
     RunSet(L"", path, value);
 }
 
-void MdmProvision::RunSet(const std::wstring& path, unsigned int value)
+void MdmProvision::RunSet(const wstring& path, unsigned int value)
 {
     // empty sid is okay for device-wide CSPs.
     RunSet(L"", path, value);
@@ -258,7 +258,7 @@ void MdmProvision::RunExec(const wstring& path)
     RunExec(L"", path);
 }
 
-void MdmProvision::ReportError(const std::wstring& syncMLRequest, const std::wstring& syncMLResponse, int errorCode)
+void MdmProvision::ReportError(const wstring& syncMLRequest, const wstring& syncMLResponse, int errorCode)
 {
     if (s_errorVerbosity)
     {
@@ -274,7 +274,7 @@ void MdmProvision::ReportError(const std::wstring& syncMLRequest, const std::wst
     }
 }
 
-void MdmProvision::ReportError(const std::wstring& syncMLRequest, const std::wstring& syncMLResponse)
+void MdmProvision::ReportError(const wstring& syncMLRequest, const wstring& syncMLResponse)
 {
     TRACE(L"Error:\n\n");
     TRACEP(L"Request:\n", syncMLRequest.c_str());

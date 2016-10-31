@@ -102,6 +102,18 @@
     <ClInclude Include="Utilities\Limpet.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="AzureModels\AzureUpdateModel.h">
+      <Filter>Header Files\AzureModels</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\AzureStorage.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="AzureModels\AzureUpdateManager.h">
+      <Filter>Header Files\AzureModels</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalMachine\UpdateEngine.h">
+      <Filter>Header Files\LocalMachine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -152,10 +164,25 @@
     <ClCompile Include="Utilities\Limpet.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="AzureModels\AzureUpdateModel.cpp">
+      <Filter>Source Files\AzureModels</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\AzureStorage.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="AzureModels\AzureUpdateManager.cpp">
+      <Filter>Source Files\AzureModels</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalMachine\UpdateEngine.cpp">
+      <Filter>Source Files\LocalMachine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="IoTDMAgent.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

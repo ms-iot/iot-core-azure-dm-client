@@ -20,7 +20,7 @@ public:
     void Log(const wchar_t* format, T param)
     {
         std::basic_ostringstream<wchar_t> message;
-        message << format << L' ' << param;
+        message << format << param;
         Log(message.str().c_str());
     }
 
