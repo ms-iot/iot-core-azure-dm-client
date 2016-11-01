@@ -13,8 +13,10 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-
-// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
+using Windows.System;
+using Windows.Storage.Streams;
+using Windows.ApplicationModel;
+using System.Text;
 
 namespace Toaster
 {
@@ -29,6 +31,7 @@ namespace Toaster
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
             this.imageHot.Visibility = Visibility.Collapsed;
+
             // YesNo("Allow Reboot?");
         }
 
@@ -47,6 +50,9 @@ namespace Toaster
             this.slider.IsEnabled = false;
             this.textBlock.Text = string.Format("Toasting at {0}%", this.slider.Value);
             this.imageHot.Visibility = Visibility.Visible;
+
+            SendDataToDM("Start");
+
         }
 
         private void buttonStop_Click(object sender, RoutedEventArgs e)
@@ -57,5 +63,11 @@ namespace Toaster
             this.textBlock.Text = "Ready";
             this.imageHot.Visibility = Visibility.Collapsed;
         }
+
+        private void SendDataToDM(string data)
+        {
+            DMCommunicator.Instance.SendMessage(new Message { Payload = data });
+        }
+
     }
 }

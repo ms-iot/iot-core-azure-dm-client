@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toaster", "Toaster\Toaster.csproj", "{2D2BEC79-D9BD-46F6-B2B6-0F63678C4EBB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "comm-proxy", "comm-proxy\comm-proxy.vcxproj", "{98337556-FCD9-4445-A64E-742362A22C8F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -33,6 +35,16 @@ Global
 		{2D2BEC79-D9BD-46F6-B2B6-0F63678C4EBB}.Release|x86.ActiveCfg = Release|x86
 		{2D2BEC79-D9BD-46F6-B2B6-0F63678C4EBB}.Release|x86.Build.0 = Release|x86
 		{2D2BEC79-D9BD-46F6-B2B6-0F63678C4EBB}.Release|x86.Deploy.0 = Release|x86
+		{98337556-FCD9-4445-A64E-742362A22C8F}.Debug|ARM.ActiveCfg = Debug|Win32
+		{98337556-FCD9-4445-A64E-742362A22C8F}.Debug|x64.ActiveCfg = Debug|x64
+		{98337556-FCD9-4445-A64E-742362A22C8F}.Debug|x64.Build.0 = Debug|x64
+		{98337556-FCD9-4445-A64E-742362A22C8F}.Debug|x86.ActiveCfg = Debug|Win32
+		{98337556-FCD9-4445-A64E-742362A22C8F}.Debug|x86.Build.0 = Debug|Win32
+		{98337556-FCD9-4445-A64E-742362A22C8F}.Release|ARM.ActiveCfg = Release|Win32
+		{98337556-FCD9-4445-A64E-742362A22C8F}.Release|x64.ActiveCfg = Release|x64
+		{98337556-FCD9-4445-A64E-742362A22C8F}.Release|x64.Build.0 = Release|x64
+		{98337556-FCD9-4445-A64E-742362A22C8F}.Release|x86.ActiveCfg = Release|Win32
+		{98337556-FCD9-4445-A64E-742362A22C8F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

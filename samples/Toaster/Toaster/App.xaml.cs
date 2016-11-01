@@ -5,6 +5,8 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.ApplicationModel.AppService;
+using Windows.ApplicationModel.Background;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
@@ -95,6 +97,45 @@ namespace Toaster
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
             deferral.Complete();
+        }
+
+        private AppServiceConnection appServiceConnection;
+        private BackgroundTaskDeferral appServiceDeferral;
+        protected override void OnBackgroundActivated(BackgroundActivatedEventArgs args)
+        {
+            base.OnBackgroundActivated(args);
+            IBackgroundTaskInstance taskInstance = args.TaskInstance;
+            AppServiceTriggerDetails appService = taskInstance.TriggerDetails as AppServiceTriggerDetails;
+            appServiceDeferral = taskInstance.GetDeferral();
+            taskInstance.Canceled += OnAppServicesCanceled;
+            appServiceConnection = appService.AppServiceConnection;
+            appServiceConnection.RequestReceived += OnAppServiceRequestReceived;
+            appServiceConnection.ServiceClosed += AppServiceConnection_ServiceClosed;
+        }
+
+        private async void OnAppServiceRequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
+        {
+            AppServiceDeferral messageDeferral = args.GetDeferral();
+            ValueSet message = args.Request.Message;
+            string text = message["input"] as string;
+
+            DMCommunicator.Instance.MessageReceivedCallback(new Message { Payload = text });
+
+            ValueSet returnMessage = new ValueSet();
+            returnMessage.Add("ack", "OK");
+            await args.Request.SendResponseAsync(returnMessage);
+
+            messageDeferral.Complete();
+        }
+
+        private void OnAppServicesCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
+        {
+            appServiceDeferral.Complete();
+        }
+
+        private void AppServiceConnection_ServiceClosed(AppServiceConnection sender, AppServiceClosedEventArgs args)
+        {
+            appServiceDeferral.Complete();
         }
     }
 }

@@ -13,6 +13,7 @@ namespace AzureStorage
 
 void Download(const wstring& connectionString, const wstring& containerName, const wstring& fileName, const wstring& targetFolder)
 {
+/*
     TRACE(L"AzureStorage::Download()");
     TRACEP(L"Container    : ", containerName.c_str());
     TRACEP(L"File Name    : ", fileName.c_str());
@@ -37,6 +38,7 @@ void Download(const wstring& connectionString, const wstring& containerName, con
 
     outfile.write((char *)&data[0], buffer.size());
     outfile.close();
+*/
 }
 
 }
