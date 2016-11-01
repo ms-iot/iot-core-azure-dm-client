@@ -15,7 +15,7 @@ To build:
     * md cmake-x86
     * cd cmake-x86
     * cmake -A x86 d:\Projects\AzureDM\azure-iot-dt-sdks\c
-    * Open d:\Projects\AzureDM\azure-iot-dt-sdks\cmake\azure_iot_sdks.sln
+    * Open d:\Projects\AzureDM\azure-iot-dt-sdks\cmake-x86\azure_iot_sdks.sln
     * Build:
         * aziotsharedutil
         * iothub_client
