@@ -123,8 +123,9 @@ int AzureProxy::ProcessMethodCall(const string& name, const string& payload, str
             ReportProperties(root);
         }
     }
-    catch (exception&)
+    catch (exception& e)
     {
+        TRACEP("AzureProxy::ProcessMethodCall() failed: ", e.what());
         result = IOTHUB_CLIENT_IOTHUB_METHOD_STATUS_ERROR;
     }
 
