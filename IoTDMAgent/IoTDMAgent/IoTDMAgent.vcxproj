@@ -137,12 +137,12 @@
       <AdditionalLibraryDirectories>
         ..\..\external\limpet\lib\$(Arch);
         ..\$(Configuration);
-        $(AZURE_IOT_DT_SDK)\cmake\umqtt\$(Configuration);
-        $(AZURE_IOT_DT_SDK)\cmake\c-utility\$(Configuration);
-        $(AZURE_IOT_DT_SDK)\cmake\iothub_client\$(Configuration);
-        $(AZURE_IOT_DT_SDK)\cmake\serializer\$(Configuration);
-        $(AZURE_IOT_DT_SDK)\cmake\azure-c-shared-utility\$(Configuration);
-        $(AZURE_IOT_DT_SDK)\cmake\azure-umqtt-c\$(Configuration)</AdditionalLibraryDirectories>
+        $(AZURE_IOT_DT_SDK)\cmake-$(Arch)\umqtt\$(Configuration);
+        $(AZURE_IOT_DT_SDK)\cmake-$(Arch)\c-utility\$(Configuration);
+        $(AZURE_IOT_DT_SDK)\cmake-$(Arch)\iothub_client\$(Configuration);
+        $(AZURE_IOT_DT_SDK)\cmake-$(Arch)\serializer\$(Configuration);
+        $(AZURE_IOT_DT_SDK)\cmake-$(Arch)\azure-c-shared-utility\$(Configuration);
+        $(AZURE_IOT_DT_SDK)\cmake-$(Arch)\azure-umqtt-c\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
 
