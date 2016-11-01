@@ -19,6 +19,7 @@ using namespace std;
 
 const char* ReportMethod = "Report";
 const char* RebootMethod = "Reboot";
+const char* RemoteWipeMethod = "RemoteWipe";
 
 AzureProxy::AzureProxy(const string& connectionString) :
     _iotHubClientHandle(nullptr)
@@ -120,6 +121,13 @@ int AzureProxy::ProcessMethodCall(const string& name, const string& payload, str
             _rebootModel.ExecRebootNow();
             JsonObject^ root = ref new JsonObject();
             root->Insert(ref new String(RebootModel::NodeName().c_str()), _rebootModel.GetReportedProperties());
+            ReportProperties(root);
+        }
+        else if (name == RemoteWipeMethod)
+        {
+            _remoteWipeModel.ExecWipe();
+            JsonObject^ root = ref new JsonObject();
+            root->Insert(ref new String(RemoteWipeModel::NodeName().c_str()), _remoteWipeModel.GetReportedProperties());
             ReportProperties(root);
         }
     }

@@ -114,6 +114,12 @@
     <ClInclude Include="LocalMachine\UpdateEngine.h">
       <Filter>Header Files\LocalMachine</Filter>
     </ClInclude>
+    <ClInclude Include="LocalMachine\CSPs\RemoteWipeCSP.h">
+      <Filter>Header Files\LocalMachine\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="AzureModels\RemoteWipeModel.h">
+      <Filter>Header Files\AzureModels</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -175,6 +181,12 @@
     </ClCompile>
     <ClCompile Include="LocalMachine\UpdateEngine.cpp">
       <Filter>Source Files\LocalMachine</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalMachine\CSPs\RemoteWipeCSP.cpp">
+      <Filter>Source Files\LocalMachine\CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="AzureModels\RemoteWipeModel.cpp">
+      <Filter>Source Files\AzureModels</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -158,6 +158,10 @@ namespace DMDashboard
             {
                 ReportedDailyRebootTime.Text = value;
             }
+            else if (path == "remoteWipe.lastRemoteWipe")
+            {
+                LastRemoteWipeTime.Text = value;
+            }
             else
             {
                 string[] tokens = path.Split('.');
@@ -412,53 +416,53 @@ namespace DMDashboard
         {
             SendDeepRead();
         }
-
-        private void OnExpandSystemInfo(object sender, RoutedEventArgs e)
+        private async void SendRemoteWipe()
         {
-            if (SystemInfoGrid.Visibility == Visibility.Collapsed)
+            CancellationToken cancellationToken = new CancellationToken();
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("RemoteWipe", "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            await Task.Delay(5 * 1000);
+            ReadReportedProperties();
+        }
+
+        private void OnSendRemoteWipe(object sender, RoutedEventArgs e)
+        {
+            SendRemoteWipe();
+        }
+
+        private void ToggleUIElementVisibility(UIElement element)
+        {
+            if (element.Visibility == Visibility.Collapsed)
             {
-                SystemInfoGrid.Visibility = Visibility.Visible;
+                element.Visibility = Visibility.Visible;
             }
             else
             {
-                SystemInfoGrid.Visibility = Visibility.Collapsed;
+                element.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private void OnExpandSystemInfo(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(SystemInfoGrid);
         }
 
         private void OnExpandTime(object sender, RoutedEventArgs e)
         {
-            if (TimeGrid.Visibility == Visibility.Collapsed)
-            {
-                TimeGrid.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                TimeGrid.Visibility = Visibility.Collapsed;
-            }
+            ToggleUIElementVisibility(TimeGrid);
         }
 
         private void OnExpandReboot(object sender, RoutedEventArgs e)
         {
-            if (RebootGrid.Visibility == Visibility.Collapsed)
-            {
-                RebootGrid.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                RebootGrid.Visibility = Visibility.Collapsed;
-            }
+            ToggleUIElementVisibility(RebootGrid);
+        }
+        private void OnExpandRemoteWipe(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(RemoteWipeGrid);
         }
 
         private void OnExpandUpdate(object sender, RoutedEventArgs e)
         {
-            if (UpdateGrid.Visibility == Visibility.Collapsed)
-            {
-                UpdateGrid.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                UpdateGrid.Visibility = Visibility.Collapsed;
-            }
+            ToggleUIElementVisibility(UpdateGrid);
         }
 
         private List<string> GetBlobList(string connectionString, string containerName)

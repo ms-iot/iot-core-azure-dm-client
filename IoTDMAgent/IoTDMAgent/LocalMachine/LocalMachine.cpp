@@ -3,6 +3,7 @@
 #include "LocalMachine.h"
 #include "CSPs\MdmProvision.h"
 #include "CSPs\RebootCSP.h"
+#include "CSPs\RemoteWipeCSP.h"
 #include "CSPs\UpdateCSP.h"
 #include "CSPs\PolicyCSP.h"
 
@@ -10,9 +11,14 @@ using namespace std;
 
 void LocalMachine::Reboot()
 {
-    TRACE("LocalMachine::OnDeviceRebootExecute()");
+    TRACE("LocalMachine::Reboot()");
     RebootCSP::ExecRebootNow();
-    return;
+}
+
+void LocalMachine::Wipe()
+{
+    TRACE("LocalMachine::Wipe()");
+    RemoteWipeCSP::DoWipe();
 }
 
 wstring LocalMachine::GetOSVersionString()

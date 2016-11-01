@@ -3,6 +3,7 @@
 #include <string>
 #include "iothub_client.h"
 #include "AzureModels\RebootModel.h"
+#include "AzureModels\RemoteWipeModel.h"
 #include "AzureModels\TimeModel.h"
 #include "AzureModels\SystemInfoModel.h"
 #include "AzureModels\AzureUpdateManager.h"
@@ -34,6 +35,7 @@ private:
     SystemInfoModel _systemInfoModel;
     TimeModel _timeModel;
     RebootModel _rebootModel;
+    RemoteWipeModel _remoteWipeModel;
     AzureUpdateManager _azureUpdateManager;
 };
 

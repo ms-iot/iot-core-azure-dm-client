@@ -276,6 +276,7 @@
     <ClInclude Include="AzureModels\AzureUpdateManager.h" />
     <ClInclude Include="AzureModels\AzureUpdateModel.h" />
     <ClInclude Include="AzureModels\RebootModel.h" />
+    <ClInclude Include="AzureModels\RemoteWipeModel.h" />
     <ClInclude Include="AzureModels\SystemInfoModel.h" />
     <ClInclude Include="AzureModels\TimeModel.h" />
     <ClInclude Include="AzureProxy.h" />
@@ -285,6 +286,7 @@
     <ClInclude Include="LocalMachine\CSPs\PrivateAPIs\CSPController.h" />
     <ClInclude Include="LocalMachine\CSPs\PrivateAPIs\IProvisioningDPULocal.h" />
     <ClInclude Include="LocalMachine\CSPs\RebootCSP.h" />
+    <ClInclude Include="LocalMachine\CSPs\RemoteWipeCSP.h" />
     <ClInclude Include="LocalMachine\CSPs\UpdateCSP.h" />
     <ClInclude Include="LocalMachine\LocalMachine.h" />
     <ClInclude Include="LocalMachine\UpdateEngine.h" />
@@ -301,6 +303,7 @@
     <ClCompile Include="AzureModels\AzureUpdateManager.cpp" />
     <ClCompile Include="AzureModels\AzureUpdateModel.cpp" />
     <ClCompile Include="AzureModels\RebootModel.cpp" />
+    <ClCompile Include="AzureModels\RemoteWipeModel.cpp" />
     <ClCompile Include="AzureModels\SystemInfoModel.cpp" />
     <ClCompile Include="AzureModels\TimeModel.cpp" />
     <ClCompile Include="AzureProxy.cpp" />
@@ -310,6 +313,7 @@
     <ClCompile Include="LocalMachine\CSPs\PolicyCSP.cpp" />
     <ClCompile Include="LocalMachine\CSPs\PrivateAPIs\CSPController.cpp" />
     <ClCompile Include="LocalMachine\CSPs\RebootCSP.cpp" />
+    <ClCompile Include="LocalMachine\CSPs\RemoteWipeCSP.cpp" />
     <ClCompile Include="LocalMachine\CSPs\UpdateCSP.cpp" />
     <ClCompile Include="LocalMachine\LocalMachine.cpp" />
     <ClCompile Include="LocalMachine\UpdateEngine.cpp" />
