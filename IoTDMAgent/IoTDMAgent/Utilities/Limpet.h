@@ -1,8 +1,6 @@
 #pragma once
 #include <string>
 #include <chrono>
-#include <windows.h>
-#include "LimpetLib.h"
 
 class Limpet
 {
