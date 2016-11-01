@@ -404,7 +404,7 @@ namespace DMDashboard
         {
             CancellationToken cancellationToken = new CancellationToken();
             DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("Report", "{}", new TimeSpan(0, 0, 30), cancellationToken);
-            System.Threading.Thread.Sleep(5 * 1000);
+            await Task.Delay(5 * 1000);
             ReadReportedProperties();
         }
 
