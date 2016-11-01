@@ -118,7 +118,9 @@ int AzureProxy::ProcessMethodCall(const string& name, const string& payload, str
         else if (name == RebootMethod)
         {
             _rebootModel.ExecRebootNow();
-            ReportProperties(_rebootModel.GetReportedProperties());
+            JsonObject^ root = ref new JsonObject();
+            root->Insert(ref new String(RebootModel::NodeName().c_str()), _rebootModel.GetReportedProperties());
+            ReportProperties(root);
         }
     }
     catch (exception&)
