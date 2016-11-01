@@ -117,6 +117,35 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Platform)'=='x64'">
+    <Arch>x64</Arch>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='Win32'">
+    <Arch>x86</Arch>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='ARM'">
+    <Arch>ARM</Arch>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(AZURE_IOT_DT_SDK)\c\c-utility\inc;$(AZURE_IOT_DT_SDK)\c\serializer\inc;$(AZURE_IOT_DT_SDK)\c\iothub_client\inc;..\..\external\limpet\inc</AdditionalIncludeDirectories>
+      <AdditionalUsingDirectories>$(VCInstallDir)VCPackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>
+        ..\..\external\limpet\lib\$(Arch);
+        ..\$(Configuration);
+        $(AZURE_IOT_DT_SDK)\cmake\umqtt\$(Configuration);
+        $(AZURE_IOT_DT_SDK)\cmake\c-utility\$(Configuration);
+        $(AZURE_IOT_DT_SDK)\cmake\iothub_client\$(Configuration);
+        $(AZURE_IOT_DT_SDK)\cmake\serializer\$(Configuration);
+        $(AZURE_IOT_DT_SDK)\cmake\azure-c-shared-utility\$(Configuration);
+        $(AZURE_IOT_DT_SDK)\cmake\azure-umqtt-c\$(Configuration)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -126,14 +155,11 @@
       <SDLCheck>true</SDLCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
       <MinimalRebuild>false</MinimalRebuild>
-      <AdditionalUsingDirectories>$(VCInstallDir)VCPackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <AdditionalIncludeDirectories>..\..\..\azure-iot-dt-sdks\c\azure-c-shared-utility\inc;..\..\..\azure-iot-dt-sdks\c\serializer\inc;..\..\..\azure-iot-dt-sdks\c\iothub_client\inc;..\..\external\limpet\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>XmlLite.lib;user32.lib;kernel32.lib;uuid.lib;Advapi32.lib;LimpetLib.lib;crypt32.lib;ws2_32.lib;winhttp.lib;secur32.lib;iothub_client_mqtt_transport.lib;iothub_client.lib;aziotsharedutil.lib;umqtt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\external\limpet\lib\x86;..\Debug;..\..\..\azure-iot-dt-sdks\cmake\iothub_client\Debug;..\..\..\azure-iot-dt-sdks\cmake\serializer\Debug;..\..\..\azure-iot-dt-sdks\cmake\azure-c-shared-utility\Debug;..\..\..\azure-iot-dt-sdks\cmake\azure-umqtt-c\Debug</AdditionalLibraryDirectories>
       <ShowProgress>NotSet</ShowProgress>
     </Link>
     <PostBuildEvent>
@@ -149,14 +175,11 @@
       <SDLCheck>true</SDLCheck>
       <CompileAsWinRT>true</CompileAsWinRT>
       <MinimalRebuild>false</MinimalRebuild>
-      <AdditionalUsingDirectories>$(VCInstallDir)VCPackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <AdditionalIncludeDirectories>..\..\..\azure-iot-dt-sdks\c\azure-c-shared-utility\inc;..\..\..\azure-iot-dt-sdks\c\serializer\inc;..\..\..\azure-iot-dt-sdks\c\iothub_client\inc;..\..\external\limpet\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>XmlLite.lib;user32.lib;kernel32.lib;uuid.lib;Advapi32.lib;LimpetLib.lib;ws2_32.lib;crypt32.lib;winhttp.lib;secur32.lib;iothub_client_mqtt_transport.lib;iothub_client.lib;aziotsharedutil.lib;umqtt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\ARM\Debug;..\..\..\azure-iot-dt-sdks\cmake\ARM\Debug\;..\..\external\limpet\lib\arm</AdditionalLibraryDirectories>
       <ShowProgress>NotSet</ShowProgress>
     </Link>
     <PostBuildEvent>
@@ -170,16 +193,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalUsingDirectories>$(VCInstallDir)VCPackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <CompileAsWinRT>true</CompileAsWinRT>
       <MinimalRebuild>false</MinimalRebuild>
-      <AdditionalIncludeDirectories>..\..\..\azure-iot-dt-sdks\c\azure-c-shared-utility\inc;..\..\..\azure-iot-dt-sdks\c\serializer\inc;..\..\..\azure-iot-dt-sdks\c\iothub_client\inc;..\..\external\limpet\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>XmlLite.lib;user32.lib;kernel32.lib;uuid.lib;Advapi32.lib;LimpetLib.lib;crypt32.lib;ws2_32.lib;winhttp.lib;secur32.lib;iothub_client_mqtt_transport.lib;iothub_client.lib;aziotsharedutil.lib;umqtt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\external\limpet\lib\x64;..\x64\Debug;..\..\..\azure-iot-dt-sdks\cmake\x64\Debug</AdditionalLibraryDirectories>
       <ShowProgress>NotSet</ShowProgress>
     </Link>
     <PostBuildEvent>
@@ -195,9 +215,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalUsingDirectories>$(VCInstallDir)VCPackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <AdditionalIncludeDirectories>..\..\..\azure-iot-dt-sdks\c\azure-c-shared-utility\inc;..\..\..\azure-iot-dt-sdks\c\serializer\inc;..\..\..\azure-iot-dt-sdks\c\iothub_client\inc;..\..\external\limpet\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -205,7 +223,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>XmlLite.lib;user32.lib;kernel32.lib;uuid.lib;Advapi32.lib;LimpetLib.lib;crypt32.lib;ws2_32.lib;winhttp.lib;secur32.lib;iothub_client_mqtt_transport.lib;iothub_client.lib;aziotsharedutil.lib;umqtt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\external\limpet\lib\x86;..\Release;..\..\..\azure-iot-dt-sdks\cmake\azure-c-shared-utility\Release;..\..\..\azure-iot-dt-sdks\cmake\iothub_client\Release;..\..\..\azure-iot-dt-sdks\cmake\serializer\Release;..\..\..\azure-iot-dt-sdks\cmake\azure-umqtt-c\Release</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y "$(ProjectDir)..\..\external\limpet\dll\x86\*.*" "$(OutDir)"</Command>
@@ -220,9 +237,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalUsingDirectories>$(VCInstallDir)VCPackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <AdditionalIncludeDirectories>..\..\..\azure-iot-dt-sdks\c\azure-c-shared-utility\inc;..\..\..\azure-iot-dt-sdks\c\serializer\inc;..\..\..\azure-iot-dt-sdks\c\iothub_client\inc;..\..\external\limpet\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -230,7 +245,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>XmlLite.lib;user32.lib;kernel32.lib;uuid.lib;Advapi32.lib;LimpetLib.lib;crypt32.lib;ws2_32.lib;winhttp.lib;secur32.lib;iothub_client_mqtt_transport.lib;iothub_client.lib;aziotsharedutil.lib;umqtt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\ARM\Release\;..\..\..\azure-iot-dt-sdks\cmake\ARM\Release;..\..\external\limpet\lib\arm</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y "$(ProjectDir)..\..\external\limpet\dll\arm\*.*" "$(OutDir)"</Command>
@@ -245,9 +259,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalUsingDirectories>$(VCInstallDir)VCPackages;$(WindowsSdkDir_10)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <AdditionalIncludeDirectories>..\..\..\azure-iot-dt-sdks\c\azure-c-shared-utility\inc;..\..\..\azure-iot-dt-sdks\c\serializer\inc;..\..\..\azure-iot-dt-sdks\c\iothub_client\inc;..\..\external\limpet\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -255,7 +267,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>XmlLite.lib;user32.lib;kernel32.lib;uuid.lib;Advapi32.lib;LimpetLib.lib;crypt32.lib;ws2_32.lib;winhttp.lib;secur32.lib;iothub_client_mqtt_transport.lib;iothub_client.lib;aziotsharedutil.lib;umqtt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\external\limpet\lib\x64;..\x64\Release\;..\..\..\azure-iot-dt-sdks\cmake\x64\Release</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y "$(ProjectDir)..\..\external\limpet\dll\x64\*.*" "$(OutDir)"</Command>
@@ -310,18 +321,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Utilities\AzureStorage.cpp">
-      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsWinRT>
-      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</MinimalRebuild>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </PrecompiledHeaderFile>
-      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsWinRT>
-      <MinimalRebuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</MinimalRebuild>
-    </ClCompile>
+    <ClCompile Include="Utilities\AzureStorage.cpp" />
     <ClCompile Include="Utilities\Limpet.cpp" />
     <ClCompile Include="Utilities\Logger.cpp" />
     <ClCompile Include="Utilities\Utils.cpp" />
