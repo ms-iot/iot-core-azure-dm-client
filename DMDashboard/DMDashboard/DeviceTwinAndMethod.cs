@@ -112,32 +112,18 @@ namespace DMDashboard
             deviceMethodReturnValue.Status = "";
             deviceMethodReturnValue.Payload = "";
 
-            dynamic serviceClient = ServiceClient.CreateFromConnectionString(connString);
+            var serviceClient = ServiceClient.CreateFromConnectionString(connString);
             try
             {
-                string assemblyClassName = "CloudToDeviceMethod";
-                Type typeFound = (from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                                  from assemblyType in assembly.GetTypes()
-                                  where assemblyType.Name == assemblyClassName
-                                  select assemblyType).FirstOrDefault();
-                if (typeFound == null)
-                {
-                    throw new Exception(messageDeviceTwinFunctionalityNotFound);
-                }
-                else
-                {
-                    object cloudToDeviceMethod = Activator.CreateInstance(typeFound, deviceMethodName, timeoutInSeconds);
-                    MethodInfo methodInfo_SetPayloadJson = cloudToDeviceMethod.GetType().GetMethod("SetPayloadJson");
-                    object[] parametersArray = new object[] { deviceMethodPayload };
-                    dynamic cloudToDeviceMethodInstance = methodInfo_SetPayloadJson.Invoke(cloudToDeviceMethod, parametersArray);
+                var cloudToDeviceMethod = new CloudToDeviceMethod(deviceMethodName, timeoutInSeconds);
+                cloudToDeviceMethod.SetPayloadJson(deviceMethodPayload);
 
-                    dynamic result = await serviceClient.InvokeDeviceMethodAsync(deviceName, cloudToDeviceMethodInstance, cancellationToken);
+                var result = await serviceClient.InvokeDeviceMethodAsync(deviceName, cloudToDeviceMethod, cancellationToken);
 
-                    deviceMethodReturnValue.Status = result.Status;
-                    deviceMethodReturnValue.Payload = result.GetPayloadAsJson();
+                deviceMethodReturnValue.Status = result.Status;
+                deviceMethodReturnValue.Payload = result.GetPayloadAsJson();
 
-                    isOK = true;
-                }
+                isOK = true;
             }
             catch (Exception ex)
             {
