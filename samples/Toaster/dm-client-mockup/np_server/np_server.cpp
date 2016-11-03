@@ -293,8 +293,6 @@ void np_writer()
 
 int main()
 {
-    g_queue.push("first");
-
     std::thread reader(np_reader);
     std::thread writer(np_writer);
 

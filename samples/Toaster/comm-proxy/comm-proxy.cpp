@@ -87,5 +87,6 @@ int main(Platform::Array<Platform::String^>^ args)
             send_data_to_named_pipe(r_pipe, buffer_to_named_pipe, read_from_stdin);
         }
     }
+    return 0;
 }
 
