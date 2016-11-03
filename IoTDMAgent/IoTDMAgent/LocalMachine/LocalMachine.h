@@ -78,4 +78,7 @@ public:
 
     static std::wstring GetUpdateServiceUrl();
     static void SetUpdateServiceUrl(const std::wstring& serviceUrl);
+
+    // Remote Wipe CSP
+    static void Wipe();
 };

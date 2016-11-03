@@ -1,0 +1,46 @@
+#include "stdafx.h"
+#include "RemoteWipeModel.h"
+#include "..\LocalMachine\CSPs\RemoteWipeCSP.h"
+
+using namespace Windows::Data::Json;
+using namespace Windows::Foundation::Collections;
+using namespace Platform;
+using namespace std;
+
+#define RemoteWipeNodeName L"remoteWipe"
+#define LastRemoteWipeTime L"lastRemoteWipe"
+
+RemoteWipeModel::RemoteWipeModel()
+{
+    TRACE(L"RemoteWipeModel::RemoteWipeModel()");
+}
+
+wstring RemoteWipeModel::NodeName()
+{
+    return RemoteWipeNodeName;
+}
+
+JsonObject^ RemoteWipeModel::GetReportedProperties()
+{
+    TRACE(L"RemoteWipeModel::GetReportedProperties()");
+
+    lock_guard<mutex> lock(_mutex);
+
+    JsonObject^ properties = ref new JsonObject();
+    properties->Insert(LastRemoteWipeTime, JsonValue::CreateStringValue(ref new String(_lastRemoteWipeCmdTime.c_str())));
+
+    string jsonString = Utils::WideToMultibyte(properties->Stringify()->Data());
+    TRACEP("RemoteWipe Model Json = ", jsonString.c_str());
+
+    return properties;
+}
+
+void RemoteWipeModel::ExecWipe()
+{
+    TRACE(L"RemoteWipeModel::ExecWipe()");
+
+    lock_guard<mutex> lock(_mutex);
+
+    RemoteWipeCSP::DoWipe();
+    _lastRemoteWipeCmdTime = Utils::GetCurrentDateTimeString();
+}

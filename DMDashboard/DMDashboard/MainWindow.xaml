@@ -166,7 +166,7 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Last Reboot Command"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Last Reboot Cmd"/>
                     <Button  Grid.Row="1" Grid.Column="1" Margin="3" Content="Reboot Now" Click="OnSendReboot"/>
                     <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="LastRebootTime" />
                 
@@ -182,6 +182,29 @@
                     <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="" x:Name="DesiredDailyRebootTime"/>
                     <TextBox Grid.Row="4" Grid.Column="2" Margin="3" Text="" x:Name="ReportedDailyRebootTime"/>
 
+                </Grid>
+
+                <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
+                <Grid>
+                    <TextBlock Margin="3" Text="RemoteWipe" FontSize="12" FontWeight="Bold" />
+                    <Button HorizontalAlignment="Right" Click="OnExpandRemoteWipe" Width="30" Content="+/-"/>
+                </Grid>
+
+                <Grid x:Name="RemoteWipeGrid" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="200"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Last Remote Wipe Cmd"/>
+                    <Button  Grid.Row="1" Grid.Column="1" Margin="3" Content="Remote Wipe" Click="OnSendRemoteWipe"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="LastRemoteWipeTime" />
                 </Grid>
 
                 <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />

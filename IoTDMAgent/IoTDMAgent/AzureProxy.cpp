@@ -19,6 +19,7 @@ using namespace std;
 
 const char* ReportMethod = "Report";
 const char* RebootMethod = "Reboot";
+const char* RemoteWipeMethod = "RemoteWipe";
 
 AzureProxy::AzureProxy(const string& connectionString) :
     _iotHubClientHandle(nullptr)
@@ -118,11 +119,21 @@ int AzureProxy::ProcessMethodCall(const string& name, const string& payload, str
         else if (name == RebootMethod)
         {
             _rebootModel.ExecRebootNow();
-            ReportProperties(_rebootModel.GetReportedProperties());
+            JsonObject^ root = ref new JsonObject();
+            root->Insert(ref new String(RebootModel::NodeName().c_str()), _rebootModel.GetReportedProperties());
+            ReportProperties(root);
+        }
+        else if (name == RemoteWipeMethod)
+        {
+            _remoteWipeModel.ExecWipe();
+            JsonObject^ root = ref new JsonObject();
+            root->Insert(ref new String(RemoteWipeModel::NodeName().c_str()), _remoteWipeModel.GetReportedProperties());
+            ReportProperties(root);
         }
     }
-    catch (exception&)
+    catch (exception& e)
     {
+        TRACEP("AzureProxy::ProcessMethodCall() failed: ", e.what());
         result = IOTHUB_CLIENT_IOTHUB_METHOD_STATUS_ERROR;
     }
 
