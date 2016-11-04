@@ -25,7 +25,7 @@ void IoTDMService::Run(IoTDMService &service)
 
     if (!StartServiceCtrlDispatcher(serviceTable))
     {
-        throw exception();
+        throw DMExceptionWithErrorCode(GetLastError());
     }
 }
 
@@ -37,7 +37,7 @@ void WINAPI IoTDMService::ServiceMain(DWORD argc, PWSTR *argv)
     s_service->_statusHandle = RegisterServiceCtrlHandler(s_service->_name.c_str(), ServiceCtrlHandler);
     if (s_service->_statusHandle == NULL)
     {
-        throw GetLastError();
+        throw DMExceptionWithErrorCode(GetLastError());
     }
 
     s_service->Start(argc, argv);
@@ -100,12 +100,7 @@ void IoTDMService::Start(DWORD argc, LPWSTR *argv)
         OnStart(argc, argv);
         SetServiceStatus(SERVICE_RUNNING);
     }
-    catch (DWORD errorCode)
-    {
-        WriteErrorLogEntry(L"Service Start", errorCode);
-        SetServiceStatus(SERVICE_STOPPED, errorCode);
-    }
-    catch (...)
+    catch (const DMException&)
     {
         WriteEventLogEntry(L"Service failed to start.", EVENTLOG_ERROR_TYPE);
         SetServiceStatus(SERVICE_STOPPED);
@@ -123,12 +118,7 @@ void IoTDMService::Stop()
         OnStop();
         SetServiceStatus(SERVICE_STOPPED);
     }
-    catch (DWORD errorCode)
-    {
-        WriteErrorLogEntry(L"Service Stop", errorCode);
-        SetServiceStatus(originalState);
-    }
-    catch (...)
+    catch (const DMException&)
     {
         WriteEventLogEntry(L"Service failed to stop.", EVENTLOG_ERROR_TYPE);
         SetServiceStatus(originalState);
@@ -280,7 +270,7 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
 
         TRACE("IoTDMService.ServiceWorkerThread()->Done.");
     }
-    catch(exception& e)
+    catch(const exception& e)
     {
         // If the connection to the cloud fails, there is not much the DM can do.
         WriteEventLogEntry(Utils::MultibyteToWide(e.what()), EVENTLOG_ERROR_TYPE);
