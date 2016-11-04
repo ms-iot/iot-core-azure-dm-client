@@ -46,7 +46,7 @@ This is needed for DM client build.
     * Build.
 
 ### (7) Install and start the serivce
-    * Copy the following binaries to the device under any folder (c:\temp).
+   * Copy the following binaries to the device under any folder (c:\temp).
         * IoTDMAgent.exe
         * concrt140d.dll
         * cpprest140d_2_8.dll
