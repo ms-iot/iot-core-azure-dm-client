@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "TaskQueue.h"
 #include "iothub_client.h"
 #include "AzureModels\RebootModel.h"
 #include "AzureModels\RemoteWipeModel.h"
@@ -11,8 +12,16 @@
 class AzureProxy
 {
 public:
-    AzureProxy(const std::string& connectionString);
+    AzureProxy(std::shared_ptr<TaskQueue> taskQueue, const std::string& connectionString);
     ~AzureProxy();
+
+    void Reboot();
+    void ReportRebootProperties();
+
+    void RemoteWipe();
+    void ReportRemoteWipeProperties();
+
+    void ProcessDesiredProperties(bool completeSet, const std::string& allJson);
 
     void ReportAllProperties();
 
@@ -31,6 +40,8 @@ private:
 
     // Data members
     IOTHUB_CLIENT_HANDLE _iotHubClientHandle;
+
+    std::shared_ptr<TaskQueue> _taskQueue;
 
     SystemInfoModel _systemInfoModel;
     TimeModel _timeModel;

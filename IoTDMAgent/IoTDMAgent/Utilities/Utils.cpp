@@ -295,14 +295,12 @@ wstring ReadRegistryValue(const wstring& subkey, const wstring& propName)
     DWORD dataSize = 0;
     if (ERROR_SUCCESS != RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, NULL, &dataSize))
     {
-        TRACEP(L"Error: Could not read registry value size: ", (subkey + L"\\" + propName).c_str());
         throw DMException("Failed to read registry value size.");
     }
 
     vector<char> data(dataSize);
     if (ERROR_SUCCESS != RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, data.data(), &dataSize))
     {
-        TRACEP(L"Error: Could not read registry value: ", (subkey + L"\\" + propName).c_str());
         throw DMException("Failed to read registry value.");
     }
 

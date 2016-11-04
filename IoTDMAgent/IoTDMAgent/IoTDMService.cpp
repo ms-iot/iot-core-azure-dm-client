@@ -2,10 +2,13 @@
 #include "IoTDMService.h"
 #include "AzureProxy.h"
 #include "LocalMachine\LocalMachine.h"
-#include "Utilities\Limpet.h"
 
-// Device twin update interval in seconds
-#define DEVICE_TWIN_UPDATE_INTERVAL 5
+// Thread will check whether it is time to renew the connection string 
+// every CONNECTION_RENEWAL_CHECK_INTERVAL seconds.
+// Making this longer affects the time the service takes to response
+// to stop requests.
+// ToDo: consider waiting on multiple events.
+#define CONNECTION_RENEWAL_CHECK_INTERVAL 5
 
 using namespace std;
 
@@ -89,6 +92,9 @@ IoTDMService::IoTDMService(const wstring& serviceName) :
     _status.dwServiceSpecificExitCode = 0;
     _status.dwCheckPoint = 0;
     _status.dwWaitHint = 0;
+
+    // Create the tasks queue
+    _taskQueue = make_shared<TaskQueue>();
 }
 
 void IoTDMService::Start(DWORD argc, LPWSTR *argv)
@@ -230,13 +236,6 @@ void IoTDMService::WriteErrorLogEntry(const wstring& function, DWORD errorCode)
     WriteEventLogEntry(message.str(), EVENTLOG_ERROR_TYPE);
 }
 
-string IoTDMService::GetConnectionString(const chrono::system_clock::time_point& expiration)
-{
-    auto connectionString = Limpet::GetInstance().GetSASToken(0, expiration);
-    TRACE(connectionString.c_str());
-    return connectionString;
-}
-
 void IoTDMService::OnStart(DWORD argc, LPWSTR *argv)
 {
     TRACE("IoTDMService.OnStart()");
@@ -251,34 +250,101 @@ void IoTDMService::ServiceWorkerThread(void* context)
     iotDMService->ServiceWorkerThreadHelper();
 }
 
+void IoTDMService::RenewConnectionString(IoTDMService* pThis)
+{
+    TRACE(L"IoTDMService::RenewConnectionString()");
+
+    while (!pThis->_stopSignaled)
+    {
+        TRACE(L"Renewing the connection string...");
+        string connectionString = pThis->_connectionString.Generate();
+
+        shared_ptr<TaskItem> taskItem = make_shared<TaskItem>();
+        taskItem->id = TaskQueue::GetJobId();
+        taskItem->type = TaskType::RenewConnectionStringTask;
+        taskItem->request = connectionString;
+
+        pThis->_taskQueue->Enqueue(taskItem);
+
+        TRACE(L"RenewConnectionString() - is about to expire?");
+        while (!pThis->_connectionString.IsAboutToExpire() && !pThis->_stopSignaled)
+        {
+            ::Sleep(CONNECTION_RENEWAL_CHECK_INTERVAL * 1000);
+        }
+    }
+
+    pThis->_connectionRenewerStopped.set_value();
+    TRACE("Connection string renewal thread exiting.");
+}
+
 void IoTDMService::ServiceWorkerThreadHelper(void)
 {
-    TRACE("IoTDMService.ServiceWorkerThread()");
-
-    using namespace chrono;
-
-    const auto threshold = minutes(15); // 15 minutes
-    const auto expirationTimeSpan = hours(24); // 1 day
-
+    TRACE("IoTDMService::ServiceWorkerThreadHelper()");
     try
     {
-        while (!_stopSignaled)
-        {
-            auto expiration = system_clock::now() + expirationTimeSpan;
-            auto connectionString = GetConnectionString(expiration);
-            AzureProxy cloudProxy(connectionString);
+        // Start a thread to renew the connection string when it is about to expire...
+        thread connectionStringRenew(RenewConnectionString, this);
+        connectionStringRenew.detach();
 
-            while (!_stopSignaled && expiration - system_clock::now() > threshold)
+        // Start the main processing loop...
+        unique_ptr<AzureProxy> cloudProxy;
+        while (_taskQueue->IsActive())
+        {
+            TRACE("Worker thread waiting for a task to be queued...");
+            shared_ptr<TaskItem> taskItem = _taskQueue->Dequeue();
+
+            TRACE("A task has been dequeued...");
+            switch (taskItem->type)
             {
-                TRACE("IoTDMService.ServiceWorkerThread()->Loop");
-                ::Sleep(DEVICE_TWIN_UPDATE_INTERVAL * 1000);
+            case TaskType::RenewConnectionStringTask:
+                TRACE("Processing connection string renewal...");
+                cloudProxy = make_unique<AzureProxy>(_taskQueue, taskItem->request);
+                break;
+            case TaskType::ExitServiceTask:
+                TRACE("Processing ExitService task");
+                _taskQueue->DisableEnqueue();       // Don't accept any more tasks.
+                                                    // - This allows the queue to become 'inactive'
+                                                    //   once all the already-queued items are consumed.
+                                                    //
+                                                    // If communication from the device twin takes place,
+                                                    // calls to enqueue them will fail.
+                                                    // - For methods, an error return code will be returned 
+                                                    //   to Azure IoTHub
+                                                    // - For property changes, failures will be ignored.
+                                                    //   This is okay because the next time the service runs,
+                                                    //   it will get the same properties again.
+                                                    //
+                                                    // Note also that we need to leave AzureProxy connected
+                                                    // because other already-queued items might require
+                                                    // sending data to the Azure IoTHub.
+                                                    // Only when we exit this loop, we can destruct AzureProxy.
+
+                taskItem->response.set_value("");   // Signal the completion of the above steps.
+                break;
+            case TaskType::RebootTask:
+                cloudProxy->Reboot();
+                break;
+            case TaskType::RemoteWipeTask:
+                cloudProxy->RemoteWipe();
+                break;
+            case TaskType::ReportPropertiesTask:
+                cloudProxy->ReportAllProperties();
+                break;
+            case TaskType::ProcessDesiredPropertiesTask:
+                {
+                    shared_ptr<DesiredPropertiesTaskItem> desiredPropertiesItem = dynamic_pointer_cast<DesiredPropertiesTaskItem>(taskItem);
+                    assert(desiredPropertiesItem);
+                    cloudProxy->ProcessDesiredProperties(desiredPropertiesItem->completeSet, desiredPropertiesItem->request);
+                }
+                break;
+            case TaskType::UnknownTask:
+                TRACE(L"Error: unexpected task item dequeued.");
+                break;
             }
 
-            // TODO: Before we destroy the existing iot client, we need to get all the un-send messages 
+            // TODO: Before we destroy the existing iot client, we need to get all the un-sent messages 
             // and re-queue them with the new client.
         }
-
-        TRACE("IoTDMService.ServiceWorkerThread()->Done.");
     }
     catch(exception& e)
     {
@@ -290,15 +356,33 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
         //       - Also, we need a way to get errors from the Azure thread...
     }
 
-    _stoppedPromise.set_value();
+    _workerStopped.set_value();
+    TRACE("Worker thread exiting.");
 }
 
 void IoTDMService::OnStop()
 {
     TRACE("IoTDMService.OnStop()");
 
+    TRACE("IoTDMService.OnStop() - signaling worker thread to exit...");
+    std::shared_ptr<TaskItem> taskItem = std::make_shared<TaskItem>();
+    taskItem->id = TaskQueue::GetJobId();
+    taskItem->type = TaskType::ExitServiceTask;
+    _taskQueue->Enqueue(taskItem);
+
+    TRACE("IoTDMService.OnStop() - waiting for azure proxy to shutdown...");
+    taskItem->response.get_future().wait();
+
+    TRACE("IoTDMService.OnStop() - signaling connection string renewing string...");
     _stopSignaled = true;
-    _stoppedPromise.get_future().wait();
+
+    TRACE("IoTDMService.OnStop() - waiting for worker thread to exit...");
+    _workerStopped.get_future().wait();
+
+    TRACE("IoTDMService.OnStop() - waiting for connection string renewing thread to exit...");
+    _connectionRenewerStopped.get_future().wait();
+
+    TRACE("IoTDMService.OnStop() - all exited.");
 }
 
 void IoTDMService::Install(

@@ -16,7 +16,5 @@ public:
 
 private:
 
-    std::mutex _mutex;
-
     std::wstring _lastRemoteWipeCmdTime;    // Reported
 };

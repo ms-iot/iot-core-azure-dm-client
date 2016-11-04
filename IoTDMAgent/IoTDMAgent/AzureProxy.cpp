@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
 #include "AzureProxy.h"
-#include "serializer.h"
 #include "iothub_client.h"
 #include "iothubtransportmqtt.h"
 #include "azure_c_shared_utility/platform.h"
@@ -21,7 +20,8 @@ const char* ReportMethod = "Report";
 const char* RebootMethod = "Reboot";
 const char* RemoteWipeMethod = "RemoteWipe";
 
-AzureProxy::AzureProxy(const string& connectionString) :
+AzureProxy::AzureProxy(std::shared_ptr<TaskQueue> taskQueue, const string& connectionString) :
+    _taskQueue(taskQueue),
     _iotHubClientHandle(nullptr)
 {
     TRACE("AzureProxy::ctor()");
@@ -73,6 +73,8 @@ AzureProxy::~AzureProxy()
 
 int AzureProxy::OnMethodCalled(const char* method_name, const unsigned char* payload, size_t size, unsigned char** response, size_t* resp_size, void* userContextCallback)
 {
+    TRACE("AzureProxy::OnMethodCalled()");
+
     AzureProxy* pThis = static_cast<AzureProxy*>(userContextCallback);
     assert(pThis);
 
@@ -106,29 +108,75 @@ int AzureProxy::OnMethodCalled(const char* method_name, const unsigned char* pay
     return retCode;
 }
 
+void AzureProxy::ReportRebootProperties()
+{
+    TRACE("AzureProxy::ReportRebootProperties()");
+
+    JsonObject^ root = ref new JsonObject();
+    root->Insert(ref new String(RebootModel::NodeName().c_str()), _rebootModel.GetReportedProperties());
+    ReportProperties(root);
+}
+
+void AzureProxy::Reboot()
+{
+    TRACE("AzureProxy::Reboot()");
+
+    _rebootModel.ExecRebootNow();
+    ReportRebootProperties();
+}
+
+void AzureProxy::ReportRemoteWipeProperties()
+{
+    TRACE("AzureProxy::ReportRemoteWipeProperties()");
+
+    JsonObject^ root = ref new JsonObject();
+    root->Insert(ref new String(RemoteWipeModel::NodeName().c_str()), _remoteWipeModel.GetReportedProperties());
+    ReportProperties(root);
+}
+
+void AzureProxy::RemoteWipe()
+{
+    TRACE("AzureProxy::RemoteWipe()");
+
+    _remoteWipeModel.ExecWipe();
+    ReportRemoteWipeProperties();
+}
+
 int AzureProxy::ProcessMethodCall(const string& name, const string& payload, string& response)
 {
+    TRACE("AzureProxy::ProcessMethodCall()");
+
     int result = IOTHUB_CLIENT_IOTHUB_METHOD_STATUS_SUCCESS;
 
     try
     {
+        shared_ptr<TaskItem> taskItem = make_shared<TaskItem>();
+        taskItem->id = TaskQueue::GetJobId();
+
         if (name == ReportMethod)
         {
-            ReportAllProperties();
+            taskItem->type = TaskType::ReportPropertiesTask;
+            taskItem->waitForResponse = false;
         }
         else if (name == RebootMethod)
         {
-            _rebootModel.ExecRebootNow();
-            JsonObject^ root = ref new JsonObject();
-            root->Insert(ref new String(RebootModel::NodeName().c_str()), _rebootModel.GetReportedProperties());
-            ReportProperties(root);
+            taskItem->type = TaskType::RebootTask;
+            taskItem->waitForResponse = false;
         }
         else if (name == RemoteWipeMethod)
         {
-            _remoteWipeModel.ExecWipe();
-            JsonObject^ root = ref new JsonObject();
-            root->Insert(ref new String(RemoteWipeModel::NodeName().c_str()), _remoteWipeModel.GetReportedProperties());
-            ReportProperties(root);
+            taskItem->type = TaskType::RemoteWipeTask;
+            taskItem->waitForResponse = false;
+        }
+
+        // Note that Enqueue() may throw if enqueuing is disabled.
+        _taskQueue->Enqueue(taskItem);
+
+        if (taskItem->waitForResponse)
+        {
+            future<string> future = taskItem->response.get_future();
+            future.wait();
+            response = future.get();
         }
     }
     catch (exception& e)
@@ -176,6 +224,13 @@ void AzureProxy::OnReportedPropertiesSent(int status_code, void* userContextCall
     // ToDo: Log a message to the event log in case of failure code.
     TRACEP("IoTHub: reported properties delivered with status_code :", status_code);
 }
+
+// windows.h (included through <future>) defines GetObject to GetObjectW.
+// This conflicts with the JsonValue::GetObject call below.
+#ifdef GetObject
+#pragma push_macro("GetObject")
+#undef GetObject
+#endif
 
 IJsonValue^ AzureProxy::GetDesiredPropertiesNode(DEVICE_TWIN_UPDATE_STATE update_state, const string& allJson)
 {
@@ -229,6 +284,12 @@ IJsonValue^ AzureProxy::GetDesiredPropertiesNode(DEVICE_TWIN_UPDATE_STATE update
     return desiredPropertiesNode;
 }
 
+void AzureProxy::ProcessDesiredProperties(bool completeSet, const std::string& allJson)
+{
+    IJsonValue^ desiredValue = GetDesiredPropertiesNode(completeSet ? DEVICE_TWIN_UPDATE_COMPLETE : DEVICE_TWIN_UPDATE_PARTIAL, allJson);
+    ProcessDesiredProperties(desiredValue);
+}
+
 void AzureProxy::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payload, size_t bufferSize, void* userContextCallback)
 {
     TRACE("AzureProxy::OnDesiredProperties()");
@@ -242,8 +303,14 @@ void AzureProxy::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, cons
     TRACEP("Desired Properties String: ", copyOfPayload.c_str());
     try
     {
-        IJsonValue^ desiredValue = GetDesiredPropertiesNode(update_state, copyOfPayload);
-        pThis->ProcessDesiredProperties(desiredValue);
+        shared_ptr<DesiredPropertiesTaskItem> taskItem = make_shared<DesiredPropertiesTaskItem>();
+        taskItem->id = TaskQueue::GetJobId();
+        taskItem->type = TaskType::ProcessDesiredPropertiesTask;
+        taskItem->request = copyOfPayload;
+        taskItem->completeSet = update_state == DEVICE_TWIN_UPDATE_COMPLETE;
+
+        // Note that Enqueue() may throw if enqueuing is disabled.
+        pThis->_taskQueue->Enqueue(taskItem);
     }
     catch (exception&)
     {
@@ -288,6 +355,8 @@ void AzureProxy::ProcessDesiredProperties(IJsonValue^ desiredPropertyValue)
     }
 }
 
+#pragma pop_macro("GetObject")
+
 void AzureProxy::ReportProperties(JsonObject^ root) const
 {
     TRACE(L"AzureProxy::ReportProperties()");
@@ -304,7 +373,7 @@ void AzureProxy::ReportProperties(JsonObject^ root) const
 
 void AzureProxy::ReportAllProperties()
 {
-    TRACE(L"AzureProxy::ReportMonitoredProperties()");
+    TRACE(L"AzureProxy::ReportAllProperties()");
 
     JsonObject^ root = ref new JsonObject();
     {

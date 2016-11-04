@@ -24,8 +24,6 @@ JsonObject^ RemoteWipeModel::GetReportedProperties()
 {
     TRACE(L"RemoteWipeModel::GetReportedProperties()");
 
-    lock_guard<mutex> lock(_mutex);
-
     JsonObject^ properties = ref new JsonObject();
     properties->Insert(LastRemoteWipeTime, JsonValue::CreateStringValue(ref new String(_lastRemoteWipeCmdTime.c_str())));
 
@@ -38,8 +36,6 @@ JsonObject^ RemoteWipeModel::GetReportedProperties()
 void RemoteWipeModel::ExecWipe()
 {
     TRACE(L"RemoteWipeModel::ExecWipe()");
-
-    lock_guard<mutex> lock(_mutex);
 
     RemoteWipeCSP::DoWipe();
     _lastRemoteWipeCmdTime = Utils::GetCurrentDateTimeString();

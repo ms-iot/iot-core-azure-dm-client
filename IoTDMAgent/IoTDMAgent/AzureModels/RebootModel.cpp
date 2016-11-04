@@ -94,8 +94,6 @@ JsonObject^ RebootModel::GetReportedProperties()
 {
     TRACE(L"RebootModel::GetReportedProperties()");
 
-    lock_guard<mutex> lock(_mutex);
-
     JsonObject^ rebootProperties = ref new JsonObject();
     rebootProperties->Insert(LastRebootTime, JsonValue::CreateStringValue(ref new String(_lastRebootCmdTime.c_str())));
     rebootProperties->Insert(LastRestartTime, JsonValue::CreateStringValue(ref new String(_lastRestartTime.c_str())));
@@ -111,8 +109,6 @@ JsonObject^ RebootModel::GetReportedProperties()
 void RebootModel::ExecRebootNow()
 {
     TRACE(L"RebootModel::ExecRebootNow()");
-
-    lock_guard<mutex> lock(_mutex);
 
     _lastRebootCmdTime = Utils::GetCurrentDateTimeString();
     Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryLastRebootCmd, _lastRebootCmdTime);
