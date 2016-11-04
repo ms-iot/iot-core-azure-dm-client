@@ -1,3 +1,4 @@
+
 # dm-proto-private
 
 To build:
@@ -43,3 +44,14 @@ This is needed for DM client build.
 
 ### (6) Open d:\Projects\AzureDM\dm-proto-private\IoTDMAgent\IoTDMAgent.sln
     * Build.
+
+### (7) Install and start the serivce
+    * Copy the following binaries to the device under any folder (c:\temp).
+        IoTDMAgent.exe
+        concrt140d.dll
+        cpprest140d_2_8.dll
+        LimpetLib.dll
+        msvcp140d.dll
+        wastorage.dll
+   * c:\temp\IoTDMAgent.exe -install
+   * net start IoTDMAgent
