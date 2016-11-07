@@ -283,6 +283,7 @@ void WriteRegistryValue(const wstring& subkey, const wstring& propName, const ws
 
     status = RegSetValueEx(hKey, propName.c_str(), 0, REG_SZ, reinterpret_cast<const BYTE*>(propValue.c_str()), (propValue.size() + 1) * sizeof(propValue[0]));
     if (status != ERROR_SUCCESS) {
+        RegCloseKey(hKey);
         throw DMExceptionWithErrorCode(status);
     }
 
