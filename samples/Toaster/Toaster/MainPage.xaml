@@ -10,7 +10,7 @@
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Image x:Name="imageToaster" HorizontalAlignment="Left" Margin="10,10,0,0" Source="Assets\toaster.png" VerticalAlignment="Top" Width="400"/>
         <Image x:Name="imageHot" HorizontalAlignment="Left" Margin="250,200,0,0" Source="Assets\hot.png" VerticalAlignment="Top" Width="32"/>
-        <StackPanel HorizontalAlignment="Left" Margin="80,200,0,0" VerticalAlignment="Top" Height="100" Width="120">
+        <StackPanel HorizontalAlignment="Left" Margin="80,200,0,0" VerticalAlignment="Top" Height="120" Width="120">
             <Button x:Name="buttonStart" Content="Start Toasting" HorizontalAlignment="Left" VerticalAlignment="Top" Click="buttonStart_Click"/>
             <TextBlock HorizontalAlignment="Left" Text="Status:" VerticalAlignment="Top" Width="Auto"/>
             <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Text="Ready" VerticalAlignment="Top" Width="Auto" FontStyle="Italic"/>

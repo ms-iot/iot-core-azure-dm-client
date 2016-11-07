@@ -89,7 +89,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <AdditionalUsingDirectories>C:\dev14\VC\lib\store\references;c:\Program Files (x86)\Windows Kits\10\UnionMetadata</AdditionalUsingDirectories>
+      <AdditionalUsingDirectories>$(VCInstallDir)\lib\store\references;$(WindowsSdkDir)\UnionMetadata</AdditionalUsingDirectories>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
@@ -105,7 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <AdditionalUsingDirectories>C:\dev14\VC\lib\store\references;c:\Program Files (x86)\Windows Kits\10\UnionMetadata</AdditionalUsingDirectories>
+      <AdditionalUsingDirectories>$(VCInstallDir)\lib\store\references;$(WindowsSdkDir)\UnionMetadata</AdditionalUsingDirectories>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
@@ -122,7 +122,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <AdditionalUsingDirectories>C:\dev14\VC\lib\store\references;c:\Program Files (x86)\Windows Kits\10\UnionMetadata</AdditionalUsingDirectories>
+      <AdditionalUsingDirectories>$(VCInstallDir)\lib\store\references;$(WindowsSdkDir)\UnionMetadata</AdditionalUsingDirectories>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
@@ -141,7 +141,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <AdditionalUsingDirectories>C:\dev14\VC\lib\store\references;c:\Program Files (x86)\Windows Kits\10\UnionMetadata</AdditionalUsingDirectories>
+      <AdditionalUsingDirectories>$(VCInstallDir)\lib\store\references;$(WindowsSdkDir)\UnionMetadata</AdditionalUsingDirectories>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>

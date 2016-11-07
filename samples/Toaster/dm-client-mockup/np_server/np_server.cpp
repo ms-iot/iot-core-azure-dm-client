@@ -1,4 +1,7 @@
 #include "stdafx.h"
+#include <cpprest\json.h>
+
+using namespace web;
 
 class security_attributes
 {
@@ -104,6 +107,46 @@ void init_security_attributes2(LPSECURITY_ATTRIBUTES lpSecurityAttributes)
 const wchar_t* pipename_r = L"\\\\.\\pipe\\dm-client-pipe-r";
 const wchar_t* pipename_w = L"\\\\.\\pipe\\dm-client-pipe-w";
 
+void HandleResponse(const char* input, char* output, size_t output_size)
+{
+    try
+    {
+        std::stringstream ss;
+        ss << input;
+
+        json::value v = json::value::parse(ss);
+
+        auto& obj = v.as_object();
+
+        auto& command = obj[L"Command"];
+        auto& power = obj[L"Power"];
+        int power_num = power.as_integer();
+
+        if (command.as_string() == L"Start")
+        {
+            json::value response;
+            response[L"Status"] = json::value::string(L"Toasting");
+            response[L"Power"] = json::value::number(power_num);
+
+            std::stringstream stdStream;
+            response.serialize(stdStream);
+            std::string stdStr;
+            stdStream >> stdStr;
+
+            sprintf_s(output, output_size, stdStr.c_str());
+        }
+        else
+        {
+            sprintf_s(output, output_size, "Error: cannot find value 'Start'");
+        }
+    }
+    catch (const json::json_exception&)
+    {
+        // Not a valid JSON, respond accordingly
+        sprintf_s(output, output_size, "Error: cannot parse string as JSON");
+    }
+}
+
 class MessageQueue
 {
     std::queue<std::string> _messages;
@@ -166,7 +209,6 @@ void np_reader()
                     while (true)
                     {
                         printf("Reader: reading data...\n");
-                        //while (ReadFile(hPipe, buffer, sizeof(buffer) - 1, &dwRead, NULL) != FALSE)
                         BOOL readResult = ReadFile(hPipe, buffer, sizeof(buffer) - 1, &dwRead, NULL);
                         if (readResult && dwRead > 0)
                         {
@@ -175,11 +217,6 @@ void np_reader()
 
                             /* do something with data in buffer */
                             printf("Reader: received '%s'\n", buffer);
-
-                            for (int i = 0; i < (int)dwRead; ++i)
-                            {
-                                buffer[i] = toupper(buffer[i]);
-                            }
 
                             g_queue.push(std::string(buffer));
                         }
@@ -244,31 +281,42 @@ void np_writer()
             {
                 printf("Writer: client connected\n");
                 std::thread worker([hPipe] {
+                    char buffer[BUFSIZE];
                     while (true)
                     {
                         auto msg = g_queue.pop();
-                        printf("Writer: got data to send\n");
+
+                        HandleResponse(msg.c_str(), buffer, BUFSIZE);
 
                         DWORD dwWritten;
-                        DWORD numberOfBytesToWrite = min(msg.length(), BUFSIZE);
+                        DWORD numberOfBytesToWrite = min(strlen(buffer), BUFSIZE);
 
                         BOOL writeResult = WriteFile(hPipe,
-                            msg.c_str(),
+                            buffer,
                             numberOfBytesToWrite,
                             &dwWritten,
                             NULL);
 
                         if (writeResult && dwWritten > 0) {
-                            printf("Writer: message '%s' written\n", msg.c_str());
+                            printf("Writer: message '%s' written\n", buffer);
                         }
                         else {
-                            if (GetLastError() == ERROR_BROKEN_PIPE)
+                            DWORD lastError = GetLastError();
+                            switch (lastError)
+                            {
+                            case ERROR_BROKEN_PIPE:
+                            case ERROR_NO_DATA:
+                            case ERROR_PIPE_NOT_CONNECTED:
                             {
                                 printf("Writer: client disconnected\n");
+                                // We've got the msg but the client that wanteted to get it has disconnected. 
+                                // Put it back into the queue so the next client can get it
+                                g_queue.push(msg);
+                                break;
                             }
-                            else
-                            {
+                            default:
                                 printf("Writer: WriteFile Error %d\n", GetLastError());
+                                break;
                             }
                             break;
                         }

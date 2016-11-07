@@ -131,7 +131,7 @@ int AzureProxy::ProcessMethodCall(const string& name, const string& payload, str
             ReportProperties(root);
         }
     }
-    catch (exception& e)
+    catch (const exception& e)
     {
         TRACEP("AzureProxy::ProcessMethodCall() failed: ", e.what());
         result = IOTHUB_CLIENT_IOTHUB_METHOD_STATUS_ERROR;
@@ -245,7 +245,7 @@ void AzureProxy::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, cons
         IJsonValue^ desiredValue = GetDesiredPropertiesNode(update_state, copyOfPayload);
         pThis->ProcessDesiredProperties(desiredValue);
     }
-    catch (exception&)
+    catch (const exception&)
     {
         // We just log a message. Let the service continue running.
         TRACE("Error: Failed to process desired properties update.");

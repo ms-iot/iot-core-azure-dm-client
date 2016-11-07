@@ -43,7 +43,7 @@ void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, w
     if (FAILED(hr))
     {
         TRACEP(L"Error: MdmProvisionSyncBodyWithAttributes failed. Error code = ", hr);
-        throw exception("MdmProvisionSyncBodyWithAttributes");
+        throw DMException("MdmProvisionSyncBodyWithAttributes");
     }
 
     if (output)
@@ -64,7 +64,7 @@ void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, w
     if (returnCode >= 300)
     {
         ReportError(requestSyncML, wrappedResult, returnCode);
-        throw exception();
+        throw DMExceptionWithErrorCode(returnCode);
     }
 }
 
