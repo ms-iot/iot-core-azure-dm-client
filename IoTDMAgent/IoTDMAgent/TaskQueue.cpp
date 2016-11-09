@@ -5,7 +5,6 @@
 using namespace std;
 
 TaskQueue::TaskQueue() :
-    _notEmpty(false),
     _allowEnqueue(true)
 {
 }
@@ -16,19 +15,19 @@ void TaskQueue::DisableEnqueue()
     _allowEnqueue = false;
 }
 
+void TaskQueue::EnableEnqueue()
+{
+    unique_lock<mutex> l(_mutex);
+    _allowEnqueue = true;
+}
+
 bool TaskQueue::IsActive()
 {
     unique_lock<mutex> l(_mutex);
-    return _notEmpty || _allowEnqueue;
+    return !_queue.empty() || _allowEnqueue;
 }
 
-unsigned int TaskQueue::GetJobId()
-{
-    static unsigned long id = 0;
-    return InterlockedIncrement(&id);
-}
-
-void TaskQueue::Enqueue(std::shared_ptr<TaskItem> taskItem)
+void TaskQueue::Enqueue(packaged_task<string(void)>& task)
 {
     TRACE(L"TaskQueue::Enqueue()");
     unique_lock<mutex> l(_mutex);
@@ -40,31 +39,24 @@ void TaskQueue::Enqueue(std::shared_ptr<TaskItem> taskItem)
         // - If it is a desired property, then it will be sent again the next time the service restarts.
         // - If it is a method, the front-end should have a mechanism to re-submit the request if the
         //   current state does not match the expected state.
-        throw DMException("Warning: an attempt was made to enqueue an item after shutdown started.");
+        throw DMException("Warning: cannot enqueue new tasks.");
     }
 
-    _queue.push(taskItem);
-    _notEmpty = true;
+    _queue.push(move(task));
 
     l.unlock();
     _cv.notify_one();
 }
 
-std::shared_ptr<TaskItem> TaskQueue::Dequeue()
+std::packaged_task<std::string(void)> TaskQueue::Dequeue()
 {
     TRACE(L"TaskQueue::Dequeue()");
 
     unique_lock<mutex> l(_mutex);
-    _cv.wait(l, [&] { return _notEmpty; });
+    _cv.wait(l, [&] { return !_queue.empty(); });
 
-    std::shared_ptr<TaskItem> taskItem = _queue.front();
+    packaged_task<string(void)> taskItem = move(_queue.front());
     _queue.pop();
 
-    if (_queue.size() == 0)
-    {
-        _notEmpty = false;
-    }
-
-    l.unlock();
     return taskItem;
 }

@@ -12,20 +12,20 @@
 class AzureProxy
 {
 public:
-    AzureProxy(std::shared_ptr<TaskQueue> taskQueue, const std::string& connectionString);
+    AzureProxy(TaskQueue* taskQueue);
     ~AzureProxy();
 
-    void Reboot();
-    void ReportRebootProperties();
+    void Connect(const std::string& connectionString);
+    void Disconnect();
 
-    void RemoteWipe();
+    void ReportRebootProperties();
     void ReportRemoteWipeProperties();
+    void ReportAllProperties();
 
     void ProcessDesiredProperties(bool completeSet, const std::string& allJson);
 
-    void ReportAllProperties();
-
 private:
+
     static void OnReportedPropertiesSent(int status_code, void* userContextCallback);
     static void OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payload, size_t size, void* userContextCallback);
     static IOTHUBMESSAGE_DISPOSITION_RESULT OnMessageReceived(IOTHUB_MESSAGE_HANDLE message, void* userContextCallback);
@@ -34,6 +34,9 @@ private:
 
     void ProcessMessage(const std::string& command);
     int ProcessMethodCall(const std::string& name, const std::string& payload, std::string& response);
+    void ProcessReportAllCall(std::string& response);
+    void ProcessRebootCall(std::string& response);
+    void ProcessRemoteWipe(std::string& response);
     void ProcessDesiredProperties(Windows::Data::Json::IJsonValue^ value);
 
     void ReportProperties(Windows::Data::Json::JsonObject^ root) const;
@@ -41,7 +44,7 @@ private:
     // Data members
     IOTHUB_CLIENT_HANDLE _iotHubClientHandle;
 
-    std::shared_ptr<TaskQueue> _taskQueue;
+    TaskQueue* _taskQueue;
 
     SystemInfoModel _systemInfoModel;
     TimeModel _timeModel;

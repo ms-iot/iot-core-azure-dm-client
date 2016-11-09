@@ -4,6 +4,7 @@
 #include <future>
 #include "TaskQueue.h"
 #include "Utilities\Limpet.h"
+#include "AzureProxy.h"
 
 class IoTDMService
 {
@@ -85,10 +86,16 @@ private:
 
     ConnectionString _connectionString;
 
-    std::shared_ptr<TaskQueue> _taskQueue;
+    // threads
+    std::thread _workerThread;
+    std::thread _connectionRenewerThread;
+
+    TaskQueue _taskQueue;
 
     // Synchronization between worker thread and main thread for exiting...
     std::atomic<bool> _stopSignaled;
-    std::promise<void> _workerStopped;              // for the main worker thread (which dequeue tasks off the queue).
-    std::promise<void> _connectionRenewerStopped;   // for the thread responsible for renewing the connection string
+    bool _renewConnectionString;
+
+    // Azure proxy
+    AzureProxy _cloudProxy;
 };
