@@ -33,25 +33,19 @@ void AzureProxy::Connect(const std::string& connectionString)
 
     Disconnect();
 
-    TRACE("1");
-
     // Prepare the platform
     if (platform_init() != 0)
     {
         throw DMException("Failed to initialize the platform.");
     }
 
-    TRACE("2");
-    TRACE(connectionString.c_str());
     // Create an IoTHub client
     _iotHubClientHandle = IoTHubClient_CreateFromConnectionString(connectionString.c_str(), MQTT_Protocol);
-    TRACE("2.1");
     if (_iotHubClientHandle == NULL)
     {
         throw DMException("Failure creating IoTHubClient handle.");
     }
 
-    TRACE("3");
     // Turn on Log 
     bool trace = false;
     IoTHubClient_SetOption(_iotHubClientHandle, "logtrace", &trace);
@@ -62,20 +56,16 @@ void AzureProxy::Connect(const std::string& connectionString)
         throw DMException("Unable to set device twin callback.");
     }
 
-    TRACE("4");
-
     // Set the message properties callback
     if (IoTHubClient_SetMessageCallback(_iotHubClientHandle, OnMessageReceived, this) != IOTHUB_CLIENT_OK)
     {
         throw DMException("Unable to set message callback.");
     }
 
-    TRACE("5");
     if (IoTHubClient_SetDeviceMethodCallback(_iotHubClientHandle, OnMethodCalled, this) != IOTHUB_CLIENT_OK)
     {
         throw DMException("Unable to set method callback.");
     }
-    TRACE("6");
 }
 
 void AzureProxy::Disconnect()
@@ -289,13 +279,6 @@ void AzureProxy::OnReportedPropertiesSent(int status_code, void* userContextCall
     TRACEP("IoTHub: reported properties delivered with status_code :", status_code);
 }
 
-// windows.h (included through <future>) defines GetObject to GetObjectW.
-// This conflicts with the JsonValue::GetObject call below.
-#ifdef GetObject
-#pragma push_macro("GetObject")
-#undef GetObject
-#endif
-
 IJsonValue^ AzureProxy::GetDesiredPropertiesNode(DEVICE_TWIN_UPDATE_STATE update_state, const string& allJson)
 {
     TRACE(L"AzureProxy::GetDesiredPropertiesNode()");
@@ -421,8 +404,6 @@ void AzureProxy::ProcessDesiredProperties(IJsonValue^ desiredPropertyValue)
         break;
     }
 }
-
- #pragma pop_macro("GetObject")
 
 void AzureProxy::ReportProperties(JsonObject^ root) const
 {
