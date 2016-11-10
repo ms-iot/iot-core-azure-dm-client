@@ -117,7 +117,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Platform)'=='x64'">
     <Arch>x64</Arch>
   </PropertyGroup>
@@ -127,7 +126,6 @@
   <PropertyGroup Condition="'$(Platform)'=='ARM'">
     <Arch>ARM</Arch>
   </PropertyGroup>
-
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(AZURE_IOT_DT_SDK)\c\c-utility\inc;$(AZURE_IOT_DT_SDK)\c\serializer\inc;$(AZURE_IOT_DT_SDK)\c\iothub_client\inc;..\..\external\limpet\inc</AdditionalIncludeDirectories>
@@ -145,7 +143,6 @@
         $(AZURE_IOT_DT_SDK)\cmake-$(Arch)\azure-umqtt-c\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
-
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -293,6 +290,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TaskQueue.h" />
     <ClInclude Include="Utilities\AzureStorage.h" />
     <ClInclude Include="Utilities\DMException.h" />
     <ClInclude Include="Utilities\Limpet.h" />
@@ -325,6 +323,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TaskQueue.cpp" />
     <ClCompile Include="Utilities\AzureStorage.cpp" />
     <ClCompile Include="Utilities\Limpet.cpp" />
     <ClCompile Include="Utilities\Logger.cpp" />

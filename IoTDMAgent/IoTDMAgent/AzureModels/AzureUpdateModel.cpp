@@ -141,23 +141,17 @@ bool AzureUpdateModel::VerifyCabsInstalled(const vector<CabData>& cabsData, cons
 
 bool AzureUpdateModel::IsDownloaded() const
 {
-    lock_guard<mutex> lock(_mutex);
-
     return _manifestDownloaded && _cabsDownloaded;
 }
 
 bool AzureUpdateModel::IsInstalled() const
 {
-    lock_guard<mutex> lock(_mutex);
-
     return _cabsInstalled;
 }
 
 void AzureUpdateModel::Download(const wstring& connectionString)
 {
     TRACE(L"AzureUpdateModel::Download()");
-
-    lock_guard<mutex> lock(_mutex);
 
     if (!_manifestDownloaded)
     {
@@ -180,8 +174,6 @@ void AzureUpdateModel::Install()
 {
     TRACE(L"AzureUpdateModel::Install()");
 
-    lock_guard<mutex> lock(_mutex);
-
     for (const CabData& cabData : _cabsData)
     {
         UpdateEngine::Stage(cabData.cabFullFileName);
@@ -192,8 +184,6 @@ void AzureUpdateModel::Install()
 Windows::Data::Json::JsonObject^ AzureUpdateModel::GetReportedProperties() const
 {
     TRACE(L"AzureUpdateModel::GetReportedProperties()");
-
-    lock_guard<mutex> lock(_mutex);
 
     wstring state;
     state += _manifestFileName;

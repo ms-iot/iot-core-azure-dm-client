@@ -35,8 +35,6 @@ private:
     static bool VerifyCabsInstalled(const std::vector<CabData>& cabsData, const UpdateEngine& updateEngine);
 
     // Data members
-    mutable std::mutex _mutex;
-
     std::wstring _updatesRootFolder;
     std::wstring _manifestFullFileName;
     std::wstring _manifestFileName;

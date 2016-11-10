@@ -2,9 +2,39 @@
 #include <thread>
 #include <atomic>
 #include <future>
+#include "TaskQueue.h"
+#include "Utilities\Limpet.h"
+#include "AzureProxy.h"
 
 class IoTDMService
 {
+    class ConnectionString
+    {
+    public:
+        ConnectionString()
+        {
+            _expirationTimeSpan = std::chrono::hours(24); // 1 day
+            _threshold = std::chrono::minutes(15);        // 15 minutes
+
+            Generate();
+        }
+
+        std::string Generate()
+        {
+            _expiration = std::chrono::system_clock::now() + _expirationTimeSpan;
+            return Limpet::GetInstance().GetSASToken(0, _expiration);
+        }
+
+        bool IsAboutToExpire()
+        {
+            return _expiration - std::chrono::system_clock::now() <= _threshold;
+        }
+    private:
+        std::chrono::time_point<std::chrono::system_clock> _expiration;
+        std::chrono::duration<int, std::ratio<3600i64>> _expirationTimeSpan; 
+        std::chrono::duration<int, std::ratio<60i64>> _threshold;
+    };
+
 public:
 
     IoTDMService(const std::wstring& serviceName);
@@ -39,13 +69,15 @@ private:
     virtual void OnStart(DWORD argc, LPWSTR *lpszArgv);
     virtual void OnStop();
 
+    void DisableEnqueue();
+
     // Helpers
     void SetServiceStatus(DWORD currentState, DWORD win32ExitCode = NO_ERROR);
 
     void WriteEventLogEntry(const std::wstring& message, WORD type);
     void WriteErrorLogEntry(const std::wstring& function, DWORD errorCode = GetLastError());
 
-    std::string GetConnectionString(const std::chrono::system_clock::time_point& expiration);
+    static void RenewConnectionString(IoTDMService* pThis);
 
     // Data members
     static IoTDMService* s_service;
@@ -54,7 +86,18 @@ private:
     SERVICE_STATUS _status;
     SERVICE_STATUS_HANDLE _statusHandle;
 
+    ConnectionString _connectionString;
+
+    // threads
+    Utils::JoiningThread _workerThread;
+    Utils::JoiningThread _connectionRenewerThread;
+
+    TaskQueue _taskQueue;
+
     // Synchronization between worker thread and main thread for exiting...
     std::atomic<bool> _stopSignaled;
-    std::promise<void> _stoppedPromise;
+    bool _renewConnectionString;
+
+    // Azure proxy
+    AzureProxy _cloudProxy;
 };

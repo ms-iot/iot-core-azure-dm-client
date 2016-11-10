@@ -15,11 +15,9 @@ public:
     Windows::Data::Json::JsonObject^ GetReportedProperties();
 
     // Operations
-    void ExecRebootNow();
+    std::string ExecRebootNow();
 
 private:
-
-    std::mutex _mutex;
 
     std::wstring _lastRebootCmdTime;    // Reported
     std::wstring _lastRestartTime;      // Reported

@@ -25,6 +25,11 @@
 #include <vector>
 #include <chrono>
 
+#include <windows.h>
+#ifdef GetObject
+#undef GetObject
+#endif
+
 #include "Utilities\DMException.h"
 #include "Utilities\Logger.h"
 #include "Utilities\Utils.h"

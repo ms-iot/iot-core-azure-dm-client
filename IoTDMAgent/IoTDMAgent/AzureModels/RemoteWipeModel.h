@@ -12,11 +12,9 @@ public:
     Windows::Data::Json::JsonObject^ GetReportedProperties();
 
     // Operations
-    void ExecWipe();
+    std::string ExecWipe();
 
 private:
-
-    std::mutex _mutex;
 
     std::wstring _lastRemoteWipeCmdTime;    // Reported
 };

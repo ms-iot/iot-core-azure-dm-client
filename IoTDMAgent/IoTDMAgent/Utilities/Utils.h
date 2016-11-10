@@ -72,4 +72,30 @@ namespace Utils
 
     // Process helpers
     void LaunchProcess(const std::wstring& commandString, unsigned long& returnCode, std::string& output);
+
+    // Threading helpers
+    class JoiningThread
+    {
+    public:
+        std::thread& operator=(std::thread&& t)
+        {
+            _thread = std::move(t);
+            return _thread;
+        }
+
+        void Join()
+        {
+            if (_thread.joinable())
+            {
+                _thread.join();
+            }
+        }
+
+        ~JoiningThread()
+        {
+            Join();
+        }
+    private:
+        std::thread _thread;
+    };
 }
