@@ -272,7 +272,7 @@ void IoTDMService::RenewConnectionString(IoTDMService* pThis)
     {
         TRACE(L"Renewing the connection string...");
 
-        TaskQueue::Task task([pThis]()
+        TaskQueue::Task task([pThis](ModelManager*)
         {
             pThis->DisableEnqueue();
             pThis->_renewConnectionString = true;
@@ -313,7 +313,7 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
                 TaskQueue::Task task = _taskQueue.Dequeue();
 
                 TRACE("A task has been dequeued...");
-                task();
+                task(&_modelManager);
 
                 // TODO: Before we destroy the existing iot client, we need to get all the un-sent messages 
                 // and re-queue them with the new client.
@@ -356,7 +356,7 @@ void IoTDMService::OnStop()
 
     TRACE("IoTDMService.OnStop() - signaling worker thread to exit...");
 
-    TaskQueue::Task task([this]()
+    TaskQueue::Task task([this](ModelManager*)
     {
         TRACE("Processing ExitService task");
         DisableEnqueue();

@@ -6,11 +6,12 @@
 #include <future>
 #include <functional>
 #include <condition_variable>
+#include "AzureModels\ModelManager.h"
 
 class TaskQueue
 {
 public:
-    typedef std::packaged_task<std::string(void)> Task;
+    typedef std::packaged_task<std::string(ModelManager*)> Task;
 
     TaskQueue();
 

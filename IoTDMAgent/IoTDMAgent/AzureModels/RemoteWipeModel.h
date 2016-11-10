@@ -9,7 +9,7 @@ public:
     static std::wstring NodeName();
 
     // Reported
-    Windows::Data::Json::JsonObject^ GetReportedProperties();
+    Windows::Data::Json::JsonObject^ GetReportedProperties() const;
 
     // Operations
     std::string ExecWipe();

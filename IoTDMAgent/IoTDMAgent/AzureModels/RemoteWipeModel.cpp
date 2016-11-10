@@ -20,7 +20,7 @@ wstring RemoteWipeModel::NodeName()
     return RemoteWipeNodeName;
 }
 
-JsonObject^ RemoteWipeModel::GetReportedProperties()
+JsonObject^ RemoteWipeModel::GetReportedProperties() const
 {
     TRACE(L"RemoteWipeModel::GetReportedProperties()");
 
