@@ -17,13 +17,23 @@ using Windows.System;
 using Windows.Storage.Streams;
 using Windows.ApplicationModel;
 using System.Text;
+using Windows.ApplicationModel.Core;
+using Windows.UI.Core;
+using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json;
 
 namespace Toaster
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
-    public sealed partial class MainPage : Page
+    public class DMResponse
+    {
+        public string Status;
+        public int Power;
+    }
+
+/// <summary>
+/// An empty page that can be used on its own or navigated to within a Frame.
+/// </summary>
+public sealed partial class MainPage : Page
     {
         public MainPage()
         {
@@ -31,6 +41,15 @@ namespace Toaster
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
             this.imageHot.Visibility = Visibility.Collapsed;
+
+            DMCommunicator.Instance.MessageReceivedCallback = (message) =>
+            {
+                CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                    {
+                        var response = JsonConvert.DeserializeObject<DMResponse>(message.Payload);
+                        this.textBlock.Text = string.Format("{0} at {1}%", response.Status, response.Power);
+                    }).AsTask().Forget();
+            };
 
             // YesNo("Allow Reboot?");
         }
@@ -51,7 +70,16 @@ namespace Toaster
             this.textBlock.Text = string.Format("Toasting at {0}%", this.slider.Value);
             this.imageHot.Visibility = Visibility.Visible;
 
-            SendDataToDM("Start");
+            var msg = new
+            {
+                TimeStamp = DateTime.Now.ToString(),
+                Command = "Start",
+                Power = (int)this.slider.Value
+            };
+
+            var messageString = JsonConvert.SerializeObject(msg);
+
+            SendDataToDM(messageString);
 
         }
 

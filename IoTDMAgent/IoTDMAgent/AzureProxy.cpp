@@ -233,7 +233,7 @@ int AzureProxy::ProcessMethodCall(const string& name, const string& payload, str
             response = ProcessRemoteWipe();
         }
     }
-    catch (exception& e)
+    catch (const exception& e)
     {
         TRACEP("AzureProxy::ProcessMethodCall() failed: ", e.what());
         result = IOTHUB_CLIENT_IOTHUB_METHOD_STATUS_ERROR;
@@ -362,7 +362,7 @@ void AzureProxy::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, cons
 
         // We do not need to inspect the result in this function - so, no need to do futureResult.get() etc.
     }
-    catch (exception&)
+    catch (const exception&)
     {
         // We just log a message. Let the service continue running.
         TRACE("Error: Failed to process desired properties update.");

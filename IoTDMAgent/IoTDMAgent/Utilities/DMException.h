@@ -3,6 +3,8 @@
 #include <exception>
 #include "Logger.h"
 
+typedef long HRESULT;
+
 class DMException : public std::exception
 {
 public:
@@ -20,5 +22,27 @@ public:
         messageString << message << " " << parameter;
 
         TRACEP("Exception: ", messageString.str().c_str());
+    }
+};
+
+class DMExceptionWithErrorCode : public DMException
+{
+    int _errorcode;
+public:
+    DMExceptionWithErrorCode(int errorcode) :
+        DMException(""), _errorcode(errorcode)
+    {
+        TRACEP("Exception error code: ", errorcode);
+    }
+};
+
+class DMExceptionWithHRESULT : public DMException
+{
+    HRESULT _hr;
+public:
+    DMExceptionWithHRESULT(HRESULT hr) :
+        DMException(""), _hr(hr)
+    {
+        TRACEP("Exception HRESULT: ", hr);
     }
 };

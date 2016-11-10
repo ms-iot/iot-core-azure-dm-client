@@ -118,21 +118,21 @@ void ReadXmlValue(IStream* resultSyncML, const wstring& targetXmlPath, wstring& 
     if (FAILED(hr))
     {
         TRACEP(L"Error: Failed to create xml reader. Code :", hr);
-        throw exception();
+        throw DMExceptionWithHRESULT(hr);
     }
 
     hr = xmlReader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
     if (FAILED(hr))
     {
         TRACEP(L"Error: XmlReaderProperty_DtdProcessing() failed. Code :\n", hr);
-        throw exception();
+        throw DMExceptionWithHRESULT(hr);
     }
 
     hr = xmlReader->SetInput(resultSyncML);
     if (FAILED(hr))
     {
         TRACEP(L"Error: SetInput() failed. Code :\n", hr);
-        throw exception();
+        throw DMExceptionWithHRESULT(hr);
     }
 
     deque<wstring> pathStack;
@@ -155,7 +155,7 @@ void ReadXmlValue(IStream* resultSyncML, const wstring& targetXmlPath, wstring& 
             if (FAILED(hr))
             {
                 TRACEP(L"Error: GetPrefix() failed. Code :\n", hr);
-                throw exception();
+                throw DMExceptionWithHRESULT(hr);
             }
 
             const wchar_t* localName;
@@ -163,7 +163,7 @@ void ReadXmlValue(IStream* resultSyncML, const wstring& targetXmlPath, wstring& 
             if (FAILED(hr))
             {
                 TRACEP(L"Error: GetLocalName() failed. Code :\n", hr);
-                throw exception();
+                throw DMExceptionWithHRESULT(hr);
             }
 
             wstring elementName;
@@ -200,7 +200,7 @@ void ReadXmlValue(IStream* resultSyncML, const wstring& targetXmlPath, wstring& 
             if (FAILED(hr))
             {
                 TRACEP(L"Error: GetPrefix() failed. Code :", hr);
-                throw exception();
+                throw DMExceptionWithHRESULT(hr);
             }
 
             const wchar_t* localName = NULL;
@@ -208,7 +208,7 @@ void ReadXmlValue(IStream* resultSyncML, const wstring& targetXmlPath, wstring& 
             if (FAILED(hr))
             {
                 TRACEP(L"Error: GetLocalName() failed. Code :", hr);
-                throw exception();
+                throw DMExceptionWithHRESULT(hr);
             }
 
             pathStack.pop_back();
@@ -222,7 +222,7 @@ void ReadXmlValue(IStream* resultSyncML, const wstring& targetXmlPath, wstring& 
             if (FAILED(hr))
             {
                 TRACEP(L"Error: GetValue() failed. Code :", hr);
-                throw exception();
+                throw DMExceptionWithHRESULT(hr);
             }
 
             if (targetXmlPath == currentPath)
@@ -238,7 +238,7 @@ void ReadXmlValue(IStream* resultSyncML, const wstring& targetXmlPath, wstring& 
     if (!pathFound)
     {
         TRACEP(L"Error: Failed to read: ", targetXmlPath.c_str());
-        throw exception();
+        throw DMException("ReadXmlValue: path not found");
     }
 }
 
@@ -253,7 +253,7 @@ void ReadXmlValue(const wstring& resultSyncML, const wstring& targetXmlPath, wst
     if (FAILED(hr))
     {
         GlobalFree(buffer);
-        throw exception();
+        throw DMExceptionWithHRESULT(hr);
     }
     ReadXmlValue(dataStream.Get(), targetXmlPath, value);
 
@@ -264,8 +264,9 @@ void ReadXmlValue(const wstring& resultSyncML, const wstring& targetXmlPath, wst
 void WriteRegistryValue(const wstring& subkey, const wstring& propName, const wstring& propValue)
 {
     bool success = false;
+    LSTATUS status;
     HKEY hKey = NULL;
-    if (ERROR_SUCCESS == RegCreateKeyEx(
+    status = RegCreateKeyEx(
         HKEY_LOCAL_MACHINE,
         subkey.c_str(),
         0,      // reserved
@@ -275,33 +276,37 @@ void WriteRegistryValue(const wstring& subkey, const wstring& propName, const ws
         NULL,   // inherit security descriptor from parent.
         &hKey,
         NULL    // disposition [optional, out]
-    ))
-    {
-        if (ERROR_SUCCESS == RegSetValueEx(hKey, propName.c_str(), 0, REG_SZ, reinterpret_cast<const BYTE*>(propValue.c_str()), (propValue.size() + 1) * sizeof(propValue[0])))
-        {
-            success = true;
-        }
-        RegCloseKey(hKey);
+    );
+    if (status != ERROR_SUCCESS){
+        throw DMExceptionWithErrorCode(status);
     }
 
-    if (!success)
-    {
-        throw exception();
+    status = RegSetValueEx(hKey, propName.c_str(), 0, REG_SZ, reinterpret_cast<const BYTE*>(propValue.c_str()), (propValue.size() + 1) * sizeof(propValue[0]));
+    if (status != ERROR_SUCCESS) {
+        RegCloseKey(hKey);
+        throw DMExceptionWithErrorCode(status);
     }
+
+    RegCloseKey(hKey);
 }
 
 wstring ReadRegistryValue(const wstring& subkey, const wstring& propName)
 {
     DWORD dataSize = 0;
-    if (ERROR_SUCCESS != RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, NULL, &dataSize))
+    LSTATUS status;
+    status = RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, NULL, &dataSize);
+    if (status != ERROR_SUCCESS)
     {
-        throw DMException("Failed to read registry value size.");
+        TRACEP(L"Error: Could not read registry value size: ", (subkey + L"\\" + propName).c_str());
+        throw DMExceptionWithErrorCode(status);
     }
 
     vector<char> data(dataSize);
-    if (ERROR_SUCCESS != RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, data.data(), &dataSize))
+    status = RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, data.data(), &dataSize);
+    if (status != ERROR_SUCCESS)
     {
-        throw DMException("Failed to read registry value.");
+        TRACEP(L"Error: Could not read registry value: ", (subkey + L"\\" + propName).c_str());
+        throw DMExceptionWithErrorCode(status);
     }
 
     // return wstring(reinterpret_cast<const wchar_t*>(data.data()));
@@ -332,14 +337,14 @@ wstring GetEnvironmentVariable(const wstring& variableName)
     DWORD charCount = ::GetEnvironmentVariable(variableName.c_str(), NULL, 0);
     if (charCount == 0)
     {
-        throw DMException("Error: failed to get environment variable.", Utils::WideToMultibyte(variableName.c_str()));
+        throw DMExceptionWithErrorCode(GetLastError());
     }
 
     vector<wchar_t> buffer(charCount);
     charCount = ::GetEnvironmentVariable(variableName.c_str(), buffer.data(), buffer.size());
     if (charCount == 0)
     {
-        throw DMException("Error: failed to get environment variable.", Utils::WideToMultibyte(variableName.c_str()));
+        throw DMExceptionWithErrorCode(GetLastError());
     }
 
     return wstring(buffer.data());
@@ -381,7 +386,7 @@ void EnsureFolderExists(const wstring& folder)
             {
                 if (ERROR_ALREADY_EXISTS != GetLastError())
                 {
-                    throw DMException("Failed to create folder.", folder.c_str());
+                    throw DMExceptionWithErrorCode(GetLastError());
                 }
             }
         }
@@ -412,12 +417,12 @@ void LaunchProcess(const wstring& commandString, unsigned long& returnCode, stri
 
     if (!CreatePipe(stdOutReadHandle.GetAddress(), stdOutWriteHandle.GetAddress(), &securityAttributes, pipeBufferSize))
     {
-        throw DMException("Error: Failed to create pipe. GetLastError() = ", GetLastError());
+        throw DMExceptionWithErrorCode(GetLastError());
     }
 
     if (!SetHandleInformation(stdOutReadHandle.Get(), HANDLE_FLAG_INHERIT, 0 /*flags*/))
     {
-        throw DMException("Error: Failed to configure the stdout read handle. GetLastError() = ", GetLastError());
+        throw DMExceptionWithErrorCode(GetLastError());
     }
 
     PROCESS_INFORMATION piProcInfo;
@@ -442,7 +447,7 @@ void LaunchProcess(const wstring& commandString, unsigned long& returnCode, stri
         &siStartInfo, // STARTUPINFO pointer 
         &piProcInfo)) // receives PROCESS_INFORMATION
     {
-        throw DMException("Error: Failed to create process. GetLastError() = ", GetLastError());
+        throw DMExceptionWithErrorCode(GetLastError());
     }
     TRACE("Child process has been launched.");
 
