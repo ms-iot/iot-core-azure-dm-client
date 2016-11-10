@@ -309,9 +309,14 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
         // Start a thread to renew the connection string when it is about to expire...
         _connectionRenewerThread = thread(RenewConnectionString, this);;
 
+        // Start the main processing loop...
         do
         {
-            // Start the main processing loop...
+            // Does the queue have items or if empty, can it receive new items?
+            // ToDo: This check should be done inside the Dequeue atomically.
+            // ToDo: Once the Azure handle locking bug is resolved, we won't
+            //       have to drain the queue before shutting down - but we still
+            //       need to make sure it is as graceful as can be.
             while (_taskQueue.IsActive())
             {
                 TRACE("Worker thread waiting for a task to be queued...");

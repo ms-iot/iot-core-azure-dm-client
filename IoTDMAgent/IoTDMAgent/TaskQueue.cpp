@@ -51,7 +51,7 @@ future<string> TaskQueue::Enqueue(Task task)
     return response;
 }
 
-std::packaged_task<std::string(void)> TaskQueue::Dequeue()
+TaskQueue::Task TaskQueue::Dequeue()
 {
     TRACE(__FUNCTION__);
 
