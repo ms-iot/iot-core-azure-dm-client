@@ -27,11 +27,11 @@ bool TaskQueue::IsActive()
     return !_queue.empty() || _allowEnqueue;
 }
 
-void TaskQueue::Enqueue(packaged_task<string(void)>& task)
+future<string> TaskQueue::Enqueue(Task task)
 {
-    TRACE(L"TaskQueue::Enqueue()");
-    unique_lock<mutex> l(_mutex);
+    TRACE(__FUNCTION__);
 
+    unique_lock<mutex> l(_mutex);
     if (!_allowEnqueue)
     {
         // There's always a chance a request comes from a source (i.e. device twin) while the service is shutting now.
@@ -42,20 +42,23 @@ void TaskQueue::Enqueue(packaged_task<string(void)>& task)
         throw DMException("Warning: cannot enqueue new tasks.");
     }
 
+    future<string> response = task.get_future();
     _queue.push(move(task));
 
     l.unlock();
     _cv.notify_one();
+
+    return response;
 }
 
 std::packaged_task<std::string(void)> TaskQueue::Dequeue()
 {
-    TRACE(L"TaskQueue::Dequeue()");
+    TRACE(__FUNCTION__);
 
     unique_lock<mutex> l(_mutex);
     _cv.wait(l, [&] { return !_queue.empty(); });
 
-    packaged_task<string(void)> taskItem = move(_queue.front());
+    Task taskItem = move(_queue.front());
     _queue.pop();
 
     return taskItem;

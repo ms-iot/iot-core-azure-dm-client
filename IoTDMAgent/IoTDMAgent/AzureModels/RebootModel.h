@@ -15,7 +15,7 @@ public:
     Windows::Data::Json::JsonObject^ GetReportedProperties();
 
     // Operations
-    void ExecRebootNow();
+    std::string ExecRebootNow();
 
 private:
 

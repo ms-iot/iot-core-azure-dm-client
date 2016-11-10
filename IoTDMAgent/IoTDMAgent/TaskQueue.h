@@ -10,10 +10,12 @@
 class TaskQueue
 {
 public:
+    typedef std::packaged_task<std::string(void)> Task;
+
     TaskQueue();
 
-    void Enqueue(std::packaged_task<std::string(void)>& task);
-    std::packaged_task<std::string(void)> Dequeue();
+    std::future<std::string> Enqueue(Task task);
+    Task Dequeue();
 
     void DisableEnqueue();
     void EnableEnqueue();
@@ -22,12 +24,13 @@ public:
     bool IsActive();
 
 private:
-    // TaskItems can be shared since in the method call case Enqueue()
-    // will hold on to the TaskItem while it has been dequeued for processing.
-    std::queue<std::packaged_task<std::string(void)>> _queue;
+    std::queue<Task> _queue;
 
     std::mutex _mutex;
     std::condition_variable _cv;
 
+    // If _allowEnqueue to false, attempting to Enqueue an item will throw an exception.
+    // This can be useful when we are shutting down and we need to stop accepting new requests
+    // and empty out the current queue.
     bool _allowEnqueue;
 };

@@ -33,10 +33,11 @@ JsonObject^ RemoteWipeModel::GetReportedProperties()
     return properties;
 }
 
-void RemoteWipeModel::ExecWipe()
+string RemoteWipeModel::ExecWipe()
 {
-    TRACE(L"RemoteWipeModel::ExecWipe()");
+    TRACE(__FUNCTION__);
 
     RemoteWipeCSP::DoWipe();
     _lastRemoteWipeCmdTime = Utils::GetCurrentDateTimeString();
+    return "";  // no (json) content is returned for remote wipe.
 }

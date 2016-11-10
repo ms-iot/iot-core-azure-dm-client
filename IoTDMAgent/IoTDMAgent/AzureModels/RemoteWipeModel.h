@@ -12,7 +12,7 @@ public:
     Windows::Data::Json::JsonObject^ GetReportedProperties();
 
     // Operations
-    void ExecWipe();
+    std::string ExecWipe();
 
 private:
 

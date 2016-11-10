@@ -69,6 +69,8 @@ private:
     virtual void OnStart(DWORD argc, LPWSTR *lpszArgv);
     virtual void OnStop();
 
+    void DisableEnqueue();
+
     // Helpers
     void SetServiceStatus(DWORD currentState, DWORD win32ExitCode = NO_ERROR);
 
@@ -87,8 +89,8 @@ private:
     ConnectionString _connectionString;
 
     // threads
-    std::thread _workerThread;
-    std::thread _connectionRenewerThread;
+    Utils::JoiningThread _workerThread;
+    Utils::JoiningThread _connectionRenewerThread;
 
     TaskQueue _taskQueue;
 

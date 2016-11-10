@@ -106,13 +106,14 @@ JsonObject^ RebootModel::GetReportedProperties()
     return rebootProperties;
 }
 
-void RebootModel::ExecRebootNow()
+std::string RebootModel::ExecRebootNow()
 {
-    TRACE(L"RebootModel::ExecRebootNow()");
+    TRACE(__FUNCTION__);
 
     _lastRebootCmdTime = Utils::GetCurrentDateTimeString();
     Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryLastRebootCmd, _lastRebootCmdTime);
 
     // Note: it is not 'now' - the CSP implementation has a 5 minute delay.
     RebootCSP::ExecRebootNow();
+    return "";  // no (json) content is returned for reboot.
 }

@@ -33,19 +33,25 @@ void AzureProxy::Connect(const std::string& connectionString)
 
     Disconnect();
 
+    TRACE("1");
+
     // Prepare the platform
     if (platform_init() != 0)
     {
         throw DMException("Failed to initialize the platform.");
     }
 
+    TRACE("2");
+    TRACE(connectionString.c_str());
     // Create an IoTHub client
     _iotHubClientHandle = IoTHubClient_CreateFromConnectionString(connectionString.c_str(), MQTT_Protocol);
+    TRACE("2.1");
     if (_iotHubClientHandle == NULL)
     {
         throw DMException("Failure creating IoTHubClient handle.");
     }
 
+    TRACE("3");
     // Turn on Log 
     bool trace = false;
     IoTHubClient_SetOption(_iotHubClientHandle, "logtrace", &trace);
@@ -56,16 +62,20 @@ void AzureProxy::Connect(const std::string& connectionString)
         throw DMException("Unable to set device twin callback.");
     }
 
+    TRACE("4");
+
     // Set the message properties callback
     if (IoTHubClient_SetMessageCallback(_iotHubClientHandle, OnMessageReceived, this) != IOTHUB_CLIENT_OK)
     {
         throw DMException("Unable to set message callback.");
     }
 
+    TRACE("5");
     if (IoTHubClient_SetDeviceMethodCallback(_iotHubClientHandle, OnMethodCalled, this) != IOTHUB_CLIENT_OK)
     {
         throw DMException("Unable to set method callback.");
     }
+    TRACE("6");
 }
 
 void AzureProxy::Disconnect()
@@ -140,76 +150,76 @@ void AzureProxy::ReportRemoteWipeProperties()
     ReportProperties(root);
 }
 
-void AzureProxy::ProcessReportAllCall(std::string& response)
+void AzureProxy::ProcessReportAllCall()
 {
     TRACE(__FUNCTION__);
 
-    packaged_task<string(void)> task([this]()
+    TaskQueue::Task task([this]()
     {
         ReportAllProperties();
         return "";
     });
 
-    _taskQueue->Enqueue(task);
+    _taskQueue->Enqueue(move(task));
 }
 
-void AzureProxy::ProcessRebootCall(std::string& response)
+string AzureProxy::ProcessRebootCall()
 {
     TRACE(__FUNCTION__);
 
-    packaged_task<string(void)> task([this]()
+    TaskQueue::Task task([this]()
     {
-        _rebootModel.ExecRebootNow();
-        return "";
+        return _rebootModel.ExecRebootNow();
     });
-    future<string> futureResult = task.get_future();
 
-    _taskQueue->Enqueue(task);
+    future<string> futureResult = _taskQueue->Enqueue(move(task));
 
-    response = futureResult.get();
+    string response = futureResult.get();
 
     // There is a bug in the Azure Client SDK that prevents us from sending reported properties
     // on a different thread while we are in a method callback.
     // To work around that, we are splitting the sending into a separate work item which
     // we do not wait for (and will get unblocked when the method callback returns).
     // taskItem = make_shared<TaskItem>();
-    packaged_task<string(void)> reportTask([this]()
+    TaskQueue::Task responseTask([this]()
     {
         ReportRebootProperties();
         return "";
     });
 
-    _taskQueue->Enqueue(reportTask);
+    _taskQueue->Enqueue(move(responseTask));
+
+    return response;
 }
 
-void AzureProxy::ProcessRemoteWipe(std::string& response)
+string AzureProxy::ProcessRemoteWipe()
 {
     TRACE(__FUNCTION__);
 
-    packaged_task<string(void)> task([this]() 
+    TaskQueue::Task task([this]()
     {
-        _remoteWipeModel.ExecWipe();
-        return "";
+        return _remoteWipeModel.ExecWipe();
     });
 
-    future<string> futureResult = task.get_future();
+    future<string> futureResult = _taskQueue->Enqueue(move(task));
 
-    _taskQueue->Enqueue(task);
-
-    response = futureResult.get();
+    string response = futureResult.get();
 
     // There is a bug in the Azure Client SDK that prevents us from sending reported properties
     // on a different thread while we are in a method callback.
     // To work around that, we are splitting the sending into a separate work item which
     // we do not wait for (and will get unblocked when the method callback returns).
     // taskItem = make_shared<TaskItem>();
-    packaged_task<string(void)> reportTask([this]()
+
+    TaskQueue::Task responseTask([this]()
     {
         ReportRemoteWipeProperties();
         return "";
     });
 
-    _taskQueue->Enqueue(reportTask);
+    _taskQueue->Enqueue(move(responseTask));
+
+    return response;
 }
 
 int AzureProxy::ProcessMethodCall(const string& name, const string& payload, string& response)
@@ -222,15 +232,15 @@ int AzureProxy::ProcessMethodCall(const string& name, const string& payload, str
     {
         if (name == ReportMethod)
         {
-            ProcessReportAllCall(response);
+            ProcessReportAllCall();
         }
         else if (name == RebootMethod)
         {
-            ProcessRebootCall(response);
+            response = ProcessRebootCall();
         }
         else if (name == RemoteWipeMethod)
         {
-            ProcessRemoteWipe(response);
+            response = ProcessRemoteWipe();
         }
     }
     catch (exception& e)
@@ -357,14 +367,15 @@ void AzureProxy::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, cons
     TRACEP("Desired Properties String: ", copyOfPayload.c_str());
     try
     {
-        packaged_task<string(void)> task([pThis, update_state, copyOfPayload]()
+        TaskQueue::Task task([pThis, update_state, copyOfPayload]()
         {
             pThis->ProcessDesiredProperties(update_state == DEVICE_TWIN_UPDATE_COMPLETE, copyOfPayload);
-            return "";
+            return "";  // A return payload does not apply to property changes.
+                        // However, to comply with the task type, we have to return a string.
         });
 
         // Note that Enqueue() may throw if enqueuing is disabled.
-        pThis->_taskQueue->Enqueue(task);
+        pThis->_taskQueue->Enqueue(move(task));
 
         // We do not need to inspect the result in this function - so, no need to do futureResult.get() etc.
     }

@@ -34,9 +34,9 @@ private:
 
     void ProcessMessage(const std::string& command);
     int ProcessMethodCall(const std::string& name, const std::string& payload, std::string& response);
-    void ProcessReportAllCall(std::string& response);
-    void ProcessRebootCall(std::string& response);
-    void ProcessRemoteWipe(std::string& response);
+    void ProcessReportAllCall();
+    std::string ProcessRebootCall();
+    std::string ProcessRemoteWipe();
     void ProcessDesiredProperties(Windows::Data::Json::IJsonValue^ value);
 
     void ReportProperties(Windows::Data::Json::JsonObject^ root) const;

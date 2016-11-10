@@ -239,14 +239,39 @@ void IoTDMService::OnStart(DWORD argc, LPWSTR *argv)
 {
     TRACE("IoTDMService.OnStart()");
 
-    thread dmThread(ServiceWorkerThread, this);
-    swap(_workerThread, dmThread);
+    _workerThread = thread(ServiceWorkerThread, this);
 }
 
 void IoTDMService::ServiceWorkerThread(void* context)
 {
     IoTDMService* iotDMService = static_cast<IoTDMService*>(context);
     iotDMService->ServiceWorkerThreadHelper();
+}
+
+void IoTDMService::DisableEnqueue()
+{
+    _taskQueue.DisableEnqueue();       // Don't accept any more tasks.
+                                       // - This allows the queue to become 'inactive'
+                                       //   once all the already-queued items are consumed.
+                                       //
+                                       // If communication from the device twin takes place,
+                                       // calls to enqueue them will fail.
+                                       // - For methods, an error return code will be returned 
+                                       //   to Azure IoTHub
+                                       // - For property changes, failures will be ignored.
+                                       //   This is okay because the next time the service runs,
+                                       //   it will get the same properties again.
+                                       //
+                                       // Note also that we need to leave AzureProxy connected
+                                       // because other already-queued items might require
+                                       // sending data to the Azure IoTHub.
+                                       // Only when we exit this loop, we can destruct AzureProxy.
+                                       // 
+                                       // DisableEnqueue() has to be queued in a task for two reasons:
+                                       // 1. If the queue is already empty and waiting, we need to feed
+                                       //    it an item to get it going and re-activate the loop.
+                                       // 2. If the DisableEnqueue() happens between the IsActive() and 
+                                       //    the blocked Dequeue(), there will be a deadlock.
 }
 
 void IoTDMService::RenewConnectionString(IoTDMService* pThis)
@@ -257,14 +282,14 @@ void IoTDMService::RenewConnectionString(IoTDMService* pThis)
     {
         TRACE(L"Renewing the connection string...");
 
-        packaged_task<string(void)> task([pThis]()
+        TaskQueue::Task task([pThis]()
         {
-            pThis->_taskQueue.DisableEnqueue();
+            pThis->DisableEnqueue();
             pThis->_renewConnectionString = true;
             return "";
         });
 
-        pThis->_taskQueue.Enqueue(task);
+        pThis->_taskQueue.Enqueue(move(task));
 
         TRACE(L"RenewConnectionString() - is about to expire?");
         while (!pThis->_connectionString.IsAboutToExpire() && !pThis->_stopSignaled)
@@ -282,8 +307,7 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
     try
     {
         // Start a thread to renew the connection string when it is about to expire...
-        thread connectionStringRenew(RenewConnectionString, this);
-        swap(_connectionRenewerThread, connectionStringRenew);
+        _connectionRenewerThread = thread(RenewConnectionString, this);;
 
         do
         {
@@ -291,7 +315,7 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
             while (_taskQueue.IsActive())
             {
                 TRACE("Worker thread waiting for a task to be queued...");
-                packaged_task<string(void)> task = _taskQueue.Dequeue();
+                TaskQueue::Task task = _taskQueue.Dequeue();
 
                 TRACE("A task has been dequeued...");
                 task();
@@ -302,6 +326,8 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
 
             if (_renewConnectionString)
             {
+                TRACE("Worker thread renewing token and reconnecting...");
+
                 _cloudProxy.Disconnect();
                 _taskQueue.EnableEnqueue();
                 _cloudProxy.Connect(_connectionString.Generate());
@@ -309,6 +335,9 @@ void IoTDMService::ServiceWorkerThreadHelper(void)
             }
 
         } while (!_stopSignaled);
+
+        // Now that no items are pending, we can disconnect safely from this thread.
+        _cloudProxy.Disconnect();
     }
     catch(exception& e)
     {
@@ -332,42 +361,23 @@ void IoTDMService::OnStop()
 
     TRACE("IoTDMService.OnStop() - signaling worker thread to exit...");
 
-    // auto taskItem = make_shared<TaskItem>();
-    packaged_task<string(void)> task([this]()
+    TaskQueue::Task task([this]()
     {
         TRACE("Processing ExitService task");
-        _taskQueue.DisableEnqueue();       // Don't accept any more tasks.
-                                           // - This allows the queue to become 'inactive'
-                                           //   once all the already-queued items are consumed.
-                                           //
-                                           // If communication from the device twin takes place,
-                                           // calls to enqueue them will fail.
-                                           // - For methods, an error return code will be returned 
-                                           //   to Azure IoTHub
-                                           // - For property changes, failures will be ignored.
-                                           //   This is okay because the next time the service runs,
-                                           //   it will get the same properties again.
-                                           //
-                                           // Note also that we need to leave AzureProxy connected
-                                           // because other already-queued items might require
-                                           // sending data to the Azure IoTHub.
-                                           // Only when we exit this loop, we can destruct AzureProxy.
-        _cloudProxy.Disconnect();
+        DisableEnqueue();
+
         return "";                         // Signal the completion of the above steps.
     });
+    future<string> futureResult = _taskQueue.Enqueue(move(task));
 
-    future<string> futureResult = task.get_future();
-
-    _taskQueue.Enqueue(task);
-
-    TRACE("IoTDMService.OnStop() - waiting for azure proxy to shutdown...");
+    TRACE("IoTDMService.OnStop() - waiting for queue enqueue disable to complete...");
     string response = futureResult.get();
 
     TRACE("IoTDMService.OnStop() - waiting for worker thread to exit...");
-    _workerThread.join();
+    _workerThread.Join();
 
     TRACE("IoTDMService.OnStop() - waiting for connection string renewing thread to exit...");
-    _connectionRenewerThread.join();
+    _connectionRenewerThread.Join();
 
     TRACE("IoTDMService.OnStop() - all exited.");
 }
