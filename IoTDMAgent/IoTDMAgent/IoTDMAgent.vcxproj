@@ -272,6 +272,7 @@
   <ItemGroup>
     <ClInclude Include="AzureModels\AzureUpdateManager.h" />
     <ClInclude Include="AzureModels\AzureUpdateModel.h" />
+    <ClInclude Include="AzureModels\ModelManager.h" />
     <ClInclude Include="AzureModels\RebootModel.h" />
     <ClInclude Include="AzureModels\RemoteWipeModel.h" />
     <ClInclude Include="AzureModels\SystemInfoModel.h" />
@@ -300,6 +301,7 @@
   <ItemGroup>
     <ClCompile Include="AzureModels\AzureUpdateManager.cpp" />
     <ClCompile Include="AzureModels\AzureUpdateModel.cpp" />
+    <ClCompile Include="AzureModels\ModelManager.cpp" />
     <ClCompile Include="AzureModels\RebootModel.cpp" />
     <ClCompile Include="AzureModels\RemoteWipeModel.cpp" />
     <ClCompile Include="AzureModels\SystemInfoModel.cpp" />

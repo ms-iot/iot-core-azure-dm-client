@@ -9,12 +9,12 @@
 #include "LocalMachine\LocalMachine.h"
 #include "LocalMachine\CSPs\RebootCSP.h"
 
+#include "AzureModels\ModelManager.h"
+
 using namespace Windows::Data::Json;
 using namespace Windows::Foundation::Collections;
 using namespace Platform;
 using namespace std;
-
-#define JsonDesiredNode L"desired"
 
 const char* ReportMethod = "Report";
 const char* RebootMethod = "Reboot";
@@ -122,31 +122,14 @@ int AzureProxy::OnMethodCalled(const char* method_name, const unsigned char* pay
     return retCode;
 }
 
-void AzureProxy::ReportRebootProperties()
-{
-    TRACE("AzureProxy::ReportRebootProperties()");
-
-    JsonObject^ root = ref new JsonObject();
-    root->Insert(ref new String(RebootModel::NodeName().c_str()), _rebootModel.GetReportedProperties());
-    ReportProperties(root);
-}
-
-void AzureProxy::ReportRemoteWipeProperties()
-{
-    TRACE("AzureProxy::ReportRemoteWipeProperties()");
-
-    JsonObject^ root = ref new JsonObject();
-    root->Insert(ref new String(RemoteWipeModel::NodeName().c_str()), _remoteWipeModel.GetReportedProperties());
-    ReportProperties(root);
-}
-
 void AzureProxy::ProcessReportAllCall()
 {
     TRACE(__FUNCTION__);
 
-    TaskQueue::Task task([this]()
+    TaskQueue::Task task([this](ModelManager* modelManager)
     {
-        ReportAllProperties();
+        string allProperties = modelManager->GetAllPropertiesJson();
+        ReportProperties(allProperties);
         return "";
     });
 
@@ -157,9 +140,9 @@ string AzureProxy::ProcessRebootCall()
 {
     TRACE(__FUNCTION__);
 
-    TaskQueue::Task task([this]()
+    TaskQueue::Task task([](ModelManager* modelManager)
     {
-        return _rebootModel.ExecRebootNow();
+        return modelManager->ExecRebootNow();
     });
 
     future<string> futureResult = _taskQueue->Enqueue(move(task));
@@ -171,9 +154,10 @@ string AzureProxy::ProcessRebootCall()
     // To work around that, we are splitting the sending into a separate work item which
     // we do not wait for (and will get unblocked when the method callback returns).
     // taskItem = make_shared<TaskItem>();
-    TaskQueue::Task responseTask([this]()
+    TaskQueue::Task responseTask([this](ModelManager* modelManager)
     {
-        ReportRebootProperties();
+        string allProperties = modelManager->GetRebootPropertiesJson();
+        ReportProperties(allProperties);
         return "";
     });
 
@@ -186,9 +170,9 @@ string AzureProxy::ProcessRemoteWipe()
 {
     TRACE(__FUNCTION__);
 
-    TaskQueue::Task task([this]()
+    TaskQueue::Task task([](ModelManager* modelManager)
     {
-        return _remoteWipeModel.ExecWipe();
+        return modelManager->ExecWipeNow();
     });
 
     future<string> futureResult = _taskQueue->Enqueue(move(task));
@@ -201,9 +185,10 @@ string AzureProxy::ProcessRemoteWipe()
     // we do not wait for (and will get unblocked when the method callback returns).
     // taskItem = make_shared<TaskItem>();
 
-    TaskQueue::Task responseTask([this]()
+    TaskQueue::Task responseTask([this](ModelManager* modelManager)
     {
-        ReportRemoteWipeProperties();
+        string allProperties = modelManager->GetWipePropertiesJson();
+        ReportProperties(allProperties);
         return "";
     });
 
@@ -279,62 +264,15 @@ void AzureProxy::OnReportedPropertiesSent(int status_code, void* userContextCall
     TRACEP("IoTHub: reported properties delivered with status_code :", status_code);
 }
 
-IJsonValue^ AzureProxy::GetDesiredPropertiesNode(DEVICE_TWIN_UPDATE_STATE update_state, const string& allJson)
+void AzureProxy::ReportProperties(std::string allJson) const
 {
-    TRACE(L"AzureProxy::GetDesiredPropertiesNode()");
-    wstring wideJsonString = Utils::MultibyteToWide(allJson.c_str());
+    TRACE(__FUNCTION__);
 
-    JsonValue^ value;
-    if (!JsonValue::TryParse(ref new String(wideJsonString.c_str()), &value) || (value == nullptr))
+    if (IoTHubClient_SendReportedState(_iotHubClientHandle, reinterpret_cast<const unsigned char*>(allJson.c_str()), allJson.size() + 1, OnReportedPropertiesSent, NULL) != IOTHUB_CLIENT_OK)
     {
-        throw DMException("Failed to parse Json.");
+        throw DMException("Failed to send reported properties.");
     }
-
-    if (update_state == DEVICE_TWIN_UPDATE_PARTIAL)
-    {
-        return value;
-    }
-
-    if (update_state != DEVICE_TWIN_UPDATE_COMPLETE || value->ValueType != JsonValueType::Object)
-    {
-        throw DMException("Unknown device twin update type.");
-    }
-
-    // Locate the 'desired' node.
-    JsonObject^ object = value->GetObject();
-    if (object == nullptr)
-    {
-        throw DMException("Unexpected device twin update element.");
-    }
-
-    IJsonValue^ desiredPropertiesNode = nullptr;
-    for (IIterator<IKeyValuePair<String^, IJsonValue^>^>^ iter = object->First();
-        iter->HasCurrent;
-        iter->MoveNext())
-    {
-        IKeyValuePair<String^, IJsonValue^>^ pair = iter->Current;
-        String^ childKey = pair->Key;
-
-        // Look for "desired"
-        if (childKey == JsonDesiredNode && pair->Value != nullptr)
-        {
-            desiredPropertiesNode = pair->Value;
-            break;
-        }
-    }
-
-    if (!desiredPropertiesNode)
-    {
-        throw DMException("Failed to find the desired properties node.");
-    }
-
-    return desiredPropertiesNode;
-}
-
-void AzureProxy::ProcessDesiredProperties(bool completeSet, const std::string& allJson)
-{
-    IJsonValue^ desiredValue = GetDesiredPropertiesNode(completeSet ? DEVICE_TWIN_UPDATE_COMPLETE : DEVICE_TWIN_UPDATE_PARTIAL, allJson);
-    ProcessDesiredProperties(desiredValue);
+    TRACE("Reported state has been delivered to IoTHub");
 }
 
 void AzureProxy::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payload, size_t bufferSize, void* userContextCallback)
@@ -350,9 +288,9 @@ void AzureProxy::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, cons
     TRACEP("Desired Properties String: ", copyOfPayload.c_str());
     try
     {
-        TaskQueue::Task task([pThis, update_state, copyOfPayload]()
+        TaskQueue::Task task([pThis, update_state, copyOfPayload](ModelManager* modelManager)
         {
-            pThis->ProcessDesiredProperties(update_state == DEVICE_TWIN_UPDATE_COMPLETE, copyOfPayload);
+            modelManager->ProcessDesiredProperties(update_state == DEVICE_TWIN_UPDATE_COMPLETE, copyOfPayload);
             return "";  // A return payload does not apply to property changes.
                         // However, to comply with the task type, we have to return a string.
         });
@@ -367,76 +305,4 @@ void AzureProxy::OnDesiredProperties(DEVICE_TWIN_UPDATE_STATE update_state, cons
         // We just log a message. Let the service continue running.
         TRACE("Error: Failed to process desired properties update.");
     }
-}
-
-void AzureProxy::ProcessDesiredProperties(IJsonValue^ desiredPropertyValue)
-{
-    TRACE(L"ProcessDesiredProperties()");
-    switch (desiredPropertyValue->ValueType)
-    {
-    case JsonValueType::Object:
-        {
-            // Iterate through the desired properties top-level nodes.
-            JsonObject^ object = desiredPropertyValue->GetObject();
-            if (object == nullptr)
-            {
-                TRACE("Warning: Unexpected desired properties contents. Skipping.");
-                return;
-            }
-
-            for (IIterator<IKeyValuePair<String^, IJsonValue^>^>^ iter = object->First();
-                    iter->HasCurrent;
-                    iter->MoveNext())
-            {
-                IKeyValuePair<String^, IJsonValue^>^ pair = iter->Current;
-                String^ childKey = pair->Key;
-
-                if (0 == RebootModel::NodeName().compare(childKey->Data()))
-                {
-                    _rebootModel.SetDesiredProperties(pair->Value);
-                }
-                else if (0 == AzureUpdateManager::NodeName().compare(childKey->Data()))
-                {
-                    _azureUpdateManager.SetDesiredProperties(pair->Value);
-                }
-            }
-        }
-        break;
-    }
-}
-
-void AzureProxy::ReportProperties(JsonObject^ root) const
-{
-    TRACE(L"AzureProxy::ReportProperties()");
-
-    string jsonString = Utils::WideToMultibyte(root->Stringify()->Data());
-    TRACEP("Json = ", jsonString.c_str());
-
-    if (IoTHubClient_SendReportedState(_iotHubClientHandle, reinterpret_cast<const unsigned char*>(jsonString.c_str()), jsonString.size() + 1, OnReportedPropertiesSent, NULL) != IOTHUB_CLIENT_OK)
-    {
-        throw DMException("Failed to send reported properties.");
-    }
-    TRACE("Reported state has been delivered to IoTHub");
-}
-
-void AzureProxy::ReportAllProperties()
-{
-    TRACE(L"AzureProxy::ReportAllProperties()");
-
-    JsonObject^ root = ref new JsonObject();
-    {
-        // System Info properties
-        root->Insert(ref new String(SystemInfoModel::NodeName().c_str()), _systemInfoModel.GetReportedProperties());
-
-        // Time properties
-        root->Insert(ref new String(TimeModel::NodeName().c_str()), _timeModel.GetReportedProperties());
-
-        // Reboot properties
-        root->Insert(ref new String(RebootModel::NodeName().c_str()), _rebootModel.GetReportedProperties());
-
-        // Update properties
-        root->Insert(ref new String(AzureUpdateManager::NodeName().c_str()), _azureUpdateManager.GetReportedProperties());
-    }
-
-    ReportProperties(root);
 }

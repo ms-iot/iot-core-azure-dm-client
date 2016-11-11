@@ -12,7 +12,7 @@ public:
     void SetDesiredProperties(Windows::Data::Json::IJsonValue^ rebootNode);
 
     // Reported
-    Windows::Data::Json::JsonObject^ GetReportedProperties();
+    Windows::Data::Json::JsonObject^ GetReportedProperties() const;
 
     // Operations
     std::string ExecRebootNow();

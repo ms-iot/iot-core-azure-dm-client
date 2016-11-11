@@ -90,7 +90,7 @@ void RebootModel::SetDesiredProperties(Windows::Data::Json::IJsonValue^ rebootNo
     RebootCSP::SetDailyScheduleTime(dailyRebootTime);
 }
 
-JsonObject^ RebootModel::GetReportedProperties()
+JsonObject^ RebootModel::GetReportedProperties() const
 {
     TRACE(L"RebootModel::GetReportedProperties()");
 

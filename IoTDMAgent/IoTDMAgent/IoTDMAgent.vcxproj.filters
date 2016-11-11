@@ -123,6 +123,9 @@
     <ClInclude Include="TaskQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AzureModels\ModelManager.h">
+      <Filter>Header Files\AzureModels</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -193,6 +196,9 @@
     </ClCompile>
     <ClCompile Include="TaskQueue.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AzureModels\ModelManager.cpp">
+      <Filter>Source Files\AzureModels</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

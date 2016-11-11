@@ -5,6 +5,7 @@
 #include "TaskQueue.h"
 #include "Utilities\Limpet.h"
 #include "AzureProxy.h"
+#include "AzureModels\ModelManager.h"
 
 class IoTDMService
 {
@@ -100,4 +101,7 @@ private:
 
     // Azure proxy
     AzureProxy _cloudProxy;
+
+    // Models
+    ModelManager _modelManager;
 };
