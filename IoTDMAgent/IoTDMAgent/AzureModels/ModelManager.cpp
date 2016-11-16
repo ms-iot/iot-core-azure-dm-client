@@ -94,6 +94,10 @@ void ModelManager::ProcessDesiredProperties(IJsonValue^ desiredPropertyValue)
             {
                 _azureUpdateManager.SetDesiredProperties(pair->Value);
             }
+            else if (0 == WindowsUpdateModel::NodeName().compare(childKey->Data()))
+            {
+                _windowsUpdateModel.SetDesiredProperties(pair->Value);
+            }
         }
     }
     break;
@@ -155,8 +159,11 @@ string ModelManager::GetAllPropertiesJson() const
         // Reboot properties
         root->Insert(ref new String(RebootModel::NodeName().c_str()), _rebootModel.GetReportedProperties());
 
-        // Update properties
+        // Azure Update properties
         root->Insert(ref new String(AzureUpdateManager::NodeName().c_str()), _azureUpdateManager.GetReportedProperties());
+
+        // Windows Update properties
+        root->Insert(ref new String(WindowsUpdateModel::NodeName().c_str()), _windowsUpdateModel.GetReportedProperties());
     }
 
     string jsonString = Utils::WideToMultibyte(root->Stringify()->Data());

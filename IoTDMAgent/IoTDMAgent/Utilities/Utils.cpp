@@ -76,6 +76,12 @@ wstring MultibyteToWide(const char* s)
     return wstring(wideString.data());
 }
 
+wstring ToStringW(unsigned int i)
+{
+    string s = to_string(i);
+    return MultibyteToWide(s.c_str());
+}
+
 wstring GetCurrentDateTimeString()
 {
     SYSTEMTIME systemTime;

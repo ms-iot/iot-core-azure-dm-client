@@ -88,6 +88,21 @@ namespace DMDashboard
             ConnectedProperties.IsEnabled = true;
         }
 
+        private void StringToListBox(string s, ListBox list)
+        {
+            string[] guids = s.Split('\\');
+            list.Items.Clear();
+            foreach (string guid in guids)
+            {
+                list.Items.Add(guid);
+            }
+        }
+
+        private bool StringToBool(string s)
+        {
+            return s != "0";
+        }
+
         private void UpdateUI(string path, string value)
         {
             if (path == "systemInfo.osVersion")
@@ -161,6 +176,94 @@ namespace DMDashboard
             else if (path == "remoteWipe.lastRemoteWipe")
             {
                 LastRemoteWipeTime.Text = value;
+            }
+            else if (path == "windowsUpdate.allowAutoUpdate")
+            {
+                ReportedAllowAutoUpdate.IsChecked = StringToBool(value);
+            }
+            else if (path == "windowsUpdate.activeHours")
+            {
+                ReportedPolicyActiveHours.Text = value;
+            }
+            else if (path == "windowsUpdate.allowMUUpdates")
+            {
+                ReportedAllowMUUpdate.IsChecked = StringToBool(value);
+            }
+            else if (path == "windowsUpdate.allowNonMSsignedUpdates")
+            {
+                ReportedAllowNonMSSignedUpdate.IsChecked = StringToBool(value);
+            }
+            else if (path == "windowsUpdate.allowUpdateService")
+            {
+                ReportedAllowUpdateService.IsChecked = StringToBool(value);
+            }
+            else if (path == "windowsUpdate.branchReadinessLevel")
+            {
+                ReportedBranchReadinessLevel.Text = value;
+            }
+            else if (path == "windowsUpdate.deferFeatureUpdates")
+            {
+                ReportedDeferFeatureUpdates.Text = value;
+            }
+            else if (path == "windowsUpdate.deferQualityUpdates")
+            {
+                ReportedDeferQualityUpdates.Text = value;
+            }
+            else if (path == "windowsUpdate.excludeWUDriver")
+            {
+                ReportedExcludeWUDrivers.IsChecked = StringToBool(value);
+            }
+            else if (path == "windowsUpdate.pauseFeatureUpdates")
+            {
+                ReportedPauseFeatureUpdates.IsChecked = StringToBool(value);
+            }
+            else if (path == "windowsUpdate.pauseQualityUpdates")
+            {
+                ReportedPauseQualityUpdates.IsChecked = StringToBool(value);
+            }
+            else if (path == "windowsUpdate.requireUpdateApproval")
+            {
+                ReportedRequireUpdateApproval.IsChecked = StringToBool(value);
+            }
+            else if (path == "windowsUpdate.installDay")
+            {
+                ReportedScheduledInstallDay.Text = value;
+            }
+            else if (path == "windowsUpdate.installHour")
+            {
+                ReportedScheduledInstallHour.Text = value;
+            }
+            else if (path == "windowsUpdate.updateUrl")
+            {
+                ReportedUpdateURL.Text = value;
+            }
+            else if (path == "windowsUpdate.approvedUpdates")
+            {
+                StringToListBox(value, ReportedApprovedUpdates);
+            }
+            else if (path == "windowsUpdate.installedUpdates")
+            {
+                StringToListBox(value, ReportedInstalledUpdates);
+            }
+            else if (path == "windowsUpdate.failedUpdates")
+            {
+                StringToListBox(value, ReportedFailedUpdates);
+            }
+            else if (path == "windowsUpdate.installableUpdates")
+            {
+                StringToListBox(value, ReportedInstallableUpdates);
+            }
+            else if (path == "windowsUpdate.pendingRebootUpdates")
+            {
+                StringToListBox(value, ReportedPendingRebootUpdates);
+            }
+            else if (path == "windowsUpdate.lastSuccessfulScanTime")
+            {
+                ReportedLastScanTime.Text = value;
+            }
+            else if (path == "windowsUpdate.deferUpgrade")
+            {
+                ReportedDeferUpgrade.IsChecked = StringToBool(value);
             }
             else
             {
@@ -306,7 +409,69 @@ namespace DMDashboard
             return s.Replace('.', '_').Replace('-', '_');
         }
 
-        private JProperty GetDesiredUpdates()
+        private JProperty GetDesiredReboot()
+        {
+            JObject rebootProperties = new JObject();
+            {
+                JValue singleRebootTimeValue = new JValue(DesiredSingleRebootTime.Text);
+                JProperty singleRebootTimeProperty = new JProperty("singleReboot", singleRebootTimeValue);
+                rebootProperties.Add(singleRebootTimeProperty);
+
+                JValue dailyRebootTimeValue = new JValue(DesiredDailyRebootTime.Text);
+                JProperty dailyRebootTimeProperty = new JProperty("dailyReboot", dailyRebootTimeValue);
+                rebootProperties.Add(dailyRebootTimeProperty);
+            }
+
+            return new JProperty("reboot", rebootProperties);
+        }
+
+
+        private string GetListStrings(ListBox listBox)
+        {
+            string s = "";
+            for (int i = 0; i < listBox.Items.Count; ++i)
+            {
+                string itemString = GetListBoxItemString(listBox.Items[i]);
+                if (itemString == GuidPlaceHolder)
+                {
+                    continue;
+                }
+
+                if (s.Length != 0)
+                {
+                    s += @"\";
+                }
+                s += itemString;
+            }
+            return s;
+        }
+
+        private JProperty GetDesiredWindowsUpdates()
+        {
+            JObject properties = new JObject();
+            {
+                properties.Add(new JProperty("allowAutoUpdate", new JValue(DesiredAllowAutoUpdate.IsChecked == true ? 1 : 0)));
+                properties.Add(new JProperty("activeHours", DesiredPolicyActiveHours.Text));
+                properties.Add(new JProperty("allowMUUpdates", new JValue(DesiredAllowMUUpdate.IsChecked == true ? 1 : 0)));
+                properties.Add(new JProperty("allowNonMSsignedUpdates", new JValue(DesiredAllowNonMSSignedUpdate.IsChecked == true ? 1 : 0)));
+                properties.Add(new JProperty("allowUpdateService", new JValue(DesiredAllowUpdateService.IsChecked == true ? 1 : 0)));
+                properties.Add(new JProperty("branchReadinessLevel", new JValue(Int32.Parse(DesiredBranchReadinessLevel.Text))));
+                properties.Add(new JProperty("deferFeatureUpdates", new JValue(Int32.Parse(DesiredDeferFeatureUpdates.Text))));
+                properties.Add(new JProperty("deferQualityUpdates", new JValue(Int32.Parse(DesiredDeferQualityUpdates.Text))));
+                properties.Add(new JProperty("excludeWUDrivers", new JValue(DesiredExcludeWUDrivers.IsChecked == true ? 1 : 0)));
+                properties.Add(new JProperty("pauseFeatureUpdates", new JValue(DesiredPauseFeatureUpdates.IsChecked == true ? 1 : 0)));
+                properties.Add(new JProperty("pauseQualityUpdates", new JValue(DesiredPauseQualityUpdates.IsChecked == true ? 1 : 0)));
+                properties.Add(new JProperty("requireUpdateApproval", new JValue(DesiredRequireUpdateApproval.IsChecked == true ? 1 : 0)));
+                properties.Add(new JProperty("installDay", new JValue(Int32.Parse(DesiredScheduledInstallDay.Text))));
+                properties.Add(new JProperty("installHour", new JValue(Int32.Parse(DesiredScheduledInstallHour.Text))));
+                properties.Add(new JProperty("updateUrl", new JValue(DesiredUpdateURL.Text)));
+                properties.Add(new JProperty("approvedUpdates", new JValue(GetListStrings(DesiredApprovedUpdates))));
+            }
+
+            return new JProperty("windowsUpdate", properties);
+        }
+
+        private JProperty GetDesiredAzureUpdates()
         {
             JObject updateProperties = new JObject();
             {
@@ -352,22 +517,10 @@ namespace DMDashboard
 
         private void OnApplyDesired(object sender, RoutedEventArgs e)
         {
-            JObject rebootProperties = new JObject();
-            {
-                JValue singleRebootTimeValue = new JValue(DesiredSingleRebootTime.Text);
-                JProperty singleRebootTimeProperty = new JProperty("singleReboot", singleRebootTimeValue);
-                rebootProperties.Add(singleRebootTimeProperty);
-
-                JValue dailyRebootTimeValue = new JValue(DesiredDailyRebootTime.Text);
-                JProperty dailyRebootTimeProperty = new JProperty("dailyReboot", dailyRebootTimeValue);
-                rebootProperties.Add(dailyRebootTimeProperty);
-            }
-
-            JProperty rebootProperty = new JProperty("reboot", rebootProperties);
-
             JObject desiredProperties = new JObject();
-            desiredProperties.Add(rebootProperty);
-            desiredProperties.Add(GetDesiredUpdates());
+            desiredProperties.Add(GetDesiredReboot());
+            desiredProperties.Add(GetDesiredWindowsUpdates());
+            desiredProperties.Add(GetDesiredAzureUpdates());
 
             JProperty desiredProperty = new JProperty("desired", desiredProperties);
 
@@ -460,9 +613,14 @@ namespace DMDashboard
             ToggleUIElementVisibility(RemoteWipeGrid);
         }
 
-        private void OnExpandUpdate(object sender, RoutedEventArgs e)
+        private void OnExpandWindowsUpdate(object sender, RoutedEventArgs e)
         {
-            ToggleUIElementVisibility(UpdateGrid);
+            ToggleUIElementVisibility(WindowsUpdateGrid);
+        }
+
+        private void OnExpandAzureUpdate(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(AzureUpdateGrid);
         }
 
         private List<string> GetBlobList(string connectionString, string containerName)
@@ -500,7 +658,7 @@ namespace DMDashboard
         {
             List<string> blobList = GetBlobList(StorageConnectionString.Text, StorageContainer.Text);
             FillOutUpdateList(blobList);
-            GetDesiredUpdates();
+            GetDesiredAzureUpdates();
         }
 
         private void OnStorageConnect(object sender, RoutedEventArgs e)
@@ -524,16 +682,37 @@ namespace DMDashboard
         }
         */
 
-        private void OnTest(object sender, RoutedEventArgs e)
+        private string GetListBoxItemString(object item)
         {
-            GetDesiredUpdates();
+            string itemString = "";
+            if (typeof(String) == item.GetType())
+            {
+                itemString = (string)item;
+            }
+            else
+            {
+                ListBoxItem listItem = (ListBoxItem)item;
+                itemString = (string)listItem.Content;
+            }
+            return itemString;
+        }
+
+        private void OnAddApprovedUpdate(object sender, RoutedEventArgs e)
+        {
+            string firstItemString = GetListBoxItemString(DesiredApprovedUpdates.Items[0]);
+
+            if (GuidPlaceHolder == firstItemString)
+            {
+                DesiredApprovedUpdates.Items.Clear();
+            }
+            DesiredApprovedUpdates.Items.Add(NewApprovedUpdateGuid.Text);
         }
 
         // Data members
+        const string GuidPlaceHolder = "<none>";
         private RegistryManager _registryManager;
         private DeviceTwinAndMethod _deviceTwin;
         private DispatcherTimer _dispatcherTimer;
         private List<UpdateInfo> _updateList;
-
     }
 }

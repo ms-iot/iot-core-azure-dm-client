@@ -27,12 +27,17 @@ public:
 
 class DMExceptionWithErrorCode : public DMException
 {
-    int _errorcode;
+    int _errorCode;
 public:
     DMExceptionWithErrorCode(int errorcode) :
-        DMException(""), _errorcode(errorcode)
+        DMException(""), _errorCode(errorcode)
     {
         TRACEP("Exception error code: ", errorcode);
+    }
+
+    int ErrorCode() const
+    {
+        return _errorCode;
     }
 };
 

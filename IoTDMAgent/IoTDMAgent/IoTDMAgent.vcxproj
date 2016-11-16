@@ -277,6 +277,7 @@
     <ClInclude Include="AzureModels\RemoteWipeModel.h" />
     <ClInclude Include="AzureModels\SystemInfoModel.h" />
     <ClInclude Include="AzureModels\TimeModel.h" />
+    <ClInclude Include="AzureModels\WindowsUpdateModel.h" />
     <ClInclude Include="AzureProxy.h" />
     <ClInclude Include="IoTDMService.h" />
     <ClInclude Include="LocalMachine\CSPs\MdmProvision.h" />
@@ -306,6 +307,7 @@
     <ClCompile Include="AzureModels\RemoteWipeModel.cpp" />
     <ClCompile Include="AzureModels\SystemInfoModel.cpp" />
     <ClCompile Include="AzureModels\TimeModel.cpp" />
+    <ClCompile Include="AzureModels\WindowsUpdateModel.cpp" />
     <ClCompile Include="AzureProxy.cpp" />
     <ClCompile Include="IoTDMAgent.cpp" />
     <ClCompile Include="IoTDMService.cpp" />
