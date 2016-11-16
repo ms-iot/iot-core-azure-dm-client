@@ -6,6 +6,7 @@
 #include "TimeModel.h"
 #include "SystemInfoModel.h"
 #include "AzureUpdateManager.h"
+#include "WindowsUpdateModel.h"
 
 class ModelManager
 {
@@ -31,4 +32,5 @@ private:
     RebootModel _rebootModel;
     RemoteWipeModel _remoteWipeModel;
     AzureUpdateManager _azureUpdateManager;
+    WindowsUpdateModel _windowsUpdateModel;
 };

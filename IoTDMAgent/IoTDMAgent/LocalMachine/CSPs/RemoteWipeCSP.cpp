@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "RemoteWipeCSP.h"
 #include "MdmProvision.h"
-#include "LocalMachine\LocalMachine.h"
+#include "RebootCSP.h"
 
 using namespace std;
 
@@ -29,6 +29,6 @@ void RemoteWipeCSP::DoWipe()
     }
 
     // Note: Reboot has a 5 minute delay.
-    LocalMachine::Reboot();
+    RebootCSP::ExecRebootNow();
 #endif
 }

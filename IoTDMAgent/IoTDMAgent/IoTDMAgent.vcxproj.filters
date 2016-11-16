@@ -126,6 +126,9 @@
     <ClInclude Include="AzureModels\ModelManager.h">
       <Filter>Header Files\AzureModels</Filter>
     </ClInclude>
+    <ClInclude Include="AzureModels\WindowsUpdateModel.h">
+      <Filter>Header Files\AzureModels</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -198,6 +201,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AzureModels\ModelManager.cpp">
+      <Filter>Source Files\AzureModels</Filter>
+    </ClCompile>
+    <ClCompile Include="AzureModels\WindowsUpdateModel.cpp">
       <Filter>Source Files\AzureModels</Filter>
     </ClCompile>
   </ItemGroup>

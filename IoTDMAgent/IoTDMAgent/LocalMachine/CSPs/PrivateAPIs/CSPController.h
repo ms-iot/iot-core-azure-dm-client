@@ -11,6 +11,9 @@
 // Name of host variable to retrieve the session's Targeted User SID from within a CSP
 #define OMADM_TARGETEDUSERSID_VARIABLE_NAME TEXT("OMADM::TargetedUserSID")
 
+// Error codes
+#define OMADM_ERROR_ALREADY_EXISTS 418 
+
 HRESULT MdmProvisionSyncBodyWithAttributes(
     _In_                   PCWSTR  pszInContent,
     _In_opt_               PCWSTR  pszServerID,

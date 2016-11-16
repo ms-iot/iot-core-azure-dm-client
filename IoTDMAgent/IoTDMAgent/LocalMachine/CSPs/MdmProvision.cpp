@@ -78,6 +78,7 @@ void MdmProvision::RunAdd(const wstring& sid, const wstring& path, const wstring
                     <Target>
                         <LocURI>)";
     requestSyncML += path;
+    requestSyncML += L"/";
     requestSyncML += value;
     requestSyncML += LR"(</LocURI>
                     </Target>

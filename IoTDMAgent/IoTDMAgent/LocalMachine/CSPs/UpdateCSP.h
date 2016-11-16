@@ -6,15 +6,14 @@
 class UpdateCSP
 {
 public:
-    static void GetInstalledUpdates(std::vector<std::wstring>& guids);
+    static std::wstring GetInstalledUpdates();
 
-    static void GetApprovedUpdates(std::vector<std::wstring>& guids);
+    static std::wstring GetApprovedUpdates();
     static void AddApprovedUpdates(const std::wstring& guid);
 
-    static void GetFailedUpdates(std::vector<std::wstring>& guids);
-
-    static void GetInstallableUpdates(std::vector<std::wstring>& guids);
-    static void GetPendingRebootUpdates(std::vector<std::wstring>& guids);
+    static std::wstring GetFailedUpdates();
+    static std::wstring GetInstallableUpdates();
+    static std::wstring GetPendingRebootUpdates();
     static std::wstring GetLastSuccessfulScanTime();
     static bool GetDeferUpgrade();
 
