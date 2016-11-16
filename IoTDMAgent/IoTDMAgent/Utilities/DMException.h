@@ -29,10 +29,10 @@ class DMExceptionWithErrorCode : public DMException
 {
     int _errorCode;
 public:
-    DMExceptionWithErrorCode(int errorcode) :
-        DMException(""), _errorCode(errorcode)
+    DMExceptionWithErrorCode(int errorCode) :
+        DMException(""), _errorCode(errorCode)
     {
-        TRACEP("Exception error code: ", errorcode);
+        TRACEP("Exception error code: ", errorCode);
     }
 
     int ErrorCode() const

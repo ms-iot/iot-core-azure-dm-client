@@ -11,8 +11,6 @@ namespace Utils
     std::string WideToMultibyte(const wchar_t* s);
     std::wstring MultibyteToWide(const char* s);
 
-    std::wstring ToStringW(unsigned int i);
-
     template<class T>
     void SplitString(const std::basic_string<T> &s, T delim, std::vector<std::basic_string<T>>& tokens)
     {

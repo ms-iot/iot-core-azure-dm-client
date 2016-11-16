@@ -32,17 +32,6 @@ std::wstring UpdateCSP::GetInstalledUpdates()
     return resultsString;
 }
 
-void UpdateCSP::GetInstalledUpdates(vector<wstring>& guids)
-{
-    TRACE(L"\n---- Get Installed Updates\n");
-
-    wstring resultsString = GetInstalledUpdates();
-    Utils::SplitString(resultsString, L'/', guids);
-#if _DEBUG
-    LogGuids(guids);
-#endif
-}
-
 std::wstring UpdateCSP::GetApprovedUpdates()
 {
     TRACE(L"\n---- Get Approved Updates\n");
@@ -50,17 +39,6 @@ std::wstring UpdateCSP::GetApprovedUpdates()
     wstring resultsString = MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Update/ApprovedUpdates");
     TRACEP(L"    :", resultsString.c_str());
     return resultsString;
-}
-
-void UpdateCSP::GetApprovedUpdates(vector<wstring>& guids)
-{
-    TRACE(L"\n---- Get Approved Updates\n");
-
-    wstring resultsString = GetApprovedUpdates();
-    Utils::SplitString(resultsString, L'/', guids);
-#if _DEBUG
-    LogGuids(guids);
-#endif
 }
 
 void UpdateCSP::AddApprovedUpdates(const wstring& guid)
@@ -88,17 +66,6 @@ std::wstring UpdateCSP::GetFailedUpdates()
     return resultsString;
 }
 
-void UpdateCSP::GetFailedUpdates(vector<wstring>& guids)
-{
-    TRACE(L"\n---- Get Failed Updates\n");
-
-    wstring resultsString = GetFailedUpdates();
-    Utils::SplitString(resultsString, L'/', guids);
-#if _DEBUG
-    LogGuids(guids);
-#endif
-}
-
 wstring UpdateCSP::GetInstallableUpdates()
 {
     TRACE(L"\n---- Get Installable Updates\n");
@@ -108,33 +75,11 @@ wstring UpdateCSP::GetInstallableUpdates()
     return resultsString;
 }
 
-void UpdateCSP::GetInstallableUpdates(vector<wstring>& guids)
-{
-    TRACE(L"\n---- Get Installable Updates\n");
-
-    wstring resultsString = GetInstallableUpdates();
-    Utils::SplitString(resultsString, L'/', guids);
-#if _DEBUG
-    LogGuids(guids);
-#endif
-}
-
 wstring UpdateCSP::GetPendingRebootUpdates()
 {
     wstring resultsString = MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Update/PendingRebootUpdates");
     TRACEP(L"    :", resultsString.c_str());
     return resultsString;
-}
-
-void UpdateCSP::GetPendingRebootUpdates(vector<wstring>& guids)
-{
-    TRACE(L"\n---- Get Pending Reboot Updates\n");
-
-    wstring resultsString = GetPendingRebootUpdates();
-    Utils::SplitString(resultsString, L'/', guids);
-#if _DEBUG
-    LogGuids(guids);
-#endif
 }
 
 wstring UpdateCSP::GetLastSuccessfulScanTime()

@@ -169,8 +169,8 @@ JsonObject^ WindowsUpdateModel::GetReportedProperties()
     JsonObject^ windowsUpdateProperties = ref new JsonObject();
     windowsUpdateProperties->Insert(AllowAutoUpdate, JsonValue::CreateNumberValue(static_cast<double>(PolicyCSP::GetAllowAutoUpdate())));
 
-    wstring activeHoursStart = Utils::ToStringW(PolicyCSP::GetActiveHoursStart());
-    wstring activeHoursEnd = Utils::ToStringW(PolicyCSP::GetActiveHoursEnd());
+    wstring activeHoursStart = to_wstring(PolicyCSP::GetActiveHoursStart());
+    wstring activeHoursEnd = to_wstring(PolicyCSP::GetActiveHoursEnd());
     wstring activeHours = activeHoursStart + L"-" + activeHoursEnd;
 
     windowsUpdateProperties->Insert(ActiveHours, JsonValue::CreateStringValue(ref new String(activeHours.c_str())));
