@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{45d41acc-2c3c-43d2-bc10-02aa73ffc7c7}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\EnterpriseModernAppManagementCSP.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\MdmProvision.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\PolicyCSP.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\PrivateAPIs\CSPController.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\RebootCSP.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\RemoteWipeCSP.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\UpdateCSP.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\LocalMachine.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\UpdateEngine.cpp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\EnterpriseModernAppManagementCSP.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\MdmProvision.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\PolicyCSP.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\PrivateAPIs\CSPController.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\PrivateAPIs\IProvisioningDPULocal.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\RebootCSP.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\RemoteWipeCSP.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\UpdateCSP.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\LocalMachine.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\UpdateEngine.h" />
+  </ItemGroup>
+
+</Project>
