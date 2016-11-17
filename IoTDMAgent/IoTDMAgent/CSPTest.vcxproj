@@ -27,9 +27,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{BC896087-BD60-4D31-B3B6-24F725FFD7DF}</ProjectGuid>
+    <ProjectGuid>{51ADD678-6C67-45FA-A84D-2EECBB590083}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>IoTDMAgent</RootNamespace>
+    <RootNamespace>CSPTest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -74,14 +74,10 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <PropertyGroup>
     <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(Configuration)\CSPTest\</OutDir>
+    <IntDir>$(OutDir)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -245,44 +241,27 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AzureModels\AzureUpdateManager.h" />
-    <ClInclude Include="AzureModels\AzureUpdateModel.h" />
-    <ClInclude Include="AzureModels\ModelManager.h" />
-    <ClInclude Include="AzureModels\RebootModel.h" />
-    <ClInclude Include="AzureModels\RemoteWipeModel.h" />
-    <ClInclude Include="AzureModels\SystemInfoModel.h" />
-    <ClInclude Include="AzureModels\TimeModel.h" />
-    <ClInclude Include="AzureModels\WindowsUpdateModel.h" />
-    <ClInclude Include="AzureProxy.h" />
-    <ClInclude Include="IoTDMService.h" />
-    <ClInclude Include="resource.h" />
+    <ClInclude Include="LocalMachine\CSPs\EnterpriseModernAppManagementCSP.h" />
+    <ClInclude Include="LocalMachine\CSPs\MdmProvision.h" />
+    <ClInclude Include="LocalMachine\CSPs\PolicyCSP.h" />
+    <ClInclude Include="LocalMachine\CSPs\PrivateAPIs\CSPController.h" />
+    <ClInclude Include="LocalMachine\CSPs\PrivateAPIs\IProvisioningDPULocal.h" />
+    <ClInclude Include="LocalMachine\CSPs\RebootCSP.h" />
+    <ClInclude Include="LocalMachine\CSPs\RemoteWipeCSP.h" />
+    <ClInclude Include="LocalMachine\CSPs\UpdateCSP.h" />
+    <ClInclude Include="LocalMachine\LocalMachine.h" />
+    <ClInclude Include="LocalMachine\UpdateEngine.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TaskQueue.h" />
-    <ClInclude Include="Utilities\AzureStorage.h" />
     <ClInclude Include="Utilities\DMException.h" />
-    <ClInclude Include="Utilities\Limpet.h" />
     <ClInclude Include="Utilities\Logger.h" />
     <ClInclude Include="Utilities\Utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AzureModels\AzureUpdateManager.cpp" />
-    <ClCompile Include="AzureModels\AzureUpdateModel.cpp" />
-    <ClCompile Include="AzureModels\ModelManager.cpp" />
-    <ClCompile Include="AzureModels\RebootModel.cpp" />
-    <ClCompile Include="AzureModels\RemoteWipeModel.cpp" />
-    <ClCompile Include="AzureModels\SystemInfoModel.cpp" />
-    <ClCompile Include="AzureModels\TimeModel.cpp" />
-    <ClCompile Include="AzureModels\WindowsUpdateModel.cpp" />
-    <ClCompile Include="AzureProxy.cpp" />
-    <ClCompile Include="IoTDMAgent.cpp" />
-    <ClCompile Include="IoTDMService.cpp" />
+    <ClCompile Include="CSPTest.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="TaskQueue.cpp" />
-    <ClCompile Include="Utilities\AzureStorage.cpp" />
-    <ClCompile Include="Utilities\Limpet.cpp" />
     <ClCompile Include="Utilities\Logger.cpp" />
     <ClCompile Include="Utilities\Utils.cpp" />
   </ItemGroup>
