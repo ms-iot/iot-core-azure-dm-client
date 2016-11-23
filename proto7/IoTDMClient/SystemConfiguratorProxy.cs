@@ -28,7 +28,8 @@ namespace Microsoft.Devices.Management
         public string message;
     }
 
-    class DMCommunicator
+    // This class send requests (dm_request) to the System Configurator and receives the responses (dm_response) from it
+    static class SystemConfiguratorProxy
     {
         private static byte[] Serialize(dm_request command)
         {

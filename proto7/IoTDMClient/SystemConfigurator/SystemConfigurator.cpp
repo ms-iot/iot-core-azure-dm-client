@@ -85,8 +85,6 @@ dm_response process_command(const dm_request& request);
 int main()
 {
     HANDLE hPipe;
-    char buffer[BUFSIZE];
-    DWORD dwRead;
 
     security_attributes sa(GENERIC_WRITE | GENERIC_READ);
 
@@ -109,18 +107,12 @@ int main()
             printf("Waiting for someone to connect...\n");
             if (ConnectNamedPipe(hPipe, NULL) != FALSE)
             {
-                printf("Reading data...\n");
+                dm_request request;
+                DWORD dwRead;
                 //while (ReadFile(hPipe, buffer, sizeof(buffer) - 1, &dwRead, NULL) != FALSE)
-                BOOL readResult = ReadFile(hPipe, buffer, sizeof(buffer) - 1, &dwRead, NULL);
-                if(readResult)
+                BOOL readResult = ReadFile(hPipe, &request, sizeof(request), &dwRead, NULL);
+                if(readResult && dwRead == sizeof(request))
                 {
-                    /* do something with data in buffer */
-                    printf("Received %d bytes\n", dwRead);
-
-                    // TODO: avoid memcpy, read directly into dm_request
-                    dm_request request;
-                    memcpy(&request, buffer, sizeof(dm_request));
-
                     dm_response response = process_command(request);
 
                     DWORD dwWritten;
@@ -129,8 +121,6 @@ int main()
                         sizeof(response),
                         &dwWritten,
                         NULL);
-
-                    printf("Response written\n");
 
                     if (!writeResult) {
                         printf("WriteFile Error %d\n", GetLastError());

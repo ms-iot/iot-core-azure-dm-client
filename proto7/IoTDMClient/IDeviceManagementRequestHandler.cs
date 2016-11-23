@@ -18,6 +18,7 @@ namespace Microsoft.Devices.Management
         public string PackageFamilyName;
     }
 
+    // DM Client talks to the App via this interface. The App implements the interface
     public interface IDeviceManagementRequestHandler
     {
         Task<ApplicationInfo> GetApplicationInfo();

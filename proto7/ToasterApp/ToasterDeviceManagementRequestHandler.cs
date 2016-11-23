@@ -8,6 +8,13 @@ namespace Toaster
 {
     class ToasterDeviceManagementRequestHandler : IDeviceManagementRequestHandler
     {
+        MainPage mainPage;
+
+        public ToasterDeviceManagementRequestHandler(MainPage mainPage)
+        {
+            this.mainPage = mainPage;
+        }
+
         Task<ApplicationInfo> IDeviceManagementRequestHandler.GetApplicationInfo()
         {
             var appInfo = new ApplicationInfo
@@ -20,10 +27,10 @@ namespace Toaster
         }
 
         // Answer the question "is it OK to reboot the toaster"
-        Task<SystemRebootRequestResponse> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
+        async Task<SystemRebootRequestResponse> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
         {
-            // TODO: ask the user
-            return Task<SystemRebootRequestResponse>.FromResult(SystemRebootRequestResponse.AskAgainLater);
+            bool answer = await this.mainPage.YesNo("Allow reboot?");
+            return answer ? SystemRebootRequestResponse.StartNow : SystemRebootRequestResponse.AskAgainLater;
         }
     }
 }

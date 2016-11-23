@@ -21,6 +21,12 @@
                 <CompositeTransform Rotation="270"/>
             </Slider.RenderTransform>
         </Slider>
-        <Button x:Name="buttonSystem_Reset" Content="System_Reset" HorizontalAlignment="Left" VerticalAlignment="Top" Click="button_System_Reset" Margin="80,388,0,0"/>
+
+        <Image x:Name="imageGear" HorizontalAlignment="Left" Margin="250,380,0,0" Source="Assets\gear.png" VerticalAlignment="Top" Width="64" />
+        <StackPanel HorizontalAlignment="Left" Margin="80,380,0,0" VerticalAlignment="Top" Height="120" Width="120">
+            <Button x:Name="buttonSystem_Reset" Content="System Reset" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120" Click="button_System_Reset" />
+            <Button x:Name="buttonCheck_for_Updates" Content="Check Updates" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top" Width="120" Click="button_Check_for_Updates" />
+        </StackPanel>
+        <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="100" Margin="75,375,0,0" VerticalAlignment="Top" Width="250"/>
     </Grid>
 </Page>

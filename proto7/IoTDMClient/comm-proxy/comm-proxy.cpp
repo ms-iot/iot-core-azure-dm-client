@@ -3,7 +3,7 @@
 
 uint32_t send_request_to_system_configurator(const dm_request& request, dm_response & response);
 
-int main(Platform::Array<Platform::String^>^ args)
+int main()
 {
     auto stdinHandle = GetStdHandle(STD_INPUT_HANDLE);
     auto stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE);

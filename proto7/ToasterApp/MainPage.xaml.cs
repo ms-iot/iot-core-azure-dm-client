@@ -24,6 +24,7 @@ using Newtonsoft.Json;
 
 using Microsoft.Devices.Management;
 using System.Runtime.InteropServices;
+using Microsoft.Azure.Devices.Client;
 
 namespace Toaster
 {
@@ -34,6 +35,21 @@ namespace Toaster
     {
         DeviceManagementClient DMClient;
 
+        // This is the application-specific method handler
+        private string OnMethodReceived(string methodName, string payload)
+        {
+            string result;
+            if (DeviceManagementClient.TryHandleMethod(methodName, payload, out result))
+            {
+                // DM took care of this method, we're done
+                return result;
+            }
+            // OK, we need to handle it here:
+            // work-work-work
+            // done
+            return "";
+        }
+
         public MainPage()
         {
             this.InitializeComponent();
@@ -41,12 +57,14 @@ namespace Toaster
             this.buttonStop.IsEnabled = false;
             this.imageHot.Visibility = Visibility.Collapsed;
 
-            DMClient = DeviceManagementClient.Create(new ToasterDeviceManagementRequestHandler());
+            DeviceClient deviceClient = null; // TODO
 
-            // YesNo("Allow Reboot?");
+            DMClient = DeviceManagementClient.Create(
+                new AzureIoTHubDeviceTwinProxy(deviceClient), 
+                new ToasterDeviceManagementRequestHandler(this));
         }
 
-        async Task<bool> YesNo(string question)
+        public async Task<bool> YesNo(string question)
         {
             var dlg = new UserDialog(question);
             await dlg.ShowAsync();
@@ -77,5 +95,8 @@ namespace Toaster
             DMClient.StartFactoryReset();
         }
 
+        private void button_Check_for_Updates(object sender, RoutedEventArgs e)
+        {
+        }
     }
 }
