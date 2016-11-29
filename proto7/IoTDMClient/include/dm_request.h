@@ -4,8 +4,9 @@
 
 enum class dm_command
 {
-    unknown,
-    system_reset,
+    unknown = 0,
+    system_reset = 1,
+    check_updates = 2,
     command_x,
     command_y,
     command_z

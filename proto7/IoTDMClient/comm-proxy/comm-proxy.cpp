@@ -13,10 +13,8 @@ int main()
     DWORD read_from_stdin;
     BOOL bSuccess = ReadFile(stdinHandle, &request, sizeof(dm_request), &read_from_stdin, NULL);
 
-    if (!bSuccess || read_from_stdin == 0)
+    if (!bSuccess || read_from_stdin != sizeof(dm_request))
     {
-        //printf("end of stream! bSuccess=%d, dwRead=%d\n", bSuccess, read_from_stdin);
-        _flushall();
         return -1;
     }
     else

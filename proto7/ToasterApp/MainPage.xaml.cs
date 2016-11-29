@@ -95,8 +95,15 @@ namespace Toaster
             DMClient.StartFactoryReset();
         }
 
-        private void button_Check_for_Updates(object sender, RoutedEventArgs e)
+        private async void button_Check_for_Updates(object sender, RoutedEventArgs e)
         {
+            bool updatesAvailable = await DMClient.CheckForUpdatesAsync();
+            if (updatesAvailable)
+            {
+                var dlg = new UserDialog("Updates available. Install?");
+                await dlg.ShowAsync();
+                // Don't do anything yet
+            }
         }
     }
 }

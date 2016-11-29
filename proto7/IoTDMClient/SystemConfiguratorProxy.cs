@@ -10,10 +10,18 @@ using Windows.System;
 
 namespace Microsoft.Devices.Management
 {
+    // This must be kept in sync with enum class dm_command in dm_request.h
+    public enum DMCommand
+    {
+        FactoryReset = 1,
+        CheckUpdates = 2
+    }
+
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     unsafe struct dm_request
     {
-        public UInt32 command;
+        [MarshalAs(UnmanagedType.U4)]
+        public DMCommand command;
         public fixed byte data[64];
     }
 
