@@ -2,15 +2,11 @@
 
 namespace Microsoft.Devices.Management
 {
-    public delegate string MethodCall(string method, string payload);
-    public delegate void DesiredProperties(string payload);
-
     // TODO: this type will come from the Azure IoT SDK
     public enum DeviceTwinUpdateState
     {
         Complete,
         Partial,
-        SomethingElse
     }
 
     // This is the main entry point into DM
@@ -84,7 +80,7 @@ namespace Microsoft.Devices.Management
         // This command initiates factory reset of the device
         public async Task StartFactoryReset()
         {
-            var request = new dm_request();
+            var request = new DMRequest();
             request.command = DMCommand.FactoryReset;
 
             // Here we might want to set some reported properties:
@@ -97,7 +93,7 @@ namespace Microsoft.Devices.Management
         // TODO: work out complete protocol (find updates, apply updates etc.)
         public async Task<bool> CheckForUpdatesAsync()
         {
-            var request = new dm_request();
+            var request = new DMRequest();
             request.command = DMCommand.CheckUpdates;
 
             var response = await SystemConfiguratorProxy.SendCommandAsync(request);

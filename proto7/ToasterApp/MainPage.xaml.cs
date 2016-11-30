@@ -100,6 +100,7 @@ namespace Toaster
             bool updatesAvailable = await DMClient.CheckForUpdatesAsync();
             if (updatesAvailable)
             {
+                System.Diagnostics.Debug.WriteLine("updates available");
                 var dlg = new UserDialog("Updates available. Install?");
                 await dlg.ShowAsync();
                 // Don't do anything yet

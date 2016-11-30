@@ -1,6 +1,14 @@
 #include "stdafx.h"
 #include "..\include\dm_request.h"
 
+class sysconfig_exception : public std::exception
+{
+    int error;
+public:
+
+    sysconfig_exception() : error(GetLastError()) {}
+};
+
 class security_attributes
 {
     SECURITY_ATTRIBUTES _securityAttributes;
@@ -32,7 +40,7 @@ public:
         if (dwRes != ERROR_SUCCESS)
         {
             printf("SetEntriesInAcl Error %u\n", GetLastError());
-            return;
+            throw sysconfig_exception();
         }
 
         // Initialize a security descriptor.  
@@ -40,20 +48,20 @@ public:
         if (pSD == NULL)
         {
             printf("LocalAlloc Error %u\n", GetLastError());
-            return;
+            throw sysconfig_exception();
         }
 
         if (!InitializeSecurityDescriptor(pSD, SECURITY_DESCRIPTOR_REVISION))
         {
             printf("InitializeSecurityDescriptor Error %u\n", GetLastError());
-            return;
+            throw sysconfig_exception();
         }
 
         // Add the ACL to the security descriptor. 
         if (!SetSecurityDescriptorDacl(pSD, TRUE, pACL, FALSE))
         {
             printf("SetSecurityDescriptorDacl Error %u\n", GetLastError());
-            return;
+            throw sysconfig_exception();
         }
 
         // Initialize a security attributes structure.
@@ -124,16 +132,19 @@ int main()
 
                     if (!writeResult) {
                         printf("WriteFile Error %d\n", GetLastError());
+                        throw sysconfig_exception();
                     }
 
                 }
                 else {
                     printf("ReadFile Error %d\n", GetLastError());
+                    throw sysconfig_exception();
                 }
             }
             else
             {
                 printf("ConnectNamedPipe Error %d\n", GetLastError());
+                throw sysconfig_exception();
             }
             DisconnectNamedPipe(hPipe);
         }
@@ -141,6 +152,7 @@ int main()
     else
     {
         printf("CreateNamedPipe Error %d\n", GetLastError());
+        throw sysconfig_exception();
     }
 
     return 0;

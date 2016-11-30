@@ -6,3 +6,4 @@
 #include <tchar.h>
 #include <windows.h>
 #include <aclapi.h>
+#include <exception>

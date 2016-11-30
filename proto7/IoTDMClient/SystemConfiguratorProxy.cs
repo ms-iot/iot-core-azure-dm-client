@@ -18,7 +18,7 @@ namespace Microsoft.Devices.Management
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    unsafe struct dm_request
+    unsafe struct DMRequest
     {
         [MarshalAs(UnmanagedType.U4)]
         public DMCommand command;
@@ -26,7 +26,7 @@ namespace Microsoft.Devices.Management
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
-    unsafe struct dm_response
+    unsafe struct DMResponse
     {
         public UInt32 status;
         public fixed byte data[64];
@@ -36,12 +36,12 @@ namespace Microsoft.Devices.Management
         public string message;
     }
 
-    // This class send requests (dm_request) to the System Configurator and receives the responses (dm_response) from it
+    // This class send requests (DMrequest) to the System Configurator and receives the responses (DMesponse) from it
     static class SystemConfiguratorProxy
     {
-        private static byte[] Serialize(dm_request command)
+        private static byte[] Serialize(DMRequest command)
         {
-            Int32 size = Marshal.SizeOf<dm_request>();
+            Int32 size = Marshal.SizeOf<DMRequest>();
             byte[] bytes = new byte[size];
             GCHandle gch = GCHandle.Alloc(bytes, GCHandleType.Pinned);
             IntPtr pbyteArrayMyDataStruct = gch.AddrOfPinnedObject();
@@ -50,16 +50,16 @@ namespace Microsoft.Devices.Management
             return bytes;
         }
 
-        private static dm_response Deserialize(ref byte[] serializedData)
+        private static DMResponse Deserialize(ref byte[] serializedData)
         {
             GCHandle gch = GCHandle.Alloc(serializedData, GCHandleType.Pinned);
             IntPtr pbyteSerializedData = gch.AddrOfPinnedObject();
-            var result = (dm_response)Marshal.PtrToStructure<dm_response>(pbyteSerializedData);
+            var result = (DMResponse)Marshal.PtrToStructure<DMResponse>(pbyteSerializedData);
             gch.Free();
             return result;
         }
 
-        public static async Task<dm_response> SendCommandAsync(dm_request command)
+        public static async Task<DMResponse> SendCommandAsync(DMRequest command)
         {
             var processLauncherOptions = new ProcessLauncherOptions();
             var standardInput = new InMemoryRandomAccessStream();
@@ -80,6 +80,7 @@ namespace Microsoft.Devices.Management
                 using (var outStreamRedirect = standardOutput.GetInputStreamAt(0))
                 {
                     uint size = (uint)standardOutput.Size;
+                    System.Diagnostics.Debug.WriteLine(string.Format("Received {0} bytes from comm-proxy", size));
 
                     byte[] bytes = new byte[size];
                     IBuffer ibuffer = bytes.AsBuffer();
@@ -91,7 +92,7 @@ namespace Microsoft.Devices.Management
             else
             {
                 // TODO: handle error
-                var response = new dm_response();
+                var response = new DMResponse();
                 response.status = 500;
                 return response;
             }
