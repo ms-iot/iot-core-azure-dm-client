@@ -21,7 +21,13 @@ int main()
     {
         dm_response response;
 
-        send_request_to_system_configurator(request, response);
+        uint32_t response_size = send_request_to_system_configurator(request, response);
+
+        if (response_size == 0)
+        {
+            // SystemConfigurator failed to respond to the request
+            response.status = 0;
+        }
 
         DWORD bytes_written;
         bSuccess = WriteFile(stdoutHandle, &response, sizeof(dm_response), &bytes_written, NULL);
