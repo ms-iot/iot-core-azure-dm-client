@@ -1,0 +1,32 @@
+﻿<Page
+    x:Class="Toaster.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Toaster"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Image x:Name="imageToaster" HorizontalAlignment="Left" Margin="10,10,0,0" Source="Assets\toaster.png" VerticalAlignment="Top" Width="400"/>
+        <Image x:Name="imageHot" HorizontalAlignment="Left" Margin="250,200,0,0" Source="Assets\hot.png" VerticalAlignment="Top" Width="32"/>
+        <StackPanel HorizontalAlignment="Left" Margin="80,200,0,0" VerticalAlignment="Top" Height="120" Width="120">
+            <Button x:Name="buttonStart" Content="Start Toasting" HorizontalAlignment="Left" VerticalAlignment="Top" Click="buttonStart_Click"/>
+            <TextBlock HorizontalAlignment="Left" Text="Status:" VerticalAlignment="Top" Width="Auto"/>
+            <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Text="Ready" VerticalAlignment="Top" Width="Auto" FontStyle="Italic"/>
+            <Button x:Name="buttonStop" Content="Stop Toasting" HorizontalAlignment="Left" VerticalAlignment="Top" Click="buttonStop_Click"/>
+        </StackPanel>
+        <Slider x:Name="slider" HorizontalAlignment="Left" Margin="180,220,0,0" VerticalAlignment="Top" Width="100" RenderTransformOrigin="0.5,0.5" UseLayoutRounding="False" d:LayoutRounding="Auto">
+            <Slider.RenderTransform>
+                <CompositeTransform Rotation="270"/>
+            </Slider.RenderTransform>
+        </Slider>
+
+        <Image x:Name="imageGear" HorizontalAlignment="Left" Margin="250,380,0,0" Source="Assets\gear.png" VerticalAlignment="Top" Width="64" />
+        <StackPanel HorizontalAlignment="Left" Margin="80,380,0,0" VerticalAlignment="Top" Height="120" Width="120">
+            <Button x:Name="buttonSystem_Reset" Content="System Reset" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120" Click="button_System_Reset" />
+            <Button x:Name="buttonCheck_for_Updates" Content="Check Updates" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top" Width="120" Click="button_Check_for_Updates" />
+        </StackPanel>
+        <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="100" Margin="75,375,0,0" VerticalAlignment="Top" Width="250"/>
+    </Grid>
+</Page>
