@@ -7,6 +7,7 @@ using Windows.ApplicationModel;
 using Windows.Foundation;
 using Windows.Storage.Streams;
 using Windows.System;
+using System.Diagnostics;
 
 namespace Microsoft.Devices.Management
 {
@@ -74,7 +75,7 @@ namespace Microsoft.Devices.Management
             await standardInput.FlushAsync();
             standardInput.Dispose();
 
-            var processLauncherResult = await ProcessLauncher.RunToCompletionAsync("comm-proxy.exe", "", processLauncherOptions);
+            var processLauncherResult = await ProcessLauncher.RunToCompletionAsync(@"CommProxy.exe", "", processLauncherOptions);
             if (processLauncherResult.ExitCode == 0)
             {
                 using (var outStreamRedirect = standardOutput.GetInputStreamAt(0))

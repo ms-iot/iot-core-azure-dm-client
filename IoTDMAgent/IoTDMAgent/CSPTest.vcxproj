@@ -127,8 +127,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>XmlLite.lib;user32.lib;kernel32.lib;uuid.lib;Advapi32.lib;LimpetLib.lib;crypt32.lib;ws2_32.lib;winhttp.lib;secur32.lib;iothub_client_mqtt_transport.lib;iothub_client.lib;aziotsharedutil.lib;umqtt.lib</AdditionalDependencies>
+      <AdditionalDependencies>d:\temp\x86\mdmlocalmanagement.lib;XmlLite.lib;user32.lib;kernel32.lib;uuid.lib;Advapi32.lib;LimpetLib.lib;crypt32.lib;ws2_32.lib;winhttp.lib;secur32.lib;iothub_client_mqtt_transport.lib;iothub_client.lib;aziotsharedutil.lib;umqtt.lib</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y "$(ProjectDir)..\..\external\limpet\dll\x86\*.*" "$(OutDir)"</Command>
@@ -147,8 +148,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>XmlLite.lib;user32.lib;kernel32.lib;uuid.lib;Advapi32.lib;LimpetLib.lib;ws2_32.lib;crypt32.lib;winhttp.lib;secur32.lib;iothub_client_mqtt_transport.lib;iothub_client.lib;aziotsharedutil.lib;umqtt.lib</AdditionalDependencies>
+      <AdditionalDependencies>XmlLite.lib;user32.lib;kernel32.lib;uuid.lib;Advapi32.lib;LimpetLib.lib;ws2_32.lib;crypt32.lib;winhttp.lib;secur32.lib</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y "$(ProjectDir)..\..\external\limpet\dll\arm\*.*" "$(OutDir)"</Command>

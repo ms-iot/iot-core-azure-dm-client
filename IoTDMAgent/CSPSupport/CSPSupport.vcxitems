@@ -24,7 +24,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\LocalMachine.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\UpdateEngine.cpp" />
   </ItemGroup>
-
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\EnterpriseModernAppManagementCSP.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\MdmProvision.h" />
@@ -36,6 +35,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\CSPs\UpdateCSP.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\LocalMachine.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\IoTDMAgent\LocalMachine\UpdateEngine.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MDMLocalManagement.h" />
   </ItemGroup>
-
 </Project>
