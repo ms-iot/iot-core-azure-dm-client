@@ -70,23 +70,6 @@ namespace Utils
         return formattedTime.str();
     }
 
-#if 0
-    // ToDo: need to move this where the resources are?
-    wstring GetResourceString(int id)
-    {
-        const int bufferSize = 1024;
-        wchar_t buffer[bufferSize];
-        if (!LoadString(GetModuleHandle(NULL), id, buffer, bufferSize))
-        {
-            if (!LoadString(GetModuleHandle(NULL), IDS_OMA_SYNCML_STATUS_UNKNOWN, buffer, bufferSize))
-            {
-                return wstring(L"Unknown OMA SyncML status code.");
-            }
-        }
-        return wstring(buffer);
-    }
-#endif
-
     void ReadXmlValue(IStream* resultSyncML, const wstring& targetXmlPath, wstring& value)
     {
         ComPtr<IXmlReader> xmlReader;

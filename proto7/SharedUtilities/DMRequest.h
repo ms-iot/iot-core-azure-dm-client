@@ -9,11 +9,9 @@ const wchar_t* PipeName = L"\\\\.\\pipe\\dm-client-pipe";
 enum class DMCommand
 {
     Unknown = 0,
-    SystemReset = 1,
-    CheckUpdates = 2,
-    CommandX,
-    CommandY,
-    CommandZ
+    SystemReboot = 1,
+    SystemReset = 2,
+    CheckUpdates = 3,
 };
 
 enum class DMStatus

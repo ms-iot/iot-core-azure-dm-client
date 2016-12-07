@@ -72,7 +72,7 @@ namespace Toaster
             return dlg.Result;
         }
 
-        private void buttonStart_Click(object sender, RoutedEventArgs e)
+        private void OnStart(object sender, RoutedEventArgs e)
         {
             this.buttonStart.IsEnabled = false;
             this.buttonStop.IsEnabled = true;
@@ -81,7 +81,7 @@ namespace Toaster
             this.imageHot.Visibility = Visibility.Visible;
         }
 
-        private void buttonStop_Click(object sender, RoutedEventArgs e)
+        private void OnStop(object sender, RoutedEventArgs e)
         {
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
@@ -90,12 +90,48 @@ namespace Toaster
             this.imageHot.Visibility = Visibility.Collapsed;
         }
 
-        private void button_System_Reset(object sender, RoutedEventArgs e)
+        private async void ResetSystem()
         {
-            DMClient.StartFactoryReset();
+            bool success = true;
+            try
+            {
+                await DMClient.StartFactoryReset();
+            }
+            catch (Exception)
+            {
+                success = false;
+            }
+
+            StatusText.Text = success ? "Succeeded!" : "Failed!";
         }
 
-        private async void button_Check_for_Updates(object sender, RoutedEventArgs e)
+
+        private void OnSystemReset(object sender, RoutedEventArgs e)
+        {
+            ResetSystem();
+        }
+
+        private async void RestartSystem()
+        {
+            bool success = true;
+            try
+            {
+                await DMClient.StartSystemReboot();
+            }
+            catch(Exception)
+            {
+                success = false;
+            }
+
+            StatusText.Text = success ?  "Succeeded!" : "Failed!";
+        }
+
+        private void OnSystemRestart(object sender, RoutedEventArgs e)
+        {
+            RestartSystem();
+        }
+
+        private async void OnCheckForUpdates(object sender, RoutedEventArgs e)
         {
             bool updatesAvailable = await DMClient.CheckForUpdatesAsync();
             if (updatesAvailable)

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
@@ -86,7 +87,23 @@ namespace Microsoft.Devices.Management
             // Here we might want to set some reported properties:
             // ReportProperties("We're about to start factory reset... If you don't hear from me again, I'm dead");
 
-            await SystemConfiguratorProxy.SendCommandAsync(request);
+            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (result.status != 0)
+            {
+                throw new Exception();
+            }
+        }
+
+        public async Task StartSystemReboot()
+        {
+            var request = new DMRequest();
+            request.command = DMCommand.SystemReboot;
+
+            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (result.status != 0)
+            {
+                throw new Exception();
+            }
         }
 
         // This command checks if updates are available. 
