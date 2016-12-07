@@ -55,8 +55,8 @@ void EnterpriseModernAppManagementCSP::InstallApp(const std::wstring& packageFam
     std::wstring dependencies = L"";
     for (auto& s : dependentPackages)
     {
-        dependencies += LR"(<Dependency PackageUri=")" + s;
-        dependencies += LR"("/>)";
+        dependencies += L"<Dependency PackageUri=\"" + s;
+        dependencies += L"\"/>";
         dependencies += L"\n";
     }
 

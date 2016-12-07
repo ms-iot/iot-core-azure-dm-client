@@ -12,9 +12,6 @@ enum class DMCommand
     SystemReboot = 1,
     SystemReset = 2,
     CheckUpdates = 3,
-    CommandX,
-    CommandY,
-    CommandZ
 };
 
 enum class DMStatus
