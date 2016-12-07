@@ -147,9 +147,9 @@
     </SDKReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\IoTDMClient\IoTDMClient.csproj">
+    <ProjectReference Include="..\IoTDMClientLib\IoTDMClientLib.csproj">
       <Project>{f29e2c50-97be-4c33-b601-e52aab5596e9}</Project>
-      <Name>IoTDMClient</Name>
+      <Name>IoTDMClientLib</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

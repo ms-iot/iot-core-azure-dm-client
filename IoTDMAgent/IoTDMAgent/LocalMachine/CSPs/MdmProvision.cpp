@@ -1,12 +1,15 @@
 #include "stdafx.h"
 #include "PrivateAPIs\CSPController.h"
 #include "MdmProvision.h"
+#include "..\CSPSupport\MDMLocalManagement.h"
 
 #define ROOT_XML L"Root"
 #define ROOT_START_TAG L"<" ROOT_XML L">"
 #define ROOT_END_TAG L"</" ROOT_XML L">"
-#define STATUS_XML_PATH ROOT_XML L"\\Status\\Data\\"
-#define RESULTS_XML_PATH ROOT_XML L"\\Results\\Item\\Data\\"
+// ToDo: we need to find the 'status' that corresponds to the command we just issued.
+//       sometimes, more than one status are reported for a single command.
+#define STATUS_XML_PATH L"SyncML\\SyncBody\\Status\\Data\\"
+#define RESULTS_XML_PATH L"SyncML\\SyncBody\\Results\\Item\\Data\\"
 
 using namespace std;
 
@@ -28,21 +31,18 @@ void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, w
 
     PWSTR output = nullptr;
     HRESULT hr = E_FAIL;
-    if (sid.length())
-    {
-        SYNCMLATTRIBUTE attrib[1] = { 0 };
-        attrib[0].pszName = OMADM_TARGETEDUSERSID_VARIABLE_NAME;
-        attrib[0].pszValue = sid.c_str();
-
-        hr = MdmProvisionSyncBodyWithAttributes(requestSyncML.c_str(), nullptr, ARRAYSIZE(attrib), attrib, &output);
-    }
-    else
-    {
-        hr = MdmProvisionSyncBodyWithAttributes(requestSyncML.c_str(), nullptr, 0, nullptr, &output);
-    }
+    hr = RegisterDeviceWithLocalManagement(NULL);
     if (FAILED(hr))
     {
-        TRACEP(L"Error: MdmProvisionSyncBodyWithAttributes failed. Error code = ", hr);
+        TRACEP(L"Error: RegisterDeviceWithLocalManagement failed. Error code = ", hr);
+        throw DMException("MdmProvisionSyncBodyWithAttributes");
+    }
+
+    PWSTR syncMLResult = NULL;
+    hr = ApplyLocalManagementSyncML(requestSyncML.c_str(), &output);
+    if (FAILED(hr))
+    {
+        TRACEP(L"Error: RegisterDeviceWithLocalManagement failed. Error code = ", hr);
         throw DMException("MdmProvisionSyncBodyWithAttributes");
     }
 
@@ -57,7 +57,10 @@ void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, w
     // The results have two top elements: Status and Results.
     // Xml parser does not allow two top-level roots, so we have to wrap it in a root element first.
     wstring returnCodeString;
-    wstring wrappedResult = ROOT_START_TAG + outputSyncML + ROOT_END_TAG;
+    wstring wrappedResult = outputSyncML;
+
+    TRACEP(L"Response2: ", wrappedResult.c_str());
+
     Utils::ReadXmlValue(wrappedResult, STATUS_XML_PATH, returnCodeString);
 
     unsigned int returnCode = stoi(returnCodeString);
