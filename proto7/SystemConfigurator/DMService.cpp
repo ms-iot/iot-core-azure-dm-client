@@ -33,7 +33,7 @@ void DMService::Run(DMService &service)
     }
 }
 
-void WINAPI DMService::ServiceMain(DWORD argc, PWSTR *argv)
+void WINAPI DMService::ServiceMain(DWORD, PWSTR*)
 {
     TRACE(__FUNCTION__);
     assert(s_service != NULL);
@@ -44,7 +44,7 @@ void WINAPI DMService::ServiceMain(DWORD argc, PWSTR *argv)
         throw DMExceptionWithErrorCode(GetLastError());
     }
 
-    s_service->Start(argc, argv);
+    s_service->Start();
 }
 
 void WINAPI DMService::ServiceCtrlHandler(DWORD ctrl)
@@ -101,13 +101,13 @@ DMService::DMService(const wstring& serviceName) :
     _status.dwWaitHint = 0;
 }
 
-void DMService::Start(DWORD argc, LPWSTR *argv)
+void DMService::Start()
 {
     TRACE(__FUNCTION__);
     try
     {
         SetServiceStatus(SERVICE_START_PENDING);
-        OnStart(argc, argv);
+        OnStart();
         SetServiceStatus(SERVICE_RUNNING);
     }
     catch (const DMException&)
@@ -230,7 +230,7 @@ void DMService::WriteErrorLogEntry(const wstring& function, DWORD errorCode)
     WriteEventLogEntry(message.str(), EVENTLOG_ERROR_TYPE);
 }
 
-void DMService::OnStart(DWORD argc, LPWSTR *argv)
+void DMService::OnStart()
 {
     TRACE(__FUNCTION__);
 

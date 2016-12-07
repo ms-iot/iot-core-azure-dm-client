@@ -31,13 +31,13 @@ private:
     static void ServiceWorkerThread(void* context);
     void ServiceWorkerThreadHelper();
 
-    void Start(DWORD argc, PWSTR *argv);
+    void Start();
     void Stop();
     void Pause();
     void Continue();
     void Shutdown();
 
-    virtual void OnStart(DWORD argc, LPWSTR *lpszArgv);
+    virtual void OnStart();
     virtual void OnStop();
 
     void DisableEnqueue();

@@ -10,7 +10,7 @@ using namespace std;
 
 int main(Platform::Array<Platform::String^>^ args)
 {
-    if (args->Length < 2)
+    if (args->Length != 2)
     {
         wcout << L"Too few parameters." << endl;
         wcout << L"Usage:" << endl;

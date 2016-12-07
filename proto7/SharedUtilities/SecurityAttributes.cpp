@@ -28,29 +28,25 @@ SecurityAttributes::SecurityAttributes(DWORD permissions) : _everyoneSID(nullptr
     DWORD dwRes = SetEntriesInAclW(1, &ea, NULL, &_ACL);
     if (dwRes != ERROR_SUCCESS)
     {
-        wcout << L"SetEntriesInAcl Error: " << GetLastError() << endl;
-        throw sysconfig_exception();
+        throw DMExceptionWithErrorCode("SetEntriesInAcl Error", GetLastError());
     }
 
     // Initialize a security descriptor.  
     _SD = (PSECURITY_DESCRIPTOR)LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
     if (_SD == NULL)
     {
-        wcout << L"LocalAlloc Error: " << GetLastError() << endl;
-        throw sysconfig_exception();
+        throw DMExceptionWithErrorCode("LocalAlloc Error", GetLastError());
     }
 
     if (!InitializeSecurityDescriptor(_SD, SECURITY_DESCRIPTOR_REVISION))
     {
-        wcout << L"InitializeSecurityDescriptor Error: " << GetLastError() << endl;
-        throw sysconfig_exception();
+        throw DMExceptionWithErrorCode("InitializeSecurityDescriptor Error", GetLastError());
     }
 
     // Add the ACL to the security descriptor. 
     if (!SetSecurityDescriptorDacl(_SD, TRUE, _ACL, FALSE))
     {
-        wcout << L"SetSecurityDescriptorDacl Error: " << GetLastError() << endl;
-        throw sysconfig_exception();
+        throw DMExceptionWithErrorCode("SetSecurityDescriptorDacl Error", GetLastError());
     }
 
     // Initialize a security attributes structure.

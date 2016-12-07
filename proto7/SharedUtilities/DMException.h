@@ -3,14 +3,6 @@
 #include <exception>
 #include "Logger.h"
 
-class sysconfig_exception : public std::exception
-{
-public:
-    sysconfig_exception();
-private:
-    int _error;
-};
-
 typedef long HRESULT;
 
 class DMException : public std::exception

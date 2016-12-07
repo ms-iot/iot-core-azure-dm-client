@@ -31,27 +31,6 @@ void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, w
 
     PWSTR output = nullptr;
     HRESULT hr = E_FAIL;
-
-#if 0
-    if (sid.length())
-    {
-        SYNCMLATTRIBUTE attrib[1] = { 0 };
-        attrib[0].pszName = OMADM_TARGETEDUSERSID_VARIABLE_NAME;
-        attrib[0].pszValue = sid.c_str();
-
-        hr = MdmProvisionSyncBodyWithAttributes(requestSyncML.c_str(), nullptr, ARRAYSIZE(attrib), attrib, &output);
-    }
-    else
-    {
-        hr = MdmProvisionSyncBodyWithAttributes(requestSyncML.c_str(), nullptr, 0, nullptr, &output);
-    }
-    if (FAILED(hr))
-    {
-        TRACEP(L"Error: MdmProvisionSyncBodyWithAttributes failed. Error code = ", hr);
-        throw DMException("MdmProvisionSyncBodyWithAttributes");
-    }
-#endif
-
     hr = RegisterDeviceWithLocalManagement(NULL);
     if (FAILED(hr))
     {

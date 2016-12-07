@@ -6,15 +6,6 @@
 
 using namespace std;
 
-void SetResponseMessage(DMResponse& response, const wchar_t* errorMessage, DWORD errorCode)
-{
-    basic_ostringstream<wchar_t> messageStream;
-    messageStream << errorMessage << errorCode;
-
-    wstring message = messageStream.str();
-    wcsncpy_s(response.message, messageStream.str().c_str(), _TRUNCATE);
-}
-
 // Returns the response size in bytes.
 uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & response)
 {
@@ -24,13 +15,11 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
     DWORD writtenByteCount = 0;
     int waitAttemptsLeft = 10;
 
-    const wchar_t* namedPipeName = L"\\\\.\\pipe\\dm-client-pipe";
-
     while (waitAttemptsLeft--)
     {
         TRACE("Attempting to connect to system configurator pipe...");
 
-        pipeHandle = CreateFileW(namedPipeName,
+        pipeHandle = CreateFileW(PipeName,
             GENERIC_READ | GENERIC_WRITE,
             0,
             NULL,
@@ -48,20 +37,20 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
         if (GetLastError() != ERROR_PIPE_BUSY)
         {
             response.status = DMStatus::Failed;
-            swprintf_s(response.message, L"CreateFileW failed, GetLastError=%d", GetLastError());
+            response.SetMessage(L"CreateFileW failed, GetLastError=", GetLastError());
             return 0;
         }
 
         // All pipe instances are busy, so wait for a maximum of 1 second
         // or until an instance becomes available.
-        WaitNamedPipe(namedPipeName, 1000);
+        WaitNamedPipe(PipeName, 1000);
     }
 
     if (pipeHandle.Get() == INVALID_HANDLE_VALUE || pipeHandle.Get() == NULL)
     {
         TRACE("Failed to connect to system configurator pipe...");
         response.status = DMStatus::Failed;
-        SetResponseMessage(response, L"Failed to connect to system configurator pipe. GetLastError=", GetLastError());
+        response.SetMessage(L"Failed to connect to system configurator pipe. GetLastError=", GetLastError());
         return 0;
     }
     TRACE("Connected successfully to pipe...");
@@ -75,21 +64,20 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
         {
             TRACE("Error: failed to read from pipe...");
             response.status = DMStatus::Failed;
-            SetResponseMessage(response, L"ReadFile failed, GetLastError=", GetLastError());
+            response.SetMessage(L"ReadFile failed, GetLastError=", GetLastError());
         }
     }
     else
     {
         TRACE("Error: failed to write to pipe...");
         response.status = DMStatus::Failed;
-        SetResponseMessage(response, L"WriteFile failed, GetLastError=", GetLastError());
+        response.SetMessage(L"WriteFile failed, GetLastError=", GetLastError());
     }
 
     return readByteCount;
 }
 
-[Platform::MTAThread]
-int wmain(int argc, wchar_t *argv[])
+int main(Platform::Array<Platform::String^>^ args)
 {
     TRACE(__FUNCTION__);
 
@@ -111,7 +99,7 @@ int wmain(int argc, wchar_t *argv[])
     if (0 == SendRequestToSystemConfigurator(request, response))
     {
         TRACE("Error: failed to process request...");
-        return -1;
+        // Do not return. Let the response propagate to the caller.
     }
 
     TRACE("Writing response to stdout...");

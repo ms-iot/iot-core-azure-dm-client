@@ -127,7 +127,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d:\temp\x86\mdmlocalmanagement.lib;XmlLite.lib;user32.lib;kernel32.lib;uuid.lib;Advapi32.lib;LimpetLib.lib;crypt32.lib;ws2_32.lib;winhttp.lib;secur32.lib;iothub_client_mqtt_transport.lib;iothub_client.lib;aziotsharedutil.lib;umqtt.lib</AdditionalDependencies>
+      <AdditionalDependencies>mdmlocalmanagement.lib;XmlLite.lib;user32.lib;kernel32.lib;uuid.lib;Advapi32.lib;LimpetLib.lib;crypt32.lib;ws2_32.lib;winhttp.lib;secur32.lib;iothub_client_mqtt_transport.lib;iothub_client.lib;aziotsharedutil.lib;umqtt.lib</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>

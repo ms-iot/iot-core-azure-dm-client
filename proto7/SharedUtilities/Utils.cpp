@@ -240,7 +240,6 @@ namespace Utils
 
     void WriteRegistryValue(const wstring& subkey, const wstring& propName, const wstring& propValue)
     {
-        bool success = false;
         LSTATUS status;
         HKEY hKey = NULL;
         status = RegCreateKeyEx(

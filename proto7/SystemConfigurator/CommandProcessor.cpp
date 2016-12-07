@@ -4,24 +4,22 @@
 #include "..\SharedUtilities\DMRequest.h"
 #include "..\SharedUtilities\SecurityAttributes.h"
 
-#define PIPE_BUFFER_SIZE 4096
 
 DMResponse ProcessCommand(const DMRequest& request)
 {
     TRACE(__FUNCTION__);
     static int cmdIndex = 0;
     DMResponse response;
-    response.status = DMStatus::Failed;
-    memset(&response.data, 0, sizeof(response.data));
-    wcscpy_s(response.message, L"Hello from System Configurator");
+    response.SetMessage(L"Default System Configurator Response.");
 
     switch (request.command)
     {
     case DMCommand::SystemReset:
-        TRACEP("Handling `system reset`. cmdIndex = ", cmdIndex);
+        response.SetMessage(L"Handling `system reset`. cmdIndex = ", cmdIndex);
+        response.status = DMStatus::Failed;
         break;
     case DMCommand::CheckUpdates:
-        TRACEP("Handling `check updates`. cmdIndex = ", cmdIndex);
+        response.SetMessage(L"Handling `check updates`. cmdIndex = ", cmdIndex);
 
         // Checking for updates...
         Sleep(1000);
@@ -30,7 +28,8 @@ DMResponse ProcessCommand(const DMRequest& request)
         response.status = DMStatus::Succeeded;
         break;
     default:
-        TRACEP("Handling unknown command...cmdIndex = ", cmdIndex);
+        response.SetMessage(L"Handling unknown command...cmdIndex = ", cmdIndex);
+        response.status = DMStatus::Failed;
         break;
     }
 
@@ -39,6 +38,40 @@ DMResponse ProcessCommand(const DMRequest& request)
     return response;
 }
 
+class PipeConnection
+{
+public:
+
+    PipeConnection() :
+        _pipeHandle(NULL)
+    {}
+
+    void Connect(HANDLE pipeHandle)
+    {
+        TRACE("Connecting to pipe...");
+        if (pipeHandle == NULL || pipeHandle == INVALID_HANDLE_VALUE)
+        {
+            throw DMException("Error: Cannot connect using an invalid pipe handle.");
+        }
+        if (!ConnectNamedPipe(pipeHandle, NULL))
+        {
+            throw DMExceptionWithErrorCode("ConnectNamedPipe Error", GetLastError());
+        }
+        _pipeHandle = pipeHandle;
+    }
+
+    ~PipeConnection()
+    {
+        if (_pipeHandle != NULL)
+        {
+            TRACE("Disconnecting from pipe...");
+            DisconnectNamedPipe(_pipeHandle);
+        }
+    }
+private:
+    HANDLE _pipeHandle;
+};
+
 void Listen()
 {
     TRACE(__FUNCTION__);
@@ -46,58 +79,48 @@ void Listen()
     SecurityAttributes sa(GENERIC_WRITE | GENERIC_READ);
 
     TRACE("Creating pipe...");
-    const wchar_t* pipeName = L"\\\\.\\pipe\\dm-client-pipe";
-    HANDLE pipeHandle = CreateNamedPipeW(
-        pipeName,
+    Utils::AutoCloseHandle pipeHandle = CreateNamedPipeW(
+        PipeName,
         PIPE_ACCESS_DUPLEX,
         PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
         PIPE_UNLIMITED_INSTANCES,
-        PIPE_BUFFER_SIZE,
-        PIPE_BUFFER_SIZE,
+        PipeBufferSize,
+        PipeBufferSize,
         NMPWAIT_USE_DEFAULT_WAIT,
         sa.GetSA());
 
-    if (pipeHandle == INVALID_HANDLE_VALUE)
+    if (pipeHandle.Get() == INVALID_HANDLE_VALUE)
     {
         throw DMExceptionWithErrorCode("CreateNamedPipe Error", GetLastError());
     }
 
     while (true)
     {
+        PipeConnection pipeConnection;
         TRACE("Waiting for a client to connect...");
-        if (ConnectNamedPipe(pipeHandle, NULL) != FALSE)
+        pipeConnection.Connect(pipeHandle.Get());
+        TRACE("Client connected...");
+
+        DMRequest request;
+        DWORD readBytes = 0;
+        BOOL readResult = ReadFile(pipeHandle.Get(), &request, sizeof(request), &readBytes, NULL);
+        if (readResult == 0 || readBytes != sizeof(request))
         {
-            TRACE("Client connected...");
+            TRACE("Request received...");
+            DMResponse response = ProcessCommand(request);
 
-            DMRequest request;
-            DWORD readBytes = 0;
-            BOOL readResult = ReadFile(pipeHandle, &request, sizeof(request), &readBytes, NULL);
-            if (readResult && readBytes == sizeof(request))
+            TRACE("Sending response...");
+            DWORD writtenBytes = 0;
+            if (!WriteFile(pipeHandle.Get(), &response, sizeof(response), &writtenBytes, NULL))
             {
-                TRACE("Request received...");
-                DMResponse response = ProcessCommand(request);
-
-                TRACE("Sending response...");
-                DWORD writtenBytes = 0;
-                if (!WriteFile(pipeHandle, &response, sizeof(response), &writtenBytes, NULL))
-                {
-                    throw DMExceptionWithErrorCode("WriteFile Error", GetLastError());
-                }
-            }
-            else
-            {
-                throw DMExceptionWithErrorCode("ReadFile Error", GetLastError());
+                throw DMExceptionWithErrorCode("WriteFile Error", GetLastError());
             }
         }
         else
         {
-            throw DMExceptionWithErrorCode("ConnectNamedPipe Error", GetLastError());
+            throw DMExceptionWithErrorCode("ReadFile Error", GetLastError());
         }
-        TRACE("Disconnecting pipe...");
-        DisconnectNamedPipe(pipeHandle);
 
-        // ToDo: How do we exit?
+        // ToDo: How do we exit this loop gracefully?
     }
-
-    CloseHandle(pipeHandle);
 }
