@@ -14,8 +14,9 @@ namespace Microsoft.Devices.Management
     // This must be kept in sync with enum class dm_command in dm_request.h
     public enum DMCommand
     {
-        FactoryReset = 1,
-        CheckUpdates = 2
+        SystemReboot = 1,
+        FactoryReset = 2,
+        CheckUpdates = 3
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]

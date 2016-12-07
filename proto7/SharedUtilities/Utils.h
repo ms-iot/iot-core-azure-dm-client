@@ -6,6 +6,7 @@
 #include <deque>
 #include <thread>
 #include <time.h>
+#include <windows.h>
 
 namespace Utils
 {
@@ -57,11 +58,6 @@ namespace Utils
     std::wstring GetEnvironmentVariable(const std::wstring& variableName);
     std::wstring GetSystemRootFolder();
     std::wstring GetProgramDataFolder();
-
-#if 0
-    // Resource helpers
-    std::wstring GetResourceString(int id);
-#endif
 
     // Xml helpers
     void ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);

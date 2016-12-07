@@ -3,7 +3,7 @@
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMRequest.h"
 #include "..\SharedUtilities\SecurityAttributes.h"
-
+#include "CSPs\RebootCSP.h"
 
 DMResponse ProcessCommand(const DMRequest& request)
 {
@@ -14,9 +14,14 @@ DMResponse ProcessCommand(const DMRequest& request)
 
     switch (request.command)
     {
+    case DMCommand::SystemReboot:
+        response.SetMessage(L"Handling `system reboot`. cmdIndex = ", cmdIndex);
+        response.status = DMStatus::Succeeded;
+        RebootCSP::ExecRebootNow();
+        break;
     case DMCommand::SystemReset:
         response.SetMessage(L"Handling `system reset`. cmdIndex = ", cmdIndex);
-        response.status = DMStatus::Failed;
+        response.status = DMStatus::Succeeded;
         break;
     case DMCommand::CheckUpdates:
         response.SetMessage(L"Handling `check updates`. cmdIndex = ", cmdIndex);
@@ -104,10 +109,21 @@ void Listen()
         DMRequest request;
         DWORD readBytes = 0;
         BOOL readResult = ReadFile(pipeHandle.Get(), &request, sizeof(request), &readBytes, NULL);
-        if (readResult == 0 || readBytes != sizeof(request))
+        if (readResult || readBytes != sizeof(request))
         {
             TRACE("Request received...");
-            DMResponse response = ProcessCommand(request);
+            DMResponse response;
+            
+            try
+            {
+                response = ProcessCommand(request);
+            }
+            catch (const DMException&)
+            {
+                // response will still contain the error information, so, let it continue
+                // and send it back.
+                TRACE("DMExeption was thrown from ProcessCommand()...");
+            }
 
             TRACE("Sending response...");
             DWORD writtenBytes = 0;

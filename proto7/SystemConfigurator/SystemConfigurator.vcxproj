@@ -36,7 +36,6 @@
   <PropertyGroup>
     <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -52,7 +51,6 @@
     <CharacterSet>Unicode</CharacterSet>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
-
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -63,7 +61,6 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-
   <!-- Common -->
   <ItemDefinitionGroup>
     <ClCompile>
@@ -79,7 +76,6 @@
       <AdditionalDependencies>xmllite.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -104,6 +100,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
+    <ClInclude Include="CSPs\EnterpriseModernAppManagementCSP.h" />
+    <ClInclude Include="CSPs\MdmProvision.h" />
+    <ClInclude Include="CSPs\PolicyCSP.h" />
+    <ClInclude Include="CSPs\PrivateAPIs\CSPController.h" />
+    <ClInclude Include="CSPs\PrivateAPIs\IProvisioningDPULocal.h" />
+    <ClInclude Include="CSPs\RebootCSP.h" />
+    <ClInclude Include="CSPs\RemoteWipeCSP.h" />
+    <ClInclude Include="CSPs\UpdateCSP.h" />
     <ClInclude Include="DMService.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -111,6 +115,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommandProcessor.cpp" />
+    <ClCompile Include="CSPs\EnterpriseModernAppManagementCSP.cpp" />
+    <ClCompile Include="CSPs\MdmProvision.cpp" />
+    <ClCompile Include="CSPs\PolicyCSP.cpp" />
+    <ClCompile Include="CSPs\PrivateAPIs\CSPController.cpp" />
+    <ClCompile Include="CSPs\RebootCSP.cpp" />
+    <ClCompile Include="CSPs\RemoteWipeCSP.cpp" />
+    <ClCompile Include="CSPs\UpdateCSP.cpp" />
     <ClCompile Include="DMService.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
