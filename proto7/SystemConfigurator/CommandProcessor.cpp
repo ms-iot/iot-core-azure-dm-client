@@ -109,7 +109,7 @@ void Listen()
         DMRequest request;
         DWORD readBytes = 0;
         BOOL readResult = ReadFile(pipeHandle.Get(), &request, sizeof(request), &readBytes, NULL);
-        if (readResult || readBytes != sizeof(request))
+        if (readResult && readBytes == sizeof(request))
         {
             TRACE("Request received...");
             DMResponse response;

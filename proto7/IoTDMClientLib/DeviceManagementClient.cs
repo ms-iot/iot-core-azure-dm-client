@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
@@ -78,7 +79,7 @@ namespace Microsoft.Devices.Management
         //
 
         // This command initiates factory reset of the device
-        public async Task<bool> StartFactoryReset()
+        public async Task StartFactoryReset()
         {
             var request = new DMRequest();
             request.command = DMCommand.FactoryReset;
@@ -87,16 +88,22 @@ namespace Microsoft.Devices.Management
             // ReportProperties("We're about to start factory reset... If you don't hear from me again, I'm dead");
 
             DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            return result.status == 0;  // 0 -> success
+            if (result.status != 0)
+            {
+                throw new Exception();
+            }
         }
 
-        public async Task<bool> StartSystemReboot()
+        public async Task StartSystemReboot()
         {
             var request = new DMRequest();
             request.command = DMCommand.SystemReboot;
 
             DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            return result.status == 0;  // 0 -> success
+            if (result.status != 0)
+            {
+                throw new Exception();
+            }
         }
 
         // This command checks if updates are available. 

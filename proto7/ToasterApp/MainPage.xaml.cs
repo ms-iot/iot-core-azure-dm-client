@@ -92,7 +92,15 @@ namespace Toaster
 
         private async void ResetSystem()
         {
-            bool success = await DMClient.StartFactoryReset();
+            bool success = true;
+            try
+            {
+                await DMClient.StartFactoryReset();
+            }
+            catch (Exception)
+            {
+                success = false;
+            }
 
             StatusText.Text = success ? "Succeeded!" : "Failed!";
         }
@@ -105,7 +113,15 @@ namespace Toaster
 
         private async void RestartSystem()
         {
-            bool success = await DMClient.StartSystemReboot();
+            bool success = true;
+            try
+            {
+                await DMClient.StartSystemReboot();
+            }
+            catch(Exception)
+            {
+                success = false;
+            }
 
             StatusText.Text = success ?  "Succeeded!" : "Failed!";
         }

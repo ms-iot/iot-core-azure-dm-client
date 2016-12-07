@@ -26,7 +26,10 @@
                     <Button x:Name="buttonStop" Content="Stop Toasting" HorizontalAlignment="Left" VerticalAlignment="Top" Click="OnStop"/>
                 </StackPanel>
                 <Slider x:Name="slider" VerticalAlignment="Top" Height="100" Orientation="Vertical"/>
-                <Image x:Name="imageHot" Source="Assets\hot.png" VerticalAlignment="Top" Width="32"/>
+                <!-- need the border to reserve the space while the image is invisible -->
+                <Border Width="32" Background="Transparent">
+                    <Image x:Name="imageHot" Source="Assets\hot.png" VerticalAlignment="Top" Width="32"/>
+                </Border>
             </StackPanel>
         </Grid>
 
