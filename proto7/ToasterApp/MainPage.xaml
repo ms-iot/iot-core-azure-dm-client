@@ -25,10 +25,10 @@
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
                     <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Height="120" Width="120">
-                        <Button x:Name="buttonStart" Content="Start Toasting" HorizontalAlignment="Left" VerticalAlignment="Top" Click="OnStart"/>
+                        <Button x:Name="buttonStart" Content="Start Toasting" HorizontalAlignment="Left" VerticalAlignment="Top" Click="OnStartToasting"/>
                         <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Text="Status:" VerticalAlignment="Top" Width="Auto"/>
                         <TextBlock HorizontalAlignment="Left" Text="Ready" VerticalAlignment="Top" Width="Auto" FontStyle="Italic"/>
-                        <Button x:Name="buttonStop" Content="Stop Toasting" HorizontalAlignment="Left" VerticalAlignment="Top" Click="OnStop"/>
+                        <Button x:Name="buttonStop" Content="Stop Toasting" HorizontalAlignment="Left" VerticalAlignment="Top" Click="OnStopToasting"/>
                     </StackPanel>
                     <Slider x:Name="slider" VerticalAlignment="Top" Height="100" Orientation="Vertical"/>
                     <!-- need the border to reserve the space while the image is invisible -->
@@ -41,6 +41,12 @@
             <Button Grid.Row="1" Width="64" Height="64" Click="OnToggleDMGrid" VerticalAlignment="Top" HorizontalAlignment="Right">
                 <Image HorizontalAlignment="Left" Source="Assets\gear.png" VerticalAlignment="Top"/>
             </Button>
+
+            <StackPanel Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Vertical">
+                <Button Width="150" Margin="3" Content="Reset" Click="OnSystemReset" />
+                <Button Width="150" Margin="3" Content="Restart" Click="OnSystemRestart"/>
+                <Button Width="150" Margin="3" Content="Check for Updates" Click="OnCheckForUpdates"/>
+            </StackPanel>
         </Grid>
         <StackPanel Grid.Column="1" x:Name="DMGrid" Visibility="Collapsed" Orientation="Vertical">
 
@@ -66,7 +72,7 @@
                 <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
                 <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Last Reboot Cmd"/>
                 <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1">
-                    <Button  Margin="3" Content="Reboot Now (D)" Click="OnSystemRestartDirect" Width="125"/>
+                    <Button  Margin="3" Content="Reboot Now (D)" Click="OnSystemRestart" Width="125"/>
                     <Button  Margin="3" Content="Reboot Now (J)" Click="OnSystemRestartJson" Width="125"/>
                 </StackPanel>
                 <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="LastRebootTime" />

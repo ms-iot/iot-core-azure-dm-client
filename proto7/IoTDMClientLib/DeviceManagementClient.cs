@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Microsoft.Devices.Management
 {
@@ -19,7 +20,6 @@ namespace Microsoft.Devices.Management
         // Types
         public struct DMMethodResult
         {
-            public bool isDMMethod;
             public uint returnCode;
             public string response;
         }
@@ -27,12 +27,7 @@ namespace Microsoft.Devices.Management
         // Data members
         IDeviceManagementRequestHandler requestHandler;
         IDeviceTwin deviceTwin;
-
-        // Test code: ask about Reboot:
-        private async Task test()
-        {
-            var response = await this.requestHandler.IsSystemRebootAllowed();
-        }
+        Dictionary<string, Func<string, Task<DMMethodResult>>> supportedMethods;
 
         // Ultimately, DeviceManagementClient will take an abstraction over DeviceClient to allow it to 
         // send reported properties. It will never receive using it
@@ -40,8 +35,8 @@ namespace Microsoft.Devices.Management
         {
             this.requestHandler = requestHandler;
             this.deviceTwin = deviceTwin;
-
-            //test();
+            this.supportedMethods = new Dictionary<string, Func<string, Task<DMMethodResult>>>();
+            this.supportedMethods.Add(RebootMethod, HandleRebootAsync);
         }
 
         public static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
@@ -49,32 +44,35 @@ namespace Microsoft.Devices.Management
             return new DeviceManagementClient(deviceTwin, requestHandler);
         }
 
-        //
-        // Set up property and method filters
-        //
-        public async Task<DMMethodResult> TryHandleMethodAsync(string methodName, string payload)
+        public bool IsDMMethod(string methodName)
         {
-            DMMethodResult dmMethodResult = new DMMethodResult();
-            dmMethodResult.isDMMethod = false;
-            dmMethodResult.returnCode = 0;
-            dmMethodResult.response = string.Empty;
+            return supportedMethods.ContainsKey(methodName);
+        }
 
-            // Is this a method that must be handled by the DM client?
-            if (methodName == RebootMethod)
+        private async Task<DMMethodResult> HandleRebootAsync(string request)
+        {
+            DMMethodResult result = new DMMethodResult();
+
+            try
             {
-                try
-                {
-                    dmMethodResult.isDMMethod = true;
-                    await StartSystemReboot();
-                    dmMethodResult.returnCode = 1;
-                }
-                catch (Exception)
-                {
-                    // returnCode is already set to 0 to indicate failure.
-                }
+                await StartSystemReboot();
+                result.returnCode = 1;  // success
+            }
+            catch (Exception)
+            {
+                // returnCode is already set to 0 to indicate failure.
+            }
+            return result;
+        }
+
+        public async Task<DMMethodResult> HandleMethodAsync(string methodName, string payload)
+        {
+            if (!IsDMMethod(methodName))
+            {
+                throw new Exception();
             }
 
-            return dmMethodResult;
+            return await supportedMethods[methodName](payload);
         }
 
         public static bool TryHandleProperty(DeviceTwinUpdateState updateState, string payload)
@@ -115,6 +113,14 @@ namespace Microsoft.Devices.Management
 
         public async Task StartSystemReboot()
         {
+            SystemRebootRequestResponse rebootAllowed = await requestHandler.IsSystemRebootAllowed();
+            if (rebootAllowed != SystemRebootRequestResponse.StartNow)
+            {
+                // ToDo: What should happen if the the user blocks the restart?
+                //       We need to have a policy on when to ask again.
+                return;
+            }
+
             var request = new DMRequest();
             request.command = DMCommand.SystemReboot;
 
