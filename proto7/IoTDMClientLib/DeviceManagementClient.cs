@@ -69,7 +69,7 @@ namespace Microsoft.Devices.Management
         {
             if (!IsDMMethod(methodName))
             {
-                throw new Exception();
+                throw new ArgumentException("Unknown method name: " + methodName);
             }
 
             return await supportedMethods[methodName](payload);
