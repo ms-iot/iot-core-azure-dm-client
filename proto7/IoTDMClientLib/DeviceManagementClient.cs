@@ -13,6 +13,18 @@ namespace Microsoft.Devices.Management
     // This is the main entry point into DM
     public class DeviceManagementClient
     {
+        // Constants
+        public const string RebootMethod = "Reboot";
+
+        // Types
+        public struct DMMethodResult
+        {
+            public bool isDMMethod;
+            public uint returnCode;
+            public string response;
+        }
+
+        // Data members
         IDeviceManagementRequestHandler requestHandler;
         IDeviceTwin deviceTwin;
 
@@ -40,22 +52,29 @@ namespace Microsoft.Devices.Management
         //
         // Set up property and method filters
         //
-        public static bool TryHandleMethod(string methodName, string payload, out string response)
+        public async Task<DMMethodResult> TryHandleMethodAsync(string methodName, string payload)
         {
+            DMMethodResult dmMethodResult = new DMMethodResult();
+            dmMethodResult.isDMMethod = false;
+            dmMethodResult.returnCode = 0;
+            dmMethodResult.response = string.Empty;
+
             // Is this a method that must be handled by the DM client?
-            bool isDMMethod = false; // TODO: implement filter based on method name
-            if (isDMMethod)
+            if (methodName == RebootMethod)
             {
-                // Handle the method
-                response = "all good";
-                return true;
+                try
+                {
+                    dmMethodResult.isDMMethod = true;
+                    await StartSystemReboot();
+                    dmMethodResult.returnCode = 1;
+                }
+                catch (Exception)
+                {
+                    // returnCode is already set to 0 to indicate failure.
+                }
             }
-            else
-            {
-                // Not ours -- the user must handle this method
-                response = string.Empty;
-                return false;
-            }
+
+            return dmMethodResult;
         }
 
         public static bool TryHandleProperty(DeviceTwinUpdateState updateState, string payload)

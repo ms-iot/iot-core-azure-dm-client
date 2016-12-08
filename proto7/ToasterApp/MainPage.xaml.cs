@@ -35,19 +35,22 @@ namespace Toaster
     {
         DeviceManagementClient DMClient;
 
-        // This is the application-specific method handler
-        private string OnMethodReceived(string methodName, string payload)
+        private async Task HandleMethodCallAsync(string methodName, string payload)
         {
-            string result;
-            if (DeviceManagementClient.TryHandleMethod(methodName, payload, out result))
+            DeviceManagementClient.DMMethodResult result = await DMClient.TryHandleMethodAsync(methodName, payload);
+            if (result.isDMMethod)
             {
-                // DM took care of this method, we're done
-                return result;
+                StatusText.Text = "DM handled the method call. " + ((result.returnCode == 0) ? "Failed!" : "Succeeded!");
+                return;
             }
-            // OK, we need to handle it here:
-            // work-work-work
-            // done
-            return "";
+
+            // Application may want to handle this method.
+        }
+
+        // This is the application-specific method handler
+        private void OnMethodReceived(string methodName, string payload)
+        {
+            HandleMethodCallAsync(methodName, payload);
         }
 
         public MainPage()
@@ -70,6 +73,35 @@ namespace Toaster
             await dlg.ShowAsync();
 
             return dlg.Result;
+        }
+
+        private void ToggleUIElementVisibility(UIElement element)
+        {
+            if (element.Visibility == Visibility.Collapsed)
+            {
+                element.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                element.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void OnToggleDMGrid(object sender, RoutedEventArgs e)
+        {
+            if (DMGrid.Visibility == Visibility.Visible)
+            {
+                DMGrid.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                DMGrid.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void OnExpandReboot(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(RebootGrid);
         }
 
         private void OnStart(object sender, RoutedEventArgs e)
@@ -105,7 +137,6 @@ namespace Toaster
             StatusText.Text = success ? "Succeeded!" : "Failed!";
         }
 
-
         private void OnSystemReset(object sender, RoutedEventArgs e)
         {
             ResetSystem();
@@ -126,9 +157,17 @@ namespace Toaster
             StatusText.Text = success ?  "Succeeded!" : "Failed!";
         }
 
-        private void OnSystemRestart(object sender, RoutedEventArgs e)
+        private void OnSystemRestartDirect(object sender, RoutedEventArgs e)
         {
             RestartSystem();
+        }
+
+        // This is a mock method.
+        // This will be replaced by a callback originating from the IoT Azure SDK
+        // when it is ready.
+        private void OnSystemRestartJson(object sender, RoutedEventArgs e)
+        {
+            OnMethodReceived(DeviceManagementClient.RebootMethod, "");
         }
 
         private async void OnCheckForUpdates(object sender, RoutedEventArgs e)

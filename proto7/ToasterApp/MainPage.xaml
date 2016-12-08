@@ -8,45 +8,93 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Image Grid.Row="0" HorizontalAlignment="Left" Margin="3" Source="Assets\toaster.png" VerticalAlignment="Top"/>
-        <Grid Grid.Row="0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="400" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="50*"/>
-                <RowDefinition Height="50*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Height="120" Width="120">
-                    <Button x:Name="buttonStart" Content="Start Toasting" HorizontalAlignment="Left" VerticalAlignment="Top" Click="OnStart"/>
-                    <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Text="Status:" VerticalAlignment="Top" Width="Auto"/>
-                    <TextBlock HorizontalAlignment="Left" Text="Ready" VerticalAlignment="Top" Width="Auto" FontStyle="Italic"/>
-                    <Button x:Name="buttonStop" Content="Stop Toasting" HorizontalAlignment="Left" VerticalAlignment="Top" Click="OnStop"/>
+            <Image Grid.Row="0" HorizontalAlignment="Left" Margin="3" Source="Assets\toaster.png" VerticalAlignment="Top"/>
+            <Grid Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50*"/>
+                    <RowDefinition Height="50*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Height="120" Width="120">
+                        <Button x:Name="buttonStart" Content="Start Toasting" HorizontalAlignment="Left" VerticalAlignment="Top" Click="OnStart"/>
+                        <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Text="Status:" VerticalAlignment="Top" Width="Auto"/>
+                        <TextBlock HorizontalAlignment="Left" Text="Ready" VerticalAlignment="Top" Width="Auto" FontStyle="Italic"/>
+                        <Button x:Name="buttonStop" Content="Stop Toasting" HorizontalAlignment="Left" VerticalAlignment="Top" Click="OnStop"/>
+                    </StackPanel>
+                    <Slider x:Name="slider" VerticalAlignment="Top" Height="100" Orientation="Vertical"/>
+                    <!-- need the border to reserve the space while the image is invisible -->
+                    <Border Width="32" Background="Transparent">
+                        <Image x:Name="imageHot" Source="Assets\hot.png" VerticalAlignment="Top" Width="32"/>
+                    </Border>
                 </StackPanel>
-                <Slider x:Name="slider" VerticalAlignment="Top" Height="100" Orientation="Vertical"/>
-                <!-- need the border to reserve the space while the image is invisible -->
-                <Border Width="32" Background="Transparent">
-                    <Image x:Name="imageHot" Source="Assets\hot.png" VerticalAlignment="Top" Width="32"/>
-                </Border>
-            </StackPanel>
-        </Grid>
-
-        <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Top">
-            <Grid Margin="10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="64"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120">
-                    <Button Content="System Reset" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120" Click="OnSystemReset" />
-                    <Button Content="System Restart" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top" Width="120" Click="OnSystemRestart" />
-                    <Button Content="Check Updates" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top" Width="120" Click="OnCheckForUpdates" />
-                    <TextBlock x:Name="StatusText"/>
-                </StackPanel>
-                <Image Grid.Column="1" HorizontalAlignment="Left" Source="Assets\gear.png" VerticalAlignment="Top"/>
             </Grid>
-        </Border>
+
+            <Button Grid.Row="1" Width="64" Height="64" Click="OnToggleDMGrid" VerticalAlignment="Top" HorizontalAlignment="Right">
+                <Image HorizontalAlignment="Left" Source="Assets\gear.png" VerticalAlignment="Top"/>
+            </Button>
+        </Grid>
+        <StackPanel Grid.Column="1" x:Name="DMGrid" Visibility="Collapsed" Orientation="Vertical">
+
+            <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+            <Grid>
+                <TextBlock Margin="3" Text="Reboot" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                <Button Click="OnExpandReboot" Width="40" Content="+/-" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+            </Grid>
+            <Grid x:Name="RebootGrid" Visibility="Visible">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="270"/>
+                    <ColumnDefinition Width="270"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Last Reboot Cmd"/>
+                <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1">
+                    <Button  Margin="3" Content="Reboot Now (D)" Click="OnSystemRestartDirect" Width="125"/>
+                    <Button  Margin="3" Content="Reboot Now (J)" Click="OnSystemRestartJson" Width="125"/>
+                </StackPanel>
+                <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="LastRebootTime" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Last Restart" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a" />
+                <TextBlock Grid.Row="2" Grid.Column="2" Margin="3" x:Name="LastRestartTime" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Single Reboot" />
+                <TextBox Grid.Row="3" Grid.Column="1" Margin="3" Text="2016-10-10T17:00:00Z" x:Name="DesiredSingleRebootTime"/>
+                <TextBox Grid.Row="3" Grid.Column="2" Margin="3" Text="" x:Name="ReportedSingleRebootTime"/>
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Daily Reboot" />
+                <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="" x:Name="DesiredDailyRebootTime"/>
+                <TextBox Grid.Row="4" Grid.Column="2" Margin="3" Text="" x:Name="ReportedDailyRebootTime"/>
+            </Grid>
+            <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+            <Grid x:Name="StatusGrid">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Status:"/>
+                <TextBlock Grid.Column="1" x:Name="StatusText"/>
+            </Grid>
+        </StackPanel>
     </Grid>
 </Page>
