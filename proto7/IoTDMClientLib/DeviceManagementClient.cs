@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Microsoft.Devices.Management
 {
@@ -13,14 +14,20 @@ namespace Microsoft.Devices.Management
     // This is the main entry point into DM
     public class DeviceManagementClient
     {
+        // Constants
+        public const string RebootMethod = "Reboot";
+
+        // Types
+        public struct DMMethodResult
+        {
+            public uint returnCode;
+            public string response;
+        }
+
+        // Data members
         IDeviceManagementRequestHandler requestHandler;
         IDeviceTwin deviceTwin;
-
-        // Test code: ask about Reboot:
-        private async Task test()
-        {
-            var response = await this.requestHandler.IsSystemRebootAllowed();
-        }
+        Dictionary<string, Func<string, Task<DMMethodResult>>> supportedMethods;
 
         // Ultimately, DeviceManagementClient will take an abstraction over DeviceClient to allow it to 
         // send reported properties. It will never receive using it
@@ -28,8 +35,8 @@ namespace Microsoft.Devices.Management
         {
             this.requestHandler = requestHandler;
             this.deviceTwin = deviceTwin;
-
-            //test();
+            this.supportedMethods = new Dictionary<string, Func<string, Task<DMMethodResult>>>();
+            this.supportedMethods.Add(RebootMethod, HandleRebootAsync);
         }
 
         public static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
@@ -37,25 +44,35 @@ namespace Microsoft.Devices.Management
             return new DeviceManagementClient(deviceTwin, requestHandler);
         }
 
-        //
-        // Set up property and method filters
-        //
-        public static bool TryHandleMethod(string methodName, string payload, out string response)
+        public bool IsDMMethod(string methodName)
         {
-            // Is this a method that must be handled by the DM client?
-            bool isDMMethod = false; // TODO: implement filter based on method name
-            if (isDMMethod)
+            return supportedMethods.ContainsKey(methodName);
+        }
+
+        private async Task<DMMethodResult> HandleRebootAsync(string request)
+        {
+            DMMethodResult result = new DMMethodResult();
+
+            try
             {
-                // Handle the method
-                response = "all good";
-                return true;
+                await StartSystemReboot();
+                result.returnCode = 1;  // success
             }
-            else
+            catch (Exception)
             {
-                // Not ours -- the user must handle this method
-                response = string.Empty;
-                return false;
+                // returnCode is already set to 0 to indicate failure.
             }
+            return result;
+        }
+
+        public async Task<DMMethodResult> HandleMethodAsync(string methodName, string payload)
+        {
+            if (!IsDMMethod(methodName))
+            {
+                throw new ArgumentException("Unknown method name: " + methodName);
+            }
+
+            return await supportedMethods[methodName](payload);
         }
 
         public static bool TryHandleProperty(DeviceTwinUpdateState updateState, string payload)
@@ -96,6 +113,14 @@ namespace Microsoft.Devices.Management
 
         public async Task StartSystemReboot()
         {
+            SystemRebootRequestResponse rebootAllowed = await requestHandler.IsSystemRebootAllowed();
+            if (rebootAllowed != SystemRebootRequestResponse.StartNow)
+            {
+                // ToDo: What should happen if the the user blocks the restart?
+                //       We need to have a policy on when to ask again.
+                return;
+            }
+
             var request = new DMRequest();
             request.command = DMCommand.SystemReboot;
 

@@ -35,19 +35,26 @@ namespace Toaster
     {
         DeviceManagementClient DMClient;
 
-        // This is the application-specific method handler
-        private string OnMethodReceived(string methodName, string payload)
+        private async Task<DeviceManagementClient.DMMethodResult> HandleMethodCallAsync(string methodName, string payload)
         {
-            string result;
-            if (DeviceManagementClient.TryHandleMethod(methodName, payload, out result))
+            DeviceManagementClient.DMMethodResult result = new DeviceManagementClient.DMMethodResult();
+            if (DMClient.IsDMMethod(methodName))
             {
-                // DM took care of this method, we're done
-                return result;
+                result = await DMClient.HandleMethodAsync(methodName, payload);
             }
-            // OK, we need to handle it here:
-            // work-work-work
-            // done
-            return "";
+            else
+            {
+                // Application may want to handle this method.
+
+            }
+            return result;
+        }
+
+        // This is the application-specific method handler
+        private DeviceManagementClient.DMMethodResult OnMethodReceived(string methodName, string payload)
+        {
+            Task<DeviceManagementClient.DMMethodResult> result = HandleMethodCallAsync(methodName, payload);
+            return result.Result;
         }
 
         public MainPage()
@@ -72,7 +79,7 @@ namespace Toaster
             return dlg.Result;
         }
 
-        private void OnStart(object sender, RoutedEventArgs e)
+        private void OnStartToasting(object sender, RoutedEventArgs e)
         {
             this.buttonStart.IsEnabled = false;
             this.buttonStop.IsEnabled = true;
@@ -81,7 +88,7 @@ namespace Toaster
             this.imageHot.Visibility = Visibility.Visible;
         }
 
-        private void OnStop(object sender, RoutedEventArgs e)
+        private void OnStopToasting(object sender, RoutedEventArgs e)
         {
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
@@ -104,7 +111,6 @@ namespace Toaster
 
             StatusText.Text = success ? "Succeeded!" : "Failed!";
         }
-
 
         private void OnSystemReset(object sender, RoutedEventArgs e)
         {
@@ -142,5 +148,47 @@ namespace Toaster
                 // Don't do anything yet
             }
         }
+
+        #region Device Twin callback simulation
+
+        private void ToggleUIElementVisibility(UIElement element)
+        {
+            if (element.Visibility == Visibility.Collapsed)
+            {
+                element.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                element.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void OnToggleDMGrid(object sender, RoutedEventArgs e)
+        {
+            if (DMGrid.Visibility == Visibility.Visible)
+            {
+                DMGrid.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                DMGrid.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void OnExpandReboot(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(RebootGrid);
+        }
+
+        // This is a mock method.
+        // This will be replaced by a callback originating from the IoT Azure SDK
+        // when it is ready.
+        private void OnSystemRestartJson(object sender, RoutedEventArgs e)
+        {
+            OnMethodReceived(DeviceManagementClient.RebootMethod, "");
+        }
+
+
+        #endregion
     }
 }
