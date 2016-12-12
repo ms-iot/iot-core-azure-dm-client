@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 
 class MdmProvision
 {
@@ -13,6 +14,7 @@ public:
 
     static void RunAdd(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
 
+    static std::map<std::wstring, std::map<std::wstring, std::wstring>> RunGetStructData(const std::wstring& path);
     static std::wstring RunGetString(const std::wstring& sid, const std::wstring& path);
     static unsigned int RunGetUInt(const std::wstring& sid, const std::wstring& path);
 

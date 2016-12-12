@@ -7,7 +7,7 @@
 using namespace std;
 
 // Returns the response size in bytes.
-uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & response)
+uint32_t SendRequestToSystemConfigurator(const DMRequest& request, vector<DMResponse> & responses)
 {
     TRACE(__FUNCTION__);
 
@@ -36,8 +36,10 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
         // Exit if an error other than ERROR_PIPE_BUSY occurs
         if (GetLastError() != ERROR_PIPE_BUSY)
         {
+            DMResponse response;
             response.status = DMStatus::Failed;
             response.SetMessage(L"CreateFileW failed, GetLastError=", GetLastError());
+            responses.push_back(response);
             return 0;
         }
 
@@ -49,8 +51,10 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
     if (pipeHandle.Get() == INVALID_HANDLE_VALUE || pipeHandle.Get() == NULL)
     {
         TRACE("Failed to connect to system configurator pipe...");
+        DMResponse response;
         response.status = DMStatus::Failed;
         response.SetMessage(L"Failed to connect to system configurator pipe. GetLastError=", GetLastError());
+        responses.push_back(response);
         return 0;
     }
     TRACE("Connected successfully to pipe...");
@@ -60,18 +64,31 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
     if (WriteFile(pipeHandle.Get(), &request, sizeof(request), &writtenByteCount, NULL))
     {
         TRACE("Reading response from pipe...");
-        if (!ReadFile(pipeHandle.Get(), &response, sizeof(response), &readByteCount, NULL))
+        while (true)
         {
-            TRACE("Error: failed to read from pipe...");
-            response.status = DMStatus::Failed;
-            response.SetMessage(L"ReadFile failed, GetLastError=", GetLastError());
+            DMResponse response;
+            if (!ReadFile(pipeHandle.Get(), &response, sizeof(response), &readByteCount, NULL))
+            {
+                TRACE("Error: failed to read from pipe...");
+                response.status = DMStatus::Failed;
+                response.SetMessage(L"ReadFile failed, GetLastError=", GetLastError());
+                break;
+            }
+            responses.push_back(response);
+
+            if (response.chunkIndex >= (response.chunkCount - 1))
+            {
+                break;
+            }
         }
     }
     else
     {
         TRACE("Error: failed to write to pipe...");
+        DMResponse response;
         response.status = DMStatus::Failed;
         response.SetMessage(L"WriteFile failed, GetLastError=", GetLastError());
+        responses.push_back(response);
     }
 
     return readByteCount;
@@ -95,20 +112,23 @@ int main(Platform::Array<Platform::String^>^ args)
     }
 
     TRACE("Processing request...");
-    DMResponse response;
-    if (0 == SendRequestToSystemConfigurator(request, response))
+    vector<DMResponse> responses;
+    if (0 == SendRequestToSystemConfigurator(request, responses))
     {
         TRACE("Error: failed to process request...");
         // Do not return. Let the response propagate to the caller.
     }
 
-    TRACE("Writing response to stdout...");
-    DWORD byteWrittenCount = 0;
-    bSuccess = WriteFile(stdoutHandle.Get(), &response, sizeof(DMResponse), &byteWrittenCount, NULL);
-    if (!bSuccess || byteWrittenCount != sizeof(DMResponse))
+    for each (auto response in responses)
     {
-        TRACE("Error: failed to write to stdout...");
-        return -1;
+        TRACE("Writing response to stdout...");
+        DWORD byteWrittenCount = 0;
+        bSuccess = WriteFile(stdoutHandle.Get(), &response, sizeof(DMResponse), &byteWrittenCount, NULL);
+        if (!bSuccess || byteWrittenCount != sizeof(DMResponse))
+        {
+            TRACE("Error: failed to write to stdout...");
+            return -1;
+        }
     }
 
     TRACE("Exiting...");

@@ -149,6 +149,7 @@ namespace Toaster
             }
         }
 
+<<<<<<< HEAD
         #region Device Twin callback simulation
 
         private void ToggleUIElementVisibility(UIElement element)
@@ -190,5 +191,20 @@ namespace Toaster
 
 
         #endregion
+
+        private async void OnListApps(object sender, RoutedEventArgs e)
+        {
+            bool success = true;
+            try
+            {
+                await DMClient.StartListApps();
+            }
+            catch (Exception)
+            {
+                success = false;
+            }
+
+            StatusText.Text = success ? "Succeeded!" : "Failed!";
+        }
     }
 }

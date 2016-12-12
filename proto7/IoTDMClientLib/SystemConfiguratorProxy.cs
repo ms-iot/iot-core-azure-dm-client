@@ -8,6 +8,7 @@ using Windows.Foundation;
 using Windows.Storage.Streams;
 using Windows.System;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace Microsoft.Devices.Management
 {
@@ -16,7 +17,8 @@ namespace Microsoft.Devices.Management
     {
         SystemReboot = 1,
         FactoryReset = 2,
-        CheckUpdates = 3
+        CheckUpdates = 3,
+        ListApps = 4
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -34,8 +36,11 @@ namespace Microsoft.Devices.Management
         public fixed byte data[64];
 
         // Optional:
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)]
         public string message;
+
+        public UInt32 chunkIndex;
+        public UInt32 chunkCount;
     }
 
     // This class send requests (DMrequest) to the System Configurator and receives the responses (DMesponse) from it
@@ -61,7 +66,7 @@ namespace Microsoft.Devices.Management
             return result;
         }
 
-        public static async Task<DMResponse> SendCommandAsync(DMRequest command)
+        public static async Task<List<DMResponse>> SendCommandAsync(DMRequest command)
         {
             var processLauncherOptions = new ProcessLauncherOptions();
             var standardInput = new InMemoryRandomAccessStream();
@@ -81,14 +86,31 @@ namespace Microsoft.Devices.Management
             {
                 using (var outStreamRedirect = standardOutput.GetInputStreamAt(0))
                 {
-                    uint size = (uint)standardOutput.Size;
+                    var size = (uint)standardOutput.Size;
                     System.Diagnostics.Debug.WriteLine(string.Format("Received {0} bytes from comm-proxy", size));
 
-                    byte[] bytes = new byte[size];
-                    IBuffer ibuffer = bytes.AsBuffer();
-                    var result = await outStreamRedirect.ReadAsync(ibuffer, size, InputStreamOptions.None);
-                    var response = Deserialize(ref bytes);
-                    return response;
+                    var iStructSize = Marshal.SizeOf<DMResponse>();
+                    var responses = new List<DMResponse>();
+
+                    var bytes = new byte[iStructSize];
+                    var ibuffer = bytes.AsBuffer();
+                    var corruptionCheck = 0;
+                    while (true)
+                    {
+                        var result = await outStreamRedirect.ReadAsync(ibuffer, (uint)iStructSize, InputStreamOptions.None);
+                        var response = Deserialize(ref bytes);
+                        if (corruptionCheck != response.chunkIndex)
+                        {
+                            break;
+                        }
+                        responses.Add(response);
+                        if (response.chunkIndex >= (response.chunkCount - 1))
+                        {
+                            break;
+                        }
+                        corruptionCheck++;
+                    }
+                    return responses;
                 }
             }
             else
@@ -96,7 +118,7 @@ namespace Microsoft.Devices.Management
                 // TODO: handle error
                 var response = new DMResponse();
                 response.status = 500;
-                return response;
+                return new List<DMResponse>() { response };
             }
         }
     }

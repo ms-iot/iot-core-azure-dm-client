@@ -4,26 +4,32 @@
 #include "..\SharedUtilities\DMRequest.h"
 #include "..\SharedUtilities\SecurityAttributes.h"
 #include "CSPs\RebootCSP.h"
+#include "CSPs\EnterpriseModernAppManagementCSP.h"
 
-DMResponse ProcessCommand(const DMRequest& request)
+using namespace std;
+
+vector<DMResponse> ProcessCommand(const DMRequest& request)
 {
     TRACE(__FUNCTION__);
     static int cmdIndex = 0;
+    vector<DMResponse> responses;
     DMResponse response;
-    response.SetMessage(L"Default System Configurator Response.");
 
     switch (request.command)
     {
     case DMCommand::SystemReboot:
+        responses.push_back(response);
         response.SetMessage(L"Handling `system reboot`. cmdIndex = ", cmdIndex);
         response.status = DMStatus::Succeeded;
         RebootCSP::ExecRebootNow();
         break;
     case DMCommand::SystemReset:
+        responses.push_back(response);
         response.SetMessage(L"Handling `system reset`. cmdIndex = ", cmdIndex);
         response.status = DMStatus::Succeeded;
         break;
     case DMCommand::CheckUpdates:
+        responses.push_back(response);
         response.SetMessage(L"Handling `check updates`. cmdIndex = ", cmdIndex);
 
         // Checking for updates...
@@ -31,6 +37,25 @@ DMResponse ProcessCommand(const DMRequest& request)
         // Done!
 
         response.status = DMStatus::Succeeded;
+        break;
+    case DMCommand::ListApps:
+        {
+            auto json = EnterpriseModernAppManagementCSP::GetInstalledApps();
+            size_t chunkSize = DMRESPONSE_MESSAGE_SIZE - 1;
+            size_t chunkCount = json.size() / chunkSize;
+            size_t chunkExtra = json.size() % chunkSize;
+            if (chunkExtra != 0) chunkCount++;
+
+            for (size_t i = 0, offset = 0; i < chunkCount; i++, offset += chunkSize)
+            {
+                DMResponse responseChunk;
+                responseChunk.chunkIndex = i;
+                responseChunk.chunkCount = chunkCount;
+                responseChunk.SetMessage(json.substr(offset, chunkSize));
+
+                responses.push_back(responseChunk);
+            }
+        }
         break;
     default:
         response.SetMessage(L"Handling unknown command...cmdIndex = ", cmdIndex);
@@ -40,7 +65,7 @@ DMResponse ProcessCommand(const DMRequest& request)
 
     cmdIndex++;
 
-    return response;
+    return responses;
 }
 
 class PipeConnection
@@ -112,11 +137,11 @@ void Listen()
         if (readResult && readBytes == sizeof(request))
         {
             TRACE("Request received...");
-            DMResponse response;
+            vector<DMResponse> responses;
             
             try
             {
-                response = ProcessCommand(request);
+                responses = ProcessCommand(request);
             }
             catch (const DMException&)
             {
@@ -125,11 +150,16 @@ void Listen()
                 TRACE("DMExeption was thrown from ProcessCommand()...");
             }
 
-            TRACE("Sending response...");
-            DWORD writtenBytes = 0;
-            if (!WriteFile(pipeHandle.Get(), &response, sizeof(response), &writtenBytes, NULL))
+            TRACE("Sending responses...");
+            for each (auto response in responses)
             {
-                throw DMExceptionWithErrorCode("WriteFile Error", GetLastError());
+                DWORD writtenBytes = 0;
+                TRACEP("    Sending bytes:", sizeof(response));
+                TRACEP("    Sending chunk:", response.chunkIndex);
+                if (!WriteFile(pipeHandle.Get(), &response, sizeof(response), &writtenBytes, NULL))
+                {
+                    throw DMExceptionWithErrorCode("WriteFile Error", GetLastError());
+                }
             }
         }
         else
