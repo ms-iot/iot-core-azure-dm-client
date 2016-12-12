@@ -2,6 +2,7 @@
 #include "EnterpriseModernAppManagementCSP.h"
 #include "RebootCSP.h"
 #include "MdmProvision.h"
+#include "..\SharedUtilities\Logger.h"
 
 using namespace std;
 
@@ -9,13 +10,57 @@ using namespace std;
 // https://msdn.microsoft.com/en-us/library/windows/hardware/dn904956(v=vs.85).aspx
 //
 
-std::vector<std::wstring> EnterpriseModernAppManagementCSP::GetInstalledApps()
+wstring ReplaceAll(const wstring& str, const wstring& from, const wstring& to) 
 {
-    std::wstring apps = MdmProvision::RunGetString(L"./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement?list=StructData");
+    wstring wsRet(L"");
+    if (!from.empty())
+    {
+        wsRet.reserve(str.length());
+        size_t start_pos = 0, pos;
+        while ((pos = str.find(from, start_pos)) != string::npos) {
+            wsRet += str.substr(start_pos, pos - start_pos);
+            wsRet += to;
+            pos += from.length();
+            start_pos = pos;
+        }
+        wsRet += str.substr(start_pos);
+    }
+    return wsRet;
+}
 
-    // This is a hack: we need to figure out how to parse into multiple objects
-    std::vector<std::wstring> result = { apps };
-    return result;
+wstring EnterpriseModernAppManagementCSP::GetInstalledApps()
+{
+    TRACE(L"\n---- Get Installed Apps\n");
+    auto appsInfo = MdmProvision::RunGetStructData(L"./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement?list=StructData");
+    wstring json(L"{");
+    bool firstApp = true;
+    for each(auto appInfo in appsInfo)
+    {
+        if (!firstApp) json.append(L", ");
+        firstApp = false;
+
+        json.append(L"\"");
+        json.append(appInfo.first);
+        json.append(L"\":{");
+        bool firstProp = true;
+        for each (auto propinfo in appInfo.second)
+        {
+            if (!firstProp) json.append(L", ");
+            firstProp = false;
+
+            json.append(L"\"");
+            json.append(propinfo.first);
+            json.append(L"\":");
+            json.append(L"\"");
+            json.append(ReplaceAll(propinfo.second, L"\\", L"\\\\"));
+            json.append(L"\"");
+        }
+        json.append(L"}");
+    }
+    json.append(L"}");
+
+    TRACEP(L"\n                app json:", json.c_str());
+    return json;
 }
 
 // TODO: work in progress!

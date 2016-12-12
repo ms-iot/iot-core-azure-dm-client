@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <map>
 #include <deque>
 #include <thread>
 #include <time.h>
@@ -61,6 +62,7 @@ namespace Utils
 
     // Xml helpers
     void ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);
+    void ReadXmlStructData(const std::wstring& resultSyncML, std::map<std::wstring, std::map<std::wstring, std::wstring>>& data);
 
     // Registry helpers
     void WriteRegistryValue(const std::wstring& subkey, const std::wstring& propName, const std::wstring& propValue);

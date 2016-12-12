@@ -11,7 +11,8 @@ enum class DMCommand
     Unknown = 0,
     SystemReboot = 1,
     SystemReset = 2,
-    CheckUpdates = 3,
+	CheckUpdates = 3,
+	ListApps = 4,
 };
 
 enum class DMStatus
@@ -34,14 +35,20 @@ struct DMRequest
     }
 };
 
+static const size_t DMRESPONSE_DATA_SIZE = 64;
+static const size_t DMRESPONSE_MESSAGE_SIZE = 1024;
 struct DMResponse
 {
     DMStatus status;
-    char     data[64];
-    wchar_t  message[256];
+    char     data[DMRESPONSE_DATA_SIZE];
+    wchar_t  message[DMRESPONSE_MESSAGE_SIZE];
+	size_t    chunkIndex;
+	size_t    chunkCount;
 
     DMResponse() :
-        status(DMStatus::Failed)
+        status(DMStatus::Failed),
+		chunkIndex(0),
+		chunkCount(1)
     {
         memset(&data, 0, sizeof(data));
         memset(&message, 0, sizeof(message));

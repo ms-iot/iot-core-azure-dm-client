@@ -140,6 +140,37 @@ wstring MdmProvision::RunGetString(const wstring& sid, const wstring& path)
     return value;
 }
 
+map<wstring, map<wstring, wstring>> MdmProvision::RunGetStructData(const std::wstring& path)
+{
+    wstring requestSyncML = LR"(
+        <SyncBody>
+            <Get>
+              <CmdID>1</CmdID>
+              <Item>
+                <Target>
+                  <LocURI>)";
+    requestSyncML += path;
+    requestSyncML += LR"(</LocURI>
+                </Target>
+                <Meta>
+                    <Type xmlns="syncml:metinf">text/plain</Type>
+                </Meta>
+              </Item>
+            </Get>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    RunSyncML(L"", requestSyncML, resultSyncML);
+
+    // Extract the result data
+    wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
+
+    map<wstring, map<wstring, wstring>> dataMap;
+    Utils::ReadXmlStructData(wrappedResult, dataMap);
+    return dataMap;
+}
+
 unsigned int MdmProvision::RunGetUInt(const wstring& sid, const wstring& path)
 {
     wstring requestSyncML = LR"(

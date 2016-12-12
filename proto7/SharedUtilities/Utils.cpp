@@ -7,6 +7,8 @@
 #include <iomanip>
 #include <iostream>
 #include <algorithm> 
+#include <iostream>
+#include <iterator>
 #include <xmllite.h>
 #include <fstream>
 #include "Utils.h"
@@ -70,6 +72,181 @@ namespace Utils
         return formattedTime.str();
     }
 
+    void ReadXmlStructData(IStream* resultSyncML, std::map<std::wstring, std::map<std::wstring, std::wstring>>& data)
+    {
+        wstring uriPath = L"Root\\Results\\Item\\Source\\LocURI\\";
+        wstring dataPath = L"Root\\Results\\Item\\Data\\";
+        wstring itemPath = L"Root\\Results\\Item\\";
+
+        ComPtr<IXmlReader> xmlReader;
+
+        HRESULT hr = CreateXmlReader(__uuidof(IXmlReader), (void**)xmlReader.GetAddressOf(), NULL);
+        if (FAILED(hr))
+        {
+            TRACEP(L"Error: Failed to create xml reader. Code :", hr);
+            throw DMExceptionWithHRESULT(hr);
+        }
+
+        hr = xmlReader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
+        if (FAILED(hr))
+        {
+            TRACEP(L"Error: XmlReaderProperty_DtdProcessing() failed. Code :\n", hr);
+            throw DMExceptionWithHRESULT(hr);
+        }
+
+        hr = xmlReader->SetInput(resultSyncML);
+        if (FAILED(hr))
+        {
+            TRACEP(L"Error: SetInput() failed. Code :\n", hr);
+            throw DMExceptionWithHRESULT(hr);
+        }
+
+        deque<wstring> pathStack;
+        wstring currentPath;
+
+        // Read until there are no more nodes
+        wstring value(L"");
+        wstring uri(L"");
+        XmlNodeType nodeType;
+        while (S_OK == (hr = xmlReader->Read(&nodeType)))
+        {
+            switch (nodeType)
+            {
+            case XmlNodeType_Element:
+            {
+                const wchar_t* prefix = NULL;
+                UINT prefixSize = 0;
+
+                hr = xmlReader->GetPrefix(&prefix, &prefixSize);
+                if (FAILED(hr))
+                {
+                    TRACEP(L"Error: GetPrefix() failed. Code :\n", hr);
+                    throw DMExceptionWithHRESULT(hr);
+                }
+
+                const wchar_t* localName;
+                hr = xmlReader->GetLocalName(&localName, NULL);
+                if (FAILED(hr))
+                {
+                    TRACEP(L"Error: GetLocalName() failed. Code :\n", hr);
+                    throw DMExceptionWithHRESULT(hr);
+                }
+
+                wstring elementName;
+                if (prefixSize > 0)
+                {
+                    elementName = prefix;
+                    elementName += L":";
+                }
+                elementName += localName;
+
+                if (!xmlReader->IsEmptyElement())
+                {
+                    pathStack.push_back(elementName);
+
+                    // rebuild the current path.
+                    currentPath = L"";
+                    for (auto& it : pathStack)
+                    {
+                        currentPath += it + L"\\";
+                    }
+                    if (itemPath == currentPath)
+                    {
+                        value = L"";
+                        uri = L"";
+                    }
+                }
+            }
+            break;
+            case XmlNodeType_EndElement:
+            {
+                const wchar_t* prefix = NULL;
+                UINT prefixSize = 0;
+
+                hr = xmlReader->GetPrefix(&prefix, &prefixSize);
+                if (FAILED(hr))
+                {
+                    TRACEP(L"Error: GetPrefix() failed. Code :", hr);
+                    throw DMExceptionWithHRESULT(hr);
+                }
+
+                const wchar_t* localName = NULL;
+                hr = xmlReader->GetLocalName(&localName, NULL);
+                if (FAILED(hr))
+                {
+                    TRACEP(L"Error: GetLocalName() failed. Code :", hr);
+                    throw DMExceptionWithHRESULT(hr);
+                }
+
+                if (itemPath == currentPath)
+                {
+                    vector<wstring> uriTokens;
+                    wstringstream ss(uri.c_str());
+                    wstring s;
+
+                    while (getline(ss, s, L'/')) 
+                    {
+                        uriTokens.push_back(s);
+                    }
+
+                    if (uriTokens.size() == 10) 
+                    {
+                        // 0/__1___/__2___/__3_/______________4______________/______5______/___6____/_________7_______/_______8_______/____9___
+                        // ./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/AppStore/PackageFamilyName/PackageFullName/Property
+
+                        auto props = data.find(uriTokens[8]);
+                        if (props == data.end())
+                        {
+                            map<wstring, wstring> propMap;
+                            propMap.insert(pair<wstring, wstring>(uriTokens[9], value));
+                            propMap.insert(pair<wstring, wstring>(L"AppSource", uriTokens[6]));
+                            propMap.insert(pair<wstring, wstring>(L"PackageFamilyName", uriTokens[7]));
+
+                            data.insert(pair<wstring, map<wstring, wstring>>(uriTokens[8], propMap));
+                        }
+                        else
+                        {
+                            props->second.insert(pair<wstring, wstring>(uriTokens[9], value));
+                        }
+                    }
+                    value = L"";
+                    uri = L"";
+                }
+                pathStack.pop_back();
+                // rebuild the current path.
+                currentPath = L"";
+                for (auto& it : pathStack)
+                {
+                    currentPath += it + L"\\";
+                }
+
+            }
+            break;
+            case XmlNodeType_Text:
+            case XmlNodeType_Whitespace:
+            {
+                const wchar_t* valueText = NULL;
+                hr = xmlReader->GetValue(&valueText, NULL);
+                if (FAILED(hr))
+                {
+                    TRACEP(L"Error: GetValue() failed. Code :", hr);
+                    throw DMExceptionWithHRESULT(hr);
+                }
+
+                if (uriPath == currentPath)
+                {
+                    uri = valueText;
+                }
+                else if (dataPath == currentPath)
+                {
+                    value = valueText;
+                }
+            }
+            break;
+            }
+        }
+    }
+    
     void ReadXmlValue(IStream* resultSyncML, const wstring& targetXmlPath, wstring& value)
     {
         ComPtr<IXmlReader> xmlReader;
@@ -200,6 +377,25 @@ namespace Utils
             TRACEP(L"Error: Failed to read: ", targetXmlPath.c_str());
             throw DMException("ReadXmlValue: path not found");
         }
+    }
+
+    void ReadXmlStructData(const std::wstring& resultSyncML, std::map<std::wstring, std::map<std::wstring, std::wstring>>& data)
+    {
+        DWORD bufferSize = static_cast<DWORD>(resultSyncML.size() * sizeof(resultSyncML[0]));
+        char* buffer = (char*)GlobalAlloc(GMEM_FIXED, bufferSize);
+        memcpy(buffer, resultSyncML.c_str(), bufferSize);
+
+        ComPtr<IStream> dataStream;
+        HRESULT hr = ::CreateStreamOnHGlobal(buffer, TRUE /*delete on release*/, dataStream.GetAddressOf());
+        if (FAILED(hr))
+        {
+            GlobalFree(buffer);
+            throw DMExceptionWithHRESULT(hr);
+        }
+        ReadXmlStructData(dataStream.Get(), data);
+
+        // GlobalFree() is not needed since 'delete on release' is enabled.
+        // GlobalFree(buffer);
     }
 
     void ReadXmlValue(const wstring& resultSyncML, const wstring& targetXmlPath, wstring& value)

@@ -46,6 +46,7 @@
                 <Button Width="150" Margin="3" Content="Reset" Click="OnSystemReset" />
                 <Button Width="150" Margin="3" Content="Restart" Click="OnSystemRestart"/>
                 <Button Width="150" Margin="3" Content="Check for Updates" Click="OnCheckForUpdates"/>
+                <Button Width="150" Margin="3" Content="List Apps" Click="OnListApps"/>
             </StackPanel>
         </Grid>
         <StackPanel Grid.Column="1" x:Name="DMGrid" Visibility="Collapsed" Orientation="Vertical">

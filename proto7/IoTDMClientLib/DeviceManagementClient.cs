@@ -1,4 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -104,8 +110,8 @@ namespace Microsoft.Devices.Management
             // Here we might want to set some reported properties:
             // ReportProperties("We're about to start factory reset... If you don't hear from me again, I'm dead");
 
-            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            if (result.status != 0)
+            var results = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (results.Count == 0 || results[0].status != 0)
             {
                 throw new Exception();
             }
@@ -124,11 +130,46 @@ namespace Microsoft.Devices.Management
             var request = new DMRequest();
             request.command = DMCommand.SystemReboot;
 
-            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            if (result.status != 0)
+            var results = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (results.Count == 0 || results[0].status != 0)
             {
                 throw new Exception();
             }
+        }
+
+        class AppInfo
+        {
+            public string AppSource { get; set; }
+            public string Architecture { get; set; }
+            public string InstallDate { get; set; }
+            public string InstallLocation { get; set; }
+            public string IsBundle { get; set; }
+            public string IsFramework { get; set; }
+            public string IsProvisioned { get; set; }
+            public string Name { get; set; }
+            public string PackageFamilyName { get; set; }
+            public string PackageStatus { get; set; }
+            public string Publisher { get; set; }
+            public string RequiresReinstall { get; set; }
+            public string ResourceID { get; set; }
+            public string Users { get; set; }
+            public string Version { get; set; }
+        }
+
+        public async Task StartListApps()
+        {
+            var request = new DMRequest();
+            request.command = DMCommand.ListApps;
+
+            var results = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (results.Count == 0)
+            {
+                throw new Exception();
+            }
+
+            string json = string.Empty;
+            results.ForEach((r) => { json += r.message; });
+            var appInfo = JsonConvert.DeserializeObject<Dictionary<string, AppInfo>>(json);
         }
 
         // This command checks if updates are available. 
@@ -138,9 +179,8 @@ namespace Microsoft.Devices.Management
             var request = new DMRequest();
             request.command = DMCommand.CheckUpdates;
 
-            var response = await SystemConfiguratorProxy.SendCommandAsync(request);
-
-            return response.status == 1;    // 1 means "updates available"
+            var results = await SystemConfiguratorProxy.SendCommandAsync(request);
+            return (results.Count != 0 && results[0].status == 1);
         }
 
         //
