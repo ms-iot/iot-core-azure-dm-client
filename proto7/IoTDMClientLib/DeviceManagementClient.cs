@@ -42,12 +42,6 @@ namespace Microsoft.Devices.Management
             public string value;
         }
 
-        // Data members
-        IDeviceManagementRequestHandler requestHandler;
-        IDeviceTwin deviceTwin;
-        Dictionary<string, Func<string, Task<DMMethodResult>>> supportedMethods;
-        Dictionary<string, DMCommand> supportedProperties;
-
         // Ultimately, DeviceManagementClient will take an abstraction over DeviceClient to allow it to 
         // send reported properties. It will never receive using it
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
@@ -77,22 +71,6 @@ namespace Microsoft.Devices.Management
         public bool IsDMMethod(string methodName)
         {
             return supportedMethods.ContainsKey(methodName);
-        }
-
-        private async Task<DMMethodResult> HandleRebootAsync(string request)
-        {
-            DMMethodResult result = new DMMethodResult();
-
-            try
-            {
-                await StartSystemReboot();
-                result.returnCode = 1;  // success
-            }
-            catch (Exception)
-            {
-                // returnCode is already set to 0 to indicate failure.
-            }
-            return result;
         }
 
         public async Task<DMMethodResult> InvokeMethodAsync(string methodName, string payload)
@@ -138,10 +116,10 @@ namespace Microsoft.Devices.Management
             {
                 throw new Exception();
             }
-            return result.message;
+            return result.GetDataString();
         }
 
-        public void OnDesiredPropertiesChanged(string desiredPropertiesString)
+        public void OnDesiredPropertiesChanged(DeviceTwinUpdateState updateState, string desiredPropertiesString)
         {
             // Traverse the tree and build a list of all the paths references...
             List<DesiredProperty> desiredProperties = new List<DesiredProperty>();
@@ -153,6 +131,84 @@ namespace Microsoft.Devices.Management
             {
                 SetPropertyAsync(dp.path, dp.value);
             }
+        }
+
+        //
+        // Commands:
+        //
+
+        // This command initiates factory reset of the device
+        public async Task StartFactoryReset()
+        {
+            var request = new DMRequest();
+            request.command = DMCommand.FactoryReset;
+
+            // Here we might want to set some reported properties:
+            // ReportProperties("We're about to start factory reset... If you don't hear from me again, I'm dead");
+
+            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (result.status != 0)
+            {
+                throw new Exception();
+            }
+        }
+
+        public async Task StartSystemReboot()
+        {
+            SystemRebootRequestResponse rebootAllowed = await requestHandler.IsSystemRebootAllowed();
+            if (rebootAllowed != SystemRebootRequestResponse.StartNow)
+            {
+                // ToDo: What should happen if the the user blocks the restart?
+                //       We need to have a policy on when to ask again.
+                return;
+            }
+
+            var request = new DMRequest();
+            request.command = DMCommand.RebootSystem;
+
+            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (result.status != 0)
+            {
+                throw new Exception();
+            }
+        }
+
+        // This command checks if updates are available. 
+        // TODO: work out complete protocol (find updates, apply updates etc.)
+        public async Task<bool> CheckForUpdatesAsync()
+        {
+            var request = new DMRequest();
+            request.command = DMCommand.CheckUpdates;
+
+            var response = await SystemConfiguratorProxy.SendCommandAsync(request);
+
+            return response.status == 1;    // 1 means "updates available"
+        }
+
+        //
+        // Private utilities
+        //
+
+        // Report property to DT
+        private void ReportProperties(string allJson)
+        {
+            deviceTwin.ReportProperties(allJson);
+        }
+
+        private async Task<DMMethodResult> HandleRebootAsync(string request)
+        {
+            DMMethodResult result = new DMMethodResult();
+
+            try
+            {
+                await StartSystemReboot();
+                result.returnCode = 1;  // success
+            }
+            catch (Exception)
+            {
+                // returnCode is already set to 0 to indicate failure.
+            }
+            return result;
         }
 
         private static void ReadProperty(string indent, List<DesiredProperty> desiredProperties, JProperty jsonProp)
@@ -231,83 +287,11 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public static bool TryHandleProperty(DeviceTwinUpdateState updateState, string payload)
-        {
-            // Is this a desired property that must be handled by the DM client?
-            bool isDMProperty = false; // TODO: implement filter based on payload
-            if (isDMProperty)
-            {
-                // Handle the property
-                return true;
-            }
-            else
-            {
-                // Not ours -- the user must handle this property
-                return false;
-            }
-        }
-
-        //
-        // Commands:
-        //
-
-        // This command initiates factory reset of the device
-        public async Task StartFactoryReset()
-        {
-            var request = new DMRequest();
-            request.command = DMCommand.FactoryReset;
-
-            // Here we might want to set some reported properties:
-            // ReportProperties("We're about to start factory reset... If you don't hear from me again, I'm dead");
-
-            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            if (result.status != 0)
-            {
-                throw new Exception();
-            }
-        }
-
-        public async Task StartSystemReboot()
-        {
-            SystemRebootRequestResponse rebootAllowed = await requestHandler.IsSystemRebootAllowed();
-            if (rebootAllowed != SystemRebootRequestResponse.StartNow)
-            {
-                // ToDo: What should happen if the the user blocks the restart?
-                //       We need to have a policy on when to ask again.
-                return;
-            }
-
-            var request = new DMRequest();
-            request.command = DMCommand.RebootSystem;
-
-            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            if (result.status != 0)
-            {
-                throw new Exception();
-            }
-        }
-
-        // This command checks if updates are available. 
-        // TODO: work out complete protocol (find updates, apply updates etc.)
-        public async Task<bool> CheckForUpdatesAsync()
-        {
-            var request = new DMRequest();
-            request.command = DMCommand.CheckUpdates;
-
-            var response = await SystemConfiguratorProxy.SendCommandAsync(request);
-
-            return response.status == 1;    // 1 means "updates available"
-        }
-
-        //
-        // Private utilities
-        //
-
-        // Report property to DT
-        private void ReportProperties(string allJson)
-        {
-            deviceTwin.ReportProperties(allJson);
-        }
+        // Data members
+        IDeviceManagementRequestHandler requestHandler;
+        IDeviceTwin deviceTwin;
+        Dictionary<string, Func<string, Task<DMMethodResult>>> supportedMethods;
+        Dictionary<string, DMCommand> supportedProperties;
     }
 
 }

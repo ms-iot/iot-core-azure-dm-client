@@ -37,7 +37,7 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
         if (GetLastError() != ERROR_PIPE_BUSY)
         {
             response.status = DMStatus::Failed;
-            response.SetMessage(L"CreateFileW failed, GetLastError=", GetLastError());
+            response.SetData(L"CreateFileW failed, GetLastError=", GetLastError());
             return 0;
         }
 
@@ -50,7 +50,7 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
     {
         TRACE("Failed to connect to system configurator pipe...");
         response.status = DMStatus::Failed;
-        response.SetMessage(L"Failed to connect to system configurator pipe. GetLastError=", GetLastError());
+        response.SetData(L"Failed to connect to system configurator pipe. GetLastError=", GetLastError());
         return 0;
     }
     TRACE("Connected successfully to pipe...");
@@ -64,14 +64,14 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
         {
             TRACE("Error: failed to read from pipe...");
             response.status = DMStatus::Failed;
-            response.SetMessage(L"ReadFile failed, GetLastError=", GetLastError());
+            response.SetData(L"ReadFile failed, GetLastError=", GetLastError());
         }
     }
     else
     {
         TRACE("Error: failed to write to pipe...");
         response.status = DMStatus::Failed;
-        response.SetMessage(L"WriteFile failed, GetLastError=", GetLastError());
+        response.SetData(L"WriteFile failed, GetLastError=", GetLastError());
     }
 
     return readByteCount;

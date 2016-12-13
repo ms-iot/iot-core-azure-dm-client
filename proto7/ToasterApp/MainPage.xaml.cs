@@ -205,7 +205,7 @@ namespace Toaster
             Debug.WriteLine("---- Updating Reboot Desired Properties ----");
             Debug.WriteLine(s);
 
-            DMClient.OnDesiredPropertiesChanged(s);
+            DMClient.OnDesiredPropertiesChanged(DeviceTwinUpdateState.Complete, s);
         }
 
         private async void ReadRebootSingle()

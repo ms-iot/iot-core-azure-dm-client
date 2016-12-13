@@ -69,10 +69,41 @@ namespace Microsoft.Devices.Management
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
     unsafe struct DMResponse
     {
+        const int DataSizeInBytes = 128;
+
         public UInt32 status;
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-        public string message;
+        public fixed byte data[DataSizeInBytes];
+
+        // GetDataString() assumes the strings received are unicode.
+        public string GetDataString()
+        {
+            string s = "";
+            byte[] readBytes = new byte[DataSizeInBytes];
+            int stringLengthInBytes = 0;
+            unsafe
+            {
+                fixed (byte* dataBytes = data)
+                {
+                    // ToDo: there must be a better way to convert and find the end of the string.
+                    for (int i = 0; i < DataSizeInBytes; i += 2)
+                    {
+                        if ((i < DataSizeInBytes - 1) && dataBytes[i] == 0 && dataBytes[i + 1] == 0)
+                        {
+                            // Found the null terminator.
+                            break;
+                        }
+                        readBytes[i] = dataBytes[i];
+                        readBytes[i + 1] = dataBytes[i + 1];
+                        stringLengthInBytes += 2;
+                    }
+                }
+            }
+
+            s = System.Text.UnicodeEncoding.Unicode.GetString(readBytes, 0 /*index*/, stringLengthInBytes);
+
+            return s;
+        }
     }
 
     // This class send requests (DMrequest) to the System Configurator and receives the responses (DMesponse) from it
