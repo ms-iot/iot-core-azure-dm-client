@@ -9,9 +9,17 @@ const wchar_t* PipeName = L"\\\\.\\pipe\\dm-client-pipe";
 enum class DMCommand
 {
     Unknown = 0,
-    SystemReboot = 1,
     SystemReset = 2,
     CheckUpdates = 3,
+
+    // Reboot
+    RebootSystem = 10,
+    SetSingleRebootTime = 11,
+    GetSingleRebootTime = 12,
+    SetDailyRebootTime = 13,
+    GetDailyRebootTime = 14,
+    GetLastRebootCmdTime = 15,
+    GetLastRebootTime = 16,
 };
 
 enum class DMStatus
@@ -37,13 +45,11 @@ struct DMRequest
 struct DMResponse
 {
     DMStatus status;
-    char     data[64];
     wchar_t  message[256];
 
     DMResponse() :
         status(DMStatus::Failed)
     {
-        memset(&data, 0, sizeof(data));
         memset(&message, 0, sizeof(message));
     }
 

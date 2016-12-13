@@ -1,36 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Diagnostics;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Microsoft.Devices.Management;
+using Microsoft.Azure.Devices.Client;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
-using Windows.System;
-using Windows.Storage.Streams;
-using Windows.ApplicationModel;
-using System.Text;
-using Windows.ApplicationModel.Core;
-using Windows.UI.Core;
-using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json;
-
-using Microsoft.Devices.Management;
-using System.Runtime.InteropServices;
-using Microsoft.Azure.Devices.Client;
 
 namespace Toaster
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class MainPage : Page
     {
         DeviceManagementClient DMClient;
@@ -40,7 +20,7 @@ namespace Toaster
             DeviceManagementClient.DMMethodResult result = new DeviceManagementClient.DMMethodResult();
             if (DMClient.IsDMMethod(methodName))
             {
-                result = await DMClient.HandleMethodAsync(methodName, payload);
+                result = await DMClient.InvokeMethodAsync(methodName, payload);
             }
             else
             {
@@ -149,6 +129,7 @@ namespace Toaster
             }
         }
 
+        // ----------------------------------------------------------------------------------------
         #region Device Twin callback simulation
 
         private void ToggleUIElementVisibility(UIElement element)
@@ -188,7 +169,98 @@ namespace Toaster
             OnMethodReceived(DeviceManagementClient.RebootMethod, "");
         }
 
+        private JProperty GetDesiredReboot()
+        {
+            JObject rebootProperties = new JObject();
+            {
+                JValue singleRebootTimeValue = new JValue(DesiredSingleRebootTime.Text);
+                JProperty singleRebootTimeProperty = new JProperty("singleReboot", singleRebootTimeValue);
+                rebootProperties.Add(singleRebootTimeProperty);
+
+                JValue dailyRebootTimeValue = new JValue(DesiredDailyRebootTime.Text);
+                JProperty dailyRebootTimeProperty = new JProperty("dailyReboot", dailyRebootTimeValue);
+                rebootProperties.Add(dailyRebootTimeProperty);
+            }
+
+            return new JProperty("reboot", rebootProperties);
+        }
+
+        private void OnApplyDesired(object sender, RoutedEventArgs e)
+        {
+            JObject desiredProperties = new JObject();
+            desiredProperties.Add(GetDesiredReboot());
+            // desiredProperties.Add(GetDesiredWindowsUpdates());
+            // desiredProperties.Add(GetDesiredAzureUpdates());
+
+            JProperty desiredProperty = new JProperty("desired", desiredProperties);
+
+            JObject rootProperties = new JObject();
+            rootProperties.Add(desiredProperty);
+
+            JProperty rootProperty = new JProperty("properties", rootProperties);
+
+            JObject rootObject = new JObject();
+            rootObject.Add(rootProperty);
+
+            string s = rootObject.ToString();
+
+            Debug.WriteLine("---- Updating Reboot Desired Properties ----");
+            Debug.WriteLine(s);
+
+            // Task t is to avoid the 'not awaited' warning.
+            // Task t = _deviceTwin.UpdateTwinData(s);
+            DMClient.OnDesiredPropertiesChanged(s);
+        }
+
+        private void OnReadReported(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void OnDeepReadReported(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private async void ReadRebootSingle()
+        {
+            ReportedSingleRebootTime.Text = await DMClient.GetPropertyAsync(DeviceManagementClient.ReportedRebootSingleProperty);
+        }
+
+        private void OnReadRebootSingle(object sender, RoutedEventArgs e)
+        {
+            ReadRebootSingle();
+        }
+
+        private async void ReadRebootDaily()
+        {
+            ReportedDailyRebootTime.Text = await DMClient.GetPropertyAsync(DeviceManagementClient.ReportedRebootDailyProperty);
+        }
+
+        private void OnReadRebootDaily(object sender, RoutedEventArgs e)
+        {
+            ReadRebootDaily();
+        }
+
+        private async void ReadLastRebootTime()
+        {
+            LastRebootTime.Text = await DMClient.GetPropertyAsync(DeviceManagementClient.ReportedLastRebootProperty);
+        }
+
+        private void OnReadLastRebootTime(object sender, RoutedEventArgs e)
+        {
+            ReadLastRebootTime();
+        }
+
+        private async void ReadLastRebootCmdTime()
+        {
+            LastRebootCmdTime.Text = await DMClient.GetPropertyAsync(DeviceManagementClient.ReportedLastRebootCmdProperty);
+        }
+
+        private void OnReadLastRebootCmdTime(object sender, RoutedEventArgs e)
+        {
+            ReadLastRebootCmdTime();
+        }
 
         #endregion
+
     }
 }

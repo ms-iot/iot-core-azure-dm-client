@@ -14,26 +14,63 @@ namespace Microsoft.Devices.Management
     // This must be kept in sync with enum class dm_command in dm_request.h
     public enum DMCommand
     {
-        SystemReboot = 1,
-        FactoryReset = 2,
-        CheckUpdates = 3
+        Unknown = 0,
+        FactoryReset = 1,
+        CheckUpdates = 2,
+
+        // Reboot
+        RebootSystem = 10,
+        SetSingleRebootTime = 11,
+        GetSingleRebootTime = 12,
+        SetDailyRebootTime = 13,
+        GetDailyRebootTime = 14,
+        GetLastRebootCmdTime = 15,
+        GetLastRebootTime = 16,
     }
+
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     unsafe struct DMRequest
     {
+        const int DataSize = 64;
+
         [MarshalAs(UnmanagedType.U4)]
         public DMCommand command;
-        public fixed byte data[64];
+
+        public fixed byte data[DataSize];
+
+        public unsafe void SetData(string valueString)
+        {
+            if (valueString.Length > DataSize - 1)
+            {
+                throw new ArgumentException();
+            }
+
+            byte[] stringBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(valueString);
+
+            unsafe
+            {
+                fixed (byte* dataBytes = data)
+                {
+                    int i = 0;
+                    for (; i < valueString.Length; ++i)
+                    {
+                        dataBytes[i] = stringBytes[i];
+                    }
+                    for (; i < DataSize; ++i)
+                    {
+                        dataBytes[i] = 0;
+                    }
+                }
+            }
+        }
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
     unsafe struct DMResponse
     {
         public UInt32 status;
-        public fixed byte data[64];
 
-        // Optional:
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
         public string message;
     }

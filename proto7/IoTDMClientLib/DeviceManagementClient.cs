@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -17,6 +20,15 @@ namespace Microsoft.Devices.Management
         // Constants
         public const string RebootMethod = "Reboot";
 
+        // device twin property paths
+        public const string DesiredRebootSingleProperty = "properties.desired.reboot.singleReboot";
+        public const string DesiredRebootDailyProperty = "properties.desired.reboot.dailyReboot";
+
+        public const string ReportedRebootSingleProperty = "properties.reported.reboot.singleReboot";
+        public const string ReportedRebootDailyProperty = "properties.reported.reboot.dailyReboot";
+        public const string ReportedLastRebootCmdProperty = "properties.reported.reboot.lastRebootCmd";
+        public const string ReportedLastRebootProperty = "properties.reported.reboot.lastReboot";
+
         // Types
         public struct DMMethodResult
         {
@@ -24,10 +36,17 @@ namespace Microsoft.Devices.Management
             public string response;
         }
 
+        struct DesiredProperty
+        {
+            public string path;
+            public string value;
+        }
+
         // Data members
         IDeviceManagementRequestHandler requestHandler;
         IDeviceTwin deviceTwin;
         Dictionary<string, Func<string, Task<DMMethodResult>>> supportedMethods;
+        Dictionary<string, DMCommand> supportedProperties;
 
         // Ultimately, DeviceManagementClient will take an abstraction over DeviceClient to allow it to 
         // send reported properties. It will never receive using it
@@ -37,6 +56,17 @@ namespace Microsoft.Devices.Management
             this.deviceTwin = deviceTwin;
             this.supportedMethods = new Dictionary<string, Func<string, Task<DMMethodResult>>>();
             this.supportedMethods.Add(RebootMethod, HandleRebootAsync);
+
+            this.supportedProperties = new Dictionary<string, DMCommand>();
+            this.supportedProperties.Add(DesiredRebootSingleProperty, DMCommand.SetSingleRebootTime);
+            this.supportedProperties.Add(ReportedRebootSingleProperty, DMCommand.GetSingleRebootTime);
+
+            this.supportedProperties.Add(DesiredRebootDailyProperty, DMCommand.SetDailyRebootTime);
+            this.supportedProperties.Add(ReportedRebootDailyProperty, DMCommand.GetDailyRebootTime);
+
+            this.supportedProperties.Add(ReportedLastRebootCmdProperty, DMCommand.GetLastRebootCmdTime);
+
+            this.supportedProperties.Add(ReportedLastRebootProperty, DMCommand.GetLastRebootTime);
         }
 
         public static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
@@ -65,7 +95,7 @@ namespace Microsoft.Devices.Management
             return result;
         }
 
-        public async Task<DMMethodResult> HandleMethodAsync(string methodName, string payload)
+        public async Task<DMMethodResult> InvokeMethodAsync(string methodName, string payload)
         {
             if (!IsDMMethod(methodName))
             {
@@ -73,6 +103,132 @@ namespace Microsoft.Devices.Management
             }
 
             return await supportedMethods[methodName](payload);
+        }
+
+        public bool IsDMProperty(string propertyName)
+        {
+            return supportedProperties.ContainsKey(propertyName);
+        }
+
+        public async Task SetPropertyAsync(string path, string valueString)
+        {
+            if (!IsDMProperty(path))
+            {
+                throw new ArgumentException("Unknown property name: " + path);
+            }
+
+            var request = new DMRequest();
+            request.command = supportedProperties[path];
+            request.SetData(valueString);
+
+            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (result.status != 0)
+            {
+                throw new Exception();
+            }
+        }
+
+        public async Task<string> GetPropertyAsync(string path)
+        {
+            var request = new DMRequest();
+            request.command = supportedProperties[path];
+
+            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (result.status != 0)
+            {
+                throw new Exception();
+            }
+            return result.message;
+        }
+
+        public void OnDesiredPropertiesChanged(string desiredPropertiesString)
+        {
+            // Traverse the tree and build a list of all the paths references...
+            List<DesiredProperty> desiredProperties = new List<DesiredProperty>();
+            JObject desiredObj = (JObject)JsonConvert.DeserializeObject(desiredPropertiesString);
+            ReadObjectProperties("", desiredProperties, desiredObj);
+
+            // Loop and apply the new values...
+            foreach (DesiredProperty dp in desiredProperties)
+            {
+                SetPropertyAsync(dp.path, dp.value);
+            }
+        }
+
+        private static void ReadProperty(string indent, List<DesiredProperty> desiredProperties, JProperty jsonProp)
+        {
+            indent += "    ";
+            JTokenType type = jsonProp.Type;
+            Debug.WriteLine(indent + jsonProp.Name + " = ");
+
+            if (jsonProp.Value.Type == JTokenType.Object)
+            {
+                ReadObjectProperties(indent, desiredProperties, (JObject)jsonProp.Value);
+            }
+            else
+            {
+                JValue theValue = (JValue)jsonProp.Value;
+                Debug.WriteLine("Path = " + theValue.Path);
+                switch (theValue.Type)
+                {
+                    case JTokenType.String:
+                        {
+                            string valueString = (string)theValue.Value;
+                            Debug.WriteLine(indent + "value = " + valueString);
+
+                            DesiredProperty desiredProperty = new DesiredProperty();
+                            desiredProperty.path = theValue.Path;
+                            desiredProperty.value = valueString;
+                            desiredProperties.Add(desiredProperty);
+                        }
+                        break;
+                    case JTokenType.Date:
+                        {
+                            System.DateTime dateTime = (System.DateTime)theValue.Value;
+                            Debug.WriteLine(indent + "value 1 = " + dateTime.ToString());
+
+                            DesiredProperty desiredProperty = new DesiredProperty();
+                            desiredProperty.path = theValue.Path;
+
+                            // Supported format by CSPs: 2016-10-10T17:00:00Z
+                            desiredProperty.value = dateTime.Year + "-" +
+                                                    dateTime.Month.ToString("00") + "-" +
+                                                    dateTime.Day.ToString("00") + "T" +
+                                                    dateTime.Hour.ToString("00") + ":" +
+                                                    dateTime.Minute.ToString("00") + ":" +
+                                                    dateTime.Second.ToString("00") + "Z";
+                            Debug.WriteLine(indent + "value 2 = " + desiredProperty.value);
+                            desiredProperties.Add(desiredProperty);
+                        }
+                        break;
+                    case JTokenType.Integer:
+                        {
+                            long valueInt = (long)theValue.Value;
+                            Debug.WriteLine(indent + "value = " + valueInt);
+
+                            DesiredProperty desiredProperty = new DesiredProperty();
+                            desiredProperty.path = theValue.Path;
+                            desiredProperty.value = valueInt.ToString();
+                            desiredProperties.Add(desiredProperty);
+                        }
+                        break;
+                    default:
+                        {
+                            Debug.WriteLine(indent + "value = " + "unknown value type");
+                            Debug.Assert(false);
+                        }
+                        break;
+                }
+            }
+        }
+
+        private static void ReadObjectProperties(string indent, List<DesiredProperty> desiredProperties, JObject jsonObj)
+        {
+            indent += "    ";
+            foreach (JProperty child in jsonObj.Children())
+            {
+                ReadProperty(indent, desiredProperties, child);
+            }
         }
 
         public static bool TryHandleProperty(DeviceTwinUpdateState updateState, string payload)
@@ -122,7 +278,7 @@ namespace Microsoft.Devices.Management
             }
 
             var request = new DMRequest();
-            request.command = DMCommand.SystemReboot;
+            request.command = DMCommand.RebootSystem;
 
             DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
             if (result.status != 0)
