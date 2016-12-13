@@ -122,8 +122,6 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="Apply Desired" Click="OnApplyDesired" Width="220"/>
-                <Button Grid.Row="0" Grid.Column="2" Margin="3" Content="Read Reported" Click="OnReadReported" Width="220"/>
-                <Button Grid.Row="1" Grid.Column="2" Margin="3" Content="Deep Read Reported" Click="OnDeepReadReported" Width="220"/>
             </Grid>
 
             <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />

@@ -189,8 +189,6 @@ namespace Toaster
         {
             JObject desiredProperties = new JObject();
             desiredProperties.Add(GetDesiredReboot());
-            // desiredProperties.Add(GetDesiredWindowsUpdates());
-            // desiredProperties.Add(GetDesiredAzureUpdates());
 
             JProperty desiredProperty = new JProperty("desired", desiredProperties);
 
@@ -207,17 +205,7 @@ namespace Toaster
             Debug.WriteLine("---- Updating Reboot Desired Properties ----");
             Debug.WriteLine(s);
 
-            // Task t is to avoid the 'not awaited' warning.
-            // Task t = _deviceTwin.UpdateTwinData(s);
             DMClient.OnDesiredPropertiesChanged(s);
-        }
-
-        private void OnReadReported(object sender, RoutedEventArgs e)
-        {
-        }
-
-        private void OnDeepReadReported(object sender, RoutedEventArgs e)
-        {
         }
 
         private async void ReadRebootSingle()
