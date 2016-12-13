@@ -49,7 +49,7 @@ namespace Utils
 
     // Replaces invalid characters (like .) with _ so that the string can be used
     // as a json property name.
-    std::wstring ToJsonPropoertyName(const std::wstring& propertyName);
+    std::wstring ToJsonPropertyName(const std::wstring& propertyName);
 
     // System helpers
     std::wstring GetCurrentDateTimeString();
@@ -61,6 +61,7 @@ namespace Utils
 
     // Xml helpers
     void ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);
+	void ReadXmlStructData(const std::wstring& resultSyncML, Windows::Data::Json::JsonObject^ data);
 
     // Registry helpers
     void WriteRegistryValue(const std::wstring& subkey, const std::wstring& propName, const std::wstring& propValue);

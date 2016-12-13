@@ -1,12 +1,41 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace Microsoft.Devices.Management
 {
+    public class AppInfo
+    {
+        public string AppSource { get; set; }
+        public string Architecture { get; set; }
+        public string InstallDate { get; set; }
+        public string InstallLocation { get; set; }
+        public string IsBundle { get; set; }
+        public string IsFramework { get; set; }
+        public string IsProvisioned { get; set; }
+        public string Name { get; set; }
+        public string PackageFamilyName { get; set; }
+        public string PackageStatus { get; set; }
+        public string Publisher { get; set; }
+        public string RequiresReinstall { get; set; }
+        public string ResourceID { get; set; }
+        public string Users { get; set; }
+        public string Version { get; set; }
+
+        public static Dictionary<string, AppInfo> SetOfAppsFromJson(string json)
+        {
+            return JsonConvert.DeserializeObject<Dictionary<string, AppInfo>>(json);
+        }
+    }
+
     // TODO: this type will come from the Azure IoT SDK
     public enum DeviceTwinUpdateState
     {
@@ -99,7 +128,7 @@ namespace Microsoft.Devices.Management
             request.command = supportedProperties[path];
             request.SetData(valueString);
 
-            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            ManagedDMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
             if (result.status != 0)
             {
                 throw new Exception();
@@ -111,7 +140,7 @@ namespace Microsoft.Devices.Management
             var request = new DMRequest();
             request.command = supportedProperties[path];
 
-            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            ManagedDMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
             if (result.status != 0)
             {
                 throw new Exception();
@@ -146,7 +175,7 @@ namespace Microsoft.Devices.Management
             // Here we might want to set some reported properties:
             // ReportProperties("We're about to start factory reset... If you don't hear from me again, I'm dead");
 
-            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            ManagedDMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
             if (result.status != 0)
             {
                 throw new Exception();
@@ -166,7 +195,7 @@ namespace Microsoft.Devices.Management
             var request = new DMRequest();
             request.command = DMCommand.RebootSystem;
 
-            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            ManagedDMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
             if (result.status != 0)
             {
                 throw new Exception();
@@ -183,6 +212,16 @@ namespace Microsoft.Devices.Management
             var response = await SystemConfiguratorProxy.SendCommandAsync(request);
 
             return response.status == 1;    // 1 means "updates available"
+        }
+
+        public async Task<Dictionary<string, AppInfo>> StartListApps()
+        {
+            var request = new DMRequest();
+            request.command = DMCommand.ListApps;
+
+            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            string json = System.Text.Encoding.UTF8.GetString(result.data);
+            return AppInfo.SetOfAppsFromJson(json);
         }
 
         //

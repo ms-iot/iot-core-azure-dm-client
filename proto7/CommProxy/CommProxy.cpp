@@ -62,9 +62,29 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
         TRACE("Reading response from pipe...");
         if (!ReadFile(pipeHandle.Get(), &response, sizeof(response), &readByteCount, NULL))
         {
-            TRACE("Error: failed to read from pipe...");
+            TRACE("Error: failed to read from pipe...response");
             response.status = DMStatus::Failed;
             response.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+        }
+        else 
+        {
+            TRACEP(L" response from pipe...", (UINT)response.status);
+            if (response.dataSize)
+            {
+                char *data = (char*)GlobalAlloc(GMEM_FIXED, response.dataSize);
+                if (!ReadFile(pipeHandle.Get(), data, response.dataSize, &readByteCount, NULL))
+                {
+                    TRACE("Error: failed to read from pipe...data");
+                    response.status = DMStatus::Failed;
+                    response.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+                }
+                else
+                {
+                    response.SetData(data, response.dataSize);
+                    TRACEP(L" response data from pipe...", (UINT)response.dataSize);
+                }
+                GlobalFree(data);
+            }
         }
     }
     else
@@ -102,13 +122,32 @@ int main(Platform::Array<Platform::String^>^ args)
         // Do not return. Let the response propagate to the caller.
     }
 
-    TRACE("Writing response to stdout...");
+    TRACEP("Writing response to stdout   ", sizeof(DMResponse));
+    TRACEP("                  STATUS     ", (UINT)response.status);
+    TRACEP("                  DATASIZE   ", response.dataSize);
+    TRACEP("                  first byte ", ((byte*)((void*)&response))[0]);
+    TRACEP("                 second byte ", ((byte*)((void*)&response))[1]);
     DWORD byteWrittenCount = 0;
     bSuccess = WriteFile(stdoutHandle.Get(), &response, sizeof(DMResponse), &byteWrittenCount, NULL);
     if (!bSuccess || byteWrittenCount != sizeof(DMResponse))
     {
-        TRACE("Error: failed to write to stdout...");
+        auto errorCode = GetLastError();
+        TRACEP("Error writing response       ", errorCode);
         return -1;
+    }
+    TRACEP("Response sent to stdout      ", byteWrittenCount);
+    if (response.dataSize)
+    {
+        byteWrittenCount = 0;
+        TRACEP("Write response.data (stdout) ", response.dataSize);
+        bSuccess = WriteFile(stdoutHandle.Get(), response.data, response.dataSize, &byteWrittenCount, NULL);
+        if (!bSuccess || byteWrittenCount != response.dataSize)
+        {
+            auto errorCode = GetLastError();
+            TRACEP("Error writing response.data  ", errorCode);
+            return -1;
+        }
+        TRACEP("Response.data sent to stdout ", byteWrittenCount);
     }
 
     TRACE("Exiting...");

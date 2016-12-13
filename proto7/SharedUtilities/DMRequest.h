@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <codecvt>
 
 const int PipeBufferSize = 4096;
 const int DataSizeInBytes = 128;
@@ -12,6 +13,7 @@ enum class DMCommand
     Unknown = 0,
     SystemReset = 1,
     CheckUpdates = 2,
+    ListApps = 3,
 
     // Reboot
     RebootSystem = 10,
@@ -46,27 +48,43 @@ struct DMRequest
 struct DMResponse
 {
     DMStatus status;
-    char  data[128];
+    size_t dataSize;
+    char  *data;
 
     DMResponse() :
-        status(DMStatus::Failed)
+        status(DMStatus::Failed),
+        data(nullptr),
+        dataSize(0)
     {
-        memset(&data, 0, sizeof(data));
     }
 
-    void SetData(const std::wstring& msgw)
+    void SetData(const std::wstring& newData)
     {
-        memset(data, 0, sizeof(data));
-        size_t bytesToCopy = min(msgw.length() * sizeof(msgw[0]), DataSizeInBytes - 1);
-        memcpy(data, msgw.c_str(), bytesToCopy);
-        TRACEP(L"Setting response to: ", data);
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> conv1;
+        std::string u8str = conv1.to_bytes(newData);
+        SetData(u8str.data(), u8str.size());
     }
 
+    void SetData(const char* newData, size_t newDataSize)
+    {
+        if (data)
+        {
+            GlobalFree(data);
+            data = nullptr;
+            dataSize = 0;
+        }
+        data = (char*)GlobalAlloc(GMEM_FIXED, newDataSize);
+        memcpy(data, newData, newDataSize);
+        dataSize = newDataSize;
+
+        TRACEP("  DMResponse.dataSize= ", dataSize);
+        TRACEP("  DMResponse.data= ", data);
+    }
+    
     void SetData(const wchar_t* msg, DWORD param)
     {
         std::basic_ostringstream<wchar_t> messageStream;
         messageStream << msg << param;
-
         SetData(messageStream.str());
     }
 };
