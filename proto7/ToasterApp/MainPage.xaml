@@ -5,7 +5,7 @@
     xmlns:local="using:Toaster"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    mc:Ignorable="d" Width="1200">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.ColumnDefinitions>
@@ -48,7 +48,7 @@
                 <Button Width="150" Margin="3" Content="Check for Updates" Click="OnCheckForUpdates"/>
             </StackPanel>
         </Grid>
-        <StackPanel Grid.Column="1" x:Name="DMGrid" Visibility="Collapsed" Orientation="Vertical">
+        <StackPanel Grid.Column="1" x:Name="DMGrid" Visibility="Visible" Orientation="Vertical">
 
             <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
             <Grid>
@@ -75,20 +75,55 @@
                     <Button  Margin="3" Content="Reboot Now (D)" Click="OnSystemRestart" Width="125"/>
                     <Button  Margin="3" Content="Reboot Now (J)" Click="OnSystemRestartJson" Width="125"/>
                 </StackPanel>
-                <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="LastRebootTime" />
-
+                <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                    <Border Background="#F8F8F8" Margin="3">
+                        <TextBlock Width="200" x:Name="LastRebootCmdTime" />
+                    </Border>
+                    <Button Width="60" Content="Read" Click="OnReadLastRebootCmdTime" />
+                </StackPanel>
+                
                 <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Last Restart" />
                 <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a" />
-                <TextBlock Grid.Row="2" Grid.Column="2" Margin="3" x:Name="LastRestartTime" />
+                <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
+                    <Border Background="#F8F8F8" Margin="3">
+                        <TextBlock Width="200" Text="" x:Name="LastRebootTime"/>
+                    </Border>
+                    <Button Width="60" Content="Read" Click="OnReadLastRebootTime"/>
+                </StackPanel>
 
                 <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Single Reboot" />
                 <TextBox Grid.Row="3" Grid.Column="1" Margin="3" Text="2016-10-10T17:00:00Z" x:Name="DesiredSingleRebootTime"/>
-                <TextBox Grid.Row="3" Grid.Column="2" Margin="3" Text="" x:Name="ReportedSingleRebootTime"/>
+                <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
+                    <Border Margin="3" Background="#F8F8F8">
+                        <TextBlock Width="200" x:Name="ReportedSingleRebootTime"/>
+                    </Border>
+                    <Button Width="60" Content="Read" Click="OnReadRebootSingle"/>
+                </StackPanel>
 
                 <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Daily Reboot" />
                 <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="" x:Name="DesiredDailyRebootTime"/>
-                <TextBox Grid.Row="4" Grid.Column="2" Margin="3" Text="" x:Name="ReportedDailyRebootTime"/>
+                <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
+                    <Border Margin="3" Background="#F8F8F8">
+                        <TextBlock Width="200" x:Name="ReportedDailyRebootTime"/>
+                    </Border>
+                    <Button Width="60" Content="Read" Click="OnReadRebootDaily" />
+                </StackPanel>
             </Grid>
+
+            <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="460" Height="1" />
+            <Grid >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="270"/>
+                    <ColumnDefinition Width="270"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="Apply Desired" Click="OnApplyDesired" Width="220"/>
+            </Grid>
+
             <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
             <Grid x:Name="StatusGrid">
                 <Grid.RowDefinitions>

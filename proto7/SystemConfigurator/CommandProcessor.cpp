@@ -5,26 +5,72 @@
 #include "..\SharedUtilities\SecurityAttributes.h"
 #include "CSPs\RebootCSP.h"
 
+using namespace std;
+
 DMResponse ProcessCommand(const DMRequest& request)
 {
     TRACE(__FUNCTION__);
     static int cmdIndex = 0;
     DMResponse response;
-    response.SetMessage(L"Default System Configurator Response.");
+    response.SetData(L"Default System Configurator Response.");
 
     switch (request.command)
     {
-    case DMCommand::SystemReboot:
-        response.SetMessage(L"Handling `system reboot`. cmdIndex = ", cmdIndex);
+    case DMCommand::RebootSystem:
+        response.SetData(L"Handling `reboot system`. cmdIndex = ", cmdIndex);
         response.status = DMStatus::Succeeded;
         RebootCSP::ExecRebootNow();
         break;
+    case DMCommand::SetSingleRebootTime:
+        TRACEP("DMCommand::SetSingleRebootTime value = ", request.data);
+        RebootCSP::SetSingleScheduleTime(Utils::MultibyteToWide(request.data));
+        response.SetData(L"Handling `set reboot single`. cmdIndex = ", cmdIndex);
+        response.status = DMStatus::Succeeded;
+        break;
+    case DMCommand::GetSingleRebootTime:
+    {
+        TRACE("DMCommand::GetSingleRebootTime");
+        wstring valueString = RebootCSP::GetSingleScheduleTime();
+        response.SetData(valueString);
+        response.status = DMStatus::Succeeded;
+    }
+        break;
+    case DMCommand::SetDailyRebootTime:
+        TRACEP("DMCommand::SetDailyRebootTime value = ", request.data);
+        RebootCSP::SetDailyScheduleTime(Utils::MultibyteToWide(request.data));
+        response.SetData(L"Handling `set reboot daily`. cmdIndex = ", cmdIndex);
+        response.status = DMStatus::Succeeded;
+        break;
+    case DMCommand::GetDailyRebootTime:
+    {
+        TRACE("DMCommand::GetDailyRebootTime");
+        wstring valueString = RebootCSP::GetDailyScheduleTime();
+        response.SetData(valueString);
+        response.status = DMStatus::Succeeded;
+    }
+        break;
+    case DMCommand::GetLastRebootCmdTime:
+    {
+        TRACE("DMCommand::GetLastRebootCmdTime");
+        wstring valueString = RebootCSP::GetLastRebootCmdTime();
+        response.SetData(valueString);
+        response.status = DMStatus::Succeeded;
+    }
+    break;
+    case DMCommand::GetLastRebootTime:
+    {
+        TRACE("DMCommand::GetLastRebootTime");
+        wstring valueString = RebootCSP::GetLastRebootTime();
+        response.SetData(valueString);
+        response.status = DMStatus::Succeeded;
+    }
+    break;
     case DMCommand::SystemReset:
-        response.SetMessage(L"Handling `system reset`. cmdIndex = ", cmdIndex);
+        response.SetData(L"Handling `system reset`. cmdIndex = ", cmdIndex);
         response.status = DMStatus::Succeeded;
         break;
     case DMCommand::CheckUpdates:
-        response.SetMessage(L"Handling `check updates`. cmdIndex = ", cmdIndex);
+        response.SetData(L"Handling `check updates`. cmdIndex = ", cmdIndex);
 
         // Checking for updates...
         Sleep(1000);
@@ -33,7 +79,7 @@ DMResponse ProcessCommand(const DMRequest& request)
         response.status = DMStatus::Succeeded;
         break;
     default:
-        response.SetMessage(L"Handling unknown command...cmdIndex = ", cmdIndex);
+        response.SetData(L"Handling unknown command...cmdIndex = ", cmdIndex);
         response.status = DMStatus::Failed;
         break;
     }
