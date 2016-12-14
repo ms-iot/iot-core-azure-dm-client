@@ -81,7 +81,8 @@ void ProcessCommand(const DMRequest& request, DMResponse& response)
     case DMCommand::ListApps:
     {
         TRACEP("DMCommand::ListApps", request.data);
-        auto json = EnterpriseModernAppManagementCSP::GetInstalledApps();
+        wstring json(L"");
+        EnterpriseModernAppManagementCSP::GetInstalledApps(json);
         response.SetData(json);
         response.status = DMStatus::Succeeded;
     }

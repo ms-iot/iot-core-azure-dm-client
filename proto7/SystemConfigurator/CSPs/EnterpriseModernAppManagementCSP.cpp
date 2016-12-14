@@ -10,16 +10,14 @@ using namespace std;
 // https://msdn.microsoft.com/en-us/library/windows/hardware/dn904956(v=vs.85).aspx
 //
 
-wstring EnterpriseModernAppManagementCSP::GetInstalledApps()
+void EnterpriseModernAppManagementCSP::GetInstalledApps(wstring &installedAppsJson)
 {
     TRACE(L"\n---- Get Installed Apps\n");
     auto data = ref new Windows::Data::Json::JsonObject();
     MdmProvision::RunGetStructData(
         L"./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement?list=StructData",
         data);
-    wstring json = data->Stringify()->Data();
-    TRACEP(L"\n                app json:", json.c_str());
-    return json;
+    installedAppsJson = data->Stringify()->Data();
 }
 
 // TODO: work in progress!

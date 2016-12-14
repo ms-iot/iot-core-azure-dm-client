@@ -61,7 +61,7 @@ namespace Utils
 
     // Xml helpers
     void ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);
-	void ReadXmlStructData(const std::wstring& resultSyncML, Windows::Data::Json::JsonObject^ data);
+    void ReadXmlStructData(const std::wstring& resultSyncML, Windows::Data::Json::JsonObject^ data);
 
     // Registry helpers
     void WriteRegistryValue(const std::wstring& subkey, const std::wstring& propName, const std::wstring& propValue);

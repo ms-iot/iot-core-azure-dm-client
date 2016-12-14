@@ -3,14 +3,9 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
 using System.Threading.Tasks;
-using Windows.ApplicationModel;
-using Windows.Foundation;
 using Windows.Storage.Streams;
 using Windows.System;
-using System.Diagnostics;
-using System.Collections.Generic;
 
 namespace Microsoft.Devices.Management
 {
@@ -38,15 +33,10 @@ namespace Microsoft.Devices.Management
         public UInt32 status;
         public byte[] data;
 
-        internal ManagedDMResponse(UInt32 status)
+        internal ManagedDMResponse(UInt32 status, uint dataSize)
         {
             this.status = status;
-        }
-
-        internal ManagedDMResponse(UInt32 status, byte[] data)
-        {
-            this.status = status;
-            this.data = data;
+            this.data = new byte[dataSize];
         }
         
         // GetDataString() assumes the strings received are unicode.
@@ -144,26 +134,21 @@ namespace Microsoft.Devices.Management
             {
                 using (var outStreamRedirect = standardOutput.GetInputStreamAt(0))
                 {
+#if DEBUG_COMMPROXY_OUTPUT
                     var size = (uint)standardOutput.Size;
                     System.Diagnostics.Debug.WriteLine(string.Format("Received {0} bytes from comm-proxy", size));
-
-#if DEBUG_COMMPROXY_OUTPUT
                     var bytes = new byte[size];
                     var ibuffer = bytes.AsBuffer();
                     var result = await outStreamRedirect.ReadAsync(ibuffer, (uint)size, InputStreamOptions.None);
-
                     string data = System.Text.Encoding.UTF8.GetString(bytes);
-
-
-                    return null;
+                    return new ManagedDMResponse(500, 0);
 #else
                     var iStructSize = Marshal.SizeOf<InteropDMResponse>();
                     var bytes = new byte[iStructSize];
                     var ibuffer = bytes.AsBuffer();
                     var result = await outStreamRedirect.ReadAsync(ibuffer, (uint)iStructSize, InputStreamOptions.None);
                     var interopResponse = Deserialize(ref bytes);
-                    var response = new ManagedDMResponse(interopResponse.status, null);
-                    response.data = new byte[interopResponse.dataSize];
+                    var response = new ManagedDMResponse(interopResponse.status, interopResponse.dataSize);
                     if (interopResponse.dataSize != 0)
                     {
                         var dataBuffer = response.data.AsBuffer();
@@ -176,7 +161,7 @@ namespace Microsoft.Devices.Management
             else
             {
                 // TODO: handle error
-                return new ManagedDMResponse(500);
+                return new ManagedDMResponse(500, 0);
             }
         }
     }
