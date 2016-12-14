@@ -7,7 +7,6 @@
 #include <iomanip>
 #include <iostream>
 #include <algorithm> 
-#include <iterator>
 #include <xmllite.h>
 #include <fstream>
 #include "Utils.h"
