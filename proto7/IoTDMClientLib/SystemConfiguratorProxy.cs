@@ -28,12 +28,12 @@ namespace Microsoft.Devices.Management
     }
 
 
-    public class ManagedDMResponse
+    public class DMResponse
     {
         public UInt32 status;
         public byte[] data;
 
-        internal ManagedDMResponse(UInt32 status, uint dataSize)
+        internal DMResponse(UInt32 status, uint dataSize)
         {
             this.status = status;
             this.data = new byte[dataSize];
@@ -106,7 +106,7 @@ namespace Microsoft.Devices.Management
             return result;
         }
 
-        public static async Task<ManagedDMResponse> SendCommandAsync(DMRequest command)
+        public static async Task<DMResponse> SendCommandAsync(DMRequest command)
         {
             var processLauncherOptions = new ProcessLauncherOptions();
             var standardInput = new InMemoryRandomAccessStream();
@@ -133,7 +133,7 @@ namespace Microsoft.Devices.Management
                     var ibuffer = bytes.AsBuffer();
                     var result = await outStreamRedirect.ReadAsync(ibuffer, (uint)size, InputStreamOptions.None);
                     string data = System.Text.Encoding.UTF8.GetString(bytes);
-                    return new ManagedDMResponse(500, 0);
+                    return new DMResponse(500, 0);
 #else
                     var uint32Size = Marshal.SizeOf<UInt32>();
                     var uint32Bytes = new byte[uint32Size];
@@ -144,7 +144,7 @@ namespace Microsoft.Devices.Management
                     // read the dataSize
                     var dataSizeResult = await outStreamRedirect.ReadAsync(uint32Buffer, (uint)uint32Size, InputStreamOptions.None);
                     var dataSize = Deserialize<UInt32>(ref uint32Bytes);
-                    var response = new ManagedDMResponse(status, dataSize);
+                    var response = new DMResponse(status, dataSize);
                     // read the data if needed
                     if (dataSize != 0)
                     {
@@ -158,7 +158,7 @@ namespace Microsoft.Devices.Management
             else
             {
                 // TODO: handle error
-                return new ManagedDMResponse(500, 0);
+                return new DMResponse(500, 0);
             }
         }
     }
