@@ -59,24 +59,24 @@ struct DMResponse
         data.resize(dataSize);
     }
 
+    void SetData(const wchar_t* msg, DWORD param)
+    {
+        std::basic_ostringstream<wchar_t> messageStream;
+        messageStream << msg << param;
+        SetData(messageStream.str());
+    }
+
     void SetData(const std::wstring& newData)
     {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> conv1;
-        std::string u8str = conv1.to_bytes(newData);
-        SetData(u8str.data(), u8str.size());
+        auto wdataAsBytes = (char*)newData.data();
+        auto size = newData.size() * sizeof(wchar_t);
+        SetData(wdataAsBytes, size);
     }
 
     void SetData(const char* newData, uint32_t newDataSize)
     {
         data.assign(newData, newData + newDataSize);
         dataSize = newDataSize;
-    }
-
-    void SetData(const wchar_t* msg, DWORD param)
-    {
-        std::basic_ostringstream<wchar_t> messageStream;
-        messageStream << msg << param;
-        SetData(messageStream.str());
     }
 
     static bool Serialize(HANDLE pipeHandle, DMResponse& response)

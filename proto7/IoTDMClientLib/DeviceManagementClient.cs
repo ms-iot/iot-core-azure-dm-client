@@ -215,7 +215,7 @@ namespace Microsoft.Devices.Management
             request.command = DMCommand.ListApps;
 
             DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            var json = System.Text.Encoding.UTF8.GetString(result.data);
+            var json = System.Text.Encoding.Unicode.GetString(result.data);
             return AppInfo.SetOfAppsFromJson(json);
         }
 
