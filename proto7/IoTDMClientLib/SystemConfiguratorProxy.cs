@@ -83,14 +83,6 @@ namespace Microsoft.Devices.Management
         }
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
-    unsafe struct InteropDMResponse
-    {
-        public UInt32 status;
-        public UInt32 dataSize;
-        public IntPtr data;
-    }
-
     // This class send requests (DMrequest) to the System Configurator and receives the responses (DMesponse) from it
     static class SystemConfiguratorProxy
     {
@@ -105,11 +97,11 @@ namespace Microsoft.Devices.Management
             return bytes;
         }
 
-        private static InteropDMResponse Deserialize(ref byte[] serializedData)
+        private static T Deserialize<T>(ref byte[] serializedData)
         {
             GCHandle gch = GCHandle.Alloc(serializedData, GCHandleType.Pinned);
             IntPtr pbyteSerializedData = gch.AddrOfPinnedObject();
-            var result = (InteropDMResponse)Marshal.PtrToStructure<InteropDMResponse>(pbyteSerializedData);
+            var result = (T)Marshal.PtrToStructure<T>(pbyteSerializedData);
             gch.Free();
             return result;
         }
@@ -143,16 +135,21 @@ namespace Microsoft.Devices.Management
                     string data = System.Text.Encoding.UTF8.GetString(bytes);
                     return new ManagedDMResponse(500, 0);
 #else
-                    var iStructSize = Marshal.SizeOf<InteropDMResponse>();
-                    var bytes = new byte[iStructSize];
-                    var ibuffer = bytes.AsBuffer();
-                    var result = await outStreamRedirect.ReadAsync(ibuffer, (uint)iStructSize, InputStreamOptions.None);
-                    var interopResponse = Deserialize(ref bytes);
-                    var response = new ManagedDMResponse(interopResponse.status, interopResponse.dataSize);
-                    if (interopResponse.dataSize != 0)
+                    var uint32Size = Marshal.SizeOf<UInt32>();
+                    var uint32Bytes = new byte[uint32Size];
+                    var uint32Buffer = uint32Bytes.AsBuffer();
+                    // read the status
+                    var statusResult = await outStreamRedirect.ReadAsync(uint32Buffer, (uint)uint32Size, InputStreamOptions.None);
+                    var status = Deserialize<UInt32>(ref uint32Bytes);
+                    // read the dataSize
+                    var dataSizeResult = await outStreamRedirect.ReadAsync(uint32Buffer, (uint)uint32Size, InputStreamOptions.None);
+                    var dataSize = Deserialize<UInt32>(ref uint32Bytes);
+                    var response = new ManagedDMResponse(status, dataSize);
+                    // read the data if needed
+                    if (dataSize != 0)
                     {
                         var dataBuffer = response.data.AsBuffer();
-                        var dataResult = await outStreamRedirect.ReadAsync(dataBuffer, (uint)interopResponse.dataSize, InputStreamOptions.None);
+                        var dataResult = await outStreamRedirect.ReadAsync(dataBuffer, (uint)dataSize, InputStreamOptions.None);
                     }
                     return response;
 #endif

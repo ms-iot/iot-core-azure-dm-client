@@ -178,28 +178,7 @@ void Listen()
                 TRACE("DMExeption was thrown from ProcessCommand()...");
             }
 
-            TRACE("Sending response...");
-            DWORD writtenBytes = 0;
-            TRACEP("    Sending response:", sizeof(response));
-            if (!WriteFile(pipeHandle.Get(), &response, sizeof(response), &writtenBytes, NULL))
-            {
-                auto errorCode = GetLastError();
-                TRACEP("    Error sending response:", errorCode);
-                throw DMExceptionWithErrorCode("WriteFile Error", errorCode);
-            }
-            TRACEP("    Response sent:", writtenBytes);
-            if (response.dataSize)
-            {
-                writtenBytes = 0;
-                TRACEP("    Sending data:", response.dataSize);
-                if (!WriteFile(pipeHandle.Get(), response.data, response.dataSize, &writtenBytes, NULL))
-                {
-                    auto errorCode = GetLastError();
-                    TRACEP("    Error sending data:", errorCode);
-                    throw DMExceptionWithErrorCode("WriteFile Error", errorCode);
-                }
-                TRACEP("    Data sent:", writtenBytes);
-            }
+            DMResponse::Serialize(pipeHandle.Get(), response);
         }
         else
         {

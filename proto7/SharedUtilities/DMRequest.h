@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 #include <codecvt>
 
 const int PipeBufferSize = 4096;
@@ -48,14 +49,14 @@ struct DMRequest
 struct DMResponse
 {
     DMStatus status;
-    size_t dataSize;
-    char  *data;
+    uint32_t dataSize;
+    std::vector<char> data;
 
     DMResponse() :
         status(DMStatus::Failed),
-        data(nullptr),
         dataSize(0)
     {
+        data.resize(dataSize);
     }
 
     void SetData(const std::wstring& newData)
@@ -65,27 +66,93 @@ struct DMResponse
         SetData(u8str.data(), u8str.size());
     }
 
-    void SetData(const char* newData, size_t newDataSize)
+    void SetData(const char* newData, uint32_t newDataSize)
     {
-        if (data)
-        {
-            GlobalFree(data);
-            data = nullptr;
-            dataSize = 0;
-        }
-        data = (char*)GlobalAlloc(GMEM_FIXED, newDataSize);
-        memcpy(data, newData, newDataSize);
+        data.assign(newData, newData + newDataSize);
         dataSize = newDataSize;
-
-        TRACEP("  DMResponse.dataSize= ", dataSize);
-        TRACEP("  DMResponse.data= ", data);
     }
-    
+
     void SetData(const wchar_t* msg, DWORD param)
     {
         std::basic_ostringstream<wchar_t> messageStream;
         messageStream << msg << param;
         SetData(messageStream.str());
+    }
+
+    static bool Serialize(HANDLE pipeHandle, DMResponse& response)
+    {
+        TRACE("DMResponse.Serialize...");
+        DWORD byteWrittenCount = 0;
+        if (!WriteFile(pipeHandle, &response.status, sizeof(DMStatus), &byteWrittenCount, NULL))
+        {
+            auto errorCode = GetLastError();
+            TRACEP("Error writing response.status ", errorCode);
+            return false;
+        }
+        if (!WriteFile(pipeHandle, &response.dataSize, sizeof(uint32_t), &byteWrittenCount, NULL))
+        {
+            auto errorCode = GetLastError();
+            TRACEP("Error writing response.dataSize ", errorCode);
+            return false;
+        }
+        TRACEP("Response sent to pipe ", byteWrittenCount);
+        if (response.dataSize)
+        {
+            byteWrittenCount = 0;
+            TRACEP("Write response.data to pipe ", response.dataSize);
+            if (!WriteFile(pipeHandle, &response.data[0], response.dataSize, &byteWrittenCount, NULL))
+            {
+                auto errorCode = GetLastError();
+                TRACEP("Error writing response.data ", errorCode);
+                return false;
+            }
+            TRACEP("Response.data sent to pipe ", byteWrittenCount);
+        }
+
+        return true;
+    }
+
+    static bool Deserialize(HANDLE pipeHandle, DMResponse& response)
+    {
+        TRACE("DMResponse.Deserialize...");
+        DWORD readByteCount = 0;
+        if (!ReadFile(pipeHandle, &response.status, sizeof(DMStatus), &readByteCount, NULL))
+        {
+            TRACE("Error: failed to read from pipe (response)...");
+            response.status = DMStatus::Failed;
+            response.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+            return false;
+        }
+
+        if (!ReadFile(pipeHandle, &response.dataSize, sizeof(uint32_t), &readByteCount, NULL))
+        {
+            TRACE("Error: failed to read from pipe (response)...");
+            response.status = DMStatus::Failed;
+            response.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+            return false;
+        }
+
+        TRACEP(L" response read from pipe ", (UINT)readByteCount);
+        TRACEP(L" response dataSize from pipe ", (UINT)response.dataSize);
+        if (response.dataSize)
+        {
+            readByteCount = 0;
+            std::vector<char> data(response.dataSize);
+            if (!ReadFile(pipeHandle, &data[0], response.dataSize, &readByteCount, NULL))
+            {
+                TRACE("Error: failed to read from pipe (response data)...");
+                response.status = DMStatus::Failed;
+                response.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+                return false;
+            }
+            else
+            {
+                TRACEP(L" response.data read from pipe ", (UINT)readByteCount);
+                response.SetData(&data[0], response.dataSize);
+            }
+        }
+
+        return true;
     }
 };
 #pragma pack(pop)
