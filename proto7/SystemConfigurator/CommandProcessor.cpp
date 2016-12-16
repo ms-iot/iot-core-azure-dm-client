@@ -81,9 +81,27 @@ void ProcessCommand(const DMRequest& request, DMResponse& response)
     case DMCommand::ListApps:
     {
         TRACEP("DMCommand::ListApps", request.data);
-        wstring json(L"");
-        EnterpriseModernAppManagementCSP::GetInstalledApps(json);
+        wstring json = EnterpriseModernAppManagementCSP::GetInstalledApps();
         response.SetData(json);
+        response.status = DMStatus::Succeeded;
+    }
+    break;
+    case DMCommand::InstallApp:
+    {
+        TRACE("DMCommand::InstallApp");
+        wstring pfn;
+        wstring appx;
+        vector<wstring> deps;
+        EnterpriseModernAppManagementCSP::InstallApp(pfn, appx, deps);
+        response.status = DMStatus::Succeeded;
+    }
+    break;
+    case DMCommand::UninstallApp:
+    {
+        TRACEP("DMCommand::UninstallApp", request.data);
+        wstring pfn;
+        bool storeApp;
+        EnterpriseModernAppManagementCSP::UninstallApp(pfn, storeApp);
         response.status = DMStatus::Succeeded;
     }
     break;

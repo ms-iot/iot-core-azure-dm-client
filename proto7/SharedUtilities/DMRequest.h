@@ -15,6 +15,8 @@ enum class DMCommand
     SystemReset = 1,
     CheckUpdates = 2,
     ListApps = 3,
+    InstallApp = 4,
+    UninstallApp = 5,
 
     // Reboot
     RebootSystem = 10,

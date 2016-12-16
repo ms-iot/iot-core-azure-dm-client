@@ -49,6 +49,7 @@ void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, w
     HRESULT hr = E_FAIL;
     if (sid.length())
     {
+        TRACEP(L"MdmProvision::RunSyncML sid=", sid.c_str());
         SYNCMLATTRIBUTE attrib[1] = { 0 };
         attrib[0].pszName = OMADM_TARGETEDUSERSID_VARIABLE_NAME;
         attrib[0].pszValue = sid.c_str();
@@ -57,6 +58,7 @@ void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, w
     }
     else
     {
+        TRACE(L"MdmProvision::RunSyncML no sid");
         hr = MdmProvisionSyncBodyWithAttributes(requestSyncML.c_str(), nullptr, 0, nullptr, &output);
     }
     if (FAILED(hr))
@@ -71,6 +73,7 @@ void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, w
     }
     LocalFree(output);
 
+    TRACEP(L"Request : ", requestSyncML.c_str());
     TRACEP(L"Response: ", outputSyncML.c_str());
 
     // The results have two top elements: Status and Results.

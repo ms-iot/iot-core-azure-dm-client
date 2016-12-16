@@ -10,6 +10,9 @@
 
 namespace Utils
 {
+    // Sid helper
+    std::wstring GetSidForAccount(const wchar_t* userAccount);
+
     // String helpers
     std::string WideToMultibyte(const wchar_t* s);
     std::wstring MultibyteToWide(const char* s);

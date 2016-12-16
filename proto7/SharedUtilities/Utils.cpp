@@ -9,6 +9,7 @@
 #include <algorithm> 
 #include <xmllite.h>
 #include <fstream>
+#include <Sddl.h>
 #include "Utils.h"
 #include "DMException.h"
 #include "Logger.h"
@@ -22,6 +23,46 @@ using namespace Windows::System::Profile;
 
 namespace Utils
 {
+    wstring GetSidForAccount(const wchar_t* userAccount)
+    {
+        std::wstring sidString = L"";
+
+        BYTE userSidBytes[SECURITY_MAX_SID_SIZE] = {};
+        PSID userSid = reinterpret_cast<PSID>(userSidBytes);
+        DWORD sidSize = ARRAYSIZE(userSidBytes);
+        wchar_t domainNameUnused[MAX_PATH] = {};
+        DWORD domainSizeUnused = ARRAYSIZE(domainNameUnused);
+        SID_NAME_USE sidTypeUnused = SidTypeInvalid;
+
+        if (!LookupAccountName(
+                nullptr,
+                userAccount,
+                &userSid,
+                &sidSize,
+                domainNameUnused,
+                &domainSizeUnused,
+                &sidTypeUnused
+            ))
+        {
+            auto errorCode = GetLastError();
+            TRACEP(L"Error: Utils::GetSidForAccount LookupAccountName failed. Error code = ", errorCode);
+            throw DMException("Utils::GetSidForAccount LookupAccountName");
+        }
+        LPWSTR pString = nullptr;
+        if (!ConvertSidToStringSid(
+                &userSid,
+                &pString
+            ))
+        { 
+            auto errorCode = GetLastError();
+            TRACEP(L"Error: Utils::GetSidForAccount ConvertSidToStringSid failed. Error code = ", errorCode);
+            throw DMException("Utils::GetSidForAccount ConvertSidToStringSid");
+        }
+        sidString = pString;
+        LocalFree(pString);
+
+        return sidString;
+    }
 
     string WideToMultibyte(const wchar_t* s)
     {
