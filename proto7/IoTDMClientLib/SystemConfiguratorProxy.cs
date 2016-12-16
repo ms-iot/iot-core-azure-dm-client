@@ -1,13 +1,11 @@
-﻿using System;
+﻿// #define DEBUG_COMMPROXY_OUTPUT
+
+using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
 using System.Threading.Tasks;
-using Windows.ApplicationModel;
-using Windows.Foundation;
 using Windows.Storage.Streams;
 using Windows.System;
-using System.Diagnostics;
 
 namespace Microsoft.Devices.Management
 {
@@ -17,6 +15,7 @@ namespace Microsoft.Devices.Management
         Unknown = 0,
         FactoryReset = 1,
         CheckUpdates = 2,
+        ListApps = 3,
 
         // Reboot
         RebootSystem = 10,
@@ -28,6 +27,24 @@ namespace Microsoft.Devices.Management
         GetLastRebootTime = 16,
     }
 
+
+    public class DMResponse
+    {
+        public UInt32 status;
+        public byte[] data;
+
+        internal DMResponse(UInt32 status, uint dataSize)
+        {
+            this.status = status;
+            this.data = new byte[dataSize];
+        }
+        
+        // GetDataString() assumes the strings received are unicode.
+        public string GetDataString()
+        {
+            return System.Text.UnicodeEncoding.Unicode.GetString(data);
+        }
+    }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     unsafe struct DMRequest
@@ -66,46 +83,6 @@ namespace Microsoft.Devices.Management
         }
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
-    unsafe struct DMResponse
-    {
-        const int DataSizeInBytes = 128;
-
-        public UInt32 status;
-
-        public fixed byte data[DataSizeInBytes];
-
-        // GetDataString() assumes the strings received are unicode.
-        public string GetDataString()
-        {
-            string s = "";
-            byte[] readBytes = new byte[DataSizeInBytes];
-            int stringLengthInBytes = 0;
-            unsafe
-            {
-                fixed (byte* dataBytes = data)
-                {
-                    // ToDo: there must be a better way to convert and find the end of the string.
-                    for (int i = 0; i < DataSizeInBytes; i += 2)
-                    {
-                        if ((i < DataSizeInBytes - 1) && dataBytes[i] == 0 && dataBytes[i + 1] == 0)
-                        {
-                            // Found the null terminator.
-                            break;
-                        }
-                        readBytes[i] = dataBytes[i];
-                        readBytes[i + 1] = dataBytes[i + 1];
-                        stringLengthInBytes += 2;
-                    }
-                }
-            }
-
-            s = System.Text.UnicodeEncoding.Unicode.GetString(readBytes, 0 /*index*/, stringLengthInBytes);
-
-            return s;
-        }
-    }
-
     // This class send requests (DMrequest) to the System Configurator and receives the responses (DMesponse) from it
     static class SystemConfiguratorProxy
     {
@@ -120,11 +97,11 @@ namespace Microsoft.Devices.Management
             return bytes;
         }
 
-        private static DMResponse Deserialize(ref byte[] serializedData)
+        private static T Deserialize<T>(ref byte[] serializedData)
         {
             GCHandle gch = GCHandle.Alloc(serializedData, GCHandleType.Pinned);
             IntPtr pbyteSerializedData = gch.AddrOfPinnedObject();
-            var result = (DMResponse)Marshal.PtrToStructure<DMResponse>(pbyteSerializedData);
+            var result = (T)Marshal.PtrToStructure<T>(pbyteSerializedData);
             gch.Free();
             return result;
         }
@@ -149,22 +126,39 @@ namespace Microsoft.Devices.Management
             {
                 using (var outStreamRedirect = standardOutput.GetInputStreamAt(0))
                 {
-                    uint size = (uint)standardOutput.Size;
+#if DEBUG_COMMPROXY_OUTPUT
+                    var size = (uint)standardOutput.Size;
                     System.Diagnostics.Debug.WriteLine(string.Format("Received {0} bytes from comm-proxy", size));
-
-                    byte[] bytes = new byte[size];
-                    IBuffer ibuffer = bytes.AsBuffer();
-                    var result = await outStreamRedirect.ReadAsync(ibuffer, size, InputStreamOptions.None);
-                    var response = Deserialize(ref bytes);
+                    var bytes = new byte[size];
+                    var ibuffer = bytes.AsBuffer();
+                    var result = await outStreamRedirect.ReadAsync(ibuffer, (uint)size, InputStreamOptions.None);
+                    string data = System.Text.Encoding.UTF8.GetString(bytes);
+                    return new DMResponse(500, 0);
+#else
+                    var uint32Size = Marshal.SizeOf<UInt32>();
+                    var uint32Bytes = new byte[uint32Size];
+                    var uint32Buffer = uint32Bytes.AsBuffer();
+                    // read the status
+                    var statusResult = await outStreamRedirect.ReadAsync(uint32Buffer, (uint)uint32Size, InputStreamOptions.None);
+                    var status = Deserialize<UInt32>(ref uint32Bytes);
+                    // read the dataSize
+                    var dataSizeResult = await outStreamRedirect.ReadAsync(uint32Buffer, (uint)uint32Size, InputStreamOptions.None);
+                    var dataSize = Deserialize<UInt32>(ref uint32Bytes);
+                    var response = new DMResponse(status, dataSize);
+                    // read the data if needed
+                    if (dataSize != 0)
+                    {
+                        var dataBuffer = response.data.AsBuffer();
+                        var dataResult = await outStreamRedirect.ReadAsync(dataBuffer, (uint)dataSize, InputStreamOptions.None);
+                    }
                     return response;
+#endif
                 }
             }
             else
             {
                 // TODO: handle error
-                var response = new DMResponse();
-                response.status = 500;
-                return response;
+                return new DMResponse(500, 0);
             }
         }
     }

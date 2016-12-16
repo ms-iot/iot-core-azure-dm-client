@@ -4,14 +4,14 @@
 #include "..\SharedUtilities\DMRequest.h"
 #include "..\SharedUtilities\SecurityAttributes.h"
 #include "CSPs\RebootCSP.h"
+#include "CSPs\EnterpriseModernAppManagementCSP.h"
 
 using namespace std;
 
-DMResponse ProcessCommand(const DMRequest& request)
+void ProcessCommand(const DMRequest& request, DMResponse& response)
 {
     TRACE(__FUNCTION__);
     static int cmdIndex = 0;
-    DMResponse response;
     response.SetData(L"Default System Configurator Response.");
 
     switch (request.command)
@@ -34,7 +34,7 @@ DMResponse ProcessCommand(const DMRequest& request)
         response.SetData(valueString);
         response.status = DMStatus::Succeeded;
     }
-        break;
+    break;
     case DMCommand::SetDailyRebootTime:
         TRACEP("DMCommand::SetDailyRebootTime value = ", request.data);
         RebootCSP::SetDailyScheduleTime(Utils::MultibyteToWide(request.data));
@@ -48,7 +48,7 @@ DMResponse ProcessCommand(const DMRequest& request)
         response.SetData(valueString);
         response.status = DMStatus::Succeeded;
     }
-        break;
+    break;
     case DMCommand::GetLastRebootCmdTime:
     {
         TRACE("DMCommand::GetLastRebootCmdTime");
@@ -78,6 +78,15 @@ DMResponse ProcessCommand(const DMRequest& request)
 
         response.status = DMStatus::Succeeded;
         break;
+    case DMCommand::ListApps:
+    {
+        TRACEP("DMCommand::ListApps", request.data);
+        wstring json(L"");
+        EnterpriseModernAppManagementCSP::GetInstalledApps(json);
+        response.SetData(json);
+        response.status = DMStatus::Succeeded;
+    }
+    break;
     default:
         response.SetData(L"Handling unknown command...cmdIndex = ", cmdIndex);
         response.status = DMStatus::Failed;
@@ -85,8 +94,6 @@ DMResponse ProcessCommand(const DMRequest& request)
     }
 
     cmdIndex++;
-
-    return response;
 }
 
 class PipeConnection
@@ -162,7 +169,7 @@ void Listen()
             
             try
             {
-                response = ProcessCommand(request);
+                ProcessCommand(request, response);
             }
             catch (const DMException&)
             {
@@ -171,12 +178,7 @@ void Listen()
                 TRACE("DMExeption was thrown from ProcessCommand()...");
             }
 
-            TRACE("Sending response...");
-            DWORD writtenBytes = 0;
-            if (!WriteFile(pipeHandle.Get(), &response, sizeof(response), &writtenBytes, NULL))
-            {
-                throw DMExceptionWithErrorCode("WriteFile Error", GetLastError());
-            }
+            DMResponse::Serialize(pipeHandle.Get(), response);
         }
         else
         {

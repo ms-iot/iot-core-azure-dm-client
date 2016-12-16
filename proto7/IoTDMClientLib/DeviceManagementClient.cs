@@ -1,12 +1,36 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace Microsoft.Devices.Management
 {
+    public class AppInfo
+    {
+        public string AppSource { get; set; }
+        public string Architecture { get; set; }
+        public string InstallDate { get; set; }
+        public string InstallLocation { get; set; }
+        public string IsBundle { get; set; }
+        public string IsFramework { get; set; }
+        public string IsProvisioned { get; set; }
+        public string Name { get; set; }
+        public string PackageFamilyName { get; set; }
+        public string PackageStatus { get; set; }
+        public string Publisher { get; set; }
+        public string RequiresReinstall { get; set; }
+        public string ResourceID { get; set; }
+        public string Users { get; set; }
+        public string Version { get; set; }
+
+        public static Dictionary<string, AppInfo> SetOfAppsFromJson(string json)
+        {
+            return JsonConvert.DeserializeObject<Dictionary<string, AppInfo>>(json);
+        }
+    }
+
     // TODO: this type will come from the Azure IoT SDK
     public enum DeviceTwinUpdateState
     {
@@ -183,6 +207,16 @@ namespace Microsoft.Devices.Management
             var response = await SystemConfiguratorProxy.SendCommandAsync(request);
 
             return response.status == 1;    // 1 means "updates available"
+        }
+
+        public async Task<Dictionary<string, AppInfo>> StartListApps()
+        {
+            var request = new DMRequest();
+            request.command = DMCommand.ListApps;
+
+            DMResponse result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var json = System.Text.Encoding.Unicode.GetString(result.data);
+            return AppInfo.SetOfAppsFromJson(json);
         }
 
         //

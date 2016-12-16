@@ -13,6 +13,7 @@
 #define RESULTS_XML_PATH ROOT_XML L"\\Results\\Item\\Data\\"
 
 using namespace std;
+using namespace Windows::Data::Json;
 
 bool MdmProvision::s_errorVerbosity = false;
 
@@ -138,6 +139,34 @@ wstring MdmProvision::RunGetString(const wstring& sid, const wstring& path)
     wstring value;
     Utils::ReadXmlValue(wrappedResult, RESULTS_XML_PATH, value);
     return value;
+}
+
+void MdmProvision::RunGetStructData(const std::wstring& path, JsonObject^ data)
+{
+    wstring requestSyncML = LR"(
+        <SyncBody>
+            <Get>
+              <CmdID>1</CmdID>
+              <Item>
+                <Target>
+                  <LocURI>)";
+    requestSyncML += path;
+    requestSyncML += LR"(</LocURI>
+                </Target>
+                <Meta>
+                    <Type xmlns="syncml:metinf">text/plain</Type>
+                </Meta>
+              </Item>
+            </Get>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    RunSyncML(L"", requestSyncML, resultSyncML);
+
+    // Extract the result data
+    wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
+    Utils::ReadXmlStructData(wrappedResult, data);
 }
 
 unsigned int MdmProvision::RunGetUInt(const wstring& sid, const wstring& path)

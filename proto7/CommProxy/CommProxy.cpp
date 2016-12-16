@@ -56,15 +56,12 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
     TRACE("Connected successfully to pipe...");
 
     TRACE("Writing request to pipe...");
-    DWORD readByteCount = 0;
     if (WriteFile(pipeHandle.Get(), &request, sizeof(request), &writtenByteCount, NULL))
     {
-        TRACE("Reading response from pipe...");
-        if (!ReadFile(pipeHandle.Get(), &response, sizeof(response), &readByteCount, NULL))
+        if (DMResponse::Deserialize(pipeHandle.Get(), response))
         {
-            TRACE("Error: failed to read from pipe...");
-            response.status = DMStatus::Failed;
-            response.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+            TRACE("Writing request to pipe...");
+            return 1;
         }
     }
     else
@@ -74,7 +71,7 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
         response.SetData(L"WriteFile failed, GetLastError=", GetLastError());
     }
 
-    return readByteCount;
+    return 0;
 }
 
 int main(Platform::Array<Platform::String^>^ args)
@@ -102,12 +99,8 @@ int main(Platform::Array<Platform::String^>^ args)
         // Do not return. Let the response propagate to the caller.
     }
 
-    TRACE("Writing response to stdout...");
-    DWORD byteWrittenCount = 0;
-    bSuccess = WriteFile(stdoutHandle.Get(), &response, sizeof(DMResponse), &byteWrittenCount, NULL);
-    if (!bSuccess || byteWrittenCount != sizeof(DMResponse))
+    if (!DMResponse::Serialize(stdoutHandle.Get(), response))
     {
-        TRACE("Error: failed to write to stdout...");
         return -1;
     }
 

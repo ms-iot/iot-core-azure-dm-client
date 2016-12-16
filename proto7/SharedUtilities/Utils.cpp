@@ -15,6 +15,7 @@
 
 using namespace std;
 using namespace Microsoft::WRL;
+using namespace Windows::Data::Json;
 using namespace Windows::System::Profile;
 
 #define ERROR_PIPE_HAS_BEEN_ENDED 109
@@ -70,6 +71,182 @@ namespace Utils
         return formattedTime.str();
     }
 
+    void ReadXmlStructData(IStream* resultSyncML, JsonObject^ data)
+    {
+        wstring uriPath = L"Root\\Results\\Item\\Source\\LocURI\\";
+        wstring dataPath = L"Root\\Results\\Item\\Data\\";
+        wstring itemPath = L"Root\\Results\\Item\\";
+
+        auto emptyString = ref new Platform::String(L"");
+        auto value = emptyString;
+        auto uri = emptyString;
+
+        ComPtr<IXmlReader> xmlReader;
+
+        HRESULT hr = CreateXmlReader(__uuidof(IXmlReader), (void**)xmlReader.GetAddressOf(), NULL);
+        if (FAILED(hr))
+        {
+            TRACEP(L"Error: Failed to create xml reader. Code :", hr);
+            throw DMExceptionWithHRESULT(hr);
+        }
+
+        hr = xmlReader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
+        if (FAILED(hr))
+        {
+            TRACEP(L"Error: XmlReaderProperty_DtdProcessing() failed. Code :\n", hr);
+            throw DMExceptionWithHRESULT(hr);
+        }
+
+        hr = xmlReader->SetInput(resultSyncML);
+        if (FAILED(hr))
+        {
+            TRACEP(L"Error: SetInput() failed. Code :\n", hr);
+            throw DMExceptionWithHRESULT(hr);
+        }
+
+        deque<wstring> pathStack;
+        wstring currentPath;
+
+        // Read until there are no more nodes
+        XmlNodeType nodeType;
+        while (S_OK == (hr = xmlReader->Read(&nodeType)))
+        {
+            switch (nodeType)
+            {
+            case XmlNodeType_Element:
+            {
+                const wchar_t* prefix = NULL;
+                UINT prefixSize = 0;
+
+                hr = xmlReader->GetPrefix(&prefix, &prefixSize);
+                if (FAILED(hr))
+                {
+                    TRACEP(L"Error: GetPrefix() failed. Code :\n", hr);
+                    throw DMExceptionWithHRESULT(hr);
+                }
+
+                const wchar_t* localName;
+                hr = xmlReader->GetLocalName(&localName, NULL);
+                if (FAILED(hr))
+                {
+                    TRACEP(L"Error: GetLocalName() failed. Code :\n", hr);
+                    throw DMExceptionWithHRESULT(hr);
+                }
+
+                wstring elementName;
+                if (prefixSize > 0)
+                {
+                    elementName = prefix;
+                    elementName += L":";
+                }
+                elementName += localName;
+
+                if (!xmlReader->IsEmptyElement())
+                {
+                    pathStack.push_back(elementName);
+
+                    // rebuild the current path.
+                    currentPath = L"";
+                    for (auto& it : pathStack)
+                    {
+                        currentPath += it + L"\\";
+                    }
+                    if (itemPath == currentPath)
+                    {
+                        value = emptyString;
+                        uri = emptyString;
+                    }
+                }
+            }
+            break;
+            case XmlNodeType_EndElement:
+            {
+                const wchar_t* prefix = NULL;
+                UINT prefixSize = 0;
+
+                hr = xmlReader->GetPrefix(&prefix, &prefixSize);
+                if (FAILED(hr))
+                {
+                    TRACEP(L"Error: GetPrefix() failed. Code :", hr);
+                    throw DMExceptionWithHRESULT(hr);
+                }
+
+                const wchar_t* localName = NULL;
+                hr = xmlReader->GetLocalName(&localName, NULL);
+                if (FAILED(hr))
+                {
+                    TRACEP(L"Error: GetLocalName() failed. Code :", hr);
+                    throw DMExceptionWithHRESULT(hr);
+                }
+
+                if (itemPath == currentPath)
+                {
+                    vector<wstring> uriTokens;
+                    wstringstream ss(uri->Data());
+                    wstring s;
+
+                    while (getline(ss, s, L'/')) 
+                    {
+                        uriTokens.push_back(s);
+                    }
+
+                    if (uriTokens.size() == 10) 
+                    {
+                        // 0/__1___/__2___/__3_/______________4______________/______5______/___6____/_________7_______/_______8_______/____9___
+                        // ./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/AppStore/PackageFamilyName/PackageFullName/Property
+                        auto pfn = ref new Platform::String(uriTokens[8].c_str());
+                        if (!data->HasKey(pfn))
+                        {
+                            auto propMap = ref new JsonObject();
+                            propMap->Insert(ref new Platform::String(uriTokens[9].c_str()), JsonValue::CreateStringValue(value));
+                            propMap->Insert(ref new Platform::String(L"AppSource"), JsonValue::CreateStringValue(ref new Platform::String(uriTokens[6].c_str())));
+                            propMap->Insert(ref new Platform::String(L"PackageFamilyName"), JsonValue::CreateStringValue(ref new Platform::String(uriTokens[7].c_str())));
+
+                            data->Insert(pfn, propMap);
+                        }
+                        else
+                        {
+                            data->GetNamedObject(pfn)->Insert(ref new Platform::String(uriTokens[9].c_str()), JsonValue::CreateStringValue(value));
+                        }
+                    }
+                    value = emptyString;
+                    uri = emptyString;
+                }
+                pathStack.pop_back();
+                // rebuild the current path.
+                currentPath = L"";
+                for (auto& it : pathStack)
+                {
+                    currentPath += it + L"\\";
+                }
+
+            }
+            break;
+            case XmlNodeType_Text:
+            case XmlNodeType_Whitespace:
+            {
+                const wchar_t* valueText = NULL;
+                hr = xmlReader->GetValue(&valueText, NULL);
+                if (FAILED(hr))
+                {
+                    TRACEP(L"Error: GetValue() failed. Code :", hr);
+                    throw DMExceptionWithHRESULT(hr);
+                }
+
+                if (uriPath == currentPath)
+                {
+                    uri = ref new Platform::String(valueText);
+                }
+                else if (dataPath == currentPath)
+                {
+                    value = ref new Platform::String(valueText);
+                }
+            }
+            break;
+            }
+        }
+    }
+    
     void ReadXmlValue(IStream* resultSyncML, const wstring& targetXmlPath, wstring& value)
     {
         ComPtr<IXmlReader> xmlReader;
@@ -200,6 +377,25 @@ namespace Utils
             TRACEP(L"Error: Failed to read: ", targetXmlPath.c_str());
             throw DMException("ReadXmlValue: path not found");
         }
+    }
+
+    void ReadXmlStructData(const std::wstring& resultSyncML, Windows::Data::Json::JsonObject^ data)
+    {
+        DWORD bufferSize = static_cast<DWORD>(resultSyncML.size() * sizeof(resultSyncML[0]));
+        char* buffer = (char*)GlobalAlloc(GMEM_FIXED, bufferSize);
+        memcpy(buffer, resultSyncML.c_str(), bufferSize);
+
+        ComPtr<IStream> dataStream;
+        HRESULT hr = ::CreateStreamOnHGlobal(buffer, TRUE /*delete on release*/, dataStream.GetAddressOf());
+        if (FAILED(hr))
+        {
+            GlobalFree(buffer);
+            throw DMExceptionWithHRESULT(hr);
+        }
+        ReadXmlStructData(dataStream.Get(), data);
+
+        // GlobalFree() is not needed since 'delete on release' is enabled.
+        // GlobalFree(buffer);
     }
 
     void ReadXmlValue(const wstring& resultSyncML, const wstring& targetXmlPath, wstring& value)
@@ -353,7 +549,7 @@ namespace Utils
         }
     }
 
-    wstring ToJsonPropoertyName(const wstring& propertyName)
+    wstring ToJsonPropertyName(const wstring& propertyName)
     {
         wstring jsonPropertyName = propertyName;
         replace(jsonPropertyName.begin(), jsonPropertyName.end(), L'.', L'_');

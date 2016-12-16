@@ -2,6 +2,7 @@
 #include "EnterpriseModernAppManagementCSP.h"
 #include "RebootCSP.h"
 #include "MdmProvision.h"
+#include "..\SharedUtilities\Logger.h"
 
 using namespace std;
 
@@ -9,13 +10,14 @@ using namespace std;
 // https://msdn.microsoft.com/en-us/library/windows/hardware/dn904956(v=vs.85).aspx
 //
 
-std::vector<std::wstring> EnterpriseModernAppManagementCSP::GetInstalledApps()
+void EnterpriseModernAppManagementCSP::GetInstalledApps(wstring &installedAppsJson)
 {
-    std::wstring apps = MdmProvision::RunGetString(L"./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement?list=StructData");
-
-    // This is a hack: we need to figure out how to parse into multiple objects
-    std::vector<std::wstring> result = { apps };
-    return result;
+    TRACE(L"\n---- Get Installed Apps\n");
+    auto data = ref new Windows::Data::Json::JsonObject();
+    MdmProvision::RunGetStructData(
+        L"./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement?list=StructData",
+        data);
+    installedAppsJson = data->Stringify()->Data();
 }
 
 // TODO: work in progress!
