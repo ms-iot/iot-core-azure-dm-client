@@ -26,31 +26,31 @@ void EnterpriseModernAppManagementCSP::InstallApp(const std::wstring& packageFam
 <SyncBody>
     <!-- Add PackageFamilyName -->
     <Add>
-        <CmdID>0</CmdID>
-        <Item>
-            <Target>
-                <LocURI>./User/Vendor/MSFT/EnterpriseModernAppManagement/AppInstallation/%s</LocURI>
-            </Target>
-        </Item>
+       <CmdID>0</CmdID>
+       <Item>
+          <Target>
+             <LocURI>./User/Vendor/MSFT/EnterpriseModernAppManagement/AppInstallation/%s</LocURI>
+          </Target>
+       </Item>
     </Add> 
     <!-- Install appx with deployment options and framework dependencies-->
     <Exec>
-        <CmdID>1</CmdID>
-        <Item>
-            <Target>
-                <LocURI>./User/Vendor/MSFT/EnterpriseModernAppManagement/AppInstallation/%s/HostedInstall</LocURI>
-            </Target>
-            <Meta>
-                <Format xmlns="syncml:metinf">xml</Format>
-            </Meta>
-            <Data>
-                <Application PackageUri="%s" DeploymentOptions="0" >
-                    <Dependencies>
-                        %s
-                    </Dependencies>
-                </Application>
-            </Data>
-        </Item>
+       <CmdID>1</CmdID>
+       <Item>
+          <Target>
+             <LocURI>./User/Vendor/MSFT/EnterpriseModernAppManagement/AppInstallation/%s/HostedInstall</LocURI>
+          </Target>
+          <Meta>
+             <Format xmlns="syncml:metinf">xml</Format>
+          </Meta>
+          <Data>
+             <Application PackageUri="%s" DeploymentOptions="0" >
+                <Dependencies>
+                    %s
+                </Dependencies>
+            </Application>
+          </Data>
+       </Item>
     </Exec>
 </SyncBody>
 )";
@@ -67,6 +67,7 @@ void EnterpriseModernAppManagementCSP::InstallApp(const std::wstring& packageFam
 
     bufsize += 1; // need null-termintator
     std::vector<wchar_t> buff(bufsize);
+
     _snwprintf_s(buff.data(), bufsize, bufsize, syncML, packageFamilyName.c_str(), packageFamilyName.c_str(), packageUri.c_str(), dependencies.c_str());
 
     std::wstring output;
@@ -80,12 +81,12 @@ void EnterpriseModernAppManagementCSP::UninstallApp(const std::wstring& packageF
 <SyncBody>
     <!-- Uninstall App for a Package Family-->
     <Delete>
-        <CmdID>1</CmdID>
-        <Item>
-            <Target>
-                <LocURI>./User/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/%s/%s</LocURI>
-            </Target>
-        </Item>
+       <CmdID>1</CmdID>
+       <Item>
+          <Target>
+             <LocURI>./User/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/%s/%s</LocURI>
+          </Target>
+       </Item>
     </Delete>
 </SyncBody>
 )";
@@ -95,6 +96,7 @@ void EnterpriseModernAppManagementCSP::UninstallApp(const std::wstring& packageF
 
     bufsize += 1; // need null-termintator
     std::vector<wchar_t> buff(bufsize);
+
     _snwprintf_s(buff.data(), bufsize, bufsize, syncML, appLocation.c_str(), packageFamilyName.c_str());
 
     std::wstring output;
