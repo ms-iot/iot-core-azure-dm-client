@@ -52,15 +52,15 @@ struct DMMessage
         _data.resize(dataSize);
     }
 
-    const char* GetData()
+    const char* GetData() const
     {
         return (_data.data());
     }
-    uint32_t GetDataCount()
+    uint32_t GetDataCount() const
     {
         return (_data.size());
     }
-    uint32_t GetContext()
+    uint32_t GetContext() const
     {
         return (_context);
     }
@@ -99,7 +99,7 @@ struct DMMessage
         _data.assign(newData, newData + newDataSize);
     }
 
-    static bool WriteToPipe(HANDLE pipeHandle, struct DMMessage& message)
+    static bool WriteToPipe(HANDLE pipeHandle, const struct DMMessage& message)
     {
         TRACE("DMMessage.WriteToPipe...");
         DWORD byteWrittenCount = 0;

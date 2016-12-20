@@ -41,10 +41,12 @@ namespace Microsoft.Devices.Management
         public UInt32 Context { get { return context; } set { context = value; } }
         public byte[] Data { get { return data; } set { data = value; } }
 
-        internal DMMessage()
+        internal DMMessage(DMCommand cmd) : this((UInt32)cmd, 0)
         {
-            Context = (UInt32)DMCommand.Unknown;
-            Data = new byte[0];
+        }
+
+        internal DMMessage() : this(DMCommand.Unknown)
+        {
         }
 
         internal DMMessage(UInt32 ctxt, uint dataSize)
@@ -133,26 +135,6 @@ namespace Microsoft.Devices.Management
     // This class send requests (DMrequest) to the System Configurator and receives the responses (DMesponse) from it
     static class SystemConfiguratorProxy
     {
-
-        private static byte[] _Serialize(object obj, Type type)
-        {
-            DataContractSerializer serializer = new DataContractSerializer(type);
-            using (var ms = new MemoryStream())
-            {
-                serializer.WriteObject(ms, obj);
-                return ms.ToArray();
-            }
-        }
-
-        private static T _Deserialize<T>(ref byte[] serializedData)
-        {
-            GCHandle gch = GCHandle.Alloc(serializedData, GCHandleType.Pinned);
-            IntPtr pbyteSerializedData = gch.AddrOfPinnedObject();
-            var result = (T)Marshal.PtrToStructure<T>(pbyteSerializedData);
-            gch.Free();
-            return result;
-        }
-
         public static async Task<DMMessage> SendCommandAsync(DMMessage command)
         {
             var processLauncherOptions = new ProcessLauncherOptions();

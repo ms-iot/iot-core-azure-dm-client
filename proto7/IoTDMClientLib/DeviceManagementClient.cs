@@ -142,8 +142,7 @@ namespace Microsoft.Devices.Management
                 throw new ArgumentException("Unknown property name: " + path);
             }
 
-            var request = new DMMessage();
-            request.SetContext(supportedProperties[path]);
+            var request = new DMMessage(supportedProperties[path]);
             request.SetData(valueString);
 
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
@@ -155,9 +154,7 @@ namespace Microsoft.Devices.Management
 
         public async Task<string> GetPropertyAsync(string path)
         {
-            var request = new DMMessage();
-            request.SetContext(supportedProperties[path]);
-
+            var request = new DMMessage(supportedProperties[path]);
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
             if (result.Context != 0)
             {
@@ -187,8 +184,7 @@ namespace Microsoft.Devices.Management
         // This command initiates factory reset of the device
         public async Task StartFactoryReset()
         {
-            var request = new DMMessage();
-            request.SetContext(DMCommand.FactoryReset);
+            var request = new DMMessage(DMCommand.FactoryReset);
 
             // Here we might want to set some reported properties:
             // ReportProperties("We're about to start factory reset... If you don't hear from me again, I'm dead");
@@ -210,9 +206,7 @@ namespace Microsoft.Devices.Management
                 return;
             }
 
-            var request = new DMMessage();
-            request.SetContext(DMCommand.RebootSystem);
-
+            var request = new DMMessage(DMCommand.RebootSystem);
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
             if (result.Context != 0)
             {
@@ -224,18 +218,14 @@ namespace Microsoft.Devices.Management
         // TODO: work out complete protocol (find updates, apply updates etc.)
         public async Task<bool> CheckForUpdatesAsync()
         {
-            var request = new DMMessage();
-            request.SetContext(DMCommand.CheckUpdates);
-
+            var request = new DMMessage(DMCommand.CheckUpdates);
             var response = await SystemConfiguratorProxy.SendCommandAsync(request);
-
             return response.Context == 1;    // 1 means "updates available"
         }
 
         public async Task<Dictionary<string, AppInfo>> StartListApps()
         {
-            var request = new DMMessage();
-            request.SetContext(DMCommand.ListApps);
+            var request = new DMMessage(DMCommand.ListApps);
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
 
             var json = result.GetDataString();
@@ -244,10 +234,8 @@ namespace Microsoft.Devices.Management
 
         public async Task<UInt32> StartInstallApp(AppxInstallInfo appxInstallInfo)
         {
-            var request = new DMMessage();
-            request.SetContext(DMCommand.InstallApp);
+            var request = new DMMessage(DMCommand.InstallApp);
             request.SetData(appxInstallInfo.ToJson());
-
 
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
             return result.Context;
@@ -255,8 +243,7 @@ namespace Microsoft.Devices.Management
 
         public async Task<UInt32> StartUninstallApp(AppxUninstallInfo appxUninstallInfo)
         {
-            var request = new DMMessage();
-            request.SetContext(DMCommand.UninstallApp);
+            var request = new DMMessage(DMCommand.UninstallApp);
             request.SetData(appxUninstallInfo.ToJson());
 
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
