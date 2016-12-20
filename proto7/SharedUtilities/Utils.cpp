@@ -44,9 +44,7 @@ namespace Utils
                 &sidTypeUnused
             ))
         {
-            auto errorCode = GetLastError();
-            TRACEP(L"Error: Utils::GetSidForAccount LookupAccountName failed. Error code = ", errorCode);
-            throw DMException("Utils::GetSidForAccount LookupAccountName");
+            throw DMExceptionWithErrorCode("Error: Utils::GetSidForAccount LookupAccountName failed.", GetLastError());
         }
         LPWSTR pString = nullptr;
         if (!ConvertSidToStringSid(
@@ -54,9 +52,7 @@ namespace Utils
                 &pString
             ))
         { 
-            auto errorCode = GetLastError();
-            TRACEP(L"Error: Utils::GetSidForAccount ConvertSidToStringSid failed. Error code = ", errorCode);
-            throw DMException("Utils::GetSidForAccount ConvertSidToStringSid");
+            throw DMExceptionWithErrorCode("Error: Utils::GetSidForAccount ConvertSidToStringSid failed.", GetLastError());
         }
         sidString = pString;
         LocalFree(pString);
@@ -127,22 +123,19 @@ namespace Utils
         HRESULT hr = CreateXmlReader(__uuidof(IXmlReader), (void**)xmlReader.GetAddressOf(), NULL);
         if (FAILED(hr))
         {
-            TRACEP(L"Error: Failed to create xml reader. Code :", hr);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithHRESULT("Error: Failed to create xml reader.", hr);
         }
 
         hr = xmlReader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
         if (FAILED(hr))
         {
-            TRACEP(L"Error: XmlReaderProperty_DtdProcessing() failed. Code :\n", hr);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithHRESULT("Error: XmlReaderProperty_DtdProcessing() failed.", hr);
         }
 
         hr = xmlReader->SetInput(resultSyncML);
         if (FAILED(hr))
         {
-            TRACEP(L"Error: SetInput() failed. Code :\n", hr);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithHRESULT("Error: SetInput() failed.", hr);
         }
 
         deque<wstring> pathStack;
@@ -162,16 +155,14 @@ namespace Utils
                 hr = xmlReader->GetPrefix(&prefix, &prefixSize);
                 if (FAILED(hr))
                 {
-                    TRACEP(L"Error: GetPrefix() failed. Code :\n", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithHRESULT("Error: GetPrefix() failed.", hr);
                 }
 
                 const wchar_t* localName;
                 hr = xmlReader->GetLocalName(&localName, NULL);
                 if (FAILED(hr))
                 {
-                    TRACEP(L"Error: GetLocalName() failed. Code :\n", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithHRESULT("Error: GetLocalName() failed.", hr);
                 }
 
                 wstring elementName;
@@ -208,16 +199,14 @@ namespace Utils
                 hr = xmlReader->GetPrefix(&prefix, &prefixSize);
                 if (FAILED(hr))
                 {
-                    TRACEP(L"Error: GetPrefix() failed. Code :", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithHRESULT("Error: GetPrefix() failed.", hr);
                 }
 
                 const wchar_t* localName = NULL;
                 hr = xmlReader->GetLocalName(&localName, NULL);
                 if (FAILED(hr))
                 {
-                    TRACEP(L"Error: GetLocalName() failed. Code :", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithHRESULT("Error: GetLocalName() failed.", hr);
                 }
 
                 if (itemPath == currentPath)
@@ -270,8 +259,7 @@ namespace Utils
                 hr = xmlReader->GetValue(&valueText, NULL);
                 if (FAILED(hr))
                 {
-                    TRACEP(L"Error: GetValue() failed. Code :", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithHRESULT("Error: GetValue() failed.", hr);
                 }
 
                 if (uriPath == currentPath)

@@ -115,13 +115,13 @@ namespace Microsoft.Devices.Management
             var uint32Size = Marshal.SizeOf<UInt32>();
             var uint32Bytes = new byte[uint32Size];
             var uint32Buffer = uint32Bytes.AsBuffer();
-            // read the status
-            var statusResult = await iistream.ReadAsync(uint32Buffer, (uint)uint32Size, InputStreamOptions.None);
-            var status = Deserialize<UInt32>(ref uint32Bytes);
+            // read the context
+            var contextResult = await iistream.ReadAsync(uint32Buffer, (uint)uint32Size, InputStreamOptions.None);
+            var context = Deserialize<UInt32>(ref uint32Bytes);
             // read the dataSize
             var readDataSizeResult = await iistream.ReadAsync(uint32Buffer, (uint)uint32Size, InputStreamOptions.None);
             var dataSize = Deserialize<UInt32>(ref uint32Bytes);
-            var response = new DMMessage(status, dataSize);
+            var response = new DMMessage(context, dataSize);
             // read the data if needed
             if (dataSize != 0)
             {

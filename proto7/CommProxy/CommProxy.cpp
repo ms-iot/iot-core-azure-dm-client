@@ -7,7 +7,7 @@
 using namespace std;
 
 // Returns the response size in bytes.
-uint32_t SendRequestToSystemConfigurator(DMMessage& request, DMMessage& response)
+uint32_t SendRequestToSystemConfigurator(const DMMessage& request, DMMessage& response)
 {
     TRACE(__FUNCTION__);
 
@@ -35,9 +35,10 @@ uint32_t SendRequestToSystemConfigurator(DMMessage& request, DMMessage& response
         // Exit if an error other than ERROR_PIPE_BUSY occurs
         if (GetLastError() != ERROR_PIPE_BUSY)
         {
+            auto errorCode = GetLastError();
             response.SetContext(DMStatus::Failed);
-            response.SetData(L"CreateFileW failed, GetLastError=", GetLastError());
-            return 0;
+            response.SetData(L"CreateFileW failed, GetLastError=", errorCode);
+            return errorCode;
         }
 
         // All pipe instances are busy, so wait for a maximum of 1 second
@@ -48,9 +49,10 @@ uint32_t SendRequestToSystemConfigurator(DMMessage& request, DMMessage& response
     if (pipeHandle.Get() == INVALID_HANDLE_VALUE || pipeHandle.Get() == NULL)
     {
         TRACE("Failed to connect to system configurator pipe...");
+        auto errorCode = GetLastError();
         response.SetContext(DMStatus::Failed);
-        response.SetData(L"Failed to connect to system configurator pipe. GetLastError=", GetLastError());
-        return 0;
+        response.SetData(L"Failed to connect to system configurator pipe. GetLastError=", errorCode);
+        return errorCode;
     }
     TRACE("Connected successfully to pipe...");
 
@@ -58,19 +60,21 @@ uint32_t SendRequestToSystemConfigurator(DMMessage& request, DMMessage& response
     if (!DMMessage::WriteToPipe(pipeHandle.Get(), request))
     {
         TRACE("Error: failed to write to pipe...");
+        auto errorCode = GetLastError();
         response.SetContext(DMStatus::Failed);
-        response.SetData(L"WriteFile failed, GetLastError=", GetLastError());
-        return 0;
+        response.SetData(L"WriteFile failed, GetLastError=", errorCode);
+        return errorCode;
     }
     if (!DMMessage::ReadFromPipe(pipeHandle.Get(), response))
     {
         TRACE("Error: failed to read from pipe...");
+        auto errorCode = GetLastError();
         response.SetContext(DMStatus::Failed);
-        response.SetData(L"WriteFile failed, GetLastError=", GetLastError());
-        return 0;
+        response.SetData(L"WriteFile failed, GetLastError=", errorCode);
+        return errorCode;
     }
     TRACE("Writing request to pipe...");
-    return 1;
+    return ERROR_SUCCESS;
 }
 
 int main(Platform::Array<Platform::String^>^ args)
@@ -90,7 +94,8 @@ int main(Platform::Array<Platform::String^>^ args)
 
     TRACE("Processing request...");
     DMMessage response(DMStatus::Failed);
-    if (0 == SendRequestToSystemConfigurator(request, response))
+    auto errorCode = SendRequestToSystemConfigurator(request, response);
+    if (ERROR_SUCCESS != errorCode)
     {
         TRACE("Error: failed to process request...");
         // Do not return. Let the response propagate to the caller.

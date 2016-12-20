@@ -11,16 +11,46 @@ using namespace Windows::Data::Json;
 
 void HandleListApps(DMMessage& response)
 {
-    TRACE("DMCommand::ListApps");
+    TRACE(__FUNCTION__);
     wstring json = EnterpriseModernAppManagementCSP::GetInstalledApps();
+    //
+    // JSON expected should reflect a map<string, AppInfo> of PackageFullName 
+    // to AppInfo where AppInfo is:
+    //        public class AppInfo
+    //        {
+    //            public string AppSource{ get; set; }
+    //            public string Architecture{ get; set; }
+    //            public string InstallDate{ get; set; }
+    //            public string InstallLocation{ get; set; }
+    //            public string IsBundle{ get; set; }
+    //            public string IsFramework{ get; set; }
+    //            public string IsProvisioned{ get; set; }
+    //            public string Name{ get; set; }
+    //            public string PackageFamilyName{ get; set; }
+    //            public string PackageStatus{ get; set; }
+    //            public string Publisher{ get; set; }
+    //            public string RequiresReinstall{ get; set; }
+    //            public string ResourceID{ get; set; }
+    //            public string Users{ get; set; }
+    //            public string Version{ get; set; }
+    //        }
+    //
     response.SetData(json);
     response.SetContext(DMStatus::Succeeded);
 }
 
 void HandleInstallApp(const std::wstring& json, DMMessage& response)
 {
+    //
+    // JSON expected should reflect this class:
+    //        public class AppxInstallInfo
+    //        {
+    //            public string PackageFamilyName{ get; set; }
+    //            public string AppxPath{ get; set; }
+    //            public List<string> Dependencies{ get; set; }
+    //        }
+    //
     TRACEP(L"DMCommand::InstallApp json=", json);
-
     try
     {
         auto jsonObject = JsonObject::Parse(ref new Platform::String(json.c_str()));
@@ -52,6 +82,14 @@ void HandleInstallApp(const std::wstring& json, DMMessage& response)
 
 void HandleUninstallApp(const std::wstring& json, DMMessage& response)
 {
+    //
+    // JSON expected should reflect this class:
+    //        public class AppxUninstallInfo
+    //        {
+    //            public string PackageFamilyName{ get; set; }
+    //            public bool StoreApp { get; set; }
+    //        }
+    //
     TRACEP(L"DMCommand::UninstallApp json=", json);
     try
     {
