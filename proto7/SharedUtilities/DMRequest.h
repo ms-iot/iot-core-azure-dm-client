@@ -36,22 +36,27 @@ enum class DMStatus : uint32_t
 
 #pragma pack(push)
 #pragma pack(1)
-struct DMMessage
+class DMMessage
 {
+private:
     uint32_t _context;
     std::vector<char> _data;
 
+public:
     DMMessage(DMStatus status) : DMMessage((uint32_t)status, 0)
     {
     }
     DMMessage(DMCommand command) : DMMessage((uint32_t)command, 0)
     {
     }
+
+private:
     DMMessage(uint32_t ctxt, uint32_t dataSize) : _context(ctxt)
     {
         _data.resize(dataSize);
     }
 
+public:
     const char* GetData() const
     {
         return (_data.data());
@@ -99,15 +104,16 @@ struct DMMessage
         _data.assign(newData, newData + newDataSize);
     }
 
-    static bool WriteToPipe(HANDLE pipeHandle, const struct DMMessage& message)
+    static bool WriteToPipe(HANDLE pipeHandle, const DMMessage& message)
     {
         TRACE("DMMessage.WriteToPipe...");
         DWORD byteWrittenCount = 0;
         auto context = message.GetContext();
         if (!WriteFile(pipeHandle, &context, sizeof(uint32_t), &byteWrittenCount, NULL) || byteWrittenCount != sizeof(uint32_t))
         {
-            auto errorCode = GetLastError();
-            TRACEP("Error: failed to write to pipe (context)...", errorCode);
+            // TODO: should this throw a DMException
+
+            TRACEP("Error: failed to write to pipe (context)...", GetLastError());
             return false;
         }
         TRACEP(L" context written to pipe=", context);
@@ -116,8 +122,9 @@ struct DMMessage
         auto dataSize = message.GetDataCount();
         if (!WriteFile(pipeHandle, &dataSize, sizeof(uint32_t), &byteWrittenCount, NULL) || byteWrittenCount != sizeof(uint32_t))
         {
-            auto errorCode = GetLastError();
-            TRACEP("Error: failed to write to pipe (dataSize)...", errorCode);
+            // TODO: should this throw a DMException
+
+            TRACEP("Error: failed to write to pipe (dataSize)...", GetLastError());
             return false;
         }
         TRACEP(L" dataSize written to pipe ", dataSize);
@@ -128,8 +135,9 @@ struct DMMessage
             auto data = message.GetData();
             if (!WriteFile(pipeHandle, data, dataSize, &byteWrittenCount, NULL) || byteWrittenCount != dataSize)
             {
-                auto errorCode = GetLastError();
-                TRACEP("Error: failed to write to pipe (dataSize)...", errorCode);
+                // TODO: should this throw a DMException
+
+                TRACEP("Error: failed to write to pipe (dataSize)...", GetLastError());
                 return false;
             }
         }
@@ -144,20 +152,21 @@ struct DMMessage
         uint32_t context = 0;
         if (!ReadFile(pipeHandle, &context, sizeof(uint32_t), &readByteCount, NULL) || readByteCount != sizeof(uint32_t))
         {
+            // TODO: should this throw a DMException rather than sending a response?
+
             TRACE("Error: failed to read from pipe (context)...");
             message.SetContext(DMStatus::Failed);
             message.SetData(L"ReadFile failed, GetLastError=", GetLastError());
             return false;
         }
-        else
-        {
-            message.SetContext(context);
-        }
+        message.SetContext(context);
         TRACEP(L" context read from pipe=", context);
 
         uint32_t dataSize = 0;
         if (!ReadFile(pipeHandle, &dataSize, sizeof(uint32_t), &readByteCount, NULL) || readByteCount != sizeof(uint32_t))
         {
+            // TODO: should this throw a DMException rather than sending a response?
+
             TRACE("Error: failed to read from pipe (dataSize)...");
             message.SetContext(DMStatus::Failed);
             message.SetData(L"ReadFile failed, GetLastError=", GetLastError());
@@ -168,21 +177,18 @@ struct DMMessage
         if (dataSize)
         {
             readByteCount = 0;
-            std::vector<char> data(dataSize + 2, '\0');
+            // Allocate dataSize and an extra wchar_t worth of '\0' to null terminate the buffer
+            std::vector<char> data(dataSize + (sizeof(wchar_t) / sizeof(char)), '\0');
             if (!ReadFile(pipeHandle, &data[0], dataSize, &readByteCount, NULL) || readByteCount != dataSize)
             {
+                // TODO: should this throw a DMException rather than sending a response?
+
                 TRACE("Error: failed to read from pipe (data)...");
                 message.SetContext(DMStatus::Failed);
                 message.SetData(L"ReadFile failed, GetLastError=", GetLastError());
                 return false;
             }
-            else
-            {
-                std::wstring wData((wchar_t*)&data[0]);
-                wData.resize(dataSize / 2);
-                wData.push_back(L'\0');
-                message.SetData(wData);
-            }
+            message.SetData(&data[0], data.size());
         }
 
         return true;

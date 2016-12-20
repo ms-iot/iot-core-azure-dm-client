@@ -37,6 +37,10 @@ namespace Microsoft.Devices.Management
         public string AppxPath { get; set; }
         public List<string> Dependencies { get; set; }
 
+        public AppxInstallInfo()
+        {
+            Dependencies = new List<string>();
+        }
         public string ToJson()
         {
             return JsonConvert.SerializeObject(this);

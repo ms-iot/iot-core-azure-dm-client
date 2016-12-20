@@ -44,31 +44,41 @@ void EnterpriseModernAppManagementCSP::InstallApp(const std::wstring& packageFam
              <Format xmlns="syncml:metinf">xml</Format>
           </Meta>
           <Data>
-             <Application PackageUri="%s" DeploymentOptions="0" >
-                <Dependencies>
-                    %s
-                </Dependencies>
-            </Application>
+             <Application PackageUri="%s" DeploymentOptions="0" %s
           </Data>
        </Item>
     </Exec>
 </SyncBody>
 )";
 
-    std::wstring dependencies = L"";
-    for (auto& s : dependentPackages)
+    std::wstring applicationContent = L"";
+    if (dependentPackages.size() != 0)
     {
-        if (dependencies.size() != 0) { dependencies += L"\n"; }
-        dependencies += L"<Dependency PackageUri=\"" + s;
-        dependencies += L"\"/>";
+        applicationContent += L"><Dependencies>";
+        bool first = true;
+        for (auto& s : dependentPackages)
+        {
+            if (!first) 
+            { 
+                applicationContent += L"\n"; 
+            }
+            first = false;
+            applicationContent += L"<Dependency PackageUri=\"" + s;
+            applicationContent += L"\"/>";
+        }
+        applicationContent += L"</Dependencies></Application>";
+    }
+    else
+    {
+        applicationContent += L"/>";
     }
 
-    size_t bufsize = _scwprintf(syncML, packageFamilyName.c_str(), packageFamilyName.c_str(), packageUri.c_str(), dependencies.c_str());
+    size_t bufsize = _scwprintf(syncML, packageFamilyName.c_str(), packageFamilyName.c_str(), packageUri.c_str(), applicationContent.c_str());
 
     bufsize += 1; // need null-termintator
     std::vector<wchar_t> buff(bufsize);
 
-    _snwprintf_s(buff.data(), bufsize, bufsize, syncML, packageFamilyName.c_str(), packageFamilyName.c_str(), packageUri.c_str(), dependencies.c_str());
+    _snwprintf_s(buff.data(), bufsize, bufsize, syncML, packageFamilyName.c_str(), packageFamilyName.c_str(), packageUri.c_str(), applicationContent.c_str());
 
     std::wstring output;
     std::wstring sid = Utils::GetSidForAccount(L"DefaultAccount");
