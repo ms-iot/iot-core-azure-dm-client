@@ -9,12 +9,14 @@ const int PipeBufferSize = 4096;
 const int DataSizeInBytes = 128;
 const wchar_t* PipeName = L"\\\\.\\pipe\\dm-client-pipe";
 
-enum class DMCommand
+enum class DMCommand : uint32_t
 {
     Unknown = 0,
     SystemReset = 1,
     CheckUpdates = 2,
     ListApps = 3,
+    InstallApp = 4,
+    UninstallApp = 5,
 
     // Reboot
     RebootSystem = 10,
@@ -26,7 +28,7 @@ enum class DMCommand
     GetLastRebootTime = 16,
 };
 
-enum class DMStatus
+enum class DMStatus : uint32_t
 {
     Succeeded = 0,
     Failed = 1,
@@ -34,29 +36,53 @@ enum class DMStatus
 
 #pragma pack(push)
 #pragma pack(1)
-struct DMRequest
+class DMMessage
 {
-    DMCommand command;
-    char      data[64];
+private:
+    uint32_t _context;
+    std::vector<char> _data;
 
-    DMRequest() :
-        command(DMCommand::Unknown)
+public:
+    DMMessage(DMStatus status) : DMMessage((uint32_t)status, 0)
     {
-        memset(&data, 0, sizeof(data));
     }
-};
-
-struct DMResponse
-{
-    DMStatus status;
-    uint32_t dataSize;
-    std::vector<char> data;
-
-    DMResponse() :
-        status(DMStatus::Failed),
-        dataSize(0)
+    DMMessage(DMCommand command) : DMMessage((uint32_t)command, 0)
     {
-        data.resize(dataSize);
+    }
+
+private:
+    DMMessage(uint32_t ctxt, uint32_t dataSize) : _context(ctxt)
+    {
+        _data.resize(dataSize);
+    }
+
+public:
+    const char* GetData() const
+    {
+        return (_data.data());
+    }
+    uint32_t GetDataCount() const
+    {
+        return (_data.size());
+    }
+    uint32_t GetContext() const
+    {
+        return (_context);
+    }
+
+    void SetContext(DMStatus status)
+    {
+        SetContext((uint32_t)status);
+    }
+
+    void SetContext(DMCommand command)
+    {
+        SetContext((uint32_t)command);
+    }
+
+    void SetContext(uint32_t ctxt)
+    {
+        _context = ctxt;
     }
 
     void SetData(const wchar_t* msg, DWORD param)
@@ -75,81 +101,94 @@ struct DMResponse
 
     void SetData(const char* newData, uint32_t newDataSize)
     {
-        data.assign(newData, newData + newDataSize);
-        dataSize = newDataSize;
+        _data.assign(newData, newData + newDataSize);
     }
 
-    static bool Serialize(HANDLE pipeHandle, DMResponse& response)
+    static bool WriteToPipe(HANDLE pipeHandle, const DMMessage& message)
     {
-        TRACE("DMResponse.Serialize...");
+        TRACE("DMMessage.WriteToPipe...");
         DWORD byteWrittenCount = 0;
-        if (!WriteFile(pipeHandle, &response.status, sizeof(DMStatus), &byteWrittenCount, NULL))
+        auto context = message.GetContext();
+        if (!WriteFile(pipeHandle, &context, sizeof(uint32_t), &byteWrittenCount, NULL) || byteWrittenCount != sizeof(uint32_t))
         {
-            auto errorCode = GetLastError();
-            TRACEP("Error writing response.status ", errorCode);
+            // TODO: should this throw a DMException
+
+            TRACEP("Error: failed to write to pipe (context)...", GetLastError());
             return false;
         }
-        if (!WriteFile(pipeHandle, &response.dataSize, sizeof(uint32_t), &byteWrittenCount, NULL))
+        TRACEP(L" context written to pipe=", context);
+
+        byteWrittenCount = 0;
+        auto dataSize = message.GetDataCount();
+        if (!WriteFile(pipeHandle, &dataSize, sizeof(uint32_t), &byteWrittenCount, NULL) || byteWrittenCount != sizeof(uint32_t))
         {
-            auto errorCode = GetLastError();
-            TRACEP("Error writing response.dataSize ", errorCode);
+            // TODO: should this throw a DMException
+
+            TRACEP("Error: failed to write to pipe (dataSize)...", GetLastError());
             return false;
         }
-        TRACEP("Response sent to pipe ", byteWrittenCount);
-        if (response.dataSize)
+        TRACEP(L" dataSize written to pipe ", dataSize);
+
+        if (dataSize)
         {
             byteWrittenCount = 0;
-            TRACEP("Write response.data to pipe ", response.dataSize);
-            if (!WriteFile(pipeHandle, &response.data[0], response.dataSize, &byteWrittenCount, NULL))
+            auto data = message.GetData();
+            if (!WriteFile(pipeHandle, data, dataSize, &byteWrittenCount, NULL) || byteWrittenCount != dataSize)
             {
-                auto errorCode = GetLastError();
-                TRACEP("Error writing response.data ", errorCode);
+                // TODO: should this throw a DMException
+
+                TRACEP("Error: failed to write to pipe (dataSize)...", GetLastError());
                 return false;
             }
-            TRACEP("Response.data sent to pipe ", byteWrittenCount);
         }
 
         return true;
     }
 
-    static bool Deserialize(HANDLE pipeHandle, DMResponse& response)
+    static bool ReadFromPipe(HANDLE pipeHandle, DMMessage& message)
     {
-        TRACE("DMResponse.Deserialize...");
+        TRACE("DMMessage.ReadFromPipe...");
         DWORD readByteCount = 0;
-        if (!ReadFile(pipeHandle, &response.status, sizeof(DMStatus), &readByteCount, NULL))
+        uint32_t context = 0;
+        if (!ReadFile(pipeHandle, &context, sizeof(uint32_t), &readByteCount, NULL) || readByteCount != sizeof(uint32_t))
         {
-            TRACE("Error: failed to read from pipe (response)...");
-            response.status = DMStatus::Failed;
-            response.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+            // TODO: should this throw a DMException rather than sending a response?
+
+            TRACE("Error: failed to read from pipe (context)...");
+            message.SetContext(DMStatus::Failed);
+            message.SetData(L"ReadFile failed, GetLastError=", GetLastError());
             return false;
         }
+        message.SetContext(context);
+        TRACEP(L" context read from pipe=", context);
 
-        if (!ReadFile(pipeHandle, &response.dataSize, sizeof(uint32_t), &readByteCount, NULL))
+        uint32_t dataSize = 0;
+        if (!ReadFile(pipeHandle, &dataSize, sizeof(uint32_t), &readByteCount, NULL) || readByteCount != sizeof(uint32_t))
         {
-            TRACE("Error: failed to read from pipe (response)...");
-            response.status = DMStatus::Failed;
-            response.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+            // TODO: should this throw a DMException rather than sending a response?
+
+            TRACE("Error: failed to read from pipe (dataSize)...");
+            message.SetContext(DMStatus::Failed);
+            message.SetData(L"ReadFile failed, GetLastError=", GetLastError());
             return false;
         }
+        TRACEP(L" dataSize read from pipe=", dataSize);
 
-        TRACEP(L" response read from pipe ", (UINT)readByteCount);
-        TRACEP(L" response dataSize from pipe ", (UINT)response.dataSize);
-        if (response.dataSize)
+        if (dataSize)
         {
             readByteCount = 0;
-            std::vector<char> data(response.dataSize);
-            if (!ReadFile(pipeHandle, &data[0], response.dataSize, &readByteCount, NULL))
+            // Allocate dataSize and an extra wchar_t worth of '\0' to null terminate the buffer
+            std::vector<char> data(dataSize + (sizeof(wchar_t) / sizeof(char)), '\0');
+            if (!ReadFile(pipeHandle, &data[0], dataSize, &readByteCount, NULL) || readByteCount != dataSize)
             {
-                TRACE("Error: failed to read from pipe (response data)...");
-                response.status = DMStatus::Failed;
-                response.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+                // TODO: should this throw a DMException rather than sending a response?
+
+                TRACE("Error: failed to read from pipe (data)...");
+                message.SetContext(DMStatus::Failed);
+                message.SetData(L"ReadFile failed, GetLastError=", GetLastError());
                 return false;
             }
-            else
-            {
-                TRACEP(L" response.data read from pipe ", (UINT)readByteCount);
-                response.SetData(&data[0], response.dataSize);
-            }
+            message.SetData(&data[0], data.size());
         }
 
         return true;

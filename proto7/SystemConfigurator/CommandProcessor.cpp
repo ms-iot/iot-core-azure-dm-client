@@ -7,46 +7,148 @@
 #include "CSPs\EnterpriseModernAppManagementCSP.h"
 
 using namespace std;
+using namespace Windows::Data::Json;
 
-void ProcessCommand(const DMRequest& request, DMResponse& response)
+void HandleListApps(DMMessage& response)
+{
+    TRACE(__FUNCTION__);
+    wstring json = EnterpriseModernAppManagementCSP::GetInstalledApps();
+    //
+    // JSON expected should reflect a map<string, AppInfo> of PackageFullName 
+    // to AppInfo where AppInfo is:
+    //        public class AppInfo
+    //        {
+    //            public string AppSource{ get; set; }
+    //            public string Architecture{ get; set; }
+    //            public string InstallDate{ get; set; }
+    //            public string InstallLocation{ get; set; }
+    //            public string IsBundle{ get; set; }
+    //            public string IsFramework{ get; set; }
+    //            public string IsProvisioned{ get; set; }
+    //            public string Name{ get; set; }
+    //            public string PackageFamilyName{ get; set; }
+    //            public string PackageStatus{ get; set; }
+    //            public string Publisher{ get; set; }
+    //            public string RequiresReinstall{ get; set; }
+    //            public string ResourceID{ get; set; }
+    //            public string Users{ get; set; }
+    //            public string Version{ get; set; }
+    //        }
+    //
+    response.SetData(json);
+    response.SetContext(DMStatus::Succeeded);
+}
+
+void HandleInstallApp(const std::wstring& json, DMMessage& response)
+{
+    //
+    // JSON expected should reflect this class:
+    //        public class AppxInstallInfo
+    //        {
+    //            public string PackageFamilyName{ get; set; }
+    //            public string AppxPath{ get; set; }
+    //            public List<string> Dependencies{ get; set; }
+    //        }
+    //
+    TRACEP(L"DMCommand::InstallApp json=", json);
+    try
+    {
+        auto jsonObject = JsonObject::Parse(ref new Platform::String(json.c_str()));
+
+        auto dependencyString = ref new Platform::String(L"Dependencies");
+        vector<wstring> deps;
+        if (jsonObject->HasKey(dependencyString))
+        {
+            auto dependencyObject = jsonObject->GetNamedArray(dependencyString);
+            for (unsigned int i = 0; i < dependencyObject->Size; i++)
+            {
+                deps.push_back(dependencyObject->GetStringAt(i)->Data());
+            }
+        }
+
+        wstring packageFamilyName = jsonObject->GetNamedString(ref new Platform::String(L"PackageFamilyName"))->Data();
+        wstring appxPath = jsonObject->GetNamedString(ref new Platform::String(L"AppxPath"))->Data();
+
+        EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
+        response.SetContext(DMStatus::Succeeded);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        response.SetData(failure.c_str(), e->HResult);
+        response.SetContext(DMStatus::Failed);
+    }
+}
+
+void HandleUninstallApp(const std::wstring& json, DMMessage& response)
+{
+    //
+    // JSON expected should reflect this class:
+    //        public class AppxUninstallInfo
+    //        {
+    //            public string PackageFamilyName{ get; set; }
+    //            public bool StoreApp { get; set; }
+    //        }
+    //
+    TRACEP(L"DMCommand::UninstallApp json=", json);
+    try
+    {
+        auto jsonObject = JsonObject::Parse(ref new Platform::String(json.c_str()));
+        wstring packageFamilyName = jsonObject->GetNamedString(ref new Platform::String(L"PackageFamilyName"))->Data();
+        bool storeApp = jsonObject->GetNamedBoolean(ref new Platform::String(L"StoreApp"));
+
+        EnterpriseModernAppManagementCSP::UninstallApp(packageFamilyName, storeApp);
+        response.SetContext(DMStatus::Succeeded);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        response.SetData(failure.c_str(), e->HResult);
+        response.SetContext(DMStatus::Failed);
+    }
+}
+
+void ProcessCommand(DMMessage& request, DMMessage& response)
 {
     TRACE(__FUNCTION__);
     static int cmdIndex = 0;
     response.SetData(L"Default System Configurator Response.");
 
-    switch (request.command)
+    auto command = (DMCommand)request.GetContext();
+    auto data = request.GetData();
+    switch (command)
     {
     case DMCommand::RebootSystem:
         response.SetData(L"Handling `reboot system`. cmdIndex = ", cmdIndex);
-        response.status = DMStatus::Succeeded;
+        response.SetContext(DMStatus::Succeeded);
         RebootCSP::ExecRebootNow();
         break;
     case DMCommand::SetSingleRebootTime:
-        TRACEP("DMCommand::SetSingleRebootTime value = ", request.data);
-        RebootCSP::SetSingleScheduleTime(Utils::MultibyteToWide(request.data));
+        TRACEP("DMCommand::SetSingleRebootTime value = ", data);
+        RebootCSP::SetSingleScheduleTime(Utils::MultibyteToWide(data));
         response.SetData(L"Handling `set reboot single`. cmdIndex = ", cmdIndex);
-        response.status = DMStatus::Succeeded;
+        response.SetContext(DMStatus::Succeeded);
         break;
     case DMCommand::GetSingleRebootTime:
     {
         TRACE("DMCommand::GetSingleRebootTime");
         wstring valueString = RebootCSP::GetSingleScheduleTime();
         response.SetData(valueString);
-        response.status = DMStatus::Succeeded;
+        response.SetContext(DMStatus::Succeeded);
     }
     break;
     case DMCommand::SetDailyRebootTime:
-        TRACEP("DMCommand::SetDailyRebootTime value = ", request.data);
-        RebootCSP::SetDailyScheduleTime(Utils::MultibyteToWide(request.data));
+        TRACEP("DMCommand::SetDailyRebootTime value = ", data);
+        RebootCSP::SetDailyScheduleTime(Utils::MultibyteToWide(data));
         response.SetData(L"Handling `set reboot daily`. cmdIndex = ", cmdIndex);
-        response.status = DMStatus::Succeeded;
+        response.SetContext(DMStatus::Succeeded);
         break;
     case DMCommand::GetDailyRebootTime:
     {
         TRACE("DMCommand::GetDailyRebootTime");
         wstring valueString = RebootCSP::GetDailyScheduleTime();
         response.SetData(valueString);
-        response.status = DMStatus::Succeeded;
+        response.SetContext(DMStatus::Succeeded);
     }
     break;
     case DMCommand::GetLastRebootCmdTime:
@@ -54,7 +156,7 @@ void ProcessCommand(const DMRequest& request, DMResponse& response)
         TRACE("DMCommand::GetLastRebootCmdTime");
         wstring valueString = RebootCSP::GetLastRebootCmdTime();
         response.SetData(valueString);
-        response.status = DMStatus::Succeeded;
+        response.SetContext(DMStatus::Succeeded);
     }
     break;
     case DMCommand::GetLastRebootTime:
@@ -62,12 +164,12 @@ void ProcessCommand(const DMRequest& request, DMResponse& response)
         TRACE("DMCommand::GetLastRebootTime");
         wstring valueString = RebootCSP::GetLastRebootTime();
         response.SetData(valueString);
-        response.status = DMStatus::Succeeded;
+        response.SetContext(DMStatus::Succeeded);
     }
     break;
     case DMCommand::SystemReset:
         response.SetData(L"Handling `system reset`. cmdIndex = ", cmdIndex);
-        response.status = DMStatus::Succeeded;
+        response.SetContext(DMStatus::Succeeded);
         break;
     case DMCommand::CheckUpdates:
         response.SetData(L"Handling `check updates`. cmdIndex = ", cmdIndex);
@@ -76,20 +178,20 @@ void ProcessCommand(const DMRequest& request, DMResponse& response)
         Sleep(1000);
         // Done!
 
-        response.status = DMStatus::Succeeded;
+        response.SetContext(DMStatus::Succeeded);
         break;
     case DMCommand::ListApps:
-    {
-        TRACEP("DMCommand::ListApps", request.data);
-        wstring json(L"");
-        EnterpriseModernAppManagementCSP::GetInstalledApps(json);
-        response.SetData(json);
-        response.status = DMStatus::Succeeded;
-    }
-    break;
+        HandleListApps(response);
+        break;
+    case DMCommand::InstallApp:
+        HandleInstallApp(std::wstring((wchar_t*)&data[0]), response);
+        break;
+    case DMCommand::UninstallApp:
+        HandleUninstallApp(std::wstring((wchar_t*)&data[0]), response);
+        break;
     default:
         response.SetData(L"Handling unknown command...cmdIndex = ", cmdIndex);
-        response.status = DMStatus::Failed;
+        response.SetContext(DMStatus::Failed);
         break;
     }
 
@@ -159,31 +261,26 @@ void Listen()
         pipeConnection.Connect(pipeHandle.Get());
         TRACE("Client connected...");
 
-        DMRequest request;
-        DWORD readBytes = 0;
-        BOOL readResult = ReadFile(pipeHandle.Get(), &request, sizeof(request), &readBytes, NULL);
-        if (readResult && readBytes == sizeof(request))
-        {
-            TRACE("Request received...");
-            DMResponse response;
-            
-            try
-            {
-                ProcessCommand(request, response);
-            }
-            catch (const DMException&)
-            {
-                // response will still contain the error information, so, let it continue
-                // and send it back.
-                TRACE("DMExeption was thrown from ProcessCommand()...");
-            }
-
-            DMResponse::Serialize(pipeHandle.Get(), response);
-        }
-        else
+        DMMessage request(DMCommand::Unknown);
+        if (!DMMessage::ReadFromPipe(pipeHandle.Get(), request))
         {
             throw DMExceptionWithErrorCode("ReadFile Error", GetLastError());
         }
+        TRACE("Request received...");
+        DMMessage response(DMStatus::Failed);
+            
+        try
+        {
+            ProcessCommand(request, response);
+        }
+        catch (const DMException&)
+        {
+            // response will still contain the error information, so, let it continue
+            // and send it back.
+            TRACE("DMExeption was thrown from ProcessCommand()...");
+        }
+
+        DMMessage::WriteToPipe(pipeHandle.Get(), response);
 
         // ToDo: How do we exit this loop gracefully?
     }

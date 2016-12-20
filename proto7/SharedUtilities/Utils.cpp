@@ -9,6 +9,7 @@
 #include <algorithm> 
 #include <xmllite.h>
 #include <fstream>
+#include <Sddl.h>
 #include "Utils.h"
 #include "DMException.h"
 #include "Logger.h"
@@ -22,6 +23,42 @@ using namespace Windows::System::Profile;
 
 namespace Utils
 {
+    wstring GetSidForAccount(const wchar_t* userAccount)
+    {
+        std::wstring sidString = L"";
+
+        BYTE userSidBytes[SECURITY_MAX_SID_SIZE] = {};
+        PSID userSid = reinterpret_cast<PSID>(userSidBytes);
+        DWORD sidSize = ARRAYSIZE(userSidBytes);
+        wchar_t domainNameUnused[MAX_PATH] = {};
+        DWORD domainSizeUnused = ARRAYSIZE(domainNameUnused);
+        SID_NAME_USE sidTypeUnused = SidTypeInvalid;
+
+        if (!LookupAccountName(
+                nullptr,
+                userAccount,
+                &userSid,
+                &sidSize,
+                domainNameUnused,
+                &domainSizeUnused,
+                &sidTypeUnused
+            ))
+        {
+            throw DMExceptionWithErrorCode("Error: Utils::GetSidForAccount LookupAccountName failed.", GetLastError());
+        }
+        LPWSTR pString = nullptr;
+        if (!ConvertSidToStringSid(
+                &userSid,
+                &pString
+            ))
+        { 
+            throw DMExceptionWithErrorCode("Error: Utils::GetSidForAccount ConvertSidToStringSid failed.", GetLastError());
+        }
+        sidString = pString;
+        LocalFree(pString);
+
+        return sidString;
+    }
 
     string WideToMultibyte(const wchar_t* s)
     {
@@ -86,22 +123,19 @@ namespace Utils
         HRESULT hr = CreateXmlReader(__uuidof(IXmlReader), (void**)xmlReader.GetAddressOf(), NULL);
         if (FAILED(hr))
         {
-            TRACEP(L"Error: Failed to create xml reader. Code :", hr);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithHRESULT("Error: Failed to create xml reader.", hr);
         }
 
         hr = xmlReader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
         if (FAILED(hr))
         {
-            TRACEP(L"Error: XmlReaderProperty_DtdProcessing() failed. Code :\n", hr);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithHRESULT("Error: XmlReaderProperty_DtdProcessing() failed.", hr);
         }
 
         hr = xmlReader->SetInput(resultSyncML);
         if (FAILED(hr))
         {
-            TRACEP(L"Error: SetInput() failed. Code :\n", hr);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithHRESULT("Error: SetInput() failed.", hr);
         }
 
         deque<wstring> pathStack;
@@ -121,16 +155,14 @@ namespace Utils
                 hr = xmlReader->GetPrefix(&prefix, &prefixSize);
                 if (FAILED(hr))
                 {
-                    TRACEP(L"Error: GetPrefix() failed. Code :\n", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithHRESULT("Error: GetPrefix() failed.", hr);
                 }
 
                 const wchar_t* localName;
                 hr = xmlReader->GetLocalName(&localName, NULL);
                 if (FAILED(hr))
                 {
-                    TRACEP(L"Error: GetLocalName() failed. Code :\n", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithHRESULT("Error: GetLocalName() failed.", hr);
                 }
 
                 wstring elementName;
@@ -167,16 +199,14 @@ namespace Utils
                 hr = xmlReader->GetPrefix(&prefix, &prefixSize);
                 if (FAILED(hr))
                 {
-                    TRACEP(L"Error: GetPrefix() failed. Code :", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithHRESULT("Error: GetPrefix() failed.", hr);
                 }
 
                 const wchar_t* localName = NULL;
                 hr = xmlReader->GetLocalName(&localName, NULL);
                 if (FAILED(hr))
                 {
-                    TRACEP(L"Error: GetLocalName() failed. Code :", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithHRESULT("Error: GetLocalName() failed.", hr);
                 }
 
                 if (itemPath == currentPath)
@@ -229,8 +259,7 @@ namespace Utils
                 hr = xmlReader->GetValue(&valueText, NULL);
                 if (FAILED(hr))
                 {
-                    TRACEP(L"Error: GetValue() failed. Code :", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithHRESULT("Error: GetValue() failed.", hr);
                 }
 
                 if (uriPath == currentPath)

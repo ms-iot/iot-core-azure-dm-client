@@ -7,12 +7,11 @@
 using namespace std;
 
 // Returns the response size in bytes.
-uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & response)
+uint32_t SendRequestToSystemConfigurator(const DMMessage& request, DMMessage& response)
 {
     TRACE(__FUNCTION__);
 
     Utils::AutoCloseHandle pipeHandle;
-    DWORD writtenByteCount = 0;
     int waitAttemptsLeft = 10;
 
     while (waitAttemptsLeft--)
@@ -36,9 +35,10 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
         // Exit if an error other than ERROR_PIPE_BUSY occurs
         if (GetLastError() != ERROR_PIPE_BUSY)
         {
-            response.status = DMStatus::Failed;
-            response.SetData(L"CreateFileW failed, GetLastError=", GetLastError());
-            return 0;
+            auto errorCode = GetLastError();
+            response.SetContext(DMStatus::Failed);
+            response.SetData(L"CreateFileW failed, GetLastError=", errorCode);
+            return errorCode;
         }
 
         // All pipe instances are busy, so wait for a maximum of 1 second
@@ -49,29 +49,32 @@ uint32_t SendRequestToSystemConfigurator(const DMRequest& request, DMResponse & 
     if (pipeHandle.Get() == INVALID_HANDLE_VALUE || pipeHandle.Get() == NULL)
     {
         TRACE("Failed to connect to system configurator pipe...");
-        response.status = DMStatus::Failed;
-        response.SetData(L"Failed to connect to system configurator pipe. GetLastError=", GetLastError());
-        return 0;
+        auto errorCode = GetLastError();
+        response.SetContext(DMStatus::Failed);
+        response.SetData(L"Failed to connect to system configurator pipe. GetLastError=", errorCode);
+        return errorCode;
     }
     TRACE("Connected successfully to pipe...");
 
     TRACE("Writing request to pipe...");
-    if (WriteFile(pipeHandle.Get(), &request, sizeof(request), &writtenByteCount, NULL))
-    {
-        if (DMResponse::Deserialize(pipeHandle.Get(), response))
-        {
-            TRACE("Writing request to pipe...");
-            return 1;
-        }
-    }
-    else
+    if (!DMMessage::WriteToPipe(pipeHandle.Get(), request))
     {
         TRACE("Error: failed to write to pipe...");
-        response.status = DMStatus::Failed;
-        response.SetData(L"WriteFile failed, GetLastError=", GetLastError());
+        auto errorCode = GetLastError();
+        response.SetContext(DMStatus::Failed);
+        response.SetData(L"WriteFile failed, GetLastError=", errorCode);
+        return errorCode;
     }
-
-    return 0;
+    if (!DMMessage::ReadFromPipe(pipeHandle.Get(), response))
+    {
+        TRACE("Error: failed to read from pipe...");
+        auto errorCode = GetLastError();
+        response.SetContext(DMStatus::Failed);
+        response.SetData(L"WriteFile failed, GetLastError=", errorCode);
+        return errorCode;
+    }
+    TRACE("Writing request to pipe...");
+    return ERROR_SUCCESS;
 }
 
 int main(Platform::Array<Platform::String^>^ args)
@@ -82,24 +85,23 @@ int main(Platform::Array<Platform::String^>^ args)
     Utils::AutoCloseHandle stdoutHandle(GetStdHandle(STD_OUTPUT_HANDLE));
 
     TRACE("Reading request from stdin...");
-    DMRequest request;
-    DWORD stdinBytesReadCount = 0;
-    BOOL bSuccess = ReadFile(stdinHandle.Get(), &request, sizeof(DMRequest), &stdinBytesReadCount, NULL);
-    if (!bSuccess || stdinBytesReadCount != sizeof(DMRequest))
+    DMMessage request(DMCommand::Unknown);
+    if (!DMMessage::ReadFromPipe(stdinHandle.Get(), request))
     {
         TRACE("Error: failed to read stdin...");
         return -1;
     }
 
     TRACE("Processing request...");
-    DMResponse response;
-    if (0 == SendRequestToSystemConfigurator(request, response))
+    DMMessage response(DMStatus::Failed);
+    auto errorCode = SendRequestToSystemConfigurator(request, response);
+    if (ERROR_SUCCESS != errorCode)
     {
         TRACE("Error: failed to process request...");
         // Do not return. Let the response propagate to the caller.
     }
 
-    if (!DMResponse::Serialize(stdoutHandle.Get(), response))
+    if (!DMMessage::WriteToPipe(stdoutHandle.Get(), response))
     {
         return -1;
     }
