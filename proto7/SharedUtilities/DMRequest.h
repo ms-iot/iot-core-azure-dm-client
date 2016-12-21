@@ -7,7 +7,8 @@
 
 const int PipeBufferSize = 4096;
 const int DataSizeInBytes = 128;
-const wchar_t* PipeName = L"\\\\.\\pipe\\dm-client-pipe";
+#define PIPE_NAME L"\\\\.\\pipe\\dm-client-pipe"
+const wchar_t* PipeName = PIPE_NAME;
 
 enum class DMCommand : uint32_t
 {
@@ -57,9 +58,13 @@ private:
     }
 
 public:
-    const char* GetData() const
+    std::string GetData() const
     {
-        return (_data.data());
+        return std::string(_data.data(), _data.size());
+    }
+    std::wstring GetDataW() const
+    {
+        return std::wstring((wchar_t*)_data.data(), _data.size() / sizeof(wchar_t));
     }
     uint32_t GetDataCount() const
     {
@@ -132,7 +137,7 @@ public:
         if (dataSize)
         {
             byteWrittenCount = 0;
-            auto data = message.GetData();
+            auto data = message.GetData().data();
             if (!WriteFile(pipeHandle, data, dataSize, &byteWrittenCount, NULL) || byteWrittenCount != dataSize)
             {
                 // TODO: should this throw a DMException
@@ -177,8 +182,7 @@ public:
         if (dataSize)
         {
             readByteCount = 0;
-            // Allocate dataSize and an extra wchar_t worth of '\0' to null terminate the buffer
-            std::vector<char> data(dataSize + (sizeof(wchar_t) / sizeof(char)), '\0');
+            std::vector<char> data(dataSize, '\0');
             if (!ReadFile(pipeHandle, &data[0], dataSize, &readByteCount, NULL) || readByteCount != dataSize)
             {
                 // TODO: should this throw a DMException rather than sending a response?
