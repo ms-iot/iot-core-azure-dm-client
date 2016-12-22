@@ -20,5 +20,11 @@ namespace Microsoft.Devices.Management
             deviceClient.ReportProperties(allJson);
 */
         }
+
+        void IDeviceTwin.RefreshConnection()
+        {
+            // Recreate deviceClient using a new SAS token
+        }
+
     }
 }
