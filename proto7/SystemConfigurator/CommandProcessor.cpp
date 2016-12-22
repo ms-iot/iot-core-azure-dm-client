@@ -115,7 +115,7 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
     response.SetData(L"Default System Configurator Response.");
 
     auto command = (DMCommand)request.GetContext();
-    auto data = request.GetData();
+    auto data = request.GetData().c_str();
     switch (command)
     {
     case DMCommand::RebootSystem:
@@ -184,10 +184,10 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
         HandleListApps(response);
         break;
     case DMCommand::InstallApp:
-        HandleInstallApp(std::wstring((wchar_t*)&data[0]), response);
+        HandleInstallApp(request.GetDataW(), response);
         break;
     case DMCommand::UninstallApp:
-        HandleUninstallApp(std::wstring((wchar_t*)&data[0]), response);
+        HandleUninstallApp(request.GetDataW(), response);
         break;
     default:
         response.SetData(L"Handling unknown command...cmdIndex = ", cmdIndex);
