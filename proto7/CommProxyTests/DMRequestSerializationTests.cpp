@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "CppUnitTest.h"
 
-#include <Windows.h>
 #include "..\SharedUtilities\Utils.h"
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMRequest.h"
@@ -10,7 +9,7 @@
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace CommProxyTests
-{		
+{        
     void VerifyDMMessageEquality(DMMessage& one, DMMessage& two)
     {
         Assert::AreEqual(one.GetContext(), two.GetContext());
@@ -18,13 +17,12 @@ namespace CommProxyTests
         Assert::AreEqual(0, memcmp(one.GetData().data(), two.GetData().data(), one.GetDataCount()));
     }
 
-	TEST_CLASS(DMRequestSerializationTests)
-	{
+    TEST_CLASS(DMRequestSerializationTests)
+    {
     private:
 
         void ValidateDMMessageWriteRead(DMMessage& orig)
         {
-            SecurityAttributes sa(GENERIC_WRITE | GENERIC_READ);
             Utils::AutoCloseHandle pipeHandleWrite;
             pipeHandleWrite = CreateNamedPipeW(
                 PIPE_NAME L"-test",
@@ -34,16 +32,16 @@ namespace CommProxyTests
                 PipeBufferSize,
                 PipeBufferSize,
                 NMPWAIT_USE_DEFAULT_WAIT,
-                sa.GetSA());
+                nullptr);
 
             Utils::AutoCloseHandle pipeHandleRead;
             pipeHandleRead = CreateFileW(PIPE_NAME L"-test",
                 GENERIC_READ | GENERIC_WRITE,
                 0,
-                NULL,
+                nullptr,
                 OPEN_EXISTING,
                 0,
-                NULL);
+                nullptr);
 
             Assert::IsTrue(DMMessage::WriteToPipe(pipeHandleWrite.Get(), orig));
             DMMessage messageToReceive(DMStatus::Failed);
@@ -53,7 +51,7 @@ namespace CommProxyTests
         }
 
     public:
-		
+        
         TEST_METHOD(TestEmptyUnknownMessageReadWrite)
         {
             DMMessage emptyMessage(DMCommand::Unknown);
