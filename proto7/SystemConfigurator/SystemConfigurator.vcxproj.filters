@@ -69,6 +69,12 @@
     <ClInclude Include="CSPs\PrivateAPIs\IProvisioningDPULocal.h">
       <Filter>Header Files\CSPs\PrivateAPIs</Filter>
     </ClInclude>
+    <ClInclude Include="TimeCfg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\DeviceStatusCSP.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -103,6 +109,12 @@
     </ClCompile>
     <ClCompile Include="CSPs\PrivateAPIs\CSPController.cpp">
       <Filter>Source Files\CSPs\PrivateAPIs</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeCfg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\DeviceStatusCSP.cpp">
+      <Filter>Source Files\CSPs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

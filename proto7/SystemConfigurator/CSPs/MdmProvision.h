@@ -15,6 +15,7 @@ public:
     static void RunGetStructData(const std::wstring& path, Windows::Data::Json::JsonObject^ data);
     static std::wstring RunGetString(const std::wstring& sid, const std::wstring& path);
     static unsigned int RunGetUInt(const std::wstring& sid, const std::wstring& path);
+    static bool RunGetBool(const std::wstring& sid, const std::wstring& path);
 
     static void RunSet(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
     static void RunSet(const std::wstring& sid, const std::wstring& path, unsigned int value);
@@ -26,6 +27,7 @@ public:
 
     static std::wstring RunGetString(const std::wstring& path);
     static unsigned int RunGetUInt(const std::wstring& path);
+    static bool RunGetBool(const std::wstring& path);
 
     static void RunSet(const std::wstring& path, const std::wstring& value);
     static void RunSet(const std::wstring& path, unsigned int value);
