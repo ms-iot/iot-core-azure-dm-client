@@ -12,7 +12,7 @@ const wchar_t* PipeName = L"\\\\.\\pipe\\dm-client-pipe";
 enum class DMCommand : uint32_t
 {
     Unknown = 0,
-    SystemReset = 1,
+    FactoryReset = 1,
     CheckUpdates = 2,
     ListApps = 3,
     InstallApp = 4,
@@ -26,6 +26,13 @@ enum class DMCommand : uint32_t
     GetDailyRebootTime = 14,
     GetLastRebootCmdTime = 15,
     GetLastRebootTime = 16,
+
+    // TimeInfo
+    GetTimeInfo = 30,
+    SetTimeInfo = 31,
+
+    // Device Status
+    GetDeviceStatus = 40,
 };
 
 enum class DMStatus : uint32_t
@@ -61,10 +68,19 @@ public:
     {
         return (_data.data());
     }
+
+    std::wstring GetDataWString()
+    {
+        std::vector<wchar_t> dataw(GetDataCount() / sizeof(wchar_t));
+        memcpy(dataw.data(), GetData(), GetDataCount());
+        return std::wstring(dataw.data(), dataw.size());
+    }
+
     uint32_t GetDataCount() const
     {
         return (_data.size());
     }
+
     uint32_t GetContext() const
     {
         return (_context);
@@ -97,6 +113,11 @@ public:
         auto wdataAsBytes = (char*)newData.data();
         auto size = newData.size() * sizeof(wchar_t);
         SetData(wdataAsBytes, size);
+    }
+
+    void SetData(const char* newData)
+    {
+        _data.assign(newData, newData + strlen(newData));
     }
 
     void SetData(const char* newData, uint32_t newDataSize)

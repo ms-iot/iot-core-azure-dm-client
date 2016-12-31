@@ -70,6 +70,7 @@ namespace Microsoft.Devices.Management
     {
         // Constants
         public const string RebootMethod = "Reboot";
+        public const string FactoryResetMethod = "FactoryReset";
 
         // device twin property paths
         public const string DesiredRebootSingleProperty = "properties.desired.reboot.singleReboot";
@@ -80,6 +81,11 @@ namespace Microsoft.Devices.Management
         public const string ReportedLastRebootCmdProperty = "properties.reported.reboot.lastRebootCmd";
         public const string ReportedLastRebootProperty = "properties.reported.reboot.lastReboot";
 
+        public const string ReportedTimeInfoProperty = "properties.reported.timeInfo";
+        public const string DesiredTimeInfoProperty = "properties.desired.timeInfo";
+
+        public const string ReportedDeviceStatusProperty = "properties.reported.deviceStatus";
+
         // Types
         public struct DMMethodResult
         {
@@ -87,10 +93,40 @@ namespace Microsoft.Devices.Management
             public string response;
         }
 
-        struct DesiredProperty
+        public class TimeZoneInformation
         {
-            public string path;
-            public string value;
+            public long bias;
+            public string standardName;
+            public DateTime standardDate;
+            public long standardBias;
+            public string daylightName;
+            public DateTime daylightDate;
+            public long daylightBias;
+        }
+
+        public class TimeInfo
+        {
+            public TimeInfo()
+            {
+                timeZoneInformation = new TimeZoneInformation();
+            }
+
+            public DateTime localTime;
+            public string ntpServer;
+            public TimeZoneInformation timeZoneInformation;
+        }
+
+        public struct DeviceStatus
+        {
+            public long secureBootState;
+            public string macAddressIpV4;
+            public string macAddressIpV6;
+            public bool macAddressIsConnected;
+            public long macAddressType;
+            public string osType;
+            public long batteryStatus;
+            public long batteryRemaining;
+            public long batteryRuntime;
         }
 
         // Ultimately, DeviceManagementClient will take an abstraction over DeviceClient to allow it to 
@@ -101,6 +137,7 @@ namespace Microsoft.Devices.Management
             this.deviceTwin = deviceTwin;
             this.supportedMethods = new Dictionary<string, Func<string, Task<DMMethodResult>>>();
             this.supportedMethods.Add(RebootMethod, HandleRebootAsync);
+            this.supportedMethods.Add(FactoryResetMethod, HandleFactoryResetAsync);
 
             this.supportedProperties = new Dictionary<string, DMCommand>();
             this.supportedProperties.Add(DesiredRebootSingleProperty, DMCommand.SetSingleRebootTime);
@@ -110,8 +147,12 @@ namespace Microsoft.Devices.Management
             this.supportedProperties.Add(ReportedRebootDailyProperty, DMCommand.GetDailyRebootTime);
 
             this.supportedProperties.Add(ReportedLastRebootCmdProperty, DMCommand.GetLastRebootCmdTime);
-
             this.supportedProperties.Add(ReportedLastRebootProperty, DMCommand.GetLastRebootTime);
+
+            this.supportedProperties.Add(ReportedTimeInfoProperty, DMCommand.GetTimeInfo);
+            this.supportedProperties.Add(DesiredTimeInfoProperty, DMCommand.SetTimeInfo);
+
+            this.supportedProperties.Add(ReportedDeviceStatusProperty, DMCommand.GetDeviceStatus);
         }
 
         public static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
@@ -167,17 +208,85 @@ namespace Microsoft.Devices.Management
             return result.GetDataString();
         }
 
+        public async Task<TimeInfo> GetTimeInfoAsync()
+        {
+            /*
+                {
+                    "timeInfo":
+                    {
+                        "ntpServer": "pool.ntp.org",
+                        "timeZone" :
+                        {
+                            "bias": 123,
+                            "standardName": "(UTC-05:00) Eastern Time (US & Canada)",
+                            "standardDate": "yyyy-mm-ddThh:mm:ss,day_of_week",
+                            "standardBias": 33,
+                            "daylightName": "(UTC-05:00) Eastern Time (US & Canada)",
+                            "daylightDate": "yyyy-mm-ddThh:mm:ss,day_of_week",
+                            "daylightBias": 33
+                        }
+                    }
+                }
+             */
+
+            string timeInfoJson = await GetPropertyAsync(DeviceManagementClient.ReportedTimeInfoProperty);
+
+            JsonReader jsonReader = new JsonReader(timeInfoJson);
+
+            TimeInfo timeInfo = new TimeInfo();
+            jsonReader.GetDate("timeInfo.localTime", out timeInfo.localTime);
+            jsonReader.GetString("timeInfo.ntpServer", out timeInfo.ntpServer);
+            jsonReader.GetLong("timeInfo.timeZone.bias", out timeInfo.timeZoneInformation.bias);
+            jsonReader.GetString("timeInfo.timeZone.standardName", out timeInfo.timeZoneInformation.standardName);
+            jsonReader.GetDate("timeInfo.timeZone.standardDate", out timeInfo.timeZoneInformation.standardDate);
+            jsonReader.GetLong("timeInfo.timeZone.standardBias", out timeInfo.timeZoneInformation.standardBias);
+            jsonReader.GetString("timeInfo.timeZone.daylightName", out timeInfo.timeZoneInformation.daylightName);
+            jsonReader.GetDate("timeInfo.timeZone.daylightDate", out timeInfo.timeZoneInformation.daylightDate);
+            jsonReader.GetLong("timeInfo.timeZone.daylightBias", out timeInfo.timeZoneInformation.daylightBias);
+
+            return timeInfo;
+        }
+
+        public async Task<DeviceStatus> GetDeviceStatusAsync()
+        {
+            string deviceStatusJson = await GetPropertyAsync(DeviceManagementClient.ReportedDeviceStatusProperty);
+
+            JsonReader jsonReader = new JsonReader(deviceStatusJson);
+
+            DeviceStatus deviceStatus = new DeviceStatus();
+
+            // set the different fields.
+            jsonReader.GetLong("deviceStatus.secureBootState", out deviceStatus.secureBootState);
+            jsonReader.GetString("deviceStatus.macIpAddressV4", out deviceStatus.macAddressIpV4);
+            jsonReader.GetString("deviceStatus.macIpAddressV6", out deviceStatus.macAddressIpV6);
+            jsonReader.GetBool("deviceStatus.macAddressIsConnected", out deviceStatus.macAddressIsConnected);
+            jsonReader.GetLong("deviceStatus.macAddressType", out deviceStatus.macAddressType);
+            jsonReader.GetString("deviceStatus.osType", out deviceStatus.osType);
+            jsonReader.GetLong("deviceStatus.batteryStatus", out deviceStatus.batteryStatus);
+            jsonReader.GetLong("deviceStatus.batteryRemaining", out deviceStatus.batteryRemaining);
+            jsonReader.GetLong("deviceStatus.batteryRuntime", out deviceStatus.batteryRuntime);
+
+            return deviceStatus;
+        }
+
         public void OnDesiredPropertiesChanged(DeviceTwinUpdateState updateState, string desiredPropertiesString)
         {
-            // Traverse the tree and build a list of all the paths references...
-            List<DesiredProperty> desiredProperties = new List<DesiredProperty>();
-            JObject desiredObj = (JObject)JsonConvert.DeserializeObject(desiredPropertiesString);
-            ReadObjectProperties("", desiredProperties, desiredObj);
-
             // Loop and apply the new values...
-            foreach (DesiredProperty dp in desiredProperties)
+            JsonReader jsonReader = new JsonReader(desiredPropertiesString);
+            foreach (KeyValuePair<string, JProperty> pair in jsonReader.Properties)
             {
-                SetPropertyAsync(dp.path, dp.value);
+                Debug.WriteLine("------------------------------------------------------");
+                string key = pair.Key;
+                string value = pair.Value.ToString();
+                if (this.supportedProperties.ContainsKey(pair.Key))
+                {
+                    Debug.WriteLine("Supported: " + key + "," + value);
+                    SetPropertyAsync(pair.Key, pair.Value.ToString());
+                }
+                else
+                {
+                    Debug.WriteLine("Not Supported: " + key + "," + value);
+                }
             }
         }
 
@@ -280,80 +389,20 @@ namespace Microsoft.Devices.Management
             return result;
         }
 
-        private static void ReadProperty(string indent, List<DesiredProperty> desiredProperties, JProperty jsonProp)
+        private async Task<DMMethodResult> HandleFactoryResetAsync(string request)
         {
-            indent += "    ";
-            JTokenType type = jsonProp.Type;
-            Debug.WriteLine(indent + jsonProp.Name + " = ");
+            DMMethodResult result = new DMMethodResult();
 
-            if (jsonProp.Value.Type == JTokenType.Object)
+            try
             {
-                ReadObjectProperties(indent, desiredProperties, (JObject)jsonProp.Value);
+                await StartFactoryReset();
+                result.returnCode = 1;  // success
             }
-            else
+            catch (Exception)
             {
-                JValue theValue = (JValue)jsonProp.Value;
-                Debug.WriteLine("Path = " + theValue.Path);
-                switch (theValue.Type)
-                {
-                    case JTokenType.String:
-                        {
-                            string valueString = (string)theValue.Value;
-                            Debug.WriteLine(indent + "value = " + valueString);
-
-                            DesiredProperty desiredProperty = new DesiredProperty();
-                            desiredProperty.path = theValue.Path;
-                            desiredProperty.value = valueString;
-                            desiredProperties.Add(desiredProperty);
-                        }
-                        break;
-                    case JTokenType.Date:
-                        {
-                            System.DateTime dateTime = (System.DateTime)theValue.Value;
-                            Debug.WriteLine(indent + "value 1 = " + dateTime.ToString());
-
-                            DesiredProperty desiredProperty = new DesiredProperty();
-                            desiredProperty.path = theValue.Path;
-
-                            // Supported format by CSPs: 2016-10-10T17:00:00Z
-                            desiredProperty.value = dateTime.Year + "-" +
-                                                    dateTime.Month.ToString("00") + "-" +
-                                                    dateTime.Day.ToString("00") + "T" +
-                                                    dateTime.Hour.ToString("00") + ":" +
-                                                    dateTime.Minute.ToString("00") + ":" +
-                                                    dateTime.Second.ToString("00") + "Z";
-                            Debug.WriteLine(indent + "value 2 = " + desiredProperty.value);
-                            desiredProperties.Add(desiredProperty);
-                        }
-                        break;
-                    case JTokenType.Integer:
-                        {
-                            long valueInt = (long)theValue.Value;
-                            Debug.WriteLine(indent + "value = " + valueInt);
-
-                            DesiredProperty desiredProperty = new DesiredProperty();
-                            desiredProperty.path = theValue.Path;
-                            desiredProperty.value = valueInt.ToString();
-                            desiredProperties.Add(desiredProperty);
-                        }
-                        break;
-                    default:
-                        {
-                            Debug.WriteLine(indent + "value = " + "unknown value type");
-                            Debug.Assert(false);
-                        }
-                        break;
-                }
+                // returnCode is already set to 0 to indicate failure.
             }
-        }
-
-        private static void ReadObjectProperties(string indent, List<DesiredProperty> desiredProperties, JObject jsonObj)
-        {
-            indent += "    ";
-            foreach (JProperty child in jsonObj.Children())
-            {
-                ReadProperty(indent, desiredProperties, child);
-            }
+            return result;
         }
 
         // Data members

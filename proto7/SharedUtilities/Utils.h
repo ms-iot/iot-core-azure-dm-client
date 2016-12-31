@@ -62,6 +62,10 @@ namespace Utils
     std::wstring GetSystemRootFolder();
     std::wstring GetProgramDataFolder();
 
+    // DateTime helpers
+    bool SystemTimeFromISO8601(std::wstring dateTimeString, SYSTEMTIME& dateTime);
+    std::wstring ISO8601FromSystemTime(const SYSTEMTIME& dateTime);
+
     // Xml helpers
     void ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);
     void ReadXmlStructData(const std::wstring& resultSyncML, Windows::Data::Json::JsonObject^ data);

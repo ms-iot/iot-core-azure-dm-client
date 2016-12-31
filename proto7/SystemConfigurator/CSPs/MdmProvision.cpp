@@ -200,6 +200,13 @@ unsigned int MdmProvision::RunGetUInt(const wstring& sid, const wstring& path)
     return stoi(valueString);
 }
 
+bool MdmProvision::RunGetBool(const wstring& sid, const wstring& path)
+{
+    wstring result = RunGetString(sid, path);
+
+    return 0 == _wcsicmp(result.c_str(), L"true");
+}
+
 void MdmProvision::RunSet(const wstring& sid, const wstring& path, const wstring& value)
 {
     wstring requestSyncML = LR"(
@@ -289,6 +296,12 @@ unsigned int MdmProvision::RunGetUInt(const wstring& path)
 {
     // empty sid is okay for device-wide CSPs.
     return RunGetUInt(L"", path);
+}
+
+bool MdmProvision::RunGetBool(const wstring& path)
+{
+    // empty sid is okay for device-wide CSPs.
+    return RunGetBool(L"", path);
 }
 
 void MdmProvision::RunSet(const wstring& path, const wstring& value)

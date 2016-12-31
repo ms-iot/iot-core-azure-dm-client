@@ -544,6 +544,70 @@ namespace Utils
         return GetEnvironmentVariable(L"ProgramData");
     }
 
+    bool SystemTimeFromISO8601(std::wstring dateTimeString, SYSTEMTIME& dateTime)
+    {
+        // Iso 8601 partial spec
+        // http://www.w3.org/TR/NOTE-datetime
+
+        // ToDo: review and support more formats.
+
+        // YYYY-MM-DDTHH:MM:SS[Z]
+        vector<wstring> tokens;
+        Utils::SplitString(dateTimeString, L'T', tokens);
+        if (tokens.size() != 2)
+        {
+            TRACEP(L"Warning: invalid system date/time format: ", dateTimeString.c_str());
+            return false;
+        }
+
+        vector<wstring> dateComponents;
+        Utils::SplitString(tokens[0], L'-', dateComponents);
+        if (dateComponents.size() != 3)
+        {
+            TRACEP(L"Warning: invalid date format: ", dateTimeString.c_str());
+            return false;
+        }
+        dateTime.wYear = static_cast<WORD>(stoi(dateComponents[0]));
+        dateTime.wMonth = static_cast<WORD>(stoi(dateComponents[1]));
+        dateTime.wDay = static_cast<WORD>(stoi(dateComponents[2]));
+
+        vector<wstring> timeComponents;
+        Utils::SplitString(tokens[1], L':', timeComponents);
+        if (timeComponents.size() < 3)
+        {
+            TRACEP(L"Warning: invalid time format: ", dateTimeString.c_str());
+            return false;
+        }
+        dateTime.wHour = static_cast<WORD>(stoi(timeComponents[0]));
+        dateTime.wMinute = static_cast<WORD>(stoi(timeComponents[1]));
+        Utils::TrimString(timeComponents[2], wstring(L"Z"));
+        dateTime.wSecond = static_cast<WORD>(stoi(timeComponents[2]));
+        dateTime.wMilliseconds = 0;
+        dateTime.wDayOfWeek = 0;    // ToDo: 0 can be incorrect. Need to fix.
+
+        return true;
+    }
+
+    wstring ISO8601FromSystemTime(const SYSTEMTIME& dateTime)
+    {
+        // Iso 8601 partial spec
+        // http://www.w3.org/TR/NOTE-datetime
+
+        // ToDo: review and support more formats.
+
+        basic_ostringstream<wchar_t> formattedTime;
+        formattedTime
+            << setw(4) << setfill(L'0') << dateTime.wYear
+            << L"-" << setw(2) << setfill(L'0') << dateTime.wMonth
+            << L"-" << setw(2) << setfill(L'0') << dateTime.wDay
+            << L"T"
+            << setw(2) << setfill(L'0') << dateTime.wHour
+            << L':' << setw(2) << setfill(L'0') << dateTime.wMinute
+            << L':' << setw(2) << setfill(L'0') << dateTime.wSecond;
+
+        return formattedTime.str();
+    }
+
     bool FileExists(const wstring& fullFileName)
     {
         ifstream infile(fullFileName);

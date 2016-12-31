@@ -30,6 +30,13 @@ namespace Microsoft.Devices.Management
         GetDailyRebootTime = 14,
         GetLastRebootCmdTime = 15,
         GetLastRebootTime = 16,
+
+        // TimeInfo
+        GetTimeInfo = 30,
+        SetTimeInfo = 31,
+
+        // Device Status
+        GetDeviceStatus = 40,
     }
 
 
