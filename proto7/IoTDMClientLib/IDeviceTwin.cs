@@ -8,5 +8,8 @@
     public interface IDeviceTwin
     {
         void ReportProperties(string allJson);
+
+        // This API is called when the connection has expired (such as when SAS token has expired)
+        void RefreshConnection();
     }
 }

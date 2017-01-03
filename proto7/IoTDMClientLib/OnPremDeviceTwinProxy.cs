@@ -12,5 +12,11 @@ namespace Microsoft.Devices.Management
         {
             // Somehow send the property to the DT
         }
+
+        void IDeviceTwin.RefreshConnection()
+        {
+            // Reconnect if needed
+        }
+
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.Azure.Devices.Client;
 using Microsoft.Devices.Management;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using System.Text;
 
 namespace Toaster
 {
@@ -37,6 +38,8 @@ namespace Toaster
             return result.Result;
         }
 
+        private const string DeviceConnectionString = "<repalce>";
+
         public MainPage()
         {
             this.InitializeComponent();
@@ -44,11 +47,27 @@ namespace Toaster
             this.buttonStop.IsEnabled = false;
             this.imageHot.Visibility = Visibility.Collapsed;
 
-            DeviceClient deviceClient = null; // TODO
+            DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, TransportType.Mqtt);
+            deviceClient.SetMethodHandler("CallMe", CallMe, null);
 
             DMClient = DeviceManagementClient.Create(
                 new AzureIoTHubDeviceTwinProxy(deviceClient), 
                 new ToasterDeviceManagementRequestHandler(this));
+        }
+
+        Task<MethodResponse> CallMe(MethodRequest methodRequest, object userContext)
+        {
+            // TODO: this will be hooked up with HandleMethodCallAsync etc. 
+            // For now, just print out the JSON string and return a fake response
+            // 'data="Toaster"'
+
+            Debug.WriteLine(methodRequest.DataAsJson);
+
+            var data = "Toaster";
+            string result = "{\"data\":\"" + data + "\"}";
+            var retValue = new MethodResponse(Encoding.UTF8.GetBytes(result), 200);
+
+            return Task.FromResult(retValue);
         }
 
         public async Task<bool> YesNo(string question)
