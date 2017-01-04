@@ -7,6 +7,16 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
+    public class StartupAppInfo
+    {
+        public string AppId { get; set; }
+        public bool IsBackgroundApplication { get; set; }
+        public string ToJson()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+    }
+
     public class AppInfo
     {
         public string AppSource { get; set; }
@@ -340,7 +350,6 @@ namespace Microsoft.Devices.Management
         {
             var request = new DMMessage(DMCommand.ListApps);
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
-
             var json = result.GetDataString();
             return AppInfo.SetOfAppsFromJson(json);
         }
@@ -358,6 +367,39 @@ namespace Microsoft.Devices.Management
         {
             var request = new DMMessage(DMCommand.UninstallApp);
             request.SetData(appxUninstallInfo.ToJson());
+
+            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            return result.Context;
+        }
+
+        public async Task<string> StartGetStartupForegroundApp()
+        {
+            var request = new DMMessage(DMCommand.GetStartupForegroundApp);
+            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+
+            return result.GetDataString();
+        }
+
+        public async Task<List<string>> StartListStartupBackgroundApps()
+        {
+            var request = new DMMessage(DMCommand.ListStartupBackgroundApps);
+            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            return JsonConvert.DeserializeObject<List<string>>(result.GetDataString());
+        }
+
+        public async Task<UInt32> StartAddStartupApp(StartupAppInfo startupAppInfo)
+        {
+            var request = new DMMessage(DMCommand.AddStartupApp);
+            request.SetData(startupAppInfo.ToJson());
+
+            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            return result.Context;
+        }
+
+        public async Task<UInt32> StartRemoveStartupApp(StartupAppInfo startupAppInfo)
+        {
+            var request = new DMMessage(DMCommand.RemoveStartupApp);
+            request.SetData(startupAppInfo.ToJson());
 
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
             return result.Context;

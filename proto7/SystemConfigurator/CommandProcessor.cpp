@@ -7,10 +7,76 @@
 #include "CSPs\EnterpriseModernAppManagementCSP.h"
 #include "CSPs\DeviceStatusCSP.h"
 #include "CSPs\RemoteWipeCSP.h"
+#include "CSPs\CustomDeviceUiCsp.h"
 #include "TimeCfg.h"
 
 using namespace std;
 using namespace Windows::Data::Json;
+
+void HandleAddAppForStartup(const wstring& json, DMMessage& response)
+{
+    //
+    // JSON expected should reflect this class:
+    //        public class StartupAppInfo
+    //        {
+    //            public string AppId { get; set; }
+    //            public bool IsBackgroundApplication { get; set; }
+    //        }
+    //
+    TRACEP(L"DMCommand::HandleAddAppForStartup json=", json);
+    try
+    {
+        auto jsonObject = JsonObject::Parse(ref new Platform::String(json.c_str()));
+        wstring appId = jsonObject->GetNamedString(ref new Platform::String(L"AppId"))->Data();
+        bool isBackgroundApp = jsonObject->GetNamedBoolean(ref new Platform::String(L"IsBackgroundApplication"));
+
+        CustomDeviceUiCSP::AddAsStartupApp(appId, isBackgroundApp);
+        response.SetContext(DMStatus::Succeeded);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        response.SetData(failure.c_str(), e->HResult);
+        response.SetContext(DMStatus::Failed);
+    }
+}
+
+void HandleRemoveAppForStartup(const wstring& json, DMMessage& response)
+{
+    //
+    // JSON expected should reflect this class:
+    //        public class StartupAppInfo
+    //        {
+    //            public string AppId { get; set; }
+    //            public bool IsBackgroundApplication { get; set; }
+    //        }
+    //
+    TRACEP(L"DMCommand::HandleRemoveAppForStartup json=", json);
+    try
+    {
+        auto jsonObject = JsonObject::Parse(ref new Platform::String(json.c_str()));
+        wstring appId = jsonObject->GetNamedString(ref new Platform::String(L"AppId"))->Data();
+
+        CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(appId);
+        response.SetContext(DMStatus::Succeeded);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        response.SetData(failure.c_str(), e->HResult);
+        response.SetContext(DMStatus::Failed);
+    }
+}
+
+void HandleListStartupApps(bool backgroundApps, DMMessage& response)
+{
+    TRACEP(L"DMCommand::HandleListStartupApps backgroundApps=", backgroundApps);
+    wstring json = (backgroundApps) ?
+        CustomDeviceUiCSP::GetBackgroundTasksToLaunch() :
+        CustomDeviceUiCSP::GetStartupAppId();
+    response.SetData(json);
+    response.SetContext(DMStatus::Succeeded);
+}
 
 void HandleListApps(DMMessage& response)
 {
@@ -187,6 +253,18 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
     case DMCommand::UninstallApp:
         HandleUninstallApp(request.GetDataW(), response);
         break;
+    case DMCommand::GetStartupForegroundApp:
+        HandleListStartupApps(false, response);
+        break;
+    case DMCommand::ListStartupBackgroundApps:
+        HandleListStartupApps(true, response);
+        break;
+    case DMCommand::AddStartupApp:
+        HandleAddAppForStartup(request.GetDataW(), response);
+        break;
+    case DMCommand::RemoveStartupApp:
+        HandleRemoveAppForStartup(request.GetDataW(), response);
+        break;
     case DMCommand::GetTimeInfo:
         {
             try
@@ -231,7 +309,6 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
         }
     }
     break;
-
     default:
         response.SetData(L"Cannot handle unknown command...cmdIndex = ", cmdIndex);
         response.SetContext(DMStatus::Failed);
