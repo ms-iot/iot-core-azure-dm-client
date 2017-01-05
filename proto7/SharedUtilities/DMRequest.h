@@ -78,13 +78,6 @@ public:
         return std::wstring((wchar_t*)_data.data(), _data.size() / sizeof(wchar_t));
     }
 
-    std::wstring GetDataWString()
-    {
-        std::vector<wchar_t> dataw(GetDataCount() / sizeof(wchar_t));
-        memcpy(dataw.data(), _data.data(), GetDataCount());
-        return std::wstring(dataw.data(), dataw.size());
-    }
-
     uint32_t GetDataCount() const
     {
         return (_data.size());

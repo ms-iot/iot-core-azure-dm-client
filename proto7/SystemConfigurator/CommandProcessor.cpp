@@ -184,7 +184,8 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
     response.SetData(L"Default System Configurator Response.");
 
     auto command = (DMCommand)request.GetContext();
-    auto data = request.GetData().c_str();
+    auto dataStr = request.GetData();
+    auto data = dataStr.c_str();
     switch (command)
     {
     case DMCommand::RebootSystem:
@@ -284,7 +285,7 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
         {
             try
             {
-                TimeCfg::SetTimeInfo(request.GetDataWString());
+                TimeCfg::SetTimeInfo(request.GetDataW());
                 response.SetContext(DMStatus::Succeeded);
             }
             catch (DMException& e)

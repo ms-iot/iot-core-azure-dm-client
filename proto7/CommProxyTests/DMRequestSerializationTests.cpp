@@ -14,7 +14,9 @@ namespace CommProxyTests
     {
         Assert::AreEqual(one.GetContext(), two.GetContext());
         Assert::AreEqual(one.GetDataCount(), two.GetDataCount());
-        Assert::AreEqual(0, memcmp(one.GetData().data(), two.GetData().data(), one.GetDataCount()));
+        auto oneData = one.GetData();
+        auto twoData = two.GetData();
+        Assert::AreEqual(0, memcmp(oneData.data(), twoData.data(), one.GetDataCount()));
     }
 
     TEST_CLASS(DMRequestSerializationTests)
@@ -93,8 +95,8 @@ namespace CommProxyTests
             DMMessage message(DMCommand::UninstallApp);
             message.SetData(dataAsBytes, sizeof(uint32_t));
 
-            auto messageDataAsBytes = message.GetData().data();
-            Assert::AreEqual(0, memcmp(dataAsBytes, messageDataAsBytes, message.GetDataCount()));
+            auto messageDataAsBytes = message.GetData();
+            Assert::AreEqual(0, memcmp(dataAsBytes, messageDataAsBytes.data(), message.GetDataCount()));
 
             ValidateDMMessageWriteRead(message);
         }
