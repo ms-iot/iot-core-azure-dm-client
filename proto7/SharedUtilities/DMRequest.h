@@ -126,7 +126,7 @@ public:
 
     void SetData(const char* newData)
     {
-        _data.assign(newData, newData + strlen(newData));
+        SetData(newData, strlen(newData));
     }
 
     void SetData(const char* newData, uint32_t newDataSize)
