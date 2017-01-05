@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
+    public class StartupAppInfo
+    {
+        public string AppId { get; set; }
+        public bool IsBackgroundApplication { get; set; }
+    }
+
     public class AppInfo
     {
         public string AppSource { get; set; }
@@ -41,21 +47,12 @@ namespace Microsoft.Devices.Management
         {
             Dependencies = new List<string>();
         }
-        public string ToJson()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
     }
 
     public class AppxUninstallInfo
     {
         public string PackageFamilyName { get; set; }
         public bool StoreApp { get; set; }
-
-        public string ToJson()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
     }
 
     // TODO: this type will come from the Azure IoT SDK
@@ -336,31 +333,74 @@ namespace Microsoft.Devices.Management
             return response.Context == 1;    // 1 means "updates available"
         }
 
-        public async Task<Dictionary<string, AppInfo>> StartListApps()
+        public async Task<Dictionary<string, AppInfo>> ListAppsAsync()
         {
             var request = new DMMessage(DMCommand.ListApps);
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
-
             var json = result.GetDataString();
             return AppInfo.SetOfAppsFromJson(json);
         }
 
-        public async Task<UInt32> StartInstallApp(AppxInstallInfo appxInstallInfo)
+        public async Task InstallAppAsync(AppxInstallInfo appxInstallInfo)
         {
             var request = new DMMessage(DMCommand.InstallApp);
-            request.SetData(appxInstallInfo.ToJson());
+            request.SetData(JsonConvert.SerializeObject(appxInstallInfo));
 
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            return result.Context;
+            if (result.Context != 0)
+            {
+                throw new Exception();
+            }
         }
 
-        public async Task<UInt32> StartUninstallApp(AppxUninstallInfo appxUninstallInfo)
+        public async Task UninstallAppAsync(AppxUninstallInfo appxUninstallInfo)
         {
             var request = new DMMessage(DMCommand.UninstallApp);
-            request.SetData(appxUninstallInfo.ToJson());
+            request.SetData(JsonConvert.SerializeObject(appxUninstallInfo));
 
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            return result.Context;
+            if (result.Context != 0)
+            {
+                throw new Exception();
+            }
+        }
+
+        public async Task<string> GetStartupForegroundAppAsync()
+        {
+            var request = new DMMessage(DMCommand.GetStartupForegroundApp);
+            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            return result.GetDataString();
+        }
+
+        public async Task<List<string>> ListStartupBackgroundAppsAsync()
+        {
+            var request = new DMMessage(DMCommand.ListStartupBackgroundApps);
+            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            return JsonConvert.DeserializeObject<List<string>>(result.GetDataString());
+        }
+
+        public async Task AddStartupAppAsync(StartupAppInfo startupAppInfo)
+        {
+            var request = new DMMessage(DMCommand.AddStartupApp);
+            request.SetData(JsonConvert.SerializeObject(startupAppInfo));
+
+            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (result.Context != 0)
+            {
+                throw new Exception();
+            }
+        }
+
+        public async Task RemoveStartupAppAsync(StartupAppInfo startupAppInfo)
+        {
+            var request = new DMMessage(DMCommand.RemoveStartupApp);
+            request.SetData(JsonConvert.SerializeObject(startupAppInfo));
+
+            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (result.Context != 0)
+            {
+                throw new Exception();
+            }
         }
 
         //

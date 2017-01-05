@@ -108,13 +108,13 @@ namespace Utils
         return formattedTime.str();
     }
 
-    void ReadXmlStructData(IStream* resultSyncML, JsonObject^ data)
+    void ReadXmlStructData(IStream* resultSyncML, ELEMENT_HANDLER handler)
     {
         wstring uriPath = L"Root\\Results\\Item\\Source\\LocURI\\";
         wstring dataPath = L"Root\\Results\\Item\\Data\\";
         wstring itemPath = L"Root\\Results\\Item\\";
 
-        auto emptyString = ref new Platform::String(L"");
+        wstring emptyString = L"";
         auto value = emptyString;
         auto uri = emptyString;
 
@@ -212,7 +212,7 @@ namespace Utils
                 if (itemPath == currentPath)
                 {
                     vector<wstring> uriTokens;
-                    wstringstream ss(uri->Data());
+                    wstringstream ss(uri);
                     wstring s;
 
                     while (getline(ss, s, L'/')) 
@@ -220,25 +220,8 @@ namespace Utils
                         uriTokens.push_back(s);
                     }
 
-                    if (uriTokens.size() == 10) 
-                    {
-                        // 0/__1___/__2___/__3_/______________4______________/______5______/___6____/_________7_______/_______8_______/____9___
-                        // ./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/AppStore/PackageFamilyName/PackageFullName/Property
-                        auto pfn = ref new Platform::String(uriTokens[8].c_str());
-                        if (!data->HasKey(pfn))
-                        {
-                            auto propMap = ref new JsonObject();
-                            propMap->Insert(ref new Platform::String(uriTokens[9].c_str()), JsonValue::CreateStringValue(value));
-                            propMap->Insert(ref new Platform::String(L"AppSource"), JsonValue::CreateStringValue(ref new Platform::String(uriTokens[6].c_str())));
-                            propMap->Insert(ref new Platform::String(L"PackageFamilyName"), JsonValue::CreateStringValue(ref new Platform::String(uriTokens[7].c_str())));
+                    handler(uriTokens, value);
 
-                            data->Insert(pfn, propMap);
-                        }
-                        else
-                        {
-                            data->GetNamedObject(pfn)->Insert(ref new Platform::String(uriTokens[9].c_str()), JsonValue::CreateStringValue(value));
-                        }
-                    }
                     value = emptyString;
                     uri = emptyString;
                 }
@@ -264,11 +247,11 @@ namespace Utils
 
                 if (uriPath == currentPath)
                 {
-                    uri = ref new Platform::String(valueText);
+                    uri = valueText;
                 }
                 else if (dataPath == currentPath)
                 {
-                    value = ref new Platform::String(valueText);
+                    value = valueText;
                 }
             }
             break;
@@ -408,7 +391,7 @@ namespace Utils
         }
     }
 
-    void ReadXmlStructData(const std::wstring& resultSyncML, Windows::Data::Json::JsonObject^ data)
+    void ReadXmlStructData(const std::wstring& resultSyncML, Utils::ELEMENT_HANDLER handler)
     {
         DWORD bufferSize = static_cast<DWORD>(resultSyncML.size() * sizeof(resultSyncML[0]));
         char* buffer = (char*)GlobalAlloc(GMEM_FIXED, bufferSize);
@@ -421,7 +404,7 @@ namespace Utils
             GlobalFree(buffer);
             throw DMExceptionWithHRESULT(hr);
         }
-        ReadXmlStructData(dataStream.Get(), data);
+        ReadXmlStructData(dataStream.Get(), handler);
 
         // GlobalFree() is not needed since 'delete on release' is enabled.
         // GlobalFree(buffer);

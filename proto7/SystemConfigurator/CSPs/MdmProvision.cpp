@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMException.h"
-#include "..\SharedUtilities\Utils.h"
 #include "PrivateAPIs\CSPController.h"
 #include "..\resource.h"
 #include "MdmProvision.h"
@@ -144,7 +143,7 @@ wstring MdmProvision::RunGetString(const wstring& sid, const wstring& path)
     return value;
 }
 
-void MdmProvision::RunGetStructData(const std::wstring& path, JsonObject^ data)
+void MdmProvision::RunGetStructData(const std::wstring& path, Utils::ELEMENT_HANDLER handler)
 {
     wstring requestSyncML = LR"(
         <SyncBody>
@@ -169,7 +168,7 @@ void MdmProvision::RunGetStructData(const std::wstring& path, JsonObject^ data)
 
     // Extract the result data
     wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
-    Utils::ReadXmlStructData(wrappedResult, data);
+    Utils::ReadXmlStructData(wrappedResult, handler);
 }
 
 unsigned int MdmProvision::RunGetUInt(const wstring& sid, const wstring& path)

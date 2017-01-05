@@ -100,6 +100,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
+    <ClInclude Include="CSPs\CustomDeviceUiCsp.h" />
     <ClInclude Include="CSPs\DeviceStatusCSP.h" />
     <ClInclude Include="CSPs\EnterpriseModernAppManagementCSP.h" />
     <ClInclude Include="CSPs\MdmProvision.h" />
@@ -117,6 +118,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommandProcessor.cpp" />
+    <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp" />
     <ClCompile Include="CSPs\DeviceStatusCSP.cpp" />
     <ClCompile Include="CSPs\EnterpriseModernAppManagementCSP.cpp" />
     <ClCompile Include="CSPs\MdmProvision.cpp" />
