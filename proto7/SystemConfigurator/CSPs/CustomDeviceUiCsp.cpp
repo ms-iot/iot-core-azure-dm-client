@@ -6,6 +6,7 @@
 #include "..\SharedUtilities\DMException.h"
 
 using namespace std;
+using namespace Windows::Data::Json;
 
 // EnterpriseModernAppManagement CSP docs
 // https://msdn.microsoft.com/en-us/library/windows/hardware/dn904956(v=vs.85).aspx
@@ -14,21 +15,74 @@ using namespace std;
 wstring CustomDeviceUiCSP::GetStartupAppId()
 {
     TRACE(__FUNCTION__);
-
-    auto data = ref new Windows::Data::Json::JsonObject();
-    MdmProvision::RunGetStructData(
-        L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData",
-        data);
-    return data->Stringify()->Data();
+    // REQUEST
+    //    ./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData
+    //
+    // RESPONSE
+    //    <Status><CmdID>2</CmdID><MsgRef>1</MsgRef><CmdRef>1</CmdRef><Cmd>Get</Cmd><Data>200</Data></Status>
+    //    <Results>
+    //        <CmdID>3</CmdID><MsgRef>1</MsgRef><CmdRef>1</CmdRef>
+    //        <Item>
+    //            <Source>
+    //                <LocURI>./Vendor/MSFT/CustomDeviceUI/StartupAppID</LocURI>
+    //            </Source>
+    //            <Data>23983CETAthensQuality.IoTCoreSmartDisplay_7grdn1j1n8awe!App</Data>
+    //        </Item>
+    //    </Results>
+        
+    wstring sid = Utils::GetSidForAccount(L"DefaultAccount");
+    auto appId = MdmProvision::RunGetString(
+        sid.c_str(),
+        L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData");
+    return appId;
 }
 wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
 {
     TRACE(__FUNCTION__);
+    // REQUEST
+    //    ./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch?list=Struct
+    // RESPONSE
+    //    <Status><CmdID>2</CmdID><MsgRef>1</MsgRef><CmdRef>1</CmdRef><Cmd>Get</Cmd><Data>200</Data></Status>
+    //    <Results><CmdID>3</CmdID><MsgRef>1</MsgRef><CmdRef>1</CmdRef>
+    //        <Item>
+    //            <Source>
+    //                <LocURI>./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch</LocURI>
+    //            </Source>
+    //            <Meta><Format xmlns="syncml:metinf">node</Format></Meta>
+    //        </Item>
+    //        <Item>
+    //            <Source>
+    //                <LocURI>./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch/IoTOnboardingTask-uwp_1w720vyc4ccym!App</LocURI>
+    //            </Source>
+    //        </Item>
+    //        <Item>
+    //            <Source>
+    //                <LocURI>./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch/IoTOnboardingTask-uwp_1w720vyc4ccym!App</LocURI>
+    //            </Source>
+    //        </Item>
+    //    </Results>
 
-    auto data = ref new Windows::Data::Json::JsonObject();
+    
+    auto data = ref new Windows::Data::Json::JsonArray();
+    // use std::function to pass lambda that captures something
+    std::function<void(std::vector<std::wstring>&, std::wstring&)> valueHandler =
+        [data](vector<wstring>& uriTokens, wstring& value) {
+        TRACE(L"a");
+        if (uriTokens.size() == 6)
+        {
+            TRACE(L"b");
+            // 0/__1___/__2__/____3________/___________4___________/___5_
+            // ./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch/Aumid
+            auto aumid = ref new Platform::String(uriTokens[5].c_str());
+            TRACE(L"c");
+            data->Append(JsonValue::CreateStringValue(aumid));
+            TRACE(L"d");
+        }
+        TRACE(L"e");
+    };
     MdmProvision::RunGetStructData(
         L"./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch?list=Struct",
-        data);
+        valueHandler);
     return data->Stringify()->Data();
 }
 void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add)

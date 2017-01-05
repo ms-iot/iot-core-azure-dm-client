@@ -10,6 +10,8 @@
 
 namespace Utils
 {
+    typedef std::function<void(std::vector<std::wstring>&, std::wstring&)>& ELEMENT_HANDLER;
+
     // Sid helper
     std::wstring GetSidForAccount(const wchar_t* userAccount);
 
@@ -68,7 +70,7 @@ namespace Utils
 
     // Xml helpers
     void ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);
-    void ReadXmlStructData(const std::wstring& resultSyncML, Windows::Data::Json::JsonObject^ data);
+    void ReadXmlStructData(const std::wstring& resultSyncML, ELEMENT_HANDLER handler);
 
     // Registry helpers
     void WriteRegistryValue(const std::wstring& subkey, const std::wstring& propName, const std::wstring& propValue);
