@@ -67,18 +67,13 @@ wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
     // use std::function to pass lambda that captures something
     std::function<void(std::vector<std::wstring>&, std::wstring&)> valueHandler =
         [data](vector<wstring>& uriTokens, wstring& value) {
-        TRACE(L"a");
         if (uriTokens.size() == 6)
         {
-            TRACE(L"b");
             // 0/__1___/__2__/____3________/___________4___________/___5_
             // ./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch/Aumid
             auto aumid = ref new Platform::String(uriTokens[5].c_str());
-            TRACE(L"c");
             data->Append(JsonValue::CreateStringValue(aumid));
-            TRACE(L"d");
         }
-        TRACE(L"e");
     };
     MdmProvision::RunGetStructData(
         L"./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch?list=Struct",
