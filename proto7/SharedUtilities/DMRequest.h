@@ -81,7 +81,7 @@ public:
     std::wstring GetDataWString()
     {
         std::vector<wchar_t> dataw(GetDataCount() / sizeof(wchar_t));
-        memcpy(dataw.data(), GetData(), GetDataCount());
+        memcpy(dataw.data(), _data.data(), GetDataCount());
         return std::wstring(dataw.data(), dataw.size());
     }
 
@@ -162,8 +162,8 @@ public:
         if (dataSize)
         {
             byteWrittenCount = 0;
-            auto data = message.GetData().data();
-            if (!WriteFile(pipeHandle, data, dataSize, &byteWrittenCount, NULL) || byteWrittenCount != dataSize)
+            auto data = message.GetData();
+            if (!WriteFile(pipeHandle, data.data(), dataSize, &byteWrittenCount, NULL) || byteWrittenCount != dataSize)
             {
                 // TODO: should this throw a DMException
 
