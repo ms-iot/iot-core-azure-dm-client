@@ -144,9 +144,9 @@ namespace Microsoft.Devices.Management
     }
 
     // This class send requests (DMrequest) to the System Configurator and receives the responses (DMesponse) from it
-    static class SystemConfiguratorProxy
+    class SystemConfiguratorProxy : ISystemConfiguratorProxy
     {
-        public static async Task<DMMessage> SendCommandAsync(DMMessage command)
+        public async Task<DMMessage> SendCommandAsync(DMMessage command)
         {
             var processLauncherOptions = new ProcessLauncherOptions();
             var standardInput = new InMemoryRandomAccessStream();

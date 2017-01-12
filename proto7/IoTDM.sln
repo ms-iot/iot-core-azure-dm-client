@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoTDMClientLib", "IoTDMClie
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CommProxyTests", "CommProxyTests\CommProxyTests.vcxproj", "{4352E901-C90F-4CAF-BD9E-D4E063C61BE6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoTDMClientLibTests", "IoTDMClientLibTests\IoTDMClientLibTests.csproj", "{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		SharedUtilities\SharedUtilities.vcxitems*{4352e901-c90f-4caf-bd9e-d4e063c61be6}*SharedItemsImports = 4
@@ -110,6 +112,26 @@ Global
 		{4352E901-C90F-4CAF-BD9E-D4E063C61BE6}.Release|x64.Build.0 = Release|x64
 		{4352E901-C90F-4CAF-BD9E-D4E063C61BE6}.Release|x86.ActiveCfg = Release|Win32
 		{4352E901-C90F-4CAF-BD9E-D4E063C61BE6}.Release|x86.Build.0 = Release|Win32
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Debug|ARM.ActiveCfg = Debug|ARM
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Debug|ARM.Build.0 = Debug|ARM
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Debug|ARM.Deploy.0 = Debug|ARM
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Debug|x64.ActiveCfg = Debug|x64
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Debug|x64.Build.0 = Debug|x64
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Debug|x64.Deploy.0 = Debug|x64
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Debug|x86.ActiveCfg = Debug|x86
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Debug|x86.Build.0 = Debug|x86
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Debug|x86.Deploy.0 = Debug|x86
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Release|Any CPU.ActiveCfg = Release|x86
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Release|ARM.ActiveCfg = Release|ARM
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Release|ARM.Build.0 = Release|ARM
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Release|ARM.Deploy.0 = Release|ARM
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Release|x64.ActiveCfg = Release|x64
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Release|x64.Build.0 = Release|x64
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Release|x64.Deploy.0 = Release|x64
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Release|x86.ActiveCfg = Release|x86
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Release|x86.Build.0 = Release|x86
+		{2E7A33DF-0F8B-4192-820D-1D09AECB5B80}.Release|x86.Deploy.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
