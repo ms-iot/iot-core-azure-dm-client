@@ -128,10 +128,12 @@ namespace Microsoft.Devices.Management
 
         // Ultimately, DeviceManagementClient will take an abstraction over DeviceClient to allow it to 
         // send reported properties. It will never receive using it
-        private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
+        private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
-            this.requestHandler = requestHandler;
             this.deviceTwin = deviceTwin;
+            this.requestHandler = requestHandler;
+            this.systemConfiguratorProxy = systemConfiguratorProxy;
+
             this.supportedMethods = new Dictionary<string, Func<string, Task<DMMethodResult>>>();
             this.supportedMethods.Add(RebootMethod, HandleRebootAsync);
             this.supportedMethods.Add(FactoryResetMethod, HandleFactoryResetAsync);
@@ -154,7 +156,12 @@ namespace Microsoft.Devices.Management
 
         public static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
         {
-            return new DeviceManagementClient(deviceTwin, requestHandler);
+            return Create(deviceTwin, requestHandler, new SystemConfiguratorProxy());
+        }
+
+        internal static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
+        {
+            return new DeviceManagementClient(deviceTwin, requestHandler, systemConfiguratorProxy);
         }
 
         public bool IsDMMethod(string methodName)
@@ -187,7 +194,7 @@ namespace Microsoft.Devices.Management
             var request = new DMMessage(supportedProperties[path]);
             request.SetData(valueString);
 
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var result = await this.systemConfiguratorProxy.SendCommandAsync(request);
             if (result.Context != 0)
             {
                 throw new Exception();
@@ -197,7 +204,7 @@ namespace Microsoft.Devices.Management
         public async Task<string> GetPropertyAsync(string path)
         {
             var request = new DMMessage(supportedProperties[path]);
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var result = await this.systemConfiguratorProxy.SendCommandAsync(request);
             if (result.Context != 0)
             {
                 throw new Exception();
@@ -299,7 +306,7 @@ namespace Microsoft.Devices.Management
             // Here we might want to set some reported properties:
             // ReportProperties("We're about to start factory reset... If you don't hear from me again, I'm dead");
 
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var result = await this.systemConfiguratorProxy.SendCommandAsync(request);
             if (result.Context != 0)
             {
                 throw new Exception();
@@ -317,7 +324,7 @@ namespace Microsoft.Devices.Management
             }
 
             var request = new DMMessage(DMCommand.RebootSystem);
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var result = await this.systemConfiguratorProxy.SendCommandAsync(request);
             if (result.Context != 0)
             {
                 throw new Exception();
@@ -329,14 +336,14 @@ namespace Microsoft.Devices.Management
         public async Task<bool> CheckForUpdatesAsync()
         {
             var request = new DMMessage(DMCommand.CheckUpdates);
-            var response = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var response = await this.systemConfiguratorProxy.SendCommandAsync(request);
             return response.Context == 1;    // 1 means "updates available"
         }
 
         public async Task<Dictionary<string, AppInfo>> ListAppsAsync()
         {
             var request = new DMMessage(DMCommand.ListApps);
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var result = await this.systemConfiguratorProxy.SendCommandAsync(request);
             var json = result.GetDataString();
             return AppInfo.SetOfAppsFromJson(json);
         }
@@ -346,7 +353,7 @@ namespace Microsoft.Devices.Management
             var request = new DMMessage(DMCommand.InstallApp);
             request.SetData(JsonConvert.SerializeObject(appxInstallInfo));
 
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var result = await this.systemConfiguratorProxy.SendCommandAsync(request);
             if (result.Context != 0)
             {
                 throw new Exception();
@@ -358,7 +365,7 @@ namespace Microsoft.Devices.Management
             var request = new DMMessage(DMCommand.UninstallApp);
             request.SetData(JsonConvert.SerializeObject(appxUninstallInfo));
 
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var result = await this.systemConfiguratorProxy.SendCommandAsync(request);
             if (result.Context != 0)
             {
                 throw new Exception();
@@ -368,14 +375,14 @@ namespace Microsoft.Devices.Management
         public async Task<string> GetStartupForegroundAppAsync()
         {
             var request = new DMMessage(DMCommand.GetStartupForegroundApp);
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var result = await this.systemConfiguratorProxy.SendCommandAsync(request);
             return result.GetDataString();
         }
 
         public async Task<List<string>> ListStartupBackgroundAppsAsync()
         {
             var request = new DMMessage(DMCommand.ListStartupBackgroundApps);
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var result = await this.systemConfiguratorProxy.SendCommandAsync(request);
             return JsonConvert.DeserializeObject<List<string>>(result.GetDataString());
         }
 
@@ -384,7 +391,7 @@ namespace Microsoft.Devices.Management
             var request = new DMMessage(DMCommand.AddStartupApp);
             request.SetData(JsonConvert.SerializeObject(startupAppInfo));
 
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var result = await this.systemConfiguratorProxy.SendCommandAsync(request);
             if (result.Context != 0)
             {
                 throw new Exception();
@@ -396,7 +403,7 @@ namespace Microsoft.Devices.Management
             var request = new DMMessage(DMCommand.RemoveStartupApp);
             request.SetData(JsonConvert.SerializeObject(startupAppInfo));
 
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            var result = await this.systemConfiguratorProxy.SendCommandAsync(request);
             if (result.Context != 0)
             {
                 throw new Exception();
@@ -446,6 +453,7 @@ namespace Microsoft.Devices.Management
         }
 
         // Data members
+        ISystemConfiguratorProxy systemConfiguratorProxy;
         IDeviceManagementRequestHandler requestHandler;
         IDeviceTwin deviceTwin;
         Dictionary<string, Func<string, Task<DMMethodResult>>> supportedMethods;
