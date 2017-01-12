@@ -30,7 +30,7 @@ namespace IoTDMClientLibTests
         {
             var data = "abc";
 
-            var msg = new DMMessage();
+            var msg = new DMMessage(DMCommand.FactoryReset);
             msg.SetData(data);
 
             var stream = new InMemoryRandomAccessStream();
@@ -49,7 +49,7 @@ namespace IoTDMClientLibTests
             var payloadSize = bytes.Length - contextSize - dataSizeSize;
 
             var contextValue = BitConverter.ToUInt32(bytes, 0);
-            Assert.AreEqual<UInt32>(contextValue, 0U);
+            Assert.AreEqual<UInt32>(contextValue, (uint)DMCommand.FactoryReset);
 
             var dataSizeValue = BitConverter.ToUInt32(bytes, contextSize);
             Assert.AreEqual<UInt32>(dataSizeValue, (UInt32)payloadSize);
@@ -64,7 +64,7 @@ namespace IoTDMClientLibTests
         [TestMethod]
         public void TestReadFromStream()
         {
-            byte[] bytes = { 0, 0, 0, 0,
+            byte[] bytes = { 1, 2, 3, 4,
                             2, 0, 0, 0,
                             9, 9};
 
@@ -74,7 +74,7 @@ namespace IoTDMClientLibTests
 
             var message = DMMessage.ReadFromStreamAsync(stream).Result;
 
-            Assert.AreEqual<UInt32>(message.Context, 0U);
+            Assert.AreEqual<UInt32>(message.Context, 0x04030201);
             Assert.AreEqual<UInt32>((uint)message.Data.Length, 2U);
             Assert.AreEqual<UInt32>((uint)message.Data[0], 9);
             Assert.AreEqual<UInt32>((uint)message.Data[1], 9);
