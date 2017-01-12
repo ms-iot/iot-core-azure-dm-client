@@ -3,6 +3,7 @@
 #include <iostream> 
 #include <iomanip>
 #include "JsonHelpers.h"
+#include "TimeHelpers.h"
 #include "Utils.h"
 #include "Logger.h"
 #include "DMException.h"

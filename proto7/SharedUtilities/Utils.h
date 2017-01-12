@@ -6,6 +6,7 @@
 #include <deque>
 #include <thread>
 #include <time.h>
+#include <sstream>
 #include <windows.h>
 
 namespace Utils
@@ -50,6 +51,14 @@ namespace Utils
         return trimmedString;
     }
 
+    template<class CharType, class ParamType>
+    std::basic_string<CharType> ConcatString(const CharType* s, ParamType param)
+    {
+        std::basic_ostringstream<CharType> messageStream;
+        messageStream << s << param;
+        return messageStream.str();
+    }
+
     // Replaces invalid characters (like .) with _ so that the string can be used
     // as a json property name.
     std::wstring ToJsonPropertyName(const std::wstring& propertyName);
@@ -61,10 +70,6 @@ namespace Utils
     std::wstring GetEnvironmentVariable(const std::wstring& variableName);
     std::wstring GetSystemRootFolder();
     std::wstring GetProgramDataFolder();
-
-    // DateTime helpers
-    bool SystemTimeFromISO8601(std::wstring dateTimeString, SYSTEMTIME& dateTime);
-    std::wstring ISO8601FromSystemTime(const SYSTEMTIME& dateTime);
 
     // Xml helpers
     void ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);

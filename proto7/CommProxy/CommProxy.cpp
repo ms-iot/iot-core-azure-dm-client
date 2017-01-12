@@ -37,7 +37,7 @@ uint32_t SendRequestToSystemConfigurator(const DMMessage& request, DMMessage& re
         {
             auto errorCode = GetLastError();
             response.SetContext(DMStatus::Failed);
-            response.SetData(L"CreateFileW failed, GetLastError=", errorCode);
+            response.SetData(Utils::ConcatString(L"CreateFileW failed, GetLastError=", errorCode));
             return errorCode;
         }
 
@@ -51,7 +51,7 @@ uint32_t SendRequestToSystemConfigurator(const DMMessage& request, DMMessage& re
         TRACE("Failed to connect to system configurator pipe...");
         auto errorCode = GetLastError();
         response.SetContext(DMStatus::Failed);
-        response.SetData(L"Failed to connect to system configurator pipe. GetLastError=", errorCode);
+        response.SetData(Utils::ConcatString(L"Failed to connect to system configurator pipe. GetLastError=", errorCode));
         return errorCode;
     }
     TRACE("Connected successfully to pipe...");
@@ -62,18 +62,21 @@ uint32_t SendRequestToSystemConfigurator(const DMMessage& request, DMMessage& re
         TRACE("Error: failed to write to pipe...");
         auto errorCode = GetLastError();
         response.SetContext(DMStatus::Failed);
-        response.SetData(L"WriteFile failed, GetLastError=", errorCode);
+        response.SetData(Utils::ConcatString(L"WriteFile failed, GetLastError=", errorCode));
         return errorCode;
     }
+
+    TRACE("Reading response from pipe...");
     if (!DMMessage::ReadFromPipe(pipeHandle.Get(), response))
     {
         TRACE("Error: failed to read from pipe...");
         auto errorCode = GetLastError();
         response.SetContext(DMStatus::Failed);
-        response.SetData(L"WriteFile failed, GetLastError=", errorCode);
+        response.SetData(Utils::ConcatString(L"WriteFile failed, GetLastError=", errorCode));
         return errorCode;
     }
-    TRACE("Writing request to pipe...");
+
+    TRACE("Done writing and reading.");
     return ERROR_SUCCESS;
 }
 
@@ -100,6 +103,8 @@ int main(Platform::Array<Platform::String^>^ args)
         TRACE("Error: failed to process request...");
         // Do not return. Let the response propagate to the caller.
     }
+
+    TRACEP("Response: ", response.GetData().c_str());
 
     if (!DMMessage::WriteToPipe(stdoutHandle.Get(), response))
     {

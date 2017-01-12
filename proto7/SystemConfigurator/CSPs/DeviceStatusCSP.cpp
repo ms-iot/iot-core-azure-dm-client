@@ -3,7 +3,6 @@
 #include "MdmProvision.h"
 #include "..\SharedUtilities\Logger.h"
 
-#define DeviceStatusNodeName L"deviceStatus"
 #define SecureBootState L"secureBootState"
 #define MacIpAddressV4 L"macIpAddressV4"
 #define MacIpAddressV6 L"macIpAddressV6"
@@ -102,11 +101,7 @@ std::wstring DeviceStatusCSP::GetDeviceStatusJson()
     deviceStatusJson->Insert(ref new Platform::String(BatteryRuntime),
                             JsonValue::CreateNumberValue(deviceStatusInfo.batteryRuntime));
 
-    JsonObject^ root = ref new JsonObject();
-
-    root->Insert(ref new String(DeviceStatusNodeName), deviceStatusJson);
-
-    wstring json = root->Stringify()->Data();
+    wstring json = deviceStatusJson->Stringify()->Data();
 
     TRACEP(L" json = ", json.c_str());
 
