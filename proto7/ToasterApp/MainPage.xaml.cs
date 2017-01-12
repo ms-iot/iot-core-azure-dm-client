@@ -14,7 +14,7 @@ namespace Toaster
     {
         DeviceManagementClient DMClient;
 
-        private const string DeviceConnectionString = "HostName=GMilekaStd1.azure-devices.net;DeviceId=gmileka06;SharedAccessKey=GbNgSNDf/E4EfNilyKHiuhEQVfp/vdix3yeA+I3FU+M=";
+        private const string DeviceConnectionString = "<connection string>";
 
         public MainPage()
         {

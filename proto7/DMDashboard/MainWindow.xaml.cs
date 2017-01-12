@@ -16,7 +16,7 @@ namespace DMDashboard
 {
     public partial class MainWindow : Window
     {
-        const string iotHubConnectionString = "HostName=GMilekaStd1.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=ZHSPH2At9yivHvI8XgxPt+6lRE+jLZFCyob7s8vAT+g=";
+        const string iotHubConnectionString = "<connection string>";
 
         public MainWindow()
         {
