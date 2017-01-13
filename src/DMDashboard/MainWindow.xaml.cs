@@ -16,14 +16,9 @@ namespace DMDashboard
 {
     public partial class MainWindow : Window
     {
-        const string iotHubConnectionString = "<connection string>";
-
         public MainWindow()
         {
             InitializeComponent();
-
-            _registryManager = RegistryManager.CreateFromConnectionString(iotHubConnectionString);
-            PopulateDevices();
         }
 
         private void ToggleUIElementVisibility(UIElement element)
@@ -43,8 +38,11 @@ namespace DMDashboard
             ToggleUIElementVisibility(TimeInfoGrid);
         }
 
-        private async void PopulateDevices()
+        private async void ListDevices(string connectionString)
         {
+            _registryManager = RegistryManager.CreateFromConnectionString(connectionString);
+
+            // Populate devices.
             IEnumerable<Device> deviceIds = await this._registryManager.GetDevicesAsync(100);
             foreach (var deviceId in deviceIds)
             {
@@ -53,16 +51,21 @@ namespace DMDashboard
             }
         }
 
-        private void OnConnect(object sender, RoutedEventArgs e)
+        private void OnListDevices(object sender, RoutedEventArgs e)
         {
-            string deviceId = (string)DeviceListBox.SelectedItem;
-            _deviceTwin = new DeviceTwinAndMethod(iotHubConnectionString, deviceId);
+            ListDevices(ConnectionStringBox.Text);
+        }
+
+        private void OnDeviceConnect(object sender, RoutedEventArgs e)
+        {
+            string deviceIdString = (string)DeviceListBox.SelectedItem;
+            _deviceTwin = new DeviceTwinAndMethod(ConnectionStringBox.Text, deviceIdString);
             ConnectedProperties.IsEnabled = true;
         }
 
         private void OnDeviceSelected(object sender, SelectionChangedEventArgs e)
         {
-            ConnectButton.IsEnabled = true;
+            DeviceConnectButton.IsEnabled = true;
         }
 
         private void TimeInfoModelToUI(TimeInfo timeInfo)
@@ -245,6 +248,7 @@ namespace DMDashboard
         {
             DesiredProperties desiredProperties = new DesiredProperties();
             desiredProperties.timeInfo = UIToTimeInfoModel();
+            desiredProperties.rebootInfo = UIToRebootInfoModel();
             SetDesired(desiredProperties);
         }
 
