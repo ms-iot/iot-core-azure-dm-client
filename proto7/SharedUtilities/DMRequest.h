@@ -25,12 +25,8 @@ enum class DMCommand : uint32_t
 
     // Reboot
     RebootSystem = 10,
-    SetSingleRebootTime = 11,
-    GetSingleRebootTime = 12,
-    SetDailyRebootTime = 13,
-    GetDailyRebootTime = 14,
-    GetLastRebootCmdTime = 15,
-    GetLastRebootTime = 16,
+    SetRebootInfo = 11,
+    GetRebootInfo = 12,
 
     // TimeInfo
     GetTimeInfo = 30,
@@ -69,6 +65,29 @@ private:
     }
 
 public:
+
+    void DumpData()
+    {
+        TRACE(__FUNCTION__);
+        if (_data.size() == 0)
+        {
+            TRACE("Data size is 0");
+        }
+        else
+        {
+            std::basic_ostringstream<char> messageStream0;
+            messageStream0 << _data.size();
+            TRACEP("Data size is ", messageStream0.str().c_str());
+
+            for (size_t i = 0; i < _data.size() && i < 30; ++i)
+            {
+                std::basic_ostringstream<char> messageStream1;
+                messageStream1 << "_data[" << i << "] ASCII " << (unsigned int)((unsigned char)_data[i]);
+                TRACE(messageStream1.str().c_str());
+            }
+        }
+    }
+
     std::string GetData() const
     {
         return std::string(_data.data(), _data.size());
@@ -103,23 +122,11 @@ public:
         _context = ctxt;
     }
 
-    void SetData(const wchar_t* msg, DWORD param)
-    {
-        std::basic_ostringstream<wchar_t> messageStream;
-        messageStream << msg << param;
-        SetData(messageStream.str());
-    }
-
     void SetData(const std::wstring& newData)
     {
         auto wdataAsBytes = (char*)newData.data();
         auto size = newData.size() * sizeof(wchar_t);
         SetData(wdataAsBytes, size);
-    }
-
-    void SetData(const char* newData)
-    {
-        SetData(newData, strlen(newData));
     }
 
     void SetData(const char* newData, uint32_t newDataSize)
@@ -179,7 +186,7 @@ public:
 
             TRACE("Error: failed to read from pipe (context)...");
             message.SetContext(DMStatus::Failed);
-            message.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+            message.SetData(Utils::ConcatString(L"ReadFile failed, GetLastError=", GetLastError()));
             return false;
         }
         message.SetContext(context);
@@ -192,7 +199,7 @@ public:
 
             TRACE("Error: failed to read from pipe (dataSize)...");
             message.SetContext(DMStatus::Failed);
-            message.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+            message.SetData(Utils::ConcatString(L"ReadFile failed, GetLastError=", GetLastError()));
             return false;
         }
         TRACEP(L" dataSize read from pipe=", dataSize);
@@ -207,7 +214,7 @@ public:
 
                 TRACE("Error: failed to read from pipe (data)...");
                 message.SetContext(DMStatus::Failed);
-                message.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+                message.SetData(Utils::ConcatString(L"ReadFile failed, GetLastError=", GetLastError()));
                 return false;
             }
             message.SetData(&data[0], data.size());

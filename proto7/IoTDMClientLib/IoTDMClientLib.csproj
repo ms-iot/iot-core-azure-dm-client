@@ -118,7 +118,6 @@
     <Compile Include="AzureIoTHubDeviceTwinProxy.cs" />
     <Compile Include="DeviceManagementClient.cs" />
     <Compile Include="ISystemConfiguratorProxy.cs" />
-    <Compile Include="JsonHelpers.cs" />
     <Compile Include="SystemConfiguratorProxy.cs" />
     <Compile Include="IDeviceManagementRequestHandler.cs" />
     <Compile Include="IDeviceTwin.cs" />

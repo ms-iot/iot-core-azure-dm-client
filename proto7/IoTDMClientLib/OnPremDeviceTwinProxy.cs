@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 
 namespace Microsoft.Devices.Management
 {
@@ -8,7 +8,12 @@ namespace Microsoft.Devices.Management
         {
         }
 
-        void IDeviceTwin.ReportProperties(string allJson)
+        void IDeviceTwin.SetManagementClient(DeviceManagementClient deviceManagementClient)
+        {
+            // Set a pointer to the DeviceManagementClient for callback or other scenario.
+        }
+
+        void IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
         {
             // Somehow send the property to the DT
         }
@@ -17,6 +22,5 @@ namespace Microsoft.Devices.Management
         {
             // Reconnect if needed
         }
-
     }
 }

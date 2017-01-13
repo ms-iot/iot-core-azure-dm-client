@@ -1,20 +1,25 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using Microsoft.Devices.Management;
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
-using Microsoft.Devices.Management;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Windows.Storage.Streams;
-using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace IoTDMClientLibTests
 {
     class TwinMockup : IDeviceTwin
     {
+        void IDeviceTwin.SetManagementClient(DeviceManagementClient deviceManagementClient)
+        {
+            throw new NotImplementedException();
+        }
+
         void IDeviceTwin.RefreshConnection()
         {
             throw new NotImplementedException();
         }
 
-        void IDeviceTwin.ReportProperties(string allJson)
+        void IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
         {
             throw new NotImplementedException();
         }
@@ -67,7 +72,7 @@ namespace IoTDMClientLibTests
             var requestHandler = new HandlerMockup("Test", SystemRebootRequestResponse.StartNow);
             var proxy = new ConfigurationProxyMockup();
             var dmClient = DeviceManagementClient.Create(twin, requestHandler, proxy);
-            dmClient.StartSystemReboot().Wait();
+            dmClient.RebootSystemAsync().Wait();
 
             Assert.AreEqual<uint>(proxy.ReceivedMessage.Context, (uint)DMCommand.RebootSystem);
         }
@@ -79,7 +84,7 @@ namespace IoTDMClientLibTests
             var requestHandler = new HandlerMockup("Test", SystemRebootRequestResponse.AskAgainLater);
             var proxy = new ConfigurationProxyMockup();
             var dmClient = DeviceManagementClient.Create(twin, requestHandler, proxy);
-            dmClient.StartSystemReboot().Wait();
+            dmClient.RebootSystemAsync().Wait();
 
             Assert.AreEqual<uint>(proxy.ReceivedMessage.Context, (uint)DMCommand.Unknown);
         }

@@ -3,6 +3,7 @@
 #include <map>
 #include "TimeCfg.h"
 #include "..\SharedUtilities\Utils.h"
+#include "..\SharedUtilities\TimeHelpers.h"
 #include "..\SharedUtilities\JsonHelpers.h"
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMException.h"
@@ -11,7 +12,6 @@
 #define NtpServerPropertyName "NtpServer"
 
 // Json strings
-#define TimeInfoNodeName L"timeInfo"
 #define LocalTime L"localTime"
 #define NtpServer L"ntpServer"
 #define TimeZone L"timeZone"
@@ -124,45 +124,44 @@ void TimeCfg::SetTimeInfo(const std::wstring& jsonString)
     JsonReader::Flatten(L"", rootObject, properties);
 
     wstring ntpServer;
-    if (JsonReader::TryFindString(properties, TimeInfoNodeName L"." NtpServer, ntpServer))
+    if (JsonReader::TryFindString(properties, NtpServer, ntpServer))
     {
         SetNtpServer(ntpServer);
     }
 
-    map<wstring, IJsonValue^>::const_iterator it = properties.find(TimeInfoNodeName L"." TimeZone);
+    map<wstring, IJsonValue^>::const_iterator it = properties.find(TimeZone);
     if (it != properties.end())
     {
         // ToDo: should we set wDayOfWeek to a non-zero value?
 
         TIME_ZONE_INFORMATION tzi = { 0 };
 
-        JsonReader::TryFindNumber(properties, TimeInfoNodeName L"." TimeZone L"." TimeZoneBias, tzi.Bias);
+        JsonReader::TryFindNumber(properties, TimeZone L"." TimeZoneBias, tzi.Bias);
 
         wstring standardName;
-        if (JsonReader::TryFindString(properties, TimeInfoNodeName L"." TimeZone L"." TimeZoneStandardName, standardName))
+        if (JsonReader::TryFindString(properties, TimeZone L"." TimeZoneStandardName, standardName))
         {
             wcsncpy_s(tzi.StandardName, standardName.c_str(), _TRUNCATE);
         }
 
-        JsonReader::TryFindDateTime(properties, TimeInfoNodeName L"." TimeZone L"." TimeZoneStandardDate, tzi.StandardDate);
+        JsonReader::TryFindDateTime(properties, TimeZone L"." TimeZoneStandardDate, tzi.StandardDate);
 
-        JsonReader::TryFindNumber(properties, TimeInfoNodeName L"." TimeZone L"." TimeZoneStandardBias, tzi.StandardBias);
+        JsonReader::TryFindNumber(properties, TimeZone L"." TimeZoneStandardBias, tzi.StandardBias);
 
         wstring daylightName;
-        if (JsonReader::TryFindString(properties, TimeInfoNodeName L"." TimeZone L"." TimeZoneDaylightName, daylightName))
+        if (JsonReader::TryFindString(properties, TimeZone L"." TimeZoneDaylightName, daylightName))
         {
             wcsncpy_s(tzi.DaylightName, daylightName.c_str(), _TRUNCATE);
         }
 
-        JsonReader::TryFindDateTime(properties, TimeInfoNodeName L"." TimeZone L"." TimeZoneDaylightDate, tzi.DaylightDate);
+        JsonReader::TryFindDateTime(properties, TimeZone L"." TimeZoneDaylightDate, tzi.DaylightDate);
 
-        JsonReader::TryFindNumber(properties, TimeInfoNodeName L"." TimeZone L"." TimeZoneDaylightBias, tzi.DaylightBias);
+        JsonReader::TryFindNumber(properties, TimeZone L"." TimeZoneDaylightBias, tzi.DaylightBias);
 
         if (!SetTimeZoneInformation(&tzi))
         {
             throw DMExceptionWithErrorCode("Error: failed to set time zone information. Error Code = ", GetLastError());
         }
-
     }
 
     TRACE(L"Time settings have been applied successfully.");
@@ -227,11 +226,7 @@ std::wstring TimeCfg::GetTimeInfoJson()
 
     timeInfoJson->Insert(ref new Platform::String(TimeZone), timeZoneJson);
 
-    JsonObject^ root = ref new JsonObject();
-
-    root->Insert(ref new String(TimeInfoNodeName), timeInfoJson);
-
-    wstring json = root->Stringify()->Data();
+    wstring json = timeInfoJson->Stringify()->Data();
 
     TRACEP(L" json = ", json.c_str());
 

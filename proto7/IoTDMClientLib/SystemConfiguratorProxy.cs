@@ -28,12 +28,8 @@ namespace Microsoft.Devices.Management
 
         // Reboot
         RebootSystem = 10,
-        SetSingleRebootTime = 11,
-        GetSingleRebootTime = 12,
-        SetDailyRebootTime = 13,
-        GetDailyRebootTime = 14,
-        GetLastRebootCmdTime = 15,
-        GetLastRebootTime = 16,
+        SetRebootInfo = 11,
+        GetRebootInfo = 12,
 
         // TimeInfo
         GetTimeInfo = 30,
@@ -43,6 +39,11 @@ namespace Microsoft.Devices.Management
         GetDeviceStatus = 40,
     }
 
+    public enum DMStatus
+    {
+        Success = 0,
+        Failure = 1,
+    }
 
     public class DMMessage
     {
