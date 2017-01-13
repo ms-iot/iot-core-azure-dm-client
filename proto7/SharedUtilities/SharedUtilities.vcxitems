@@ -16,14 +16,18 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)DMException.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DMRequest.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)JsonHelpers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Logger.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SecurityAttributes.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)TimeHelpers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)DMException.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)JsonHelpers.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Logger.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)SecurityAttributes.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)TimeHelpers.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Utils.cpp" />
   </ItemGroup>
 </Project>

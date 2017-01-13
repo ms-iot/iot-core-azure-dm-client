@@ -5,6 +5,9 @@
 #include "..\SharedUtilities\SecurityAttributes.h"
 #include "CSPs\RebootCSP.h"
 #include "CSPs\EnterpriseModernAppManagementCSP.h"
+#include "CSPs\DeviceStatusCSP.h"
+#include "CSPs\RemoteWipeCSP.h"
+#include "TimeCfg.h"
 
 using namespace std;
 using namespace Windows::Data::Json;
@@ -75,7 +78,7 @@ void HandleInstallApp(const std::wstring& json, DMMessage& response)
     catch (Platform::Exception^ e)
     {
         std::wstring failure(e->Message->Data());
-        response.SetData(failure.c_str(), e->HResult);
+        response.SetData(Utils::ConcatString(failure.c_str(), e->HResult));
         response.SetContext(DMStatus::Failed);
     }
 }
@@ -103,7 +106,7 @@ void HandleUninstallApp(const std::wstring& json, DMMessage& response)
     catch (Platform::Exception^ e)
     {
         std::wstring failure(e->Message->Data());
-        response.SetData(failure.c_str(), e->HResult);
+        response.SetData(Utils::ConcatString(failure.c_str(), e->HResult));
         response.SetContext(DMStatus::Failed);
     }
 }
@@ -115,64 +118,52 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
     response.SetData(L"Default System Configurator Response.");
 
     auto command = (DMCommand)request.GetContext();
-    auto data = request.GetData();
     switch (command)
     {
     case DMCommand::RebootSystem:
-        response.SetData(L"Handling `reboot system`. cmdIndex = ", cmdIndex);
+        response.SetData(Utils::ConcatString(L"Handling `reboot system`. cmdIndex = ", cmdIndex));
         response.SetContext(DMStatus::Succeeded);
         RebootCSP::ExecRebootNow();
         break;
-    case DMCommand::SetSingleRebootTime:
-        TRACEP("DMCommand::SetSingleRebootTime value = ", data);
-        RebootCSP::SetSingleScheduleTime(Utils::MultibyteToWide(data));
-        response.SetData(L"Handling `set reboot single`. cmdIndex = ", cmdIndex);
-        response.SetContext(DMStatus::Succeeded);
+    case DMCommand::SetRebootInfo:
+        {
+            TRACE(L"SetRebootInfo:");
+            try
+            {
+                RebootCSP::SetRebootInfo(request.GetDataW());
+                response.SetContext(DMStatus::Succeeded);
+            }
+            catch (DMException& e)
+            {
+                response.SetData(e.what(), strlen(e.what()));
+                response.SetContext(DMStatus::Failed);
+            }
+        }
         break;
-    case DMCommand::GetSingleRebootTime:
+    case DMCommand::GetRebootInfo:
     {
-        TRACE("DMCommand::GetSingleRebootTime");
-        wstring valueString = RebootCSP::GetSingleScheduleTime();
-        response.SetData(valueString);
-        response.SetContext(DMStatus::Succeeded);
+        try
+        {
+            TRACE(L"GetRebootInfo:");
+            wstring rebootInfoJson = RebootCSP::GetRebootInfoJson();
+            TRACEP(L" get json reboot info = ", rebootInfoJson.c_str());
+            response.SetData(rebootInfoJson);
+            response.SetContext(DMStatus::Succeeded);
+        }
+        catch (DMException& e)
+        {
+            response.SetData(e.what(), strlen(e.what()));
+            response.SetContext(DMStatus::Failed);
+        }
     }
     break;
-    case DMCommand::SetDailyRebootTime:
-        TRACEP("DMCommand::SetDailyRebootTime value = ", data);
-        RebootCSP::SetDailyScheduleTime(Utils::MultibyteToWide(data));
-        response.SetData(L"Handling `set reboot daily`. cmdIndex = ", cmdIndex);
-        response.SetContext(DMStatus::Succeeded);
-        break;
-    case DMCommand::GetDailyRebootTime:
-    {
-        TRACE("DMCommand::GetDailyRebootTime");
-        wstring valueString = RebootCSP::GetDailyScheduleTime();
-        response.SetData(valueString);
-        response.SetContext(DMStatus::Succeeded);
-    }
-    break;
-    case DMCommand::GetLastRebootCmdTime:
-    {
-        TRACE("DMCommand::GetLastRebootCmdTime");
-        wstring valueString = RebootCSP::GetLastRebootCmdTime();
-        response.SetData(valueString);
-        response.SetContext(DMStatus::Succeeded);
-    }
-    break;
-    case DMCommand::GetLastRebootTime:
-    {
-        TRACE("DMCommand::GetLastRebootTime");
-        wstring valueString = RebootCSP::GetLastRebootTime();
-        response.SetData(valueString);
-        response.SetContext(DMStatus::Succeeded);
-    }
-    break;
-    case DMCommand::SystemReset:
-        response.SetData(L"Handling `system reset`. cmdIndex = ", cmdIndex);
+    case DMCommand::FactoryReset:
+        RemoteWipeCSP::DoWipe();
+        response.SetData(Utils::ConcatString(L"Handling `factory reset`. cmdIndex = ", cmdIndex));
         response.SetContext(DMStatus::Succeeded);
         break;
     case DMCommand::CheckUpdates:
-        response.SetData(L"Handling `check updates`. cmdIndex = ", cmdIndex);
+        response.SetData(Utils::ConcatString(L"Handling `check updates`. cmdIndex = ", cmdIndex));
 
         // Checking for updates...
         Sleep(1000);
@@ -184,13 +175,59 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
         HandleListApps(response);
         break;
     case DMCommand::InstallApp:
-        HandleInstallApp(std::wstring((wchar_t*)&data[0]), response);
+        HandleInstallApp(request.GetDataW(), response);
         break;
     case DMCommand::UninstallApp:
-        HandleUninstallApp(std::wstring((wchar_t*)&data[0]), response);
+        HandleUninstallApp(request.GetDataW(), response);
         break;
+    case DMCommand::GetTimeInfo:
+        {
+            try
+            {
+                wstring timeInfoJson = TimeCfg::GetTimeInfoJson();
+                TRACEP(L" get json time info = ", timeInfoJson.c_str());
+                response.SetData(timeInfoJson);
+                response.SetContext(DMStatus::Succeeded);
+            }
+            catch (DMException& e)
+            {
+                response.SetData(e.what(), strlen(e.what()));
+                response.SetContext(DMStatus::Failed);
+            }
+        }
+        break;
+    case DMCommand::SetTimeInfo:
+        {
+            try
+            {
+                TimeCfg::SetTimeInfo(request.GetDataW());
+                response.SetContext(DMStatus::Succeeded);
+            }
+            catch (DMException& e)
+            {
+                response.SetData(e.what(), strlen(e.what()));
+                response.SetContext(DMStatus::Failed);
+            }
+        }
+        break;
+    case DMCommand::GetDeviceStatus:
+    {
+        try
+        {
+            wstring deviceStatusJson = DeviceStatusCSP::GetDeviceStatusJson();
+            response.SetData(deviceStatusJson);
+            response.SetContext(DMStatus::Succeeded);
+        }
+        catch (DMException& e)
+        {
+            response.SetData(e.what(), strlen(e.what()));
+            response.SetContext(DMStatus::Failed);
+        }
+    }
+    break;
+
     default:
-        response.SetData(L"Handling unknown command...cmdIndex = ", cmdIndex);
+        response.SetData(Utils::ConcatString(L"Cannot handle unknown command...cmdIndex = ", cmdIndex));
         response.SetContext(DMStatus::Failed);
         break;
     }

@@ -7,12 +7,13 @@
 
 const int PipeBufferSize = 4096;
 const int DataSizeInBytes = 128;
-const wchar_t* PipeName = L"\\\\.\\pipe\\dm-client-pipe";
+#define PIPE_NAME L"\\\\.\\pipe\\dm-client-pipe"
+const wchar_t* PipeName = PIPE_NAME;
 
 enum class DMCommand : uint32_t
 {
     Unknown = 0,
-    SystemReset = 1,
+    FactoryReset = 1,
     CheckUpdates = 2,
     ListApps = 3,
     InstallApp = 4,
@@ -20,12 +21,15 @@ enum class DMCommand : uint32_t
 
     // Reboot
     RebootSystem = 10,
-    SetSingleRebootTime = 11,
-    GetSingleRebootTime = 12,
-    SetDailyRebootTime = 13,
-    GetDailyRebootTime = 14,
-    GetLastRebootCmdTime = 15,
-    GetLastRebootTime = 16,
+    SetRebootInfo = 11,
+    GetRebootInfo = 12,
+
+    // TimeInfo
+    GetTimeInfo = 30,
+    SetTimeInfo = 31,
+
+    // Device Status
+    GetDeviceStatus = 40,
 };
 
 enum class DMStatus : uint32_t
@@ -57,14 +61,43 @@ private:
     }
 
 public:
-    const char* GetData() const
+
+    void DumpData()
     {
-        return (_data.data());
+        TRACE(__FUNCTION__);
+        if (_data.size() == 0)
+        {
+            TRACE("Data size is 0");
+        }
+        else
+        {
+            std::basic_ostringstream<char> messageStream0;
+            messageStream0 << _data.size();
+            TRACEP("Data size is ", messageStream0.str().c_str());
+
+            for (size_t i = 0; i < _data.size() && i < 30; ++i)
+            {
+                std::basic_ostringstream<char> messageStream1;
+                messageStream1 << "_data[" << i << "] ASCII " << (unsigned int)((unsigned char)_data[i]);
+                TRACE(messageStream1.str().c_str());
+            }
+        }
     }
+
+    std::string GetData() const
+    {
+        return std::string(_data.data(), _data.size());
+    }
+    std::wstring GetDataW() const
+    {
+        return std::wstring((wchar_t*)_data.data(), _data.size() / sizeof(wchar_t));
+    }
+
     uint32_t GetDataCount() const
     {
         return (_data.size());
     }
+
     uint32_t GetContext() const
     {
         return (_context);
@@ -83,13 +116,6 @@ public:
     void SetContext(uint32_t ctxt)
     {
         _context = ctxt;
-    }
-
-    void SetData(const wchar_t* msg, DWORD param)
-    {
-        std::basic_ostringstream<wchar_t> messageStream;
-        messageStream << msg << param;
-        SetData(messageStream.str());
     }
 
     void SetData(const std::wstring& newData)
@@ -133,7 +159,7 @@ public:
         {
             byteWrittenCount = 0;
             auto data = message.GetData();
-            if (!WriteFile(pipeHandle, data, dataSize, &byteWrittenCount, NULL) || byteWrittenCount != dataSize)
+            if (!WriteFile(pipeHandle, data.data(), dataSize, &byteWrittenCount, NULL) || byteWrittenCount != dataSize)
             {
                 // TODO: should this throw a DMException
 
@@ -156,7 +182,7 @@ public:
 
             TRACE("Error: failed to read from pipe (context)...");
             message.SetContext(DMStatus::Failed);
-            message.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+            message.SetData(Utils::ConcatString(L"ReadFile failed, GetLastError=", GetLastError()));
             return false;
         }
         message.SetContext(context);
@@ -169,7 +195,7 @@ public:
 
             TRACE("Error: failed to read from pipe (dataSize)...");
             message.SetContext(DMStatus::Failed);
-            message.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+            message.SetData(Utils::ConcatString(L"ReadFile failed, GetLastError=", GetLastError()));
             return false;
         }
         TRACEP(L" dataSize read from pipe=", dataSize);
@@ -177,15 +203,14 @@ public:
         if (dataSize)
         {
             readByteCount = 0;
-            // Allocate dataSize and an extra wchar_t worth of '\0' to null terminate the buffer
-            std::vector<char> data(dataSize + (sizeof(wchar_t) / sizeof(char)), '\0');
+            std::vector<char> data(dataSize, '\0');
             if (!ReadFile(pipeHandle, &data[0], dataSize, &readByteCount, NULL) || readByteCount != dataSize)
             {
                 // TODO: should this throw a DMException rather than sending a response?
 
                 TRACE("Error: failed to read from pipe (data)...");
                 message.SetContext(DMStatus::Failed);
-                message.SetData(L"ReadFile failed, GetLastError=", GetLastError());
+                message.SetData(Utils::ConcatString(L"ReadFile failed, GetLastError=", GetLastError()));
                 return false;
             }
             message.SetData(&data[0], data.size());

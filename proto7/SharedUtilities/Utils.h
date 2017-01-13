@@ -6,6 +6,7 @@
 #include <deque>
 #include <thread>
 #include <time.h>
+#include <sstream>
 #include <windows.h>
 
 namespace Utils
@@ -48,6 +49,14 @@ namespace Utils
             trimmedString = trimmedString.substr(0, endpos + 1);
         }
         return trimmedString;
+    }
+
+    template<class CharType, class ParamType>
+    std::basic_string<CharType> ConcatString(const CharType* s, ParamType param)
+    {
+        std::basic_ostringstream<CharType> messageStream;
+        messageStream << s << param;
+        return messageStream.str();
     }
 
     // Replaces invalid characters (like .) with _ so that the string can be used

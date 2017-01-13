@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Azure.Devices.Shared;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -58,28 +59,63 @@ namespace Microsoft.Devices.Management
         }
     }
 
-    // TODO: this type will come from the Azure IoT SDK
-    public enum DeviceTwinUpdateState
+    public class TimeZoneInfo
     {
-        Complete,
-        Partial,
+        public long bias;
+        public string standardName;
+        public DateTime standardDate;
+        public long standardBias;
+        public string daylightName;
+        public DateTime daylightDate;
+        public long daylightBias;
+    }
+
+    public class TimeInfo
+    {
+        public DateTime localTime;
+        public string ntpServer;
+        public TimeZoneInfo timeZone;
+    }
+
+    public class RebootInfo
+    {
+        public DateTime lastRebootTime;
+        public DateTime lastRebootCmdTime;
+        public DateTime singleRebootTime;
+        public DateTime dailyRebootTime;
+
+        internal RebootInfo(RebootInfoInternal rebootInfoInternal)
+        {
+            if (!String.IsNullOrEmpty(rebootInfoInternal.lastRebootTime))
+            {
+                lastRebootTime = DateTime.Parse(rebootInfoInternal.lastRebootTime);
+            }
+            if (!String.IsNullOrEmpty(rebootInfoInternal.lastRebootCmdTime))
+            {
+                lastRebootCmdTime = DateTime.Parse(rebootInfoInternal.lastRebootCmdTime);
+            }
+            if (!String.IsNullOrEmpty(rebootInfoInternal.singleRebootTime))
+            {
+                singleRebootTime = DateTime.Parse(rebootInfoInternal.singleRebootTime);
+            }
+            if (!String.IsNullOrEmpty(rebootInfoInternal.dailyRebootTime))
+            {
+                dailyRebootTime = DateTime.Parse(rebootInfoInternal.dailyRebootTime);
+            }
+        }
+    }
+
+    internal class RebootInfoInternal
+    {
+        public string lastRebootTime;
+        public string lastRebootCmdTime;
+        public string singleRebootTime;
+        public string dailyRebootTime;
     }
 
     // This is the main entry point into DM
     public class DeviceManagementClient
     {
-        // Constants
-        public const string RebootMethod = "Reboot";
-
-        // device twin property paths
-        public const string DesiredRebootSingleProperty = "properties.desired.reboot.singleReboot";
-        public const string DesiredRebootDailyProperty = "properties.desired.reboot.dailyReboot";
-
-        public const string ReportedRebootSingleProperty = "properties.reported.reboot.singleReboot";
-        public const string ReportedRebootDailyProperty = "properties.reported.reboot.dailyReboot";
-        public const string ReportedLastRebootCmdProperty = "properties.reported.reboot.lastRebootCmd";
-        public const string ReportedLastRebootProperty = "properties.reported.reboot.lastReboot";
-
         // Types
         public struct DMMethodResult
         {
@@ -87,136 +123,69 @@ namespace Microsoft.Devices.Management
             public string response;
         }
 
-        struct DesiredProperty
+        public struct DeviceStatus
         {
-            public string path;
-            public string value;
+            public long secureBootState;
+            public string macAddressIpV4;
+            public string macAddressIpV6;
+            public bool macAddressIsConnected;
+            public long macAddressType;
+            public string osType;
+            public long batteryStatus;
+            public long batteryRemaining;
+            public long batteryRuntime;
         }
 
         // Ultimately, DeviceManagementClient will take an abstraction over DeviceClient to allow it to 
         // send reported properties. It will never receive using it
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
         {
-            this.requestHandler = requestHandler;
-            this.deviceTwin = deviceTwin;
-            this.supportedMethods = new Dictionary<string, Func<string, Task<DMMethodResult>>>();
-            this.supportedMethods.Add(RebootMethod, HandleRebootAsync);
-
-            this.supportedProperties = new Dictionary<string, DMCommand>();
-            this.supportedProperties.Add(DesiredRebootSingleProperty, DMCommand.SetSingleRebootTime);
-            this.supportedProperties.Add(ReportedRebootSingleProperty, DMCommand.GetSingleRebootTime);
-
-            this.supportedProperties.Add(DesiredRebootDailyProperty, DMCommand.SetDailyRebootTime);
-            this.supportedProperties.Add(ReportedRebootDailyProperty, DMCommand.GetDailyRebootTime);
-
-            this.supportedProperties.Add(ReportedLastRebootCmdProperty, DMCommand.GetLastRebootCmdTime);
-
-            this.supportedProperties.Add(ReportedLastRebootProperty, DMCommand.GetLastRebootTime);
+            this._requestHandler = requestHandler;
+            this._deviceTwin = deviceTwin;
         }
 
-        public static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
+        public static DeviceManagementClient Create(IDeviceTwin _deviceTwin, IDeviceManagementRequestHandler requestHandler)
         {
-            return new DeviceManagementClient(deviceTwin, requestHandler);
+            DeviceManagementClient deviceManagementClient = new DeviceManagementClient(_deviceTwin, requestHandler);
+            _deviceTwin.SetManagementClient(deviceManagementClient);
+            return deviceManagementClient;
         }
 
-        public bool IsDMMethod(string methodName)
+        public TwinCollection HandleDesiredPropertiesChanged(TwinCollection desiredProperties)
         {
-            return supportedMethods.ContainsKey(methodName);
-        }
+            TwinCollection nonDMProperties = new TwinCollection();
 
-        public async Task<DMMethodResult> InvokeMethodAsync(string methodName, string payload)
-        {
-            if (!IsDMMethod(methodName))
+            foreach (KeyValuePair<string, object> dp in desiredProperties)
             {
-                throw new ArgumentException("Unknown method name: " + methodName);
+                string valueString = dp.Value.ToString();
+                if (dp.Key == "timeInfo")
+                {
+                    if (!String.IsNullOrEmpty(valueString))
+                    {
+                        Debug.WriteLine(" timeInfo json = ", valueString);
+                        SetPropertyAsync(DMCommand.SetTimeInfo, valueString);
+                    }
+                }
+                else if (dp.Key == "rebootInfo")
+                {
+                    if (!String.IsNullOrEmpty(valueString))
+                    {
+                        Debug.WriteLine(" rebootInfo json = ", valueString);
+                        SetPropertyAsync(DMCommand.SetRebootInfo, valueString);
+                    }
+                }
+                else
+                {
+                    nonDMProperties[dp.Key] = dp.Value;
+                }
             }
 
-            return await supportedMethods[methodName](payload);
-        }
-
-        public bool IsDMProperty(string propertyName)
-        {
-            return supportedProperties.ContainsKey(propertyName);
-        }
-
-        public async Task SetPropertyAsync(string path, string valueString)
-        {
-            if (!IsDMProperty(path))
-            {
-                throw new ArgumentException("Unknown property name: " + path);
-            }
-
-            var request = new DMMessage(supportedProperties[path]);
-            request.SetData(valueString);
-
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
-            {
-                throw new Exception();
-            }
-        }
-
-        public async Task<string> GetPropertyAsync(string path)
-        {
-            var request = new DMMessage(supportedProperties[path]);
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
-            {
-                throw new Exception();
-            }
-            return result.GetDataString();
-        }
-
-        public void OnDesiredPropertiesChanged(DeviceTwinUpdateState updateState, string desiredPropertiesString)
-        {
-            // Traverse the tree and build a list of all the paths references...
-            List<DesiredProperty> desiredProperties = new List<DesiredProperty>();
-            JObject desiredObj = (JObject)JsonConvert.DeserializeObject(desiredPropertiesString);
-            ReadObjectProperties("", desiredProperties, desiredObj);
-
-            // Loop and apply the new values...
-            foreach (DesiredProperty dp in desiredProperties)
-            {
-                SetPropertyAsync(dp.path, dp.value);
-            }
+            return nonDMProperties;
         }
 
         //
         // Commands:
         //
-
-        // This command initiates factory reset of the device
-        public async Task StartFactoryReset()
-        {
-            var request = new DMMessage(DMCommand.FactoryReset);
-
-            // Here we might want to set some reported properties:
-            // ReportProperties("We're about to start factory reset... If you don't hear from me again, I'm dead");
-
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
-            {
-                throw new Exception();
-            }
-        }
-
-        public async Task StartSystemReboot()
-        {
-            SystemRebootRequestResponse rebootAllowed = await requestHandler.IsSystemRebootAllowed();
-            if (rebootAllowed != SystemRebootRequestResponse.StartNow)
-            {
-                // ToDo: What should happen if the the user blocks the restart?
-                //       We need to have a policy on when to ask again.
-                return;
-            }
-
-            var request = new DMMessage(DMCommand.RebootSystem);
-            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
-            {
-                throw new Exception();
-            }
-        }
 
         // This command checks if updates are available. 
         // TODO: work out complete protocol (find updates, apply updates etc.)
@@ -254,113 +223,134 @@ namespace Microsoft.Devices.Management
             return result.Context;
         }
 
-        //
-        // Private utilities
-        //
-
-        // Report property to DT
-        private void ReportProperties(string allJson)
+        public async Task<DMMethodResult> RebootSystemAsync()
         {
-            deviceTwin.ReportProperties(allJson);
-        }
-
-        private async Task<DMMethodResult> HandleRebootAsync(string request)
-        {
-            DMMethodResult result = new DMMethodResult();
+            DMMethodResult methodResult = new DMMethodResult();
 
             try
             {
-                await StartSystemReboot();
-                result.returnCode = 1;  // success
+                SystemRebootRequestResponse rebootAllowed = await _requestHandler.IsSystemRebootAllowed();
+                if (rebootAllowed != SystemRebootRequestResponse.StartNow)
+                {
+                    // ToDo: What should happen if the the user blocks the restart?
+                    //       We need to have a policy on when to ask again.
+                    methodResult.returnCode = (uint)DMStatus.Failure;
+                    return methodResult;
+                }
+
+                var request = new DMMessage(DMCommand.RebootSystem);
+                var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+                if (result.Context != 0)
+                {
+                    throw new Exception();
+                }
+                methodResult.returnCode = (uint)DMStatus.Success;
             }
             catch (Exception)
             {
                 // returnCode is already set to 0 to indicate failure.
             }
-            return result;
+            return methodResult;
         }
 
-        private static void ReadProperty(string indent, List<DesiredProperty> desiredProperties, JProperty jsonProp)
+        public async Task<DMMethodResult> DoFactoryResetAsync()
         {
-            indent += "    ";
-            JTokenType type = jsonProp.Type;
-            Debug.WriteLine(indent + jsonProp.Name + " = ");
+            DMMethodResult methodResult = new DMMethodResult();
 
-            if (jsonProp.Value.Type == JTokenType.Object)
+            try
             {
-                ReadObjectProperties(indent, desiredProperties, (JObject)jsonProp.Value);
-            }
-            else
-            {
-                JValue theValue = (JValue)jsonProp.Value;
-                Debug.WriteLine("Path = " + theValue.Path);
-                switch (theValue.Type)
+                var request = new DMMessage(DMCommand.FactoryReset);
+
+                // Here we might want to set some reported properties:
+                // ReportProperties("We're about to start factory reset... If you don't hear from me again, I'm dead");
+
+                var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+                if (result.Context != 0)
                 {
-                    case JTokenType.String:
-                        {
-                            string valueString = (string)theValue.Value;
-                            Debug.WriteLine(indent + "value = " + valueString);
-
-                            DesiredProperty desiredProperty = new DesiredProperty();
-                            desiredProperty.path = theValue.Path;
-                            desiredProperty.value = valueString;
-                            desiredProperties.Add(desiredProperty);
-                        }
-                        break;
-                    case JTokenType.Date:
-                        {
-                            System.DateTime dateTime = (System.DateTime)theValue.Value;
-                            Debug.WriteLine(indent + "value 1 = " + dateTime.ToString());
-
-                            DesiredProperty desiredProperty = new DesiredProperty();
-                            desiredProperty.path = theValue.Path;
-
-                            // Supported format by CSPs: 2016-10-10T17:00:00Z
-                            desiredProperty.value = dateTime.Year + "-" +
-                                                    dateTime.Month.ToString("00") + "-" +
-                                                    dateTime.Day.ToString("00") + "T" +
-                                                    dateTime.Hour.ToString("00") + ":" +
-                                                    dateTime.Minute.ToString("00") + ":" +
-                                                    dateTime.Second.ToString("00") + "Z";
-                            Debug.WriteLine(indent + "value 2 = " + desiredProperty.value);
-                            desiredProperties.Add(desiredProperty);
-                        }
-                        break;
-                    case JTokenType.Integer:
-                        {
-                            long valueInt = (long)theValue.Value;
-                            Debug.WriteLine(indent + "value = " + valueInt);
-
-                            DesiredProperty desiredProperty = new DesiredProperty();
-                            desiredProperty.path = theValue.Path;
-                            desiredProperty.value = valueInt.ToString();
-                            desiredProperties.Add(desiredProperty);
-                        }
-                        break;
-                    default:
-                        {
-                            Debug.WriteLine(indent + "value = " + "unknown value type");
-                            Debug.Assert(false);
-                        }
-                        break;
+                    throw new Exception();
                 }
+                methodResult.returnCode = (uint)DMStatus.Success;
+            }
+            catch (Exception)
+            {
+                // returnCode is already set to 0 to indicate failure.
+            }
+            return methodResult;
+        }
+
+        public async Task<TimeInfo> GetTimeInfoAsync()
+        {
+            string jsonString = await GetPropertyAsync(DMCommand.GetTimeInfo);
+            Debug.WriteLine(" json timeInfo = " + jsonString);
+            return JsonConvert.DeserializeObject<TimeInfo>(jsonString);
+        }
+
+        public async Task<RebootInfo> GetRebootInfoAsync()
+        {
+            string jsonString = await GetPropertyAsync(DMCommand.GetRebootInfo);
+            Debug.WriteLine(" json rebootInfo = " + jsonString);
+            RebootInfoInternal rebootInfoInternal = JsonConvert.DeserializeObject<RebootInfoInternal>(jsonString);
+            return new RebootInfo(rebootInfoInternal);
+        }
+
+        public async Task<DeviceStatus> GetDeviceStatusAsync()
+        {
+            string deviceStatusJson = await GetPropertyAsync(DMCommand.GetDeviceStatus);
+            Debug.WriteLine(" json deviceStatus = " + deviceStatusJson);
+            return JsonConvert.DeserializeObject<DeviceStatus>(deviceStatusJson); ;
+        }
+
+        public async Task<DMMethodResult> ReportAllPropertiesAsync()
+        {
+            Debug.WriteLine("ReportAllPropertiesAsync()");
+            DMMethodResult methodResult = new DMMethodResult();
+
+            try
+            {
+                Azure.Devices.Shared.TwinCollection collection = new Azure.Devices.Shared.TwinCollection();
+                collection["timeInfo"] = await GetTimeInfoAsync();
+                collection["deviceStatus"] = await GetDeviceStatusAsync();
+                collection["rebootInfo"] = await GetRebootInfoAsync();
+                _deviceTwin.ReportProperties(collection);
+                methodResult.returnCode = (uint)DMStatus.Success;
+            }
+            catch (Exception)
+            {
+                // returnCode is already set to 0 to indicate failure.
+            }
+            return methodResult;
+        }
+
+        //
+        // Private utilities
+        //
+
+        private async Task SetPropertyAsync(DMCommand command, string valueString)
+        {
+            var request = new DMMessage(command);
+            request.SetData(valueString);
+
+            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (result.Context != (UInt32)DMStatus.Success)
+            {
+                throw new Exception();
             }
         }
 
-        private static void ReadObjectProperties(string indent, List<DesiredProperty> desiredProperties, JObject jsonObj)
+        private async Task<string> GetPropertyAsync(DMCommand command)
         {
-            indent += "    ";
-            foreach (JProperty child in jsonObj.Children())
+            var request = new DMMessage(command);
+            var result = await SystemConfiguratorProxy.SendCommandAsync(request);
+            if (result.Context != (UInt32)DMStatus.Success)
             {
-                ReadProperty(indent, desiredProperties, child);
+                throw new Exception();
             }
+            return result.GetDataString();
         }
 
         // Data members
-        IDeviceManagementRequestHandler requestHandler;
-        IDeviceTwin deviceTwin;
-        Dictionary<string, Func<string, Task<DMMethodResult>>> supportedMethods;
-        Dictionary<string, DMCommand> supportedProperties;
+        IDeviceManagementRequestHandler _requestHandler;
+        IDeviceTwin _deviceTwin;
     }
 
 }
