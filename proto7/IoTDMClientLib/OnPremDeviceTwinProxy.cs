@@ -1,7 +1,4 @@
-﻿// ToDo: need to update this layer to not take any dependencies on Microsoft.Azure.Devices.
-using Microsoft.Azure.Devices.Client;
-using Microsoft.Azure.Devices.Shared;
-
+﻿using System.Collections.Generic;
 
 namespace Microsoft.Devices.Management
 {
@@ -13,17 +10,10 @@ namespace Microsoft.Devices.Management
 
         void IDeviceTwin.SetManagementClient(DeviceManagementClient deviceManagementClient)
         {
-            // Somehow send the property to the DT
+            // Set a pointer to the DeviceManagementClient for callback or other scenario.
         }
 
-        // ToDo: remove dependency on Azure type TwinCollection.
-        void IDeviceTwin.ReportProperties(TwinCollection collection)
-        {
-            // Somehow send the property to the DT
-        }
-
-        // ToDo: remove dependency on Azure type MethodCallback.
-        void IDeviceTwin.SetMethodHandler(string methodName, MethodCallback methodCallback, object userContext)
+        void IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
         {
             // Somehow send the property to the DT
         }

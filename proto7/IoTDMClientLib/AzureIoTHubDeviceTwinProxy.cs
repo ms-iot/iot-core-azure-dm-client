@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,14 +26,14 @@ namespace Microsoft.Devices.Management
             this.deviceManagementClient = deviceManagementClient;
         }
 
-        void IDeviceTwin.ReportProperties(TwinCollection collection)
+        void IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
         {
-            this.deviceClient.UpdateReportedPropertiesAsync(collection);
-        }
-
-        void IDeviceTwin.SetMethodHandler(string methodName, MethodCallback methodCallback, object userContext)
-        {
-            this.deviceClient.SetMethodHandler(methodName, methodCallback, userContext);
+            TwinCollection azureCollection = new TwinCollection();
+            foreach (KeyValuePair<string, object> p in collection)
+            {
+                azureCollection[p.Key] = p.Value;
+            }
+            this.deviceClient.UpdateReportedPropertiesAsync(azureCollection);
         }
 
         void IDeviceTwin.RefreshConnection()
@@ -47,10 +48,10 @@ namespace Microsoft.Devices.Management
                 throw new System.Exception("ManagementClient is not set.");
             }
 
-            // We won't wait...
-            deviceManagementClient.ReportAllPropertiesAsync();
+            Task<DeviceManagementClient.DMMethodResult> t = deviceManagementClient.ReportAllPropertiesAsync();
+            // t.Wait();    // ToDo: Investigate why this causes a deadlock.
 
-            var retValue = new MethodResponse(Encoding.UTF8.GetBytes(""), 200 /*dm success code*/);
+            var retValue = new MethodResponse(Encoding.UTF8.GetBytes(""), 0 /*(int)t.Result.returnCode*/);
             return Task.FromResult(retValue);
         }
 
@@ -61,10 +62,10 @@ namespace Microsoft.Devices.Management
                 throw new System.Exception("ManagementClient is not set.");
             }
 
-            // We won't wait...
-            deviceManagementClient.DoFactoryResetAsync();
+            Task<DeviceManagementClient.DMMethodResult> t = deviceManagementClient.DoFactoryResetAsync();
+            // t.Wait();    // ToDo: Investigate why this causes a deadlock.
 
-            var retValue = new MethodResponse(Encoding.UTF8.GetBytes(""), 200 /*dm success code*/);
+            var retValue = new MethodResponse(Encoding.UTF8.GetBytes(""), 0 /*(int)t.Result.returnCode*/);
             return Task.FromResult(retValue);
         }
 
@@ -75,10 +76,10 @@ namespace Microsoft.Devices.Management
                 throw new System.Exception("ManagementClient is not set.");
             }
 
-            // We won't wait...
-            deviceManagementClient.RebootSystemAsync();
+            Task<DeviceManagementClient.DMMethodResult> t = deviceManagementClient.RebootSystemAsync();
+            // t.Wait();    // ToDo: Investigate why this causes a deadlock.
 
-            var retValue = new MethodResponse(Encoding.UTF8.GetBytes(""), 200 /*dm success code*/);
+            var retValue = new MethodResponse(Encoding.UTF8.GetBytes(""), 0 /*(int)t.Result.returnCode*/);
             return Task.FromResult(retValue);
         }
     }

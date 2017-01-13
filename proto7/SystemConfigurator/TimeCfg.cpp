@@ -3,6 +3,7 @@
 #include <map>
 #include "TimeCfg.h"
 #include "..\SharedUtilities\Utils.h"
+#include "..\SharedUtilities\TimeHelpers.h"
 #include "..\SharedUtilities\JsonHelpers.h"
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMException.h"

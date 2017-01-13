@@ -36,7 +36,7 @@ void HandleAddAppForStartup(const wstring& json, DMMessage& response)
     catch (Platform::Exception^ e)
     {
         std::wstring failure(e->Message->Data());
-        response.SetData(failure.c_str(), e->HResult);
+        response.SetData(Utils::ConcatString(failure.c_str(), e->HResult));
         response.SetContext(DMStatus::Failed);
     }
 }
@@ -63,7 +63,7 @@ void HandleRemoveAppForStartup(const wstring& json, DMMessage& response)
     catch (Platform::Exception^ e)
     {
         std::wstring failure(e->Message->Data());
-        response.SetData(failure.c_str(), e->HResult);
+        response.SetData(Utils::ConcatString(failure.c_str(), e->HResult));
         response.SetContext(DMStatus::Failed);
     }
 }
@@ -184,8 +184,6 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
     response.SetData(L"Default System Configurator Response.");
 
     auto command = (DMCommand)request.GetContext();
-    auto dataStr = request.GetData();
-    auto data = dataStr.c_str();
     switch (command)
     {
     case DMCommand::RebootSystem:

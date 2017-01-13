@@ -2,6 +2,7 @@
 
 namespace Microsoft.Devices.Management
 {
+    // ToDo: Need to move this to a common place for both DMDashboard and IoTDMClientLib.
     public class RebootInfo
     {
         public DateTime lastRebootTime;
