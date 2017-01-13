@@ -18,6 +18,10 @@ enum class DMCommand : uint32_t
     ListApps = 3,
     InstallApp = 4,
     UninstallApp = 5,
+    GetStartupForegroundApp = 6,
+    ListStartupBackgroundApps = 7,
+    AddStartupApp = 8,
+    RemoveStartupApp = 9,
 
     // Reboot
     RebootSystem = 10,

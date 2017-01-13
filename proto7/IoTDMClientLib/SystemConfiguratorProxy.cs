@@ -21,6 +21,10 @@ namespace Microsoft.Devices.Management
         ListApps = 3,
         InstallApp = 4,
         UninstallApp = 5,
+        GetStartupForegroundApp = 6,
+        ListStartupBackgroundApps = 7,
+        AddStartupApp = 8,
+        RemoveStartupApp = 9,
 
         // Reboot
         RebootSystem = 10,
@@ -141,9 +145,9 @@ namespace Microsoft.Devices.Management
     }
 
     // This class send requests (DMrequest) to the System Configurator and receives the responses (DMesponse) from it
-    static class SystemConfiguratorProxy
+    class SystemConfiguratorProxy : ISystemConfiguratorProxy
     {
-        public static async Task<DMMessage> SendCommandAsync(DMMessage command)
+        public async Task<DMMessage> SendCommandAsync(DMMessage command)
         {
             var processLauncherOptions = new ProcessLauncherOptions();
             var standardInput = new InMemoryRandomAccessStream();
