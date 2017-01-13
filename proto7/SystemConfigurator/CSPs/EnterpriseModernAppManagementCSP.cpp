@@ -5,6 +5,7 @@
 #include "..\SharedUtilities\Logger.h"
 
 using namespace std;
+using namespace Windows::Data::Json;
 
 // EnterpriseModernAppManagement CSP docs
 // https://msdn.microsoft.com/en-us/library/windows/hardware/dn904956(v=vs.85).aspx
@@ -13,10 +14,34 @@ using namespace std;
 wstring EnterpriseModernAppManagementCSP::GetInstalledApps()
 {
     TRACE(L"\n---- Get Installed Apps\n");
-    auto data = ref new Windows::Data::Json::JsonObject();
+    auto data = ref new JsonObject();
+    // use std::function to pass lambda that captures something
+    std::function<void(std::vector<std::wstring>&, std::wstring&)> valueHandler =
+        [data](vector<wstring>& uriTokens, wstring& value) {
+        if (uriTokens.size() == 10)
+        {
+            // 0/__1___/__2___/__3_/______________4______________/______5______/___6____/_________7_______/_______8_______/____9___
+            // ./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/AppStore/PackageFamilyName/PackageFullName/Property
+            auto pfn = ref new Platform::String(uriTokens[8].c_str());
+            if (!data->HasKey(pfn))
+            {
+                auto propMap = ref new JsonObject();
+                propMap->Insert(ref new Platform::String(uriTokens[9].c_str()), JsonValue::CreateStringValue(ref new Platform::String(value.c_str())));
+                propMap->Insert(ref new Platform::String(L"AppSource"), JsonValue::CreateStringValue(ref new Platform::String(uriTokens[6].c_str())));
+                propMap->Insert(ref new Platform::String(L"PackageFamilyName"), JsonValue::CreateStringValue(ref new Platform::String(uriTokens[7].c_str())));
+
+                data->Insert(pfn, propMap);
+            }
+            else
+            {
+                data->GetNamedObject(pfn)->Insert(ref new Platform::String(uriTokens[9].c_str()), JsonValue::CreateStringValue(ref new Platform::String(value.c_str())));
+            }
+        }
+    };
+
     MdmProvision::RunGetStructData(
         L"./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement?list=StructData",
-        data);
+        valueHandler);
     return data->Stringify()->Data();
 }
 

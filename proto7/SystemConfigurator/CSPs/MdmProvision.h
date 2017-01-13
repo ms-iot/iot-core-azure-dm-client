@@ -1,5 +1,6 @@
 #pragma once
 
+#include "..\SharedUtilities\Utils.h"
 #include <string>
 
 class MdmProvision
@@ -12,7 +13,7 @@ public:
 
     static void RunAdd(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
 
-    static void RunGetStructData(const std::wstring& path, Windows::Data::Json::JsonObject^ data);
+    static void RunGetStructData(const std::wstring& path, Utils::ELEMENT_HANDLER handler);
     static std::wstring RunGetString(const std::wstring& sid, const std::wstring& path);
     static unsigned int RunGetUInt(const std::wstring& sid, const std::wstring& path);
     static bool RunGetBool(const std::wstring& sid, const std::wstring& path);
