@@ -135,7 +135,7 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
             }
             catch (DMException& e)
             {
-                response.SetData(e.what());
+                response.SetData(e.what(), strlen(e.what()));
                 response.SetContext(DMStatus::Failed);
             }
         }
@@ -152,7 +152,7 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
         }
         catch (DMException& e)
         {
-            response.SetData(e.what());
+            response.SetData(e.what(), strlen(e.what()));
             response.SetContext(DMStatus::Failed);
         }
     }
@@ -191,7 +191,7 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
             }
             catch (DMException& e)
             {
-                response.SetData(e.what());
+                response.SetData(e.what(), strlen(e.what()));
                 response.SetContext(DMStatus::Failed);
             }
         }
@@ -205,7 +205,7 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
             }
             catch (DMException& e)
             {
-                response.SetData(e.what());
+                response.SetData(e.what(), strlen(e.what()));
                 response.SetContext(DMStatus::Failed);
             }
         }
@@ -220,7 +220,7 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
         }
         catch (DMException& e)
         {
-            response.SetData(e.what());
+            response.SetData(e.what(), strlen(e.what()));
             response.SetContext(DMStatus::Failed);
         }
     }

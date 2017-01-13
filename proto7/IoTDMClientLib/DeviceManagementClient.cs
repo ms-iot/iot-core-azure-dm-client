@@ -116,11 +116,6 @@ namespace Microsoft.Devices.Management
     // This is the main entry point into DM
     public class DeviceManagementClient
     {
-        // Constants
-        public const string RebootMethod = "Reboot";
-        public const string FactoryResetMethod = "FactoryReset";
-        public const string ReportAllPropertiesMethod = "ReportAllProperties";
-
         // Types
         public struct DMMethodResult
         {
@@ -239,7 +234,7 @@ namespace Microsoft.Devices.Management
                 {
                     // ToDo: What should happen if the the user blocks the restart?
                     //       We need to have a policy on when to ask again.
-                    methodResult.returnCode = (uint)DMResult.Failure;
+                    methodResult.returnCode = (uint)DMStatus.Failure;
                     return methodResult;
                 }
 
@@ -249,7 +244,7 @@ namespace Microsoft.Devices.Management
                 {
                     throw new Exception();
                 }
-                methodResult.returnCode = (uint)DMResult.Success;
+                methodResult.returnCode = (uint)DMStatus.Success;
             }
             catch (Exception)
             {
@@ -274,7 +269,7 @@ namespace Microsoft.Devices.Management
                 {
                     throw new Exception();
                 }
-                methodResult.returnCode = (uint)DMResult.Success;
+                methodResult.returnCode = (uint)DMStatus.Success;
             }
             catch (Exception)
             {
@@ -317,7 +312,7 @@ namespace Microsoft.Devices.Management
                 collection["deviceStatus"] = await GetDeviceStatusAsync();
                 collection["rebootInfo"] = await GetRebootInfoAsync();
                 _deviceTwin.ReportProperties(collection);
-                methodResult.returnCode = (uint)DMResult.Success;
+                methodResult.returnCode = (uint)DMStatus.Success;
             }
             catch (Exception)
             {
@@ -336,7 +331,7 @@ namespace Microsoft.Devices.Management
             request.SetData(valueString);
 
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != (UInt32)DMResult.Success)
+            if (result.Context != (UInt32)DMStatus.Success)
             {
                 throw new Exception();
             }
@@ -346,7 +341,7 @@ namespace Microsoft.Devices.Management
         {
             var request = new DMMessage(command);
             var result = await SystemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != (UInt32)DMResult.Success)
+            if (result.Context != (UInt32)DMStatus.Success)
             {
                 throw new Exception();
             }

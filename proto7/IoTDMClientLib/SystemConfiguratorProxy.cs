@@ -35,7 +35,7 @@ namespace Microsoft.Devices.Management
         GetDeviceStatus = 40,
     }
 
-    public enum DMResult
+    public enum DMStatus
     {
         Success = 0,
         Failure = 1,
