@@ -12,334 +12,354 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200" />
-            <ColumnDefinition Width="800" />
-        </Grid.ColumnDefinitions>
-        <TextBlock Grid.Row="0" Grid.Column="0" Margin="5" FontSize="16" FontWeight="Bold" Text="DM Dashboard" />
-        <Grid Grid.Row="1" Grid.Column="0">
+        <Grid Grid.Row="0" Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Margin="3" FontWeight="Bold" Text="Devices"/>
-            <ListBox Grid.Row="1" Margin="3" x:Name="DeviceListBox" SelectionChanged="OnDeviceSelected" />
-            <Button Grid.Row="2" Margin="3" Content="Connect" Click="OnConnect" IsEnabled="False" x:Name="ConnectButton"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" Margin="5" FontSize="16" FontWeight="Bold" Text="DM Dashboard" />
+            <Grid Grid.Row="1" Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Connection String"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Margin="3" x:Name="ConnectionStringBox">
+                    <TextBox.Text>&lt;enter connection string&gt;</TextBox.Text>
+                </TextBox>
+            </Grid>
+            <Button Grid.Row="2" Grid.Column="2" Margin="3" Content="List Devices" Click="OnListDevices" Width="200" HorizontalAlignment="Left"/>
         </Grid>
-        <ScrollViewer Grid.Row="1" Grid.Column="1">
-            <StackPanel Orientation="Vertical" x:Name="ConnectedProperties" IsEnabled="False" Grid.RowSpan="2">
+        <Grid Grid.Row="1" Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="210"/>
+                <ColumnDefinition Width="800"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Row="0" Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Margin="3" FontWeight="Bold" Text="Devices"/>
+                <ListBox Grid.Row="1" Margin="3" x:Name="DeviceListBox" SelectionChanged="OnDeviceSelected" Width="200" HorizontalAlignment="Center"/>
+                <Button Grid.Row="2" Margin="3" Content="Connect to Device" Click="OnDeviceConnect" Width="200" IsEnabled="False" x:Name="DeviceConnectButton" HorizontalAlignment="Center"/>
+            </Grid>
+            <ScrollViewer Grid.Row="0" Grid.Column="1">
+                <StackPanel Orientation="Vertical" x:Name="ConnectedProperties" IsEnabled="False" Grid.RowSpan="2">
 
-                <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="1" Margin="3" Text="Reboot" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
-                    <Button Grid.Column="0" Click="OnExpandReboot" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
-                <Grid x:Name="RebootGrid" Visibility="Collapsed">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="270"/>
-                        <ColumnDefinition Width="270"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Last Reboot Cmd"/>
-                    <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Reboot Now" Click="OnRebootSystem"/>
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Reboot" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandReboot" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid x:Name="RebootGrid" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="270"/>
+                            <ColumnDefinition Width="270"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Last Reboot Cmd"/>
+                        <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Reboot Now" Click="OnRebootSystem"/>
 
-                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="LastRebootCmdTime" />
-                        </Border>
-                    </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="LastRebootCmdTime" />
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Last Restart" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a" />
-                    <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" Text="" x:Name="LastRebootTime"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Last Restart" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a" />
+                        <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" Text="" x:Name="LastRebootTime"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Single Reboot" />
-                    <TextBox Grid.Row="3" Grid.Column="1" Margin="3" Text="2016-10-10T17:00:00Z" x:Name="DesiredSingleRebootTime"/>
-                    <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
-                        <Border Margin="3" Background="#F8F8F8">
-                            <TextBlock Width="200" x:Name="ReportedSingleRebootTime"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Single Reboot" />
+                        <TextBox Grid.Row="3" Grid.Column="1" Margin="3" Text="2016-10-10T17:00:00Z" x:Name="DesiredSingleRebootTime"/>
+                        <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
+                            <Border Margin="3" Background="#F8F8F8">
+                                <TextBlock Width="200" x:Name="ReportedSingleRebootTime"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Daily Reboot" />
-                    <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="" x:Name="DesiredDailyRebootTime"/>
-                    <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
-                        <Border Margin="3" Background="#F8F8F8">
-                            <TextBlock Width="200" x:Name="ReportedDailyRebootTime"/>
-                        </Border>
-                    </StackPanel>
-                    <Button Grid.Row="5" Grid.Column="1" Margin="3" Content="Set Reboot Info" Click="OnSetRebootInfo" />
-                </Grid>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Daily Reboot" />
+                        <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="" x:Name="DesiredDailyRebootTime"/>
+                        <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
+                            <Border Margin="3" Background="#F8F8F8">
+                                <TextBlock Width="200" x:Name="ReportedDailyRebootTime"/>
+                            </Border>
+                        </StackPanel>
+                        <Button Grid.Row="5" Grid.Column="1" Margin="3" Content="Set Reboot Info" Click="OnSetRebootInfo" />
+                    </Grid>
 
-                <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="1" Margin="3" Text="Time Info" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
-                    <Button Grid.Column="0" Click="OnExpandTimeInfo" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
-                <Grid x:Name="TimeInfoGrid" Visibility="Collapsed">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="270"/>
-                        <ColumnDefinition Width="270"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Time Info" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandTimeInfo" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid x:Name="TimeInfoGrid" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="270"/>
+                            <ColumnDefinition Width="270"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Local Time"/>
-                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="LocalTime"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Local Time"/>
+                        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="LocalTime"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="NTP Server"/>
-                    <ComboBox Grid.Row="2" Grid.Column="1" Margin="3" SelectedIndex="1" x:Name="DesiredNtpServer">
-                        <ComboBoxItem Content="pool.ntp.org" />
-                        <ComboBoxItem Content="time.windows.com" />
-                    </ComboBox>
-                    <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="NtpServer" />
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="NTP Server"/>
+                        <ComboBox Grid.Row="2" Grid.Column="1" Margin="3" SelectedIndex="1" x:Name="DesiredNtpServer">
+                            <ComboBoxItem Content="pool.ntp.org" />
+                            <ComboBoxItem Content="time.windows.com" />
+                        </ComboBox>
+                        <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="NtpServer" />
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Time Zone Bias"/>
-                    <TextBox Grid.Row="3" Grid.Column="1" Margin="3" Text="480" x:Name="DesiredTimeZoneBias"/>
-                    <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="ReportedTimeZoneBias"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Time Zone Bias"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Margin="3" Text="480" x:Name="DesiredTimeZoneBias"/>
+                        <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="ReportedTimeZoneBias"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Time Zone Standard Name"/>
-                    <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="Pacific Standard Time1" x:Name="DesiredTimeZoneStandardName"/>
-                    <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="ReportedTimeZoneStandardName"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Time Zone Standard Name"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="Pacific Standard Time1" x:Name="DesiredTimeZoneStandardName"/>
+                        <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="ReportedTimeZoneStandardName"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Time Zone Standard Date"/>
-                    <TextBox Grid.Row="5" Grid.Column="1" Margin="3" Text="11/1/2016 2:00:00 AM" x:Name="DesiredTimeZoneStandardDate"/>
-                    <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="ReportedTimeZoneStandardDate" />
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Time Zone Standard Date"/>
+                        <TextBox Grid.Row="5" Grid.Column="1" Margin="3" Text="11/1/2016 2:00:00 AM" x:Name="DesiredTimeZoneStandardDate"/>
+                        <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="ReportedTimeZoneStandardDate" />
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Time Zone Standard Bias"/>
-                    <TextBox Grid.Row="6" Grid.Column="1" Margin="3" Text="0" x:Name="DesiredTimeZoneStandardBias"/>
-                    <StackPanel Grid.Row="6" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="ReportedTimeZoneStandardBias" />
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Time Zone Standard Bias"/>
+                        <TextBox Grid.Row="6" Grid.Column="1" Margin="3" Text="0" x:Name="DesiredTimeZoneStandardBias"/>
+                        <StackPanel Grid.Row="6" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="ReportedTimeZoneStandardBias" />
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Time Zone Daylight Name"/>
-                    <TextBox Grid.Row="7" Grid.Column="1" Margin="3" Text="Pacific Daylight Time1" x:Name="DesiredTimeZoneDaylightName"/>
-                    <StackPanel Grid.Row="7" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="ReportedTimeZoneDaylightName" />
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Time Zone Daylight Name"/>
+                        <TextBox Grid.Row="7" Grid.Column="1" Margin="3" Text="Pacific Daylight Time1" x:Name="DesiredTimeZoneDaylightName"/>
+                        <StackPanel Grid.Row="7" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="ReportedTimeZoneDaylightName" />
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Time Zone Daylight Date"/>
-                    <TextBox Grid.Row="8" Grid.Column="1" Margin="3" Text="3/2/2016 2:00:00 AM" x:Name="DesiredTimeZoneDaylightDate"/>
-                    <StackPanel Grid.Row="8" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="ReportedTimeZoneDaylightDate" />
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Time Zone Daylight Date"/>
+                        <TextBox Grid.Row="8" Grid.Column="1" Margin="3" Text="3/2/2016 2:00:00 AM" x:Name="DesiredTimeZoneDaylightDate"/>
+                        <StackPanel Grid.Row="8" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="ReportedTimeZoneDaylightDate" />
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="9" Grid.Column="0" Margin="3" Text="Time Zone Daylight Bias"/>
-                    <TextBox Grid.Row="9" Grid.Column="1" Margin="3" Text="-60" x:Name="DesiredTimeZoneDaylightBias"/>
-                    <StackPanel Grid.Row="9" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="ReportedTimeZoneDaylightBias" />
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="9" Grid.Column="0" Margin="3" Text="Time Zone Daylight Bias"/>
+                        <TextBox Grid.Row="9" Grid.Column="1" Margin="3" Text="-60" x:Name="DesiredTimeZoneDaylightBias"/>
+                        <StackPanel Grid.Row="9" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="ReportedTimeZoneDaylightBias" />
+                            </Border>
+                        </StackPanel>
 
-                    <Button Grid.Row="10" Grid.Column="1" Margin="3" Content="Set Time Info" Click="OnSetTimeInfo" />
-                </Grid>
+                        <Button Grid.Row="10" Grid.Column="1" Margin="3" Content="Set Time Info" Click="OnSetTimeInfo" />
+                    </Grid>
 
-                <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="1" Margin="3" Text="Factory Reset" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
-                    <Button Grid.Column="0" Click="OnExpandFactoryReset" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
-                <Grid x:Name="FactoryResetGrid" Visibility="Collapsed">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="270"/>
-                        <ColumnDefinition Width="270"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Factory Reset" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandFactoryReset" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid x:Name="FactoryResetGrid" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="270"/>
+                            <ColumnDefinition Width="270"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Factory Reset"/>
-                    <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Reset" Click="OnFactoryReset" />
-                </Grid>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Factory Reset"/>
+                        <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Reset" Click="OnFactoryReset" />
+                    </Grid>
 
-                <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="1" Margin="3" Text="Device Status" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
-                    <Button Grid.Column="0" Click="OnExpandDeviceStatus" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
-                <Grid x:Name="DevicestatusGrid" Visibility="Collapsed">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="270"/>
-                        <ColumnDefinition Width="270"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Device Status" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandDeviceStatus" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid x:Name="DevicestatusGrid" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="270"/>
+                            <ColumnDefinition Width="270"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Secure Boot State"/>
-                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="DevStatusSecureBootState"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Secure Boot State"/>
+                        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevStatusSecureBootState"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="IPv4 Address"/>
-                    <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="DevStatusIPAddressV4"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="IPv4 Address"/>
+                        <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevStatusIPAddressV4"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="IPv6 Address"/>
-                    <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="DevStatusIPAddressV6"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="IPv6 Address"/>
+                        <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevStatusIPAddressV6"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Is Connected"/>
-                    <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <CheckBox Width="200" x:Name="DevStatusIsConnected"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Is Connected"/>
+                        <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <CheckBox Width="200" x:Name="DevStatusIsConnected"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Address Type"/>
-                    <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="DevStatusMacAddressType"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Address Type"/>
+                        <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevStatusMacAddressType"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="OS Edition"/>
-                    <StackPanel Grid.Row="6" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="DevStatusOSEdition"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="OS Edition"/>
+                        <StackPanel Grid.Row="6" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevStatusOSEdition"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Battery Status"/>
-                    <StackPanel Grid.Row="7" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="DevStatusBatteryStatus"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Battery Status"/>
+                        <StackPanel Grid.Row="7" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevStatusBatteryStatus"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Battery Remaining"/>
-                    <StackPanel Grid.Row="8" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="DevStatusBatteryRemaining"/>
-                        </Border>
-                    </StackPanel>
+                        <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Battery Remaining"/>
+                        <StackPanel Grid.Row="8" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevStatusBatteryRemaining"/>
+                            </Border>
+                        </StackPanel>
 
-                    <TextBlock Grid.Row="9" Grid.Column="0" Margin="3" Text="Battery Runtime"/>
-                    <StackPanel Grid.Row="9" Grid.Column="2" Orientation="Horizontal">
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Width="200" x:Name="DevStatusBatteryRuntime"/>
-                        </Border>
-                    </StackPanel>
-                </Grid>
-
-
-                <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="270"/>
-                        <ColumnDefinition Width="270"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="Apply Desired to DT and Device" Click="OnSetAllDesiredProperties"/>
-                    <Button Grid.Row="0" Grid.Column="2" Margin="3" Content="Update DT Reported from Device" Click="OnUpdateDTReported" />
-                    <Button Grid.Row="1" Grid.Column="2" Margin="3" Content="Read Reported from DT" Click="OnReadDTReported" />
-                </Grid>
+                        <TextBlock Grid.Row="9" Grid.Column="0" Margin="3" Text="Battery Runtime"/>
+                        <StackPanel Grid.Row="9" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevStatusBatteryRuntime"/>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
 
 
-            </StackPanel>
-        </ScrollViewer>
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="270"/>
+                            <ColumnDefinition Width="270"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="Apply Desired to DT and Device" Click="OnSetAllDesiredProperties"/>
+                        <Button Grid.Row="0" Grid.Column="2" Margin="3" Content="Update DT Reported from Device" Click="OnUpdateDTReported" />
+                        <Button Grid.Row="1" Grid.Column="2" Margin="3" Content="Read Reported from DT" Click="OnReadDTReported" />
+                    </Grid>
+
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </Window>
