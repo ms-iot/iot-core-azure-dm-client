@@ -106,6 +106,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AppCfg.h" />
+    <ClInclude Include="AzureBlobCfg.h" />
     <ClInclude Include="CommandProcessor.h" />
     <ClInclude Include="CSPs\CustomDeviceUiCsp.h" />
     <ClInclude Include="CSPs\DeviceStatusCSP.h" />
@@ -125,6 +127,8 @@
     <ClInclude Include="TimeCfg.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AppCfg.cpp" />
+    <ClCompile Include="AzureBlobCfg.cpp" />
     <ClCompile Include="CommandProcessor.cpp" />
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp" />
     <ClCompile Include="CSPs\DeviceStatusCSP.cpp" />

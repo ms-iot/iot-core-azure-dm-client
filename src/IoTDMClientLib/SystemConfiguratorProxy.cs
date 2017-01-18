@@ -13,7 +13,6 @@ using Windows.System;
 
 namespace Microsoft.Devices.Management
 {
-
     // This class send requests (DMrequest) to the System Configurator and receives the responses (DMesponse) from it
     class SystemConfiguratorProxy : ISystemConfiguratorProxy
     {

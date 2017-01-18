@@ -8,6 +8,12 @@
 #include "CSPs\RemoteWipeCSP.h"
 #include "CSPs\CustomDeviceUiCsp.h"
 #include "TimeCfg.h"
+#include "AppCfg.h"
+#include "AzureBlobCfg.h"
+
+#ifndef AZURE_BLOB_SDK_FOR_ARM
+#include <fstream>
+#endif // !AZURE_BLOB_SDK_FOR_ARM
 
 #include "Models\AllModels.h"
 
@@ -16,6 +22,87 @@ using namespace std;
 using namespace Windows::Data::Json;
 
 #if 0 // Not yet implemented
+void HandleTransferFile(const wstring& json, DMMessage& response)
+{
+    //
+    // JSON expected should reflect this class:
+    //      public class AzureFileTransfer
+    //      {
+    //          public string LocalPath{ get; set; }
+#ifndef AZURE_BLOB_SDK_FOR_ARM
+    //          public string LocalPath2{ get; set; }
+#endif // !AZURE_BLOB_SDK_FOR_ARM
+
+    //          public string ConnectionString{ get; set; }
+    //          public string ContainerName{ get; set; }
+    //          public string BlobName{ get; set; }
+    //          public bool Upload{ get; set; }
+    //      }
+    //
+    TRACEP(L"DMCommand::HandleTransferFile json=", json);
+    try
+    {
+        auto jsonObject = JsonObject::Parse(ref new Platform::String(json.c_str()));
+        bool upload = jsonObject->GetNamedBoolean(ref new Platform::String(L"Upload"));
+        wstring localPath = jsonObject->GetNamedString(ref new Platform::String(L"LocalPath"))->Data();
+#ifdef AZURE_BLOB_SDK_FOR_ARM
+        wstring connectionString = jsonObject->GetNamedString(ref new Platform::String(L"ConnectionString"))->Data();
+        wstring containerName = jsonObject->GetNamedString(ref new Platform::String(L"ContainerName"))->Data();
+        wstring blobName = jsonObject->GetNamedString(ref new Platform::String(L"BlobName"))->Data();
+
+        if (upload) 
+        {
+            AzureBlobCfg::UploadFile(localPath, connectionString, containerName, blobName);
+        }
+        else
+        {
+            AzureBlobCfg::DownloadFile(connectionString, containerName, blobName, localPath);
+        }
+#else
+        wstring appLocalDataPath = jsonObject->GetNamedString(ref new Platform::String(L"AppLocalDataPath"))->Data();
+
+        std::ifstream  src((upload) ? localPath : appLocalDataPath, std::ios::binary);
+        std::ofstream  dst((!upload) ? localPath : appLocalDataPath, std::ios::binary);
+        dst << src.rdbuf();
+
+#endif // AZURE_BLOB_SDK_FOR_ARM
+        response.SetContext(DMStatus::Succeeded);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        response.SetData(Utils::ConcatString(failure.c_str(), e->HResult));
+        response.SetContext(DMStatus::Failed);
+    }
+}
+
+void HandleAppLifecycle(const wstring& json, DMMessage& response)
+{
+    //
+    // JSON expected should reflect this class:
+    //        public class AppLifecycleInfo
+    //        {
+    //            public string AppId { get; set; }
+    //            public bool Start { get; set; }
+    //        }
+    //
+    TRACEP(L"DMCommand::HandleAppLifecycle json=", json);
+    try
+    {
+        auto jsonObject = JsonObject::Parse(ref new Platform::String(json.c_str()));
+        wstring appId = jsonObject->GetNamedString(ref new Platform::String(L"AppId"))->Data();
+        bool start = jsonObject->GetNamedBoolean(ref new Platform::String(L"Start"));
+
+        AppCfg::ManageApp(appId, start);
+        response.SetContext(DMStatus::Succeeded);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        response.SetData(Utils::ConcatString(failure.c_str(), e->HResult));
+        response.SetContext(DMStatus::Failed);
+    }
+}
 
 void HandleAddAppForStartup(const wstring& json, DMMessage& response)
 {
@@ -261,6 +348,28 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
         break;
     case DMCommand::RemoveStartupApp:
         HandleRemoveAppForStartup(request.GetDataW(), response);
+        break;
+    case DMCommand::AppLifcycle:
+        HandleAppLifecycle(request.GetDataW(), response);
+        break;
+    case DMCommand::TransferFile:
+        HandleTransferFile(request.GetDataW(), response);
+        break;
+    case DMCommand::GetTimeInfo:
+        {
+            try
+            {
+                wstring timeInfoJson = TimeCfg::GetTimeInfoJson();
+                TRACEP(L" get json time info = ", timeInfoJson.c_str());
+                response.SetData(timeInfoJson);
+                response.SetContext(DMStatus::Succeeded);
+            }
+            catch (DMException& e)
+            {
+                response.SetData(e.what(), strlen(e.what()));
+                response.SetContext(DMStatus::Failed);
+            }
+        }
         break;
     case DMCommand::SetTimeInfo:
         {

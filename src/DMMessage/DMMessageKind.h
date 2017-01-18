@@ -12,6 +12,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         Unknown = 0,
         FactoryReset = 1,
         CheckUpdates = 2,
+
+        // Apps
         ListApps = 3,
         InstallApp = 4,
         UninstallApp = 5,
@@ -19,11 +21,15 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         ListStartupBackgroundApps = 7,
         AddStartupApp = 8,
         RemoveStartupApp = 9,
+        AppLifcycle = 10,
 
         // Reboot
-        RebootSystem = 10,
-        SetRebootInfo = 11,
-        GetRebootInfo = 12,
+        RebootSystem = 15,
+        SetRebootInfo = 16,
+        GetRebootInfo = 17,
+
+        // Transfer
+        TransferFile = 20,
 
         // TimeInfo
         GetTimeInfo = 30,
@@ -31,8 +37,5 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
         // Device Status
         GetDeviceStatus = 40,
-
-        // Generic Status response code:
-        StatusResponse = 100,
     };
 }}}}

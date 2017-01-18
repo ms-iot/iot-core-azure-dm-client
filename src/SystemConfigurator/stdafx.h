@@ -5,6 +5,9 @@
 
 #pragma once
 
+// avoid conflicts with std::numeric_limits max
+#define NOMINMAX
+
 #include "targetver.h"
 
 #include <stdio.h>

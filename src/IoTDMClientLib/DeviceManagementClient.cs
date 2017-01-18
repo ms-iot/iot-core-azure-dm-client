@@ -1,13 +1,32 @@
 ﻿using Microsoft.Azure.Devices.Shared;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Windows.Storage;
 
 namespace Microsoft.Devices.Management
 {
+    public class AzureFileTransfer
+    {
+        public string LocalPath { get; set; }
+        public string AppLocalDataPath { get; set; }
+        public string ConnectionString { get; set; }
+        public string ContainerName { get; set; }
+        public string BlobName { get; set; }
+        public bool Upload { get; set; }
+    }
+
+    public class AppLifecycleInfo
+    {
+        public string AppId { get; set; }
+        public bool Start { get; set; }
+    }
+
     public class StartupAppInfo
     {
         public string AppId { get; set; }
@@ -219,8 +238,86 @@ namespace Microsoft.Devices.Management
                 throw new Exception();
             }
         }
+
+        public async Task AppLifecycleAsync(AppLifecycleInfo appInfo)
+        {
+            var request = new DMMessage(DMCommand.AppLifcycle);
+            request.SetData(JsonConvert.SerializeObject(appInfo));
+
+            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
+            if (result.Context != 0)
+            {
+                throw new Exception();
+            }
+        }
+
+        public async Task TransferFileAsync(AzureFileTransfer transferInfo)
+        {
+            //
+            // C++ Azure Blob SDK not supported for ARM, so use Service to copy file to/from
+            // App's LocalData and then use C# Azure Blob SDK to transfer
+            //
+            StorageFile appLocalDataFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync("tmp", CreationCollisionOption.GenerateUniqueName);
+            transferInfo.AppLocalDataPath = appLocalDataFile.Path;
+
+            if (!transferInfo.Upload)
+            {
+                // use Azure C# Storage SDK to download file into App LocalData
+                
+                // Retrieve storage account from connection string.
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(transferInfo.ConnectionString);
+
+                // Create the blob client.
+                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+                // Retrieve a reference to a container.
+                CloudBlobContainer container = blobClient.GetContainerReference(transferInfo.ContainerName);
+
+                // Retrieve reference to a blob named "photo1.jpg".
+                CloudBlockBlob blockBlob = container.GetBlockBlobReference(transferInfo.BlobName);
+
+                // Save blob contents to a file.
+                await blockBlob.DownloadToFileAsync(appLocalDataFile);
+            }
+
+            // use C++ service to copy file to/from App LocalData
+            var request = new DMMessage(DMCommand.TransferFile);
+            request.SetData(JsonConvert.SerializeObject(transferInfo));
+            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
+            if (result.Context != 0)
+            {
+                throw new Exception();
+            }
+
+            if (transferInfo.Upload)
+            {
+                // use Azure C# Storage SDK to upload file from App LocalData
+
+                // Retrieve storage account from connection string.
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(transferInfo.ConnectionString);
+
+                // Create the blob client.
+                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+                // Retrieve a reference to a container.
+                CloudBlobContainer container = blobClient.GetContainerReference(transferInfo.ContainerName);
+
+                // Create the container if it doesn't already exist.
+                await container.CreateIfNotExistsAsync();
+
+                // Retrieve reference to a blob named "photo1.jpg".
+                CloudBlockBlob blockBlob = container.GetBlockBlobReference(transferInfo.BlobName);
+
+                // Save blob contents to a file.
+                await blockBlob.UploadFromFileAsync(appLocalDataFile);
+            }
+
+            await appLocalDataFile.DeleteAsync();
+
+        }
 #endif
-        public async Task RebootSystemAsync()
+        
+        public async Task<DMMethodResult> RebootSystemAsync()
         {
             if (await this._requestHandler.IsSystemRebootAllowed() == SystemRebootRequestResponse.StartNow)
             {
