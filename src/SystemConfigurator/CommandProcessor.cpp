@@ -30,9 +30,8 @@ void HandleTransferFile(const wstring& json, DMMessage& response)
     //      {
     //          public string LocalPath{ get; set; }
 #ifndef AZURE_BLOB_SDK_FOR_ARM
-    //          public string LocalPath2{ get; set; }
+    //          public string AppLocalDataPath{ get; set; }
 #endif // !AZURE_BLOB_SDK_FOR_ARM
-
     //          public string ConnectionString{ get; set; }
     //          public string ContainerName{ get; set; }
     //          public string BlobName{ get; set; }

@@ -5,8 +5,10 @@
 
 #pragma once
 
+#ifdef AZURE_BLOB_SDK_FOR_ARM
 // avoid conflicts with std::numeric_limits max
 #define NOMINMAX
+#endif // AZURE_BLOB_SDK_FOR_ARM
 
 #include "targetver.h"
 
