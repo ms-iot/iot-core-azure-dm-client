@@ -162,6 +162,12 @@
       <HintPath>..\..\external\AzureSDK\Microsoft.Azure.Devices.Shared.UWP.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DMMessage\DMMessage.vcxproj">
+      <Project>{241582cd-4861-4643-a7a2-21865b779aaf}</Project>
+      <Name>DMMessage</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

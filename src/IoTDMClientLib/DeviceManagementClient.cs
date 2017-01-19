@@ -154,6 +154,34 @@ namespace Microsoft.Devices.Management
             return new DeviceManagementClient(deviceTwin, requestHandler, systemConfiguratorProxy);
         }
 
+        //
+        // Commands:
+        //
+
+        // This command checks if updates are available. 
+        // TODO: work out complete protocol (find updates, apply updates etc.)
+        public async Task<bool> CheckForUpdatesAsync()
+        {
+            var request = new Message.CheckForUpdatesRequest();
+            var response = await this._systemConfiguratorProxy.SendCommandAsync(request);
+            return (response as Message.CheckForUpdatesResponse).UpdatesAvailable;
+        }
+
+        public async Task RebootSystemAsync()
+        {
+            if (await this._requestHandler.IsSystemRebootAllowed() == SystemRebootRequestResponse.StartNow)
+            {
+                var request = new Message.RebootRequest();
+                await this._systemConfiguratorProxy.SendCommandAsync(request);
+            }
+        }
+
+        public async Task<DMMethodResult> DoFactoryResetAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+#if false // work in proghress
         public TwinCollection HandleDesiredPropertiesChanged(TwinCollection desiredProperties)
         {
             TwinCollection nonDMProperties = new TwinCollection();
@@ -184,144 +212,6 @@ namespace Microsoft.Devices.Management
             }
 
             return nonDMProperties;
-        }
-
-        //
-        // Commands:
-        //
-
-        // This command checks if updates are available. 
-        // TODO: work out complete protocol (find updates, apply updates etc.)
-        public async Task<bool> CheckForUpdatesAsync()
-        {
-            var request = new DMMessage(DMCommand.CheckUpdates);
-            var response = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return response.Context == 1;    // 1 means "updates available"
-        }
-
-        public async Task<Dictionary<string, AppInfo>> ListAppsAsync()
-        {
-            var request = new DMMessage(DMCommand.ListApps);
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            var json = result.GetDataString();
-            return AppInfo.SetOfAppsFromJson(json);
-        }
-
-        public async Task InstallAppAsync(AppxInstallInfo appxInstallInfo)
-        {
-            var request = new DMMessage(DMCommand.InstallApp);
-            request.SetData(JsonConvert.SerializeObject(appxInstallInfo));
-
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
-            {
-                throw new Exception();
-            }
-        }
-
-        public async Task UninstallAppAsync(AppxUninstallInfo appxUninstallInfo)
-        {
-            var request = new DMMessage(DMCommand.UninstallApp);
-            request.SetData(JsonConvert.SerializeObject(appxUninstallInfo));
-
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
-            {
-                throw new Exception();
-            }
-        }
-
-        public async Task<string> GetStartupForegroundAppAsync()
-        {
-            var request = new DMMessage(DMCommand.GetStartupForegroundApp);
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return result.GetDataString();
-        }
-
-        public async Task<List<string>> ListStartupBackgroundAppsAsync()
-        {
-            var request = new DMMessage(DMCommand.ListStartupBackgroundApps);
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return JsonConvert.DeserializeObject<List<string>>(result.GetDataString());
-        }
-
-        public async Task AddStartupAppAsync(StartupAppInfo startupAppInfo)
-        {
-            var request = new DMMessage(DMCommand.AddStartupApp);
-            request.SetData(JsonConvert.SerializeObject(startupAppInfo));
-
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
-            {
-                throw new Exception();
-            }
-        }
-
-        public async Task RemoveStartupAppAsync(StartupAppInfo startupAppInfo)
-        {
-            var request = new DMMessage(DMCommand.RemoveStartupApp);
-            request.SetData(JsonConvert.SerializeObject(startupAppInfo));
-
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
-            {
-                throw new Exception();
-            }
-        }
-
-        public async Task<DMMethodResult> RebootSystemAsync()
-        {
-            DMMethodResult methodResult = new DMMethodResult();
-
-            try
-            {
-                SystemRebootRequestResponse rebootAllowed = await _requestHandler.IsSystemRebootAllowed();
-                if (rebootAllowed != SystemRebootRequestResponse.StartNow)
-                {
-                    // ToDo: What should happen if the the user blocks the restart?
-                    //       We need to have a policy on when to ask again.
-                    methodResult.returnCode = (uint)DMStatus.Failure;
-                    return methodResult;
-                }
-
-                var request = new DMMessage(DMCommand.RebootSystem);
-                var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-                if (result.Context != 0)
-                {
-                    throw new Exception();
-                }
-                methodResult.returnCode = (uint)DMStatus.Success;
-            }
-            catch (Exception)
-            {
-                // returnCode is already set to 0 to indicate failure.
-            }
-            return methodResult;
-        }
-
-        public async Task<DMMethodResult> DoFactoryResetAsync()
-        {
-            DMMethodResult methodResult = new DMMethodResult();
-
-            try
-            {
-                var request = new DMMessage(DMCommand.FactoryReset);
-
-                // Here we might want to set some reported properties:
-                // ReportProperties("We're about to start factory reset... If you don't hear from me again, I'm dead");
-
-                var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-                if (result.Context != 0)
-                {
-                    throw new Exception();
-                }
-                methodResult.returnCode = (uint)DMStatus.Success;
-            }
-            catch (Exception)
-            {
-                // returnCode is already set to 0 to indicate failure.
-            }
-            return methodResult;
         }
 
         public async Task<TimeInfo> GetTimeInfoAsync()
@@ -373,31 +263,14 @@ namespace Microsoft.Devices.Management
 
         private async Task SetPropertyAsync(DMCommand command, string valueString)
         {
-            Debug.WriteLine("SetPropertyAsync()");
-
-            var request = new DMMessage(command);
-            request.SetData(valueString);
-
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != (UInt32)DMStatus.Success)
-            {
-                throw new Exception();
-            }
+            throw new NotImplementedException();
         }
 
         private async Task<string> GetPropertyAsync(DMCommand command)
         {
-            Debug.WriteLine("GetPropertyAsync()");
-
-            var request = new DMMessage(command);
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != (UInt32)DMStatus.Success)
-            {
-                throw new Exception();
-            }
-            return result.GetDataString();
+            throw new NotImplementedException();
         }
-
+#endif
         // Data members
         ISystemConfiguratorProxy _systemConfiguratorProxy;
         IDeviceManagementRequestHandler _requestHandler;

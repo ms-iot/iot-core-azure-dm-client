@@ -14,7 +14,7 @@ namespace Toaster
     {
         DeviceManagementClient DMClient;
 
-        private const string DeviceConnectionString = "<connection string>";
+        private const string DeviceConnectionString = "HostName=iot-open-house-demo.azure-devices.net;DeviceId=dog-feeder;SharedAccessKey=88JacFKEPdfsouEwcYdF9VRuz0RsyTqkH6iRlufvRkE=";
 
         public MainPage()
         {
@@ -33,11 +33,12 @@ namespace Toaster
 
         public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
         {
+#if false // TODO
             TwinCollection nonDMProperties = DMClient.HandleDesiredPropertiesChanged(desiredProperties);
 
             // Application developer can process all the top-level nodes (in nonDMProperties)
             // that did not get filtered out by DM.
-
+#endif
             return null;
         }
 
@@ -94,5 +95,46 @@ namespace Toaster
                 // Don't do anything yet
             }
         }
+
+        private async void RestartSystem()
+        {
+            bool success = true;
+            try
+            {
+                await DMClient.RebootSystemAsync();
+            }
+            catch(Exception)
+            {
+                success = false;
+            }
+
+            StatusText.Text = success?  "Succeeded!" : "Failed!";
+        }
+
+        private void OnSystemRestart(object sender, RoutedEventArgs e)
+        {
+            RestartSystem();
+        }
+
+        private async void FactoryReset()
+        {
+            bool success = true;
+            try
+            {
+                await DMClient.DoFactoryResetAsync();
+            }
+            catch (Exception)
+            {
+                success = false;
+            }
+
+            StatusText.Text = success? "Succeeded!" : "Failed!";
+         }
+
+        private void OnFactoryReset(object sender, RoutedEventArgs e)
+        {
+            RestartSystem();
+        }
+
     }
 }

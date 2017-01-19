@@ -66,7 +66,7 @@ wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
     auto data = ref new Windows::Data::Json::JsonArray();
     // use std::function to pass lambda that captures something
     std::function<void(std::vector<std::wstring>&, std::wstring&)> valueHandler =
-        [data](vector<wstring>& uriTokens, wstring& value) {
+        [data](vector<wstring>& uriTokens, wstring& /*value*/) {
         if (uriTokens.size() == 6)
         {
             // 0/__1___/__2__/____3________/___________4___________/___5_

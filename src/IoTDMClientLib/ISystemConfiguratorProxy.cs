@@ -8,6 +8,6 @@ namespace Microsoft.Devices.Management
 {
     internal interface ISystemConfiguratorProxy
     {
-        Task<DMMessage> SendCommandAsync(DMMessage command);
+        Task<Message.IResponse> SendCommandAsync(Message.IRequest command);
     }
 }

@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 #include <tchar.h>
-
-
-
-// TODO: reference additional headers your program requires here
+#include <stdint.h>
+#include <assert.h>
+#include <ppltasks.h>
+#include <windows.h>

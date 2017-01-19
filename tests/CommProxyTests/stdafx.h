@@ -7,7 +7,8 @@
 
 #include "targetver.h"
 
+#include <ppltasks.h>
 #include <stdio.h>
 #include <tchar.h>
-
+#include <stdint.h>
 #include <Windows.h>
