@@ -112,6 +112,56 @@ void MdmProvision::RunAdd(const wstring& sid, const wstring& path, const wstring
     RunSyncML(sid, requestSyncML, resultSyncML);
 }
 
+void MdmProvision::RunAddData(const wstring& sid, const wstring& path, const wstring& value)
+{
+    wstring requestSyncML = LR"(
+        <SyncBody>
+            <Add>
+                <CmdID>1</CmdID>
+                <Item>
+                    <Target>
+                        <LocURI>)";
+    requestSyncML += path;
+    requestSyncML += LR"(</LocURI>
+                    </Target>
+                    <Meta>
+                        <Format xmlns="syncml:metinf">chr</Format>
+                    </Meta>
+                    <Data>)";
+    requestSyncML += value;
+    requestSyncML += LR"(</Data>
+                </Item>
+            </Add>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    RunSyncML(sid, requestSyncML, resultSyncML);
+}
+
+void MdmProvision::RunDelete(const std::wstring& sid, const std::wstring& path)
+{
+    wstring requestSyncML = LR"(
+        <SyncBody>
+            <Delete>
+                <CmdID>1</CmdID>
+                <Item>
+                    <Target>
+                        <LocURI>)";
+    requestSyncML += path;
+    requestSyncML += LR"(</LocURI>
+                    </Target>
+                </Item>
+            </Delete>
+        </SyncBody>
+        )";
+
+    TRACEP(L"RunDelete : ", requestSyncML.c_str());
+
+    wstring resultSyncML;
+    RunSyncML(sid, requestSyncML, resultSyncML);
+}
+
 wstring MdmProvision::RunGetString(const wstring& sid, const wstring& path)
 {
     wstring requestSyncML = LR"(
@@ -283,6 +333,18 @@ void MdmProvision::RunAdd(const wstring& path, const wstring& value)
 {
     // empty sid is okay for device-wide CSPs.
     RunAdd(L"", path, value);
+}
+
+void MdmProvision::RunAddData(const wstring& path, const wstring& value)
+{
+    // empty sid is okay for device-wide CSPs.
+    RunAddData(L"", path, value);
+}
+
+void MdmProvision::RunDelete(const std::wstring& path)
+{
+    // empty sid is okay for device-wide CSPs.
+    RunDelete(L"", path);
 }
 
 wstring MdmProvision::RunGetString(const wstring& path)

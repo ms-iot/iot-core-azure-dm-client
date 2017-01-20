@@ -110,6 +110,7 @@
     <ClInclude Include="CSPs\RebootCSP.h" />
     <ClInclude Include="CSPs\RemoteWipeCSP.h" />
     <ClInclude Include="CSPs\UpdateCSP.h" />
+    <ClInclude Include="CSPs\WifiCSP.h" />
     <ClInclude Include="DMService.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -127,6 +128,7 @@
     <ClCompile Include="CSPs\RebootCSP.cpp" />
     <ClCompile Include="CSPs\RemoteWipeCSP.cpp" />
     <ClCompile Include="CSPs\UpdateCSP.cpp" />
+    <ClCompile Include="CSPs\WifiCSP.cpp" />
     <ClCompile Include="DMService.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

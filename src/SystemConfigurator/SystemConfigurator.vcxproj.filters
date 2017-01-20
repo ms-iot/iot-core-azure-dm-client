@@ -78,6 +78,9 @@
     <ClInclude Include="CSPs\CustomDeviceUiCsp.h">
       <Filter>Source Files\CSPs</Filter>
     </ClInclude>
+    <ClInclude Include="CSPs\WifiCSP.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -120,6 +123,9 @@
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp">
+      <Filter>Source Files\CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\WifiCSP.cpp">
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
   </ItemGroup>
