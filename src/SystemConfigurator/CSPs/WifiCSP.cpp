@@ -5,6 +5,8 @@
 
 using namespace std;
 
+const wchar_t* WifeProfilePath = L"./Vendor/MSFT/WiFi/Profile/";
+
 // Wifi CSP docs
 // https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/wifi-csp
 //
@@ -13,7 +15,7 @@ void WifiCSP::AddProfile(const wstring& profileName, const wstring& profileXml)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/WlanXml";
 
@@ -24,7 +26,7 @@ void WifiCSP::DeleteProfile(const wstring& profileName)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
 
     MdmProvision::RunDelete(path);
@@ -34,7 +36,7 @@ wstring WifiCSP::GetProfile(const wstring& profileName)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
 
     wstring profileXml = MdmProvision::RunGetString(path);
@@ -46,7 +48,7 @@ void WifiCSP::SetProfile(const wstring& profileName, const wstring& profileXml)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/WlanXml";
 
@@ -57,7 +59,7 @@ void WifiCSP::AddProxy(const wstring& profileName, const wstring& proxy)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/Proxy";
 
@@ -68,7 +70,7 @@ void WifiCSP::DeleteProxy(const wstring& profileName)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/Proxy";
 
@@ -79,7 +81,7 @@ wstring WifiCSP::GetProxy(const wstring& profileName)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/Proxy";
 
@@ -92,7 +94,7 @@ void WifiCSP::SetProxy(const wstring& profileName, const wstring& proxy)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/Proxy";
 
@@ -103,7 +105,7 @@ void WifiCSP::AddDisableInternetConnectivityChecks(const wstring& profileName, b
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
@@ -114,7 +116,7 @@ void WifiCSP::DeleteDisableInternetConnectivityChecks(const wstring& profileName
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
@@ -125,7 +127,7 @@ bool WifiCSP::GetDisableInternetConnectivityChecks(const wstring& profileName)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
@@ -138,7 +140,7 @@ void WifiCSP::SetDisableInternetConnectivityChecks(const wstring& profileName, b
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
@@ -149,7 +151,7 @@ void AddProxyPacUrl(const wstring& profileName, const wstring& proxyPacUrl)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/ProxyPacUrl";
 
@@ -160,7 +162,7 @@ void WifiCSP::DeleteProxyPacUrl(const wstring& profileName)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/ProxyPacUrl";
 
@@ -171,7 +173,7 @@ wstring WifiCSP::GetProxyPacUrl(const wstring& profileName)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/ProxyPacUrl";
 
@@ -184,7 +186,7 @@ void WifiCSP::SetProxyPacUrl(const wstring& profileName, const wstring& proxyPac
 {
     TRACE(__FUNCTION__);
 
-    wstring path = L"./Vendor/MSFT/WiFi/Profile/";
+    wstring path = WifeProfilePath;
     path += profileName;
     path += L"/ProxyPacUrl";
 
