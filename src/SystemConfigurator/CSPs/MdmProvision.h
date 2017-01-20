@@ -12,6 +12,9 @@ public:
     static void RunSyncML(const std::wstring& sid, const std::wstring& inputSyncML, std::wstring& outputSyncML);
 
     static void RunAdd(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
+    static void RunAddData(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
+
+    static void RunDelete(const std::wstring& sid, const std::wstring& path);
 
     static void RunGetStructData(const std::wstring& path, Utils::ELEMENT_HANDLER handler);
     static std::wstring RunGetString(const std::wstring& sid, const std::wstring& path);
@@ -25,6 +28,9 @@ public:
 
     // Without sid
     static void RunAdd(const std::wstring& path, const std::wstring& value);
+    static void RunAddData(const std::wstring& path, const std::wstring& value);
+
+    static void RunDelete(const std::wstring& path);
 
     static std::wstring RunGetString(const std::wstring& path);
     static unsigned int RunGetUInt(const std::wstring& path);
