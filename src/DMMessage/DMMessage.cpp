@@ -1,5 +1,5 @@
 #include "stdafx.h"
 #include "IRequestIResponse.h"
-#include "PayloadTypes\Reboot.h"
+#include "Models\AllModels.h"
 
 // TODO: do we need this file?

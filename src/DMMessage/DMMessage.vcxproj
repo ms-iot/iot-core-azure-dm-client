@@ -216,10 +216,11 @@
     <ClInclude Include="DMMessageException.h" />
     <ClInclude Include="DMMessageKind.h" />
     <ClInclude Include="IRequestIResponse.h" />
-    <ClInclude Include="PayloadTypes\AppInstall.h" />
-    <ClInclude Include="PayloadTypes\CheckForUpdates.h" />
-    <ClInclude Include="PayloadTypes\Reboot.h" />
-    <ClInclude Include="PayloadTypes\StatusCodeResponse.h" />
+    <ClInclude Include="Models\AllModels.h" />
+    <ClInclude Include="Models\AppInstall.h" />
+    <ClInclude Include="Models\CheckForUpdates.h" />
+    <ClInclude Include="Models\Reboot.h" />
+    <ClInclude Include="Models\StatusCodeResponse.h" />
     <ClInclude Include="ResponseStatus.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="SerializationHelper.h" />

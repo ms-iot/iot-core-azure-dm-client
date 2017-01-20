@@ -9,9 +9,9 @@
 #include "CSPs\CustomDeviceUiCsp.h"
 #include "TimeCfg.h"
 
-#include "PayloadTypes\AppInstall.h"
-#include "PayloadTypes\CheckForUpdates.h"
-#include "PayloadTypes\StatusCodeResponse.h"
+#include "Models\AppInstall.h"
+#include "Models\CheckForUpdates.h"
+#include "Models\StatusCodeResponse.h"
 
 using namespace Microsoft::Devices::Management::Message;
 using namespace std;

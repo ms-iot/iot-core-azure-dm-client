@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "PayloadTypes\StatusCodeResponse.h"
-#include "PayloadTypes\CheckForUpdates.h"
-#include "PayloadTypes\AppInstall.h"
-#include "PayloadTypes\Reboot.h"
+#include "Models\StatusCodeResponse.h"
+#include "Models\CheckForUpdates.h"
+#include "Models\AppInstall.h"
+#include "Models\Reboot.h"
 #include "Blob.h"
 
 using namespace Platform;
