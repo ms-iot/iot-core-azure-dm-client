@@ -14,7 +14,7 @@ namespace Toaster
     {
         DeviceManagementClient DMClient;
 
-        private const string DeviceConnectionString = "<connection string>";
+        private const string DeviceConnectionString = "...";
 
         public MainPage()
         {
@@ -94,5 +94,46 @@ namespace Toaster
                 // Don't do anything yet
             }
         }
+
+        private async void RestartSystem()
+        {
+            bool success = true;
+            try
+            {
+                await DMClient.RebootSystemAsync();
+            }
+            catch(Exception)
+            {
+                success = false;
+            }
+
+            StatusText.Text = success?  "Succeeded!" : "Failed!";
+        }
+
+        private void OnSystemRestart(object sender, RoutedEventArgs e)
+        {
+            RestartSystem();
+        }
+
+        private async void FactoryReset()
+        {
+            bool success = true;
+            try
+            {
+                await DMClient.DoFactoryResetAsync();
+            }
+            catch (Exception)
+            {
+                success = false;
+            }
+
+            StatusText.Text = success? "Succeeded!" : "Failed!";
+         }
+
+        private void OnFactoryReset(object sender, RoutedEventArgs e)
+        {
+            RestartSystem();
+        }
+
     }
 }

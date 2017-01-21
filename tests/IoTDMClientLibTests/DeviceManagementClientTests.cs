@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
+using Microsoft.Devices.Management.Message;
+
 namespace IoTDMClientLibTests
 {
     class TwinMockup : IDeviceTwin
@@ -25,22 +27,18 @@ namespace IoTDMClientLibTests
         }
     }
 
-    class HandlerMockup : IDeviceManagementRequestHandler
+    class HandlerMockupForReboot : IDeviceManagementRequestHandler
     {
-        string applicationName;
         SystemRebootRequestResponse rebootResponse;
 
-        public HandlerMockup(string applicationName, SystemRebootRequestResponse rebootResponse)
+        public HandlerMockupForReboot(SystemRebootRequestResponse rebootResponse)
         {
-            this.applicationName = applicationName;
             this.rebootResponse = rebootResponse;
         }
 
         Task<ApplicationInfo> IDeviceManagementRequestHandler.GetApplicationInfo()
         {
-            var appinfo = new ApplicationInfo();
-            appinfo.ApplicationName = applicationName;
-            return Task.FromResult<ApplicationInfo>(appinfo);
+            throw new NotImplementedException();
         }
 
         Task<SystemRebootRequestResponse> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
@@ -49,17 +47,48 @@ namespace IoTDMClientLibTests
         }
     }
 
-    class ConfigurationProxyMockup : ISystemConfiguratorProxy
+    class HandlerMockupForAppInstall : IDeviceManagementRequestHandler
     {
-        DMMessage receivedMessage = new DMMessage { Context = (uint)DMCommand.Unknown };
-        public Task<DMMessage> SendCommandAsync(DMMessage command)
+        public string AppName;
+        public HandlerMockupForAppInstall(string appName){ AppName = appName; }
+
+        Task<ApplicationInfo> IDeviceManagementRequestHandler.GetApplicationInfo()
         {
-            this.receivedMessage = command;
-            var response = new DMMessage { Context = 0 };
-            return Task.FromResult<DMMessage>(response);
+            throw new NotImplementedException();
         }
 
-        public DMMessage ReceivedMessage => this.receivedMessage;
+        Task<SystemRebootRequestResponse> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    class ConfigurationProxyMockup : ISystemConfiguratorProxy
+    {
+        IRequest request = null;
+        IResponse response = null;
+
+        public Task<IResponse> SendCommandAsync(IRequest request)
+        {
+            this.request = request;
+            // Sending bytes over to SystemConfigurator...
+            if (request.Tag == DMMessageKind.InstallApp)
+            {
+                var appinstallReq = (AppInstallRequest)request; // cast must succeed
+                this.response = new AppInstallResponse(ResponseStatus.Success);
+                return Task.FromResult<IResponse>(response);
+            }
+            else if (request.Tag == DMMessageKind.RebootSystem)
+            {
+                var appinstallReq = (RebootRequest)request; // cast must succeed
+                this.response = new StatusCodeResponse(ResponseStatus.Success, DMMessageKind.RebootSystem);
+                return Task.FromResult<IResponse>(response);
+            }
+            else throw new Exception("Unsupported command");
+        }
+
+        public IRequest ReceivedRequest => this.request;
+        public IResponse ReturnedResponse => this.response;
     }
 
     [TestClass]
@@ -69,24 +98,40 @@ namespace IoTDMClientLibTests
         public void MockupProxyImmediateRebootTest()
         {
             var twin = new TwinMockup();
-            var requestHandler = new HandlerMockup("Test", SystemRebootRequestResponse.StartNow);
+            var requestHandler = new HandlerMockupForReboot(SystemRebootRequestResponse.StartNow);
             var proxy = new ConfigurationProxyMockup();
             var dmClient = DeviceManagementClient.Create(twin, requestHandler, proxy);
             dmClient.RebootSystemAsync().Wait();
 
-            Assert.AreEqual<uint>(proxy.ReceivedMessage.Context, (uint)DMCommand.RebootSystem);
+            Assert.AreEqual(proxy.ReceivedRequest.Tag, DMMessageKind.RebootSystem);
+            Assert.AreEqual(proxy.ReturnedResponse.Tag, DMMessageKind.RebootSystem);
+            Assert.AreEqual(proxy.ReturnedResponse.Status, ResponseStatus.Success);
         }
 
         [TestMethod]
         public void MockupProxyPostponedRebootTest()
         {
             var twin = new TwinMockup();
-            var requestHandler = new HandlerMockup("Test", SystemRebootRequestResponse.AskAgainLater);
+            var requestHandler = new HandlerMockupForReboot(SystemRebootRequestResponse.AskAgainLater);
             var proxy = new ConfigurationProxyMockup();
             var dmClient = DeviceManagementClient.Create(twin, requestHandler, proxy);
             dmClient.RebootSystemAsync().Wait();
 
-            Assert.AreEqual<uint>(proxy.ReceivedMessage.Context, (uint)DMCommand.Unknown);
+            Assert.AreEqual(proxy.ReceivedRequest, null);
+            Assert.AreEqual(proxy.ReturnedResponse, null);
+        }
+
+        [TestMethod]
+        public void MockupProxyInstallAppTest()
+        {
+            var twin = new TwinMockup();
+            var appname = "abc";
+            var proxy = new ConfigurationProxyMockup();
+
+            var response = proxy.SendCommandAsync(new AppInstallRequest(appname)).Result;
+
+            Assert.AreEqual(response.Status, ResponseStatus.Success);
+            Assert.AreEqual(response.Tag, DMMessageKind.InstallApp);
         }
     }
 }

@@ -1,29 +1,70 @@
 #include "stdafx.h"
 #include "CppUnitTest.h"
 
-#include "..\SharedUtilities\Utils.h"
-#include "..\SharedUtilities\Logger.h"
-#include "..\SharedUtilities\DMRequest.h"
-#include "..\SharedUtilities\SecurityAttributes.h"
+#include "Utils.h"
+#include "Logger.h"
+#include "DMRequest.h"
+#include "SecurityAttributes.h"
+
+#include "Models\AppInstall.h"
+#include "Models\CheckForUpdates.h"
+#include "Models\StatusCodeResponse.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+using namespace Microsoft::Devices::Management::Message;
+using namespace concurrency;
 
 namespace CommProxyTests
-{        
-    void VerifyDMMessageEquality(DMMessage& one, DMMessage& two)
-    {
-        Assert::AreEqual(one.GetContext(), two.GetContext());
-        Assert::AreEqual(one.GetDataCount(), two.GetDataCount());
-        auto oneData = one.GetData();
-        auto twoData = two.GetData();
-        Assert::AreEqual(0, memcmp(oneData.data(), twoData.data(), one.GetDataCount()));
-    }
-
+{
     TEST_CLASS(DMRequestSerializationTests)
     {
-    private:
+        TEST_METHOD(TestIRequestSerialization)
+        {
+            String^ appname = "abc";
+            IRequest^ ireg = ref new AppInstallRequest(appname);
+            auto blob = ireg->Serialize();
+            AppInstallRequest^ req = AppInstallRequest::Deserialize(blob);
+            Assert::AreEqual(req->AppName, appname);
+        }
 
-        void ValidateDMMessageWriteRead(DMMessage& orig)
+        TEST_METHOD(TestIResponseSerialization)
+        {
+            ResponseStatus statuses[] = { ResponseStatus::Success, ResponseStatus::Failure};
+
+            for (auto status : statuses)
+            {
+                IResponse^ iresponse = ref new AppInstallResponse(status);
+
+                auto blob = iresponse->Serialize();
+
+                auto req = AppInstallResponse::Deserialize(blob);
+                Assert::IsTrue(req->Status == status);
+            }
+        }
+
+        TEST_METHOD(TestIRequestSerializationThroughBlob)
+        {
+            String^ appname = "xyz";
+            IRequest^ ireg = ref new AppInstallRequest(appname);
+            auto blob = ireg->Serialize();
+            auto payload = blob->MakeIRequest();
+            AppInstallRequest^ req = (AppInstallRequest^)payload;
+            Assert::AreEqual(req->AppName, appname);
+        }
+
+        TEST_METHOD(TestIResponseSerializationThroughBlob)
+        {
+            IResponse^ iresponse = ref new AppInstallResponse(ResponseStatus::Success);
+
+            auto blob = iresponse->Serialize();
+
+            auto payload = blob->MakeIResponse();
+
+            AppInstallResponse^ response = (AppInstallResponse^)(payload);
+            Assert::IsTrue(response->Status == ResponseStatus::Success);
+        }
+
+        Blob^ RoundTripThroughNativeHandle(Blob^ inputBlob)
         {
             Utils::AutoCloseHandle pipeHandleWrite;
             pipeHandleWrite = CreateNamedPipeW(
@@ -45,61 +86,31 @@ namespace CommProxyTests
                 0,
                 nullptr);
 
-            Assert::IsTrue(DMMessage::WriteToPipe(pipeHandleWrite.Get(), orig));
-            DMMessage messageToReceive(DMStatus::Failed);
-            Assert::IsTrue(DMMessage::ReadFromPipe(pipeHandleRead.Get(), messageToReceive));
+            inputBlob->WriteToNativeHandle(pipeHandleWrite.Get());
 
-            VerifyDMMessageEquality(orig, messageToReceive);
+            return Blob::ReadFromNativeHandle(pipeHandleRead.Get());
         }
 
-    public:
-        
-        TEST_METHOD(TestEmptyUnknownMessageReadWrite)
+        TEST_METHOD(TestRequestRoundTripThroughNativeHandle)
         {
-            DMMessage emptyMessage(DMCommand::Unknown);
-            ValidateDMMessageWriteRead(emptyMessage);
+            String^ appname = "xyz";
+            auto req = ref new AppInstallRequest(appname);
+            auto blob = RoundTripThroughNativeHandle(req->Serialize());
+            AppInstallRequest^ req2 = AppInstallRequest::Deserialize(blob);
+            Assert::AreEqual(req->AppName, req2->AppName);
         }
 
-        TEST_METHOD(TestEmptyMessageReadWrite)
+        TEST_METHOD(TestResponseRoundTripThroughNativeHandle)
         {
-            DMMessage message(DMCommand::CheckUpdates);
-            ValidateDMMessageWriteRead(message);
+            ResponseStatus statuses[] = { ResponseStatus::Success, ResponseStatus::Failure };
+
+            for (auto status : statuses)
+            {
+                auto response = ref new AppInstallResponse(status);
+                auto blob = RoundTripThroughNativeHandle(response->Serialize());
+                auto req = AppInstallResponse::Deserialize(blob);
+                Assert::IsTrue(req->Status == status);
+            }
         }
-
-        TEST_METHOD(TestWstringMessageReadWrite)
-        {
-            std::wstring data(L"abcdefghijklmnop");
-            DMMessage message(DMCommand::UninstallApp);
-            message.SetData(data);
-
-            Assert::AreEqual(data, message.GetDataW());
-
-            ValidateDMMessageWriteRead(message);
-        }
-
-        TEST_METHOD(TestStringMessageReadWrite)
-        {
-            std::string data("abcdefghijklmnop");
-            DMMessage message(DMCommand::UninstallApp);
-            message.SetData(data.data(), data.size());
-
-            Assert::AreEqual(data, message.GetData());
-
-            ValidateDMMessageWriteRead(message);
-        }
-
-        TEST_METHOD(TestUint32MessageReadWrite)
-        {
-            uint32_t data = 0x12345678;
-            auto dataAsBytes = (char*)&data;
-            DMMessage message(DMCommand::UninstallApp);
-            message.SetData(dataAsBytes, sizeof(uint32_t));
-
-            auto messageDataAsBytes = message.GetData();
-            Assert::AreEqual(0, memcmp(dataAsBytes, messageDataAsBytes.data(), message.GetDataCount()));
-
-            ValidateDMMessageWriteRead(message);
-        }
-
     };
 }

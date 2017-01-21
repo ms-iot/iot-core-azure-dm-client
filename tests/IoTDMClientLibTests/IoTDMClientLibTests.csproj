@@ -112,7 +112,6 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <None Include="IoTDMClientLibTests_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Properties\UnitTestApp.rd.xml" />
@@ -125,6 +124,10 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\DMMessage\DMMessage.vcxproj">
+      <Project>{241582cd-4861-4643-a7a2-21865b779aaf}</Project>
+      <Name>DMMessage</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\IoTDMClientLib\IoTDMClientLib.csproj">
       <Project>{f29e2c50-97be-4c33-b601-e52aab5596e9}</Project>
       <Name>IoTDMClientLib</Name>

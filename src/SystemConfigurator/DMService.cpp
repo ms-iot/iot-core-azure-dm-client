@@ -245,34 +245,6 @@ void DMService::ServiceWorkerThread(void* context)
     iotDMService->ServiceWorkerThreadHelper();
 }
 
-void DMService::DisableEnqueue()
-{
-#if 0
-    _taskQueue.DisableEnqueue();       // Don't accept any more tasks.
-                                       // - This allows the queue to become 'inactive'
-                                       //   once all the already-queued items are consumed.
-                                       //
-                                       // If communication from the device twin takes place,
-                                       // calls to enqueue them will fail.
-                                       // - For methods, an error return code will be returned 
-                                       //   to Azure IoTHub
-                                       // - For property changes, failures will be ignored.
-                                       //   This is okay because the next time the service runs,
-                                       //   it will get the same properties again.
-                                       //
-                                       // Note also that we need to leave AzureProxy connected
-                                       // because other already-queued items might require
-                                       // sending data to the Azure IoTHub.
-                                       // Only when we exit this loop, we can destruct AzureProxy.
-                                       // 
-                                       // DisableEnqueue() has to be queued in a task for two reasons:
-                                       // 1. If the queue is already empty and waiting, we need to feed
-                                       //    it an item to get it going and re-activate the loop.
-                                       // 2. If the DisableEnqueue() happens between the IsActive() and 
-                                       //    the blocked Dequeue(), there will be a deadlock.
-#endif
-}
-
 void DMService::ServiceWorkerThreadHelper(void)
 {
     TRACE(__FUNCTION__);

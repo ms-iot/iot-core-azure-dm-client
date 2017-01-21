@@ -5,79 +5,116 @@ using Microsoft.Devices.Management;
 using Windows.Storage.Streams;
 using System.Runtime.InteropServices.WindowsRuntime;
 
+using Microsoft.Devices.Management.Message;
+using System.Collections.Generic;
+
 namespace IoTDMClientLibTests
 {
     [TestClass]
     public class DMMessageTests
     {
         [TestMethod]
-        public void DMMessageHasDefaultCtor()
+        public void TestRequestSerializeDeserialize()
         {
-            new DMMessage();
+            var appxname = "MyApp.appx";
+
+            IRequest appInstallRequest = new AppInstallRequest(appxname);
+
+            Blob blob = appInstallRequest.Serialize();
+
+            AppInstallRequest appInstallRequestRehydrated = AppInstallRequest.Deserialize(blob);
+
+            Assert.AreEqual(appInstallRequestRehydrated.Tag, DMMessageKind.InstallApp);
+            Assert.AreEqual(appInstallRequestRehydrated.AppName, appxname);
         }
 
         [TestMethod]
-        public void TestSetGetData()
+        public void TestReadFromIInputStream()
         {
-            var msg = new DMMessage();
-            msg.SetData("abc");
-            var data = msg.GetDataString();
-            Assert.AreEqual(data, "abc");
+            var appname = "test";
+            var command = new AppInstallRequest(appname);
+            var dataArray = command.Serialize().GetByteArrayForSerialization();
+            var dataSizeArray = BitConverter.GetBytes((UInt32)dataArray.Length);
+
+            var stream = new InMemoryRandomAccessStream();
+            stream.WriteAsync(dataSizeArray.AsBuffer()).AsTask().Wait();
+            stream.WriteAsync(dataArray.AsBuffer()).AsTask().Wait();
+
+            var result = Blob.ReadFromIInputStreamAsync(stream.GetInputStreamAt(0)).AsTask().Result;
+
+            Assert.AreEqual(result.Tag, DMMessageKind.InstallApp);
+
+            var request = result.MakeIRequest() as AppInstallRequest;
+
+            Assert.IsNotNull(request);
+            Assert.AreEqual(request.AppName, appname);
         }
 
         [TestMethod]
-        public void TestWriteToStream()
+        public void TestWriteToOutputStream()
         {
-            var data = "abc";
+            var appname = "test";
+            var command = new AppInstallRequest(appname);
+            var blob = command.Serialize();
 
-            var msg = new DMMessage(DMCommand.FactoryReset);
-            msg.SetData(data);
+            var stream = new InMemoryRandomAccessStream();
+            blob.WriteToIOutputStreamAsync(stream.GetOutputStreamAt(0)).AsTask().Wait();
+
+            var reader = new DataReader(stream.GetInputStreamAt(0));
+            reader.LoadAsync(4).AsTask().Wait();
+            var bytes = new byte[4];
+            reader.ReadBytes(bytes);
+            var size = BitConverter.ToUInt32(bytes, 0);
+            Assert.AreEqual(size, 44U); // this is somewhat brittle.
+
+            var reader2 = new DataReader(stream.GetInputStreamAt(4));
+            reader2.LoadAsync(size).AsTask().Wait();
+            var bytes2 = new byte[size];
+            reader2.ReadBytes(bytes2);
+
+            var blob2 = Blob.CreateFromByteArray(bytes2);
+
+            Assert.AreEqual(blob.Tag, blob2.Tag);
+
+            var command2 = blob2.MakeIRequest() as AppInstallRequest;
+            Assert.AreEqual(command2.AppName, appname);
+        }
+
+
+        [TestMethod]
+        public void TestSerializationRoundtripThroughStream()
+        {
+            var appname = "xyz";
+            var command = new AppInstallRequest(appname);
+            var blob = command.Serialize();
 
             var stream = new InMemoryRandomAccessStream();
 
-            DMMessage.WriteToStreamAsync(msg, stream).Wait();
+            blob.WriteToIOutputStreamAsync(stream.GetOutputStreamAt(0)).AsTask().Wait();
+            var blob2 = Blob.ReadFromIInputStreamAsync(stream.GetInputStreamAt(0)).AsTask().Result;
 
-            byte[] bytes = new byte[stream.Size];
+            Assert.AreEqual(blob2.Tag, blob.Tag);
 
-            stream.Seek(0); // rewind to beginning
+            var command2 = blob2.MakeIRequest() as AppInstallRequest;
 
-            stream.ReadAsync(bytes.AsBuffer(), (uint)bytes.Length, InputStreamOptions.None).AsTask().Wait();
+            Assert.IsNotNull(command2);
+            Assert.AreEqual(command2.AppName, appname);
 
-            // The first 4 bytes is context, followed by data size, followed by the payload
-            var contextSize = sizeof(UInt32);
-            var dataSizeSize = sizeof(UInt32);
-            var payloadSize = bytes.Length - contextSize - dataSizeSize;
-
-            var contextValue = BitConverter.ToUInt32(bytes, 0);
-            Assert.AreEqual<UInt32>(contextValue, (uint)DMCommand.FactoryReset);
-
-            var dataSizeValue = BitConverter.ToUInt32(bytes, contextSize);
-            Assert.AreEqual<UInt32>(dataSizeValue, (UInt32)payloadSize);
-
-            byte[] payload = new byte[payloadSize];
-            Array.Copy(bytes, bytes.Length - payloadSize, payload, 0, payloadSize);
-
-            var str = System.Text.Encoding.Unicode.GetString(payload);
-            Assert.AreEqual(str, data);
         }
 
         [TestMethod]
-        public void TestReadFromStream()
+        public void TestRequestSendToProxy()
         {
-            byte[] bytes = { 1, 2, 3, 4,
-                            2, 0, 0, 0,
-                            9, 9};
+            var appInstallRequest = new AppInstallRequest("MyApp.appx");
 
-            var stream = new InMemoryRandomAccessStream();
-            stream.WriteAsync(bytes.AsBuffer()).AsTask().Wait();
-            stream.Seek(0); // rewind to beginning
+            var proxy = new ConfigurationProxyMockup();
 
-            var message = DMMessage.ReadFromStreamAsync(stream).Result;
+            IResponse response = proxy.SendCommandAsync(appInstallRequest).Result;
 
-            Assert.AreEqual<UInt32>(message.Context, 0x04030201);
-            Assert.AreEqual<UInt32>((uint)message.Data.Length, 2U);
-            Assert.AreEqual<UInt32>((uint)message.Data[0], 9);
-            Assert.AreEqual<UInt32>((uint)message.Data[1], 9);
+            var typedResult = (AppInstallResponse)response; // cast must succeed
+
+            Assert.AreEqual(typedResult.Status, ResponseStatus.Success);
         }
+
     }
 }

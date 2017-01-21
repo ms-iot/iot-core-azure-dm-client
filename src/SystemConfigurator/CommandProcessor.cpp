@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include <windows.h>
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMRequest.h"
 #include "..\SharedUtilities\SecurityAttributes.h"
@@ -10,8 +9,13 @@
 #include "CSPs\CustomDeviceUiCsp.h"
 #include "TimeCfg.h"
 
+#include "Models\AllModels.h"
+
+using namespace Microsoft::Devices::Management::Message;
 using namespace std;
 using namespace Windows::Data::Json;
+
+#if 0 // Not yet implemented
 
 void HandleAddAppForStartup(const wstring& json, DMMessage& response)
 {
@@ -258,22 +262,6 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
     case DMCommand::RemoveStartupApp:
         HandleRemoveAppForStartup(request.GetDataW(), response);
         break;
-    case DMCommand::GetTimeInfo:
-        {
-            try
-            {
-                wstring timeInfoJson = TimeCfg::GetTimeInfoJson();
-                TRACEP(L" get json time info = ", timeInfoJson.c_str());
-                response.SetData(timeInfoJson);
-                response.SetContext(DMStatus::Succeeded);
-            }
-            catch (DMException& e)
-            {
-                response.SetData(e.what(), strlen(e.what()));
-                response.SetContext(DMStatus::Failed);
-            }
-        }
-        break;
     case DMCommand::SetTimeInfo:
         {
             try
@@ -310,6 +298,27 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
     }
 
     cmdIndex++;
+}
+
+#endif
+
+// Get request and produce a response
+IResponse^ ProcessCommand(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    switch (request->Tag)
+    {
+    case DMMessageKind::CheckUpdates:
+        return ref new CheckForUpdatesResponse(ResponseStatus::Success, true);
+    case DMMessageKind::RebootSystem:
+        RebootCSP::ExecRebootNow();
+        return ref new StatusCodeResponse(ResponseStatus::Success, DMMessageKind::RebootSystem);
+    case DMMessageKind::GetTimeInfo:
+        return TimeCfg::GetTimeInfo();
+    default:
+        throw DMException("Error: Unknown command");
+    }
 }
 
 class PipeConnection
@@ -375,26 +384,20 @@ void Listen()
         pipeConnection.Connect(pipeHandle.Get());
         TRACE("Client connected...");
 
-        DMMessage request(DMCommand::Unknown);
-        if (!DMMessage::ReadFromPipe(pipeHandle.Get(), request))
-        {
-            throw DMExceptionWithErrorCode("ReadFile Error", GetLastError());
-        }
-        TRACE("Request received...");
-        DMMessage response(DMStatus::Failed);
-            
+        auto request = Blob::ReadFromNativeHandle(pipeHandle.Get());
+
         try
         {
-            ProcessCommand(request, response);
+            IResponse^ response = ProcessCommand(request->MakeIRequest());
+            response->Serialize()->WriteToNativeHandle(pipeHandle.Get());
         }
         catch (const DMException&)
         {
-            // response will still contain the error information, so, let it continue
-            // and send it back.
+            // TODO: figure out how to respond with an error that can be meaningfully handled.
+            //       Is this problem fatal? So we could just die here...
             TRACE("DMExeption was thrown from ProcessCommand()...");
+            throw;
         }
-
-        DMMessage::WriteToPipe(pipeHandle.Get(), response);
 
         // ToDo: How do we exit this loop gracefully?
     }

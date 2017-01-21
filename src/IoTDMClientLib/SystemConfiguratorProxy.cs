@@ -7,147 +7,17 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Microsoft.Devices.Management.Message;
 using Windows.Storage.Streams;
 using Windows.System;
 
 namespace Microsoft.Devices.Management
 {
-    // This must be kept in sync with enum class dm_command in dm_request.h
-    public enum DMCommand
-    {
-        Unknown = 0,
-        FactoryReset = 1,
-        CheckUpdates = 2,
-        ListApps = 3,
-        InstallApp = 4,
-        UninstallApp = 5,
-        GetStartupForegroundApp = 6,
-        ListStartupBackgroundApps = 7,
-        AddStartupApp = 8,
-        RemoveStartupApp = 9,
-
-        // Reboot
-        RebootSystem = 10,
-        SetRebootInfo = 11,
-        GetRebootInfo = 12,
-
-        // TimeInfo
-        GetTimeInfo = 30,
-        SetTimeInfo = 31,
-
-        // Device Status
-        GetDeviceStatus = 40,
-    }
-
-    public enum DMStatus
-    {
-        Success = 0,
-        Failure = 1,
-    }
-
-    public class DMMessage
-    {
-        private UInt32 context;
-        private byte[] data;
-
-        public UInt32 Context { get { return context; } set { context = value; } }
-        public byte[] Data { get { return data; } set { data = value; } }
-
-        internal DMMessage(DMCommand cmd) : this((UInt32)cmd, 0)
-        {
-        }
-
-        internal DMMessage() : this(DMCommand.Unknown)
-        {
-        }
-
-        internal DMMessage(UInt32 ctxt, uint dataSize)
-        {
-            Context = ctxt;
-            Data = new byte[dataSize];
-        }
-
-        public string GetDataString()
-        {
-            return System.Text.Encoding.Unicode.GetString(Data);
-        }
-
-        public void SetData(string valueString)
-        {
-            Data = System.Text.Encoding.Unicode.GetBytes(valueString);
-        }
-        public void SetContext(DMCommand ctxt)
-        {
-            Context = (UInt32)ctxt;
-        }
-        public void SetContext(UInt32 ctxt)
-        {
-            Context = (UInt32)ctxt;
-        }
-
-        public static async Task WriteToStreamAsync(DMMessage message, IOutputStream iostream)
-        {
-            List<byte> messageBytes = new List<byte>();
-
-            // Context
-            {
-                messageBytes.AddRange(BitConverter.GetBytes(message.Context));
-                System.Diagnostics.Debug.WriteLine(string.Format("Serializing context: {0}", message.context));
-            }
-
-            // DataCount
-            UInt32 dataCount = (UInt32)message.Data.Length;
-            {
-                messageBytes.AddRange(BitConverter.GetBytes(dataCount));
-                System.Diagnostics.Debug.WriteLine(string.Format("Serializing dataCount: {0}", dataCount));
-            }
-
-            // Data
-            if (dataCount > 0)
-            {
-                messageBytes.AddRange(message.Data);
-                System.Diagnostics.Debug.WriteLine(string.Format("Serializing data: {0}", message.GetDataString()));
-            }
-
-            var commandResult = await iostream.WriteAsync(messageBytes.ToArray().AsBuffer());
-            await iostream.FlushAsync();
-        }
-
-        private static T Deserialize<T>(ref byte[] serializedData)
-        {
-            GCHandle gch = GCHandle.Alloc(serializedData, GCHandleType.Pinned);
-            IntPtr pbyteSerializedData = gch.AddrOfPinnedObject();
-            var result = (T)Marshal.PtrToStructure<T>(pbyteSerializedData);
-            gch.Free();
-            return result;
-        }
-
-        public static async Task<DMMessage> ReadFromStreamAsync(IInputStream iistream)
-        {
-            var uint32Size = Marshal.SizeOf<UInt32>();
-            var uint32Bytes = new byte[uint32Size];
-            var uint32Buffer = uint32Bytes.AsBuffer();
-            // read the context
-            var contextResult = await iistream.ReadAsync(uint32Buffer, (uint)uint32Size, InputStreamOptions.None);
-            var context = Deserialize<UInt32>(ref uint32Bytes);
-            // read the dataSize
-            var readDataSizeResult = await iistream.ReadAsync(uint32Buffer, (uint)uint32Size, InputStreamOptions.None);
-            var dataSize = Deserialize<UInt32>(ref uint32Bytes);
-            var response = new DMMessage(context, dataSize);
-            // read the data if needed
-            if (dataSize != 0)
-            {
-                var dataBuffer = response.data.AsBuffer();
-                var dataResult = await iistream.ReadAsync(dataBuffer, (uint)dataSize, InputStreamOptions.None);
-            }
-            return response;
-        }
-    }
 
     // This class send requests (DMrequest) to the System Configurator and receives the responses (DMesponse) from it
     class SystemConfiguratorProxy : ISystemConfiguratorProxy
     {
-        public async Task<DMMessage> SendCommandAsync(DMMessage command)
+        public async Task<IResponse> SendCommandAsync(IRequest command)
         {
             var processLauncherOptions = new ProcessLauncherOptions();
             var standardInput = new InMemoryRandomAccessStream();
@@ -157,7 +27,8 @@ namespace Microsoft.Devices.Management
             processLauncherOptions.StandardError = null;
             processLauncherOptions.StandardInput = standardInput.GetInputStreamAt(0);
 
-            await DMMessage.WriteToStreamAsync(command, standardInput);
+            await command.Serialize().WriteToIOutputStreamAsync(standardInput);
+
             standardInput.Dispose();
 
             var processLauncherResult = await ProcessLauncher.RunToCompletionAsync(@"CommProxy.exe", "", processLauncherOptions);
@@ -165,24 +36,19 @@ namespace Microsoft.Devices.Management
             {
                 using (var outStreamRedirect = standardOutput.GetInputStreamAt(0))
                 {
-#if DEBUG_COMMPROXY_OUTPUT
-                    var size = (uint)standardOutput.Size;
-                    System.Diagnostics.Debug.WriteLine(string.Format("Received {0} bytes from comm-proxy", size));
-                    var bytes = new byte[size];
-                    var ibuffer = bytes.AsBuffer();
-                    var result = await outStreamRedirect.ReadAsync(ibuffer, (uint)size, InputStreamOptions.None);
-                    string data = System.Text.Encoding.UTF8.GetString(bytes);
-                    return new DMResponse(500, 0);
-#else
-                    var response = await DMMessage.ReadFromStreamAsync(outStreamRedirect);
+                    var response = (await Blob.ReadFromIInputStreamAsync(outStreamRedirect)).MakeIResponse();
+                    if (response.Status != ResponseStatus.Success)
+                    {
+                        // TODO: throw a proper exception
+                        throw new Exception("Operation failed");
+                    }
                     return response;
-#endif
                 }
             }
             else
             {
-                // TODO: handle error
-                return new DMMessage(500, 0);
+                // TODO: throw a proper exception
+                throw new Exception("TBD");
             }
         }
     }

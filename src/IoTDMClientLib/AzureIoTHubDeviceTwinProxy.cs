@@ -62,8 +62,10 @@ namespace Microsoft.Devices.Management
                 throw new System.Exception("ManagementClient is not set.");
             }
 
+#if false // TODO
             Task<DeviceManagementClient.DMMethodResult> t = deviceManagementClient.DoFactoryResetAsync();
             // t.Wait();    // ToDo: Investigate why this causes a deadlock.
+#endif
 
             var retValue = new MethodResponse(Encoding.UTF8.GetBytes(""), 0 /*(int)t.Result.returnCode*/);
             return Task.FromResult(retValue);
@@ -76,9 +78,10 @@ namespace Microsoft.Devices.Management
                 throw new System.Exception("ManagementClient is not set.");
             }
 
-            Task<DeviceManagementClient.DMMethodResult> t = deviceManagementClient.RebootSystemAsync();
+#if false // TODO
+            var t = deviceManagementClient.RebootSystemAsync();
             // t.Wait();    // ToDo: Investigate why this causes a deadlock.
-
+#endif
             var retValue = new MethodResponse(Encoding.UTF8.GetBytes(""), 0 /*(int)t.Result.returnCode*/);
             return Task.FromResult(retValue);
         }

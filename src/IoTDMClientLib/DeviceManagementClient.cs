@@ -56,24 +56,6 @@ namespace Microsoft.Devices.Management
         public bool StoreApp { get; set; }
     }
 
-    public class TimeZoneInfo
-    {
-        public long bias;
-        public string standardName;
-        public DateTime standardDate;
-        public long standardBias;
-        public string daylightName;
-        public DateTime daylightDate;
-        public long daylightBias;
-    }
-
-    public class TimeInfo
-    {
-        public DateTime localTime;
-        public string ntpServer;
-        public TimeZoneInfo timeZone;
-    }
-
     public class RebootInfo
     {
         public DateTime lastRebootTime;
@@ -154,38 +136,6 @@ namespace Microsoft.Devices.Management
             return new DeviceManagementClient(deviceTwin, requestHandler, systemConfiguratorProxy);
         }
 
-        public TwinCollection HandleDesiredPropertiesChanged(TwinCollection desiredProperties)
-        {
-            TwinCollection nonDMProperties = new TwinCollection();
-
-            foreach (KeyValuePair<string, object> dp in desiredProperties)
-            {
-               string valueString = dp.Value.ToString();
-                if (dp.Key == "timeInfo")
-                {
-                    if (!String.IsNullOrEmpty(valueString))
-                    {
-                        Debug.WriteLine(" timeInfo json = ", valueString);
-                        SetPropertyAsync(DMCommand.SetTimeInfo, valueString);
-                    }
-                }
-                else if (dp.Key == "rebootInfo")
-                {
-                    if (!String.IsNullOrEmpty(valueString))
-                    {
-                        Debug.WriteLine(" rebootInfo json = ", valueString);
-                        SetPropertyAsync(DMCommand.SetRebootInfo, valueString);
-                    }
-                }
-                else
-                {
-                    nonDMProperties[dp.Key] = dp.Value;
-                }
-            }
-
-            return nonDMProperties;
-        }
-
         //
         // Commands:
         //
@@ -194,11 +144,12 @@ namespace Microsoft.Devices.Management
         // TODO: work out complete protocol (find updates, apply updates etc.)
         public async Task<bool> CheckForUpdatesAsync()
         {
-            var request = new DMMessage(DMCommand.CheckUpdates);
+            var request = new Message.CheckForUpdatesRequest();
             var response = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return response.Context == 1;    // 1 means "updates available"
+            return (response as Message.CheckForUpdatesResponse).UpdatesAvailable;
         }
 
+#if false // TODO
         public async Task<Dictionary<string, AppInfo>> ListAppsAsync()
         {
             var request = new DMMessage(DMCommand.ListApps);
@@ -268,72 +219,62 @@ namespace Microsoft.Devices.Management
                 throw new Exception();
             }
         }
-
-        public async Task<DMMethodResult> RebootSystemAsync()
+#endif
+        public async Task RebootSystemAsync()
         {
-            DMMethodResult methodResult = new DMMethodResult();
-
-            try
+            if (await this._requestHandler.IsSystemRebootAllowed() == SystemRebootRequestResponse.StartNow)
             {
-                SystemRebootRequestResponse rebootAllowed = await _requestHandler.IsSystemRebootAllowed();
-                if (rebootAllowed != SystemRebootRequestResponse.StartNow)
-                {
-                    // ToDo: What should happen if the the user blocks the restart?
-                    //       We need to have a policy on when to ask again.
-                    methodResult.returnCode = (uint)DMStatus.Failure;
-                    return methodResult;
-                }
-
-                var request = new DMMessage(DMCommand.RebootSystem);
-                var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-                if (result.Context != 0)
-                {
-                    throw new Exception();
-                }
-                methodResult.returnCode = (uint)DMStatus.Success;
+                var request = new Message.RebootRequest();
+                await this._systemConfiguratorProxy.SendCommandAsync(request);
             }
-            catch (Exception)
-            {
-                // returnCode is already set to 0 to indicate failure.
-            }
-            return methodResult;
         }
 
         public async Task<DMMethodResult> DoFactoryResetAsync()
         {
-            DMMethodResult methodResult = new DMMethodResult();
-
-            try
-            {
-                var request = new DMMessage(DMCommand.FactoryReset);
-
-                // Here we might want to set some reported properties:
-                // ReportProperties("We're about to start factory reset... If you don't hear from me again, I'm dead");
-
-                var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-                if (result.Context != 0)
-                {
-                    throw new Exception();
-                }
-                methodResult.returnCode = (uint)DMStatus.Success;
-            }
-            catch (Exception)
-            {
-                // returnCode is already set to 0 to indicate failure.
-            }
-            return methodResult;
+            throw new NotImplementedException();
         }
 
-        public async Task<TimeInfo> GetTimeInfoAsync()
+        public TwinCollection HandleDesiredPropertiesChanged(TwinCollection desiredProperties)
         {
-            string jsonString = await GetPropertyAsync(DMCommand.GetTimeInfo);
-            Debug.WriteLine(" json timeInfo = " + jsonString);
-            return JsonConvert.DeserializeObject<TimeInfo>(jsonString);
+            TwinCollection nonDMProperties = new TwinCollection();
+
+            foreach (KeyValuePair<string, object> dp in desiredProperties)
+            {
+               string valueString = dp.Value.ToString();
+                if (dp.Key == "timeInfo")
+                {
+                    if (!String.IsNullOrEmpty(valueString))
+                    {
+                        Debug.WriteLine(" timeInfo json = ", valueString);
+                        SetPropertyAsync(Message.DMMessageKind.SetTimeInfo, valueString);
+                    }
+                }
+                else if (dp.Key == "rebootInfo")
+                {
+                    if (!String.IsNullOrEmpty(valueString))
+                    {
+                        Debug.WriteLine(" rebootInfo json = ", valueString);
+                        SetPropertyAsync(Message.DMMessageKind.SetRebootInfo, valueString);
+                    }
+                }
+                else
+                {
+                    nonDMProperties[dp.Key] = dp.Value;
+                }
+            }
+
+            return nonDMProperties;
+        }
+
+        public async Task<Message.TimeInfoResponse> GetTimeInfoAsync()
+        {
+            var request = new Message.TimeInfoRequest();
+            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.TimeInfoResponse);
         }
 
         public async Task<RebootInfo> GetRebootInfoAsync()
         {
-            string jsonString = await GetPropertyAsync(DMCommand.GetRebootInfo);
+            string jsonString = await GetPropertyAsync(Message.DMMessageKind.GetRebootInfo);
             Debug.WriteLine(" json rebootInfo = " + jsonString);
             RebootInfoInternal rebootInfoInternal = JsonConvert.DeserializeObject<RebootInfoInternal>(jsonString);
             return new RebootInfo(rebootInfoInternal);
@@ -341,7 +282,7 @@ namespace Microsoft.Devices.Management
 
         public async Task<DeviceStatus> GetDeviceStatusAsync()
         {
-            string deviceStatusJson = await GetPropertyAsync(DMCommand.GetDeviceStatus);
+            string deviceStatusJson = await GetPropertyAsync(Message.DMMessageKind.GetDeviceStatus);
             Debug.WriteLine(" json deviceStatus = " + deviceStatusJson);
             return JsonConvert.DeserializeObject<DeviceStatus>(deviceStatusJson); ;
         }
@@ -351,19 +292,14 @@ namespace Microsoft.Devices.Management
             Debug.WriteLine("ReportAllPropertiesAsync()");
             DMMethodResult methodResult = new DMMethodResult();
 
-            try
-            {
-                Dictionary<string, object> collection = new Dictionary<string, object>();
-                collection["timeInfo"] = await GetTimeInfoAsync();
-                collection["deviceStatus"] = await GetDeviceStatusAsync();
-                collection["rebootInfo"] = await GetRebootInfoAsync();
-                _deviceTwin.ReportProperties(collection);
-                methodResult.returnCode = (uint)DMStatus.Success;
-            }
-            catch (Exception)
-            {
-                // returnCode is already set to 0 to indicate failure.
-            }
+            Dictionary<string, object> collection = new Dictionary<string, object>();
+            collection["timeInfo"] = await GetTimeInfoAsync();
+#if false // TODO
+            collection["deviceStatus"] = await GetDeviceStatusAsync();
+            collection["rebootInfo"] = await GetRebootInfoAsync();
+#endif
+            _deviceTwin.ReportProperties(collection);
+
             return methodResult;
         }
 
@@ -371,31 +307,14 @@ namespace Microsoft.Devices.Management
         // Private utilities
         //
 
-        private async Task SetPropertyAsync(DMCommand command, string valueString)
+        private async Task SetPropertyAsync(Message.DMMessageKind command, string valueString)
         {
-            Debug.WriteLine("SetPropertyAsync()");
-
-            var request = new DMMessage(command);
-            request.SetData(valueString);
-
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != (UInt32)DMStatus.Success)
-            {
-                throw new Exception();
-            }
+            throw new NotImplementedException();
         }
 
-        private async Task<string> GetPropertyAsync(DMCommand command)
+        private async Task<string> GetPropertyAsync(Message.DMMessageKind command)
         {
-            Debug.WriteLine("GetPropertyAsync()");
-
-            var request = new DMMessage(command);
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != (UInt32)DMStatus.Success)
-            {
-                throw new Exception();
-            }
-            return result.GetDataString();
+            throw new NotImplementedException();
         }
 
         // Data members

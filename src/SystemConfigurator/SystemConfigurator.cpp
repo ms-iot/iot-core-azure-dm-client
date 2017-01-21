@@ -32,6 +32,10 @@ int wmain(int argc, wchar_t *argv[])
         {
             DMService::Uninstall(SERVICE_NAME);
         }
+        else if (_wcsicmp(L"debug", argv[1] + 1) == 0)
+        {
+            Listen();
+        }
     }
     else
     {

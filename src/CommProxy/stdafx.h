@@ -9,7 +9,13 @@
 
 #include <stdio.h>
 #include <tchar.h>
+#include <stdio.h>
+#include <string>
+#include <vector>
+#include <deque>
+#include <thread>
+#include <time.h>
+#include <sstream>
+#include <ppltasks.h>
+#include <windows.h>
 
-
-
-// TODO: reference additional headers your program requires here

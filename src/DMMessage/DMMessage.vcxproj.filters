@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resources">
+      <UniqueIdentifier>0de3289f-ad3d-427a-894a-4e252369122e</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tga;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Models">
+      <UniqueIdentifier>{400481d8-12ba-46ef-85f1-2ea1fb7835e0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="DMMessage.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SerializationHelper.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Blob.h" />
+    <ClInclude Include="DMMessageKind.h" />
+    <ClInclude Include="IRequestIResponse.h" />
+    <ClInclude Include="DMMessageException.h" />
+    <ClInclude Include="CurrentVersion.h" />
+    <ClInclude Include="ResponseStatus.h" />
+    <ClInclude Include="Models\AppInstall.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\CheckForUpdates.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\Reboot.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\StatusCodeResponse.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\AllModels.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\TimeInfo.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
