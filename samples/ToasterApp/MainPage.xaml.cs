@@ -14,7 +14,7 @@ namespace Toaster
     {
         DeviceManagementClient DMClient;
 
-        private const string DeviceConnectionString = "HostName=iot-open-house-demo.azure-devices.net;DeviceId=dog-feeder;SharedAccessKey=88JacFKEPdfsouEwcYdF9VRuz0RsyTqkH6iRlufvRkE=";
+        private const string DeviceConnectionString = "...";
 
         public MainPage()
         {
@@ -33,12 +33,11 @@ namespace Toaster
 
         public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
         {
-#if false // TODO
             TwinCollection nonDMProperties = DMClient.HandleDesiredPropertiesChanged(desiredProperties);
 
             // Application developer can process all the top-level nodes (in nonDMProperties)
             // that did not get filtered out by DM.
-#endif
+
             return null;
         }
 

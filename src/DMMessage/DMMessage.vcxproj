@@ -221,6 +221,7 @@
     <ClInclude Include="Models\CheckForUpdates.h" />
     <ClInclude Include="Models\Reboot.h" />
     <ClInclude Include="Models\StatusCodeResponse.h" />
+    <ClInclude Include="Models\TimeInfo.h" />
     <ClInclude Include="ResponseStatus.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="SerializationHelper.h" />

@@ -3,3 +3,4 @@
 #include "CheckForUpdates.h"
 #include "StatusCodeResponse.h"
 #include "Reboot.h"
+#include "TimeInfo.h"

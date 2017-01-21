@@ -37,5 +37,8 @@
     <ClInclude Include="Models\AllModels.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="Models\TimeInfo.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -9,9 +9,12 @@
 #include "..\SharedUtilities\DMException.h"
 #include "CSPs\MdmProvision.h"
 
+#include "Models\TimeInfo.h"
+
 #define NtpServerPropertyName "NtpServer"
 
 // Json strings
+/*
 #define LocalTime L"localTime"
 #define NtpServer L"ntpServer"
 #define TimeZone L"timeZone"
@@ -22,12 +25,15 @@
 #define TimeZoneDaylightName L"daylightName"
 #define TimeZoneDaylightDate L"daylightDate"
 #define TimeZoneDaylightBias L"daylightBias"
+*/
 
 using namespace Windows::System;
 using namespace Platform;
 using namespace Windows::Data::Json;
 using namespace Windows::System::Profile;
 using namespace Windows::Foundation::Collections;
+
+using namespace Microsoft::Devices::Management::Message;
 
 using namespace std;
 using namespace Utils;
@@ -107,7 +113,7 @@ void TimeCfg::SetTimeInfo(const std::wstring& jsonString)
         }
     }
     */
-
+#if 0 // TODO
     JsonValue^ value;
     if (!JsonValue::TryParse(ref new String(jsonString.c_str()), &value) || (value == nullptr))
     {
@@ -165,6 +171,7 @@ void TimeCfg::SetTimeInfo(const std::wstring& jsonString)
     }
 
     TRACE(L"Time settings have been applied successfully.");
+#endif
 }
 
 void TimeCfg::SetNtpServer(const std::wstring& ntpServer)
@@ -186,49 +193,28 @@ void TimeCfg::SetNtpServer(const std::wstring& ntpServer)
     }
 }
 
-std::wstring TimeCfg::GetTimeInfoJson()
+TimeInfoResponse^ TimeCfg::GetTimeInfo()
 {
     TRACE(__FUNCTION__);
-
-    TimeInfo timeInfo;
-    GetTimeInfo(timeInfo);
-
-    JsonObject^ timeInfoJson = ref new JsonObject();
-
-    timeInfoJson->Insert(ref new Platform::String(LocalTime),
-                         JsonValue::CreateStringValue(ref new String(timeInfo.localTime.c_str())));
-
-    timeInfoJson->Insert(ref new Platform::String(NtpServer),
-                         JsonValue::CreateStringValue(ref new Platform::String(timeInfo.ntpServer.c_str())));
-
-    JsonObject^ timeZoneJson = ref new JsonObject();
-
-    timeZoneJson->Insert(ref new Platform::String(TimeZoneBias),
-                        JsonValue::CreateNumberValue(static_cast<double>(timeInfo.timeZoneInformation.Bias)));
-
-    timeZoneJson->Insert(ref new Platform::String(TimeZoneStandardName),
-                        JsonValue::CreateStringValue(ref new Platform::String(timeInfo.timeZoneInformation.StandardName)));
-
-    timeZoneJson->Insert(ref new Platform::String(TimeZoneStandardDate),
-                        JsonValue::CreateStringValue(ref new Platform::String(Utils::ISO8601FromSystemTime(timeInfo.timeZoneInformation.StandardDate).c_str())));
-
-    timeZoneJson->Insert(ref new Platform::String(TimeZoneStandardBias),
-                        JsonValue::CreateNumberValue(static_cast<double>(timeInfo.timeZoneInformation.StandardBias)));
-
-    timeZoneJson->Insert(ref new Platform::String(TimeZoneDaylightName),
-                        JsonValue::CreateStringValue(ref new Platform::String(timeInfo.timeZoneInformation.DaylightName)));
-
-    timeZoneJson->Insert(ref new Platform::String(TimeZoneDaylightDate),
-                        JsonValue::CreateStringValue(ref new Platform::String(Utils::ISO8601FromSystemTime(timeInfo.timeZoneInformation.DaylightDate).c_str())));
-
-    timeZoneJson->Insert(ref new Platform::String(TimeZoneDaylightBias),
-                        JsonValue::CreateNumberValue(static_cast<double>(timeInfo.timeZoneInformation.DaylightBias)));
-
-    timeInfoJson->Insert(ref new Platform::String(TimeZone), timeZoneJson);
-
-    wstring json = timeInfoJson->Stringify()->Data();
-
-    TRACEP(L" json = ", json.c_str());
-
-    return json;
+    TimeInfoResponse ^response;
+    try
+    {
+        TimeInfo timeInfo;
+        GetTimeInfo(timeInfo);
+        response = ref new TimeInfoResponse(ResponseStatus::Success);
+        response->LocalTime = ref new String(timeInfo.localTime.c_str());
+        response->NtpServer = ref new String(timeInfo.ntpServer.c_str());
+        response->TimeZoneBias = timeInfo.timeZoneInformation.Bias;
+        response->TimeZoneStandardName = ref new String(timeInfo.timeZoneInformation.StandardName);
+        response->TimeZoneStandardDate = ref new String(Utils::ISO8601FromSystemTime(timeInfo.timeZoneInformation.StandardDate).c_str());
+        response->TimeZoneStandardBias = timeInfo.timeZoneInformation.StandardBias;
+        response->TimeZoneDaylightName = ref new String(timeInfo.timeZoneInformation.DaylightName);
+        response->TimeZoneDaylightDate = ref new String(Utils::ISO8601FromSystemTime(timeInfo.timeZoneInformation.DaylightDate).c_str());
+        response->TimeZoneDaylightBias = timeInfo.timeZoneInformation.DaylightBias;
+    }
+    catch (...)
+    {
+        response = ref new TimeInfoResponse(ResponseStatus::Failure);
+    }
+    return response;
 }

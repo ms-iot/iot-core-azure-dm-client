@@ -9,9 +9,7 @@
 #include "CSPs\CustomDeviceUiCsp.h"
 #include "TimeCfg.h"
 
-#include "Models\AppInstall.h"
-#include "Models\CheckForUpdates.h"
-#include "Models\StatusCodeResponse.h"
+#include "Models\AllModels.h"
 
 using namespace Microsoft::Devices::Management::Message;
 using namespace std;
@@ -264,22 +262,6 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
     case DMCommand::RemoveStartupApp:
         HandleRemoveAppForStartup(request.GetDataW(), response);
         break;
-    case DMCommand::GetTimeInfo:
-        {
-            try
-            {
-                wstring timeInfoJson = TimeCfg::GetTimeInfoJson();
-                TRACEP(L" get json time info = ", timeInfoJson.c_str());
-                response.SetData(timeInfoJson);
-                response.SetContext(DMStatus::Succeeded);
-            }
-            catch (DMException& e)
-            {
-                response.SetData(e.what(), strlen(e.what()));
-                response.SetContext(DMStatus::Failed);
-            }
-        }
-        break;
     case DMCommand::SetTimeInfo:
         {
             try
@@ -332,6 +314,8 @@ IResponse^ ProcessCommand(IRequest^ request)
     case DMMessageKind::RebootSystem:
         RebootCSP::ExecRebootNow();
         return ref new StatusCodeResponse(ResponseStatus::Success, DMMessageKind::RebootSystem);
+    case DMMessageKind::GetTimeInfo:
+        return TimeCfg::GetTimeInfo();
     default:
         throw DMException("Error: Unknown command");
     }

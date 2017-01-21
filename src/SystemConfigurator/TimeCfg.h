@@ -2,6 +2,9 @@
 
 #include <string>
 #include <windows.h>
+#include "Models\TimeInfo.h"
+
+using namespace Microsoft::Devices::Management::Message;
 
 class TimeCfg
 {
@@ -13,7 +16,7 @@ class TimeCfg
     };
 
 public:
-    static std::wstring GetTimeInfoJson();
+    static TimeInfoResponse^ GetTimeInfo();
     static void SetTimeInfo(const std::wstring& jsonString);
 
 private:

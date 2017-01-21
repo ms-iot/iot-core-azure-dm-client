@@ -1,8 +1,5 @@
 #include "stdafx.h"
-#include "Models\StatusCodeResponse.h"
-#include "Models\CheckForUpdates.h"
-#include "Models\AppInstall.h"
-#include "Models\Reboot.h"
+#include "Models\AllModels.h"
 #include "Blob.h"
 
 using namespace Platform;
@@ -36,6 +33,14 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             }
             else {
                 return StatusCodeResponse::Deserialize(this);
+            }
+
+        case DMMessageKind::GetTimeInfo:
+            if (messageType == MessageType::Request) {
+                return TimeInfoRequest::Deserialize(this);
+            }
+            else {
+                return TimeInfoResponse::Deserialize(this);
             }
 
         default:
