@@ -2,6 +2,8 @@
 #include "Models\AllModels.h"
 #include "Blob.h"
 
+#include "DMMessageSerialization.h"
+
 using namespace Platform;
 using namespace concurrency;
 
@@ -10,42 +12,19 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     IDataPayload^ Blob::MakeMessage(MessageType messageType)
     {
         auto tag = this->Tag;
-        switch (tag)
+
+        DMMessageDeserializer helper;
+        auto serialization = helper.Deserializer.find(tag);
+        if (serialization == helper.Deserializer.end())
         {
-        case DMMessageKind::InstallApp:
-            if (messageType == MessageType::Request) {
-                return AppInstallRequest::Deserialize(this);
-            }
-            else {
-                return AppInstallResponse::Deserialize(this);
-            }
-        case DMMessageKind::CheckUpdates:
-            if (messageType == MessageType::Request) {
-                return CheckForUpdatesRequest::Deserialize(this);
-            }
-            else {
-                return CheckForUpdatesResponse::Deserialize(this);
-            }
-
-        case DMMessageKind::RebootSystem:
-            if (messageType == MessageType::Request) {
-                return RebootRequest::Deserialize(this);
-            }
-            else {
-                return StatusCodeResponse::Deserialize(this);
-            }
-
-        case DMMessageKind::GetTimeInfo:
-            if (messageType == MessageType::Request) {
-                return TimeInfoRequest::Deserialize(this);
-            }
-            else {
-                return TimeInfoResponse::Deserialize(this);
-            }
-
-        default:
             throw ref new Platform::Exception(S_OK, "Unknown type, deserialization failed");
-            break;
+        }
+
+        if (messageType == MessageType::Request) {
+            return (*serialization->second.first)(this);
+        }
+        else {
+            return (*serialization->second.second)(this);
         }
     }
 

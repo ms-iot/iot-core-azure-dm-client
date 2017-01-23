@@ -11,6 +11,7 @@ using Windows.Storage;
 
 namespace Microsoft.Devices.Management
 {
+/*
     public class AzureFileTransfer
     {
         public string LocalPath { get; set; }
@@ -19,6 +20,24 @@ namespace Microsoft.Devices.Management
         public string ContainerName { get; set; }
         public string BlobName { get; set; }
         public bool Upload { get; set; }
+    }
+
+    public class AppxInstallInfo
+    {
+        public string PackageFamilyName { get; set; }
+        public string AppxPath { get; set; }
+        public List<string> Dependencies { get; set; }
+
+        public AppxInstallInfo()
+        {
+            Dependencies = new List<string>();
+        }
+    }
+
+    public class AppxUninstallInfo
+    {
+        public string PackageFamilyName { get; set; }
+        public bool StoreApp { get; set; }
     }
 
     public class AppLifecycleInfo
@@ -32,7 +51,7 @@ namespace Microsoft.Devices.Management
         public string AppId { get; set; }
         public bool IsBackgroundApplication { get; set; }
     }
-
+*/
     public class AppInfo
     {
         public string AppSource { get; set; }
@@ -55,24 +74,6 @@ namespace Microsoft.Devices.Management
         {
             return JsonConvert.DeserializeObject<Dictionary<string, AppInfo>>(json);
         }
-    }
-
-    public class AppxInstallInfo
-    {
-        public string PackageFamilyName { get; set; }
-        public string AppxPath { get; set; }
-        public List<string> Dependencies { get; set; }
-
-        public AppxInstallInfo()
-        {
-            Dependencies = new List<string>();
-        }
-    }
-
-    public class AppxUninstallInfo
-    {
-        public string PackageFamilyName { get; set; }
-        public bool StoreApp { get; set; }
     }
 
     public class RebootInfo
@@ -316,8 +317,8 @@ namespace Microsoft.Devices.Management
 
         }
 #endif
-        
-        public async Task<DMMethodResult> RebootSystemAsync()
+
+        public async Task RebootSystemAsync()
         {
             if (await this._requestHandler.IsSystemRebootAllowed() == SystemRebootRequestResponse.StartNow)
             {

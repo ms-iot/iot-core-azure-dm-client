@@ -88,8 +88,12 @@
     <ClInclude Include="IRequestIResponse.h" />
     <ClInclude Include="Models\AllModels.h" />
     <ClInclude Include="Models\AppInstall.h" />
+    <ClInclude Include="Models\AppLifecycle.h" />
+    <ClInclude Include="Models\AppUninstall.h" />
     <ClInclude Include="Models\CheckForUpdates.h" />
+    <ClInclude Include="Models\FileTransfer.h" />
     <ClInclude Include="Models\Reboot.h" />
+    <ClInclude Include="Models\StartupApp.h" />
     <ClInclude Include="Models\StatusCodeResponse.h" />
     <ClInclude Include="Models\TimeInfo.h" />
     <ClInclude Include="ResponseStatus.h" />
