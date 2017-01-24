@@ -13,32 +13,89 @@ using namespace Platform::Collections;
 using namespace Windows::Data::Json;
 using namespace Windows::Foundation::Collections;
 
+#define INSERT_STRING_PROPERTY_INTO_JSON(json, info, propName) json->Insert(#propName, JsonValue::CreateStringValue(info->##propName))
+#define SET_STRING_PROPERTY_FROM_JSON(json, info, propName) info->##propName = json->GetNamedString(#propName)
+
 namespace Microsoft { namespace Devices { namespace Management { namespace Message
 {
     public ref class AppInfo sealed
     {
     public:
+        AppInfo() {}
+        AppInfo(JsonObject^ jsonApp)
+        {
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, AppSource);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, Architecture);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, InstallDate);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, InstallLocation);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, IsBundle);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, IsFramework);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, IsProvisioned);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, Name);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, PackageFamilyName);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, PackageStatus);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, Publisher);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, RequiresReinstall);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, ResourceID);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, Users);
+            SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, Version);
+        }
+        JsonObject^ ToJson()
+        {
+            auto jsonApp = ref new JsonObject();
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, AppSource);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, Architecture);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, InstallDate);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, InstallLocation);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, IsBundle);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, IsFramework);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, IsProvisioned);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, Name);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, PackageFamilyName);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, PackageStatus);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, Publisher);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, RequiresReinstall);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, ResourceID);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, Users);
+            INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, Version);
+            return jsonApp;
+        }
+
+        property String^ AppSource;
+        property String^ Architecture;
+        property String^ InstallDate;
+        property String^ InstallLocation;
+        property String^ IsBundle;
+        property String^ IsFramework;
+        property String^ IsProvisioned;
+        property String^ Name;
         property String^ PackageFamilyName;
+        property String^ PackageStatus;
+        property String^ Publisher;
+        property String^ RequiresReinstall;
+        property String^ ResourceID;
+        property String^ Users;
+        property String^ Version;
     };
 
     public ref class ListAppsResponse sealed : public IResponse
     {
         ResponseStatus status;
-        IVector<AppInfo^>^ apps;
+        IMap<String^, AppInfo^>^ apps;
     public:
-        ListAppsResponse(ResponseStatus status, IVector<AppInfo^>^ apps) : status(status), apps(apps) {}
+        ListAppsResponse(ResponseStatus status, IMap<String^, AppInfo^>^ apps) : status(status), apps(apps) {}
 
         virtual Blob^ Serialize() {
             auto jsonObject = ref new JsonObject();
             jsonObject->Insert("Status", JsonValue::CreateNumberValue((uint32_t)status));
-            auto jsonArray = ref new JsonArray();
+            auto jsonApps = ref new JsonObject();
             for each (auto app in apps) 
             {
-                auto jsonApp = ref new JsonObject();
-                jsonApp->Insert("PackageFamilyName", JsonValue::CreateStringValue(app->PackageFamilyName));
-                jsonArray->Append(jsonApp);
+                auto pfn = app->Key;
+                auto properties = app->Value;
+                jsonApps->Insert(pfn, properties->ToJson());
             }
-            jsonObject->Insert("Apps", jsonArray);
+            jsonObject->Insert("Apps", jsonApps);
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
 
@@ -46,16 +103,15 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             auto str = SerializationHelper::GetStringFromBlob(bytes);
             auto jsonObject = JsonObject::Parse(str);
             auto status = (ResponseStatus)(uint32_t)jsonObject->GetNamedNumber("Status");
-            auto appArray = jsonObject->GetNamedArray("Apps");
-            auto appInfoVector = ref new Vector<AppInfo^>();
-            for (unsigned int i=0; i<appArray->Size; i++)
+            auto appDictionary = jsonObject->GetNamedObject("Apps");
+            auto appInfoMap = ref new Map<String^, AppInfo^>();
+            for each (auto pair in appDictionary)
             {
-                auto appObject = appArray->GetObjectAt(i);
-                auto appInfo = ref new AppInfo();
-                appInfo->PackageFamilyName = appObject->Lookup("PackageFamilyName")->GetString();
-                appInfoVector->Append(appInfo);
+                auto pfn = pair->Key;
+                auto properties = appDictionary->GetNamedObject(pfn);
+                appInfoMap->Insert(pfn, ref new AppInfo(properties));
             }
-            return ref new ListAppsResponse(status, appInfoVector);
+            return ref new ListAppsResponse(status, appInfoMap);
         }
 
         virtual property DMMessageKind Tag {
@@ -66,8 +122,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             ResponseStatus get() { return status; }
         }
 
-        property IVector<AppInfo^>^ Apps {
-            IVector<AppInfo^>^ get() { return apps; }
+        property IMap<String^, AppInfo^>^ Apps {
+            IMap<String^, AppInfo^>^ get() { return apps; }
         }
     };
 }}}}

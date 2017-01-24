@@ -51,7 +51,6 @@ namespace Microsoft.Devices.Management
         public string AppId { get; set; }
         public bool IsBackgroundApplication { get; set; }
     }
-*/
     public class AppInfo
     {
         public string AppSource { get; set; }
@@ -76,6 +75,7 @@ namespace Microsoft.Devices.Management
         }
     }
 
+*/
     public class RebootInfo
     {
         public DateTime lastRebootTime;
@@ -169,34 +169,28 @@ namespace Microsoft.Devices.Management
             return (response as Message.CheckForUpdatesResponse).UpdatesAvailable;
         }
 
-#if false // TODO
-        public async Task<Dictionary<string, AppInfo>> ListAppsAsync()
+        public async Task<IDictionary<string, Message.AppInfo>> ListAppsAsync()
         {
-            var request = new DMMessage(DMCommand.ListApps);
+            var request = new Message.ListAppsRequest();
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            var json = result.GetDataString();
-            return AppInfo.SetOfAppsFromJson(json);
+            return (result as Message.ListAppsResponse).Apps;
         }
 
-        public async Task InstallAppAsync(AppxInstallInfo appxInstallInfo)
+        public async Task InstallAppAsync(Message.AppInstallInfo appInstallInfo)
         {
-            var request = new DMMessage(DMCommand.InstallApp);
-            request.SetData(JsonConvert.SerializeObject(appxInstallInfo));
-
+            var request = new Message.AppInstallRequest(appInstallInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
+            if (result.Status != Message.ResponseStatus.Success)
             {
                 throw new Exception();
             }
         }
 
-        public async Task UninstallAppAsync(AppxUninstallInfo appxUninstallInfo)
+        public async Task UninstallAppAsync(Message.AppUninstallInfo appUninstallInfo)
         {
-            var request = new DMMessage(DMCommand.UninstallApp);
-            request.SetData(JsonConvert.SerializeObject(appxUninstallInfo));
-
+            var request = new Message.AppUninstallRequest(appUninstallInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
+            if (result.Status != Message.ResponseStatus.Success)
             {
                 throw new Exception();
             }
@@ -204,55 +198,49 @@ namespace Microsoft.Devices.Management
 
         public async Task<string> GetStartupForegroundAppAsync()
         {
-            var request = new DMMessage(DMCommand.GetStartupForegroundApp);
+            var request = new Message.GetStartupForegroundAppRequest();
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return result.GetDataString();
+            return (result as Message.GetStartupForegroundAppResponse).StartupForegroundApp;
         }
 
-        public async Task<List<string>> ListStartupBackgroundAppsAsync()
+        public async Task<IList<string>> ListStartupBackgroundAppsAsync()
         {
-            var request = new DMMessage(DMCommand.ListStartupBackgroundApps);
+            var request = new Message.ListStartupBackgroundAppsRequest();
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return JsonConvert.DeserializeObject<List<string>>(result.GetDataString());
+            return (result as Message.ListStartupBackgroundAppsResponse).StartupBackgroundApps;
         }
 
-        public async Task AddStartupAppAsync(StartupAppInfo startupAppInfo)
+        public async Task AddStartupAppAsync(Message.StartupAppInfo startupAppInfo)
         {
-            var request = new DMMessage(DMCommand.AddStartupApp);
-            request.SetData(JsonConvert.SerializeObject(startupAppInfo));
-
+            var request = new Message.StartupAppRequest(startupAppInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
+            if (result.Status != Message.ResponseStatus.Success)
             {
                 throw new Exception();
             }
         }
 
-        public async Task RemoveStartupAppAsync(StartupAppInfo startupAppInfo)
+        public async Task RemoveStartupAppAsync(Message.StartupAppInfo startupAppInfo)
         {
-            var request = new DMMessage(DMCommand.RemoveStartupApp);
-            request.SetData(JsonConvert.SerializeObject(startupAppInfo));
-
+            var request = new Message.StartupAppRequest(startupAppInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
+            if (result.Status != Message.ResponseStatus.Success)
             {
                 throw new Exception();
             }
         }
 
-        public async Task AppLifecycleAsync(AppLifecycleInfo appInfo)
+        public async Task AppLifecycleAsync(Message.AppLifecycleInfo appInfo)
         {
-            var request = new DMMessage(DMCommand.AppLifcycle);
-            request.SetData(JsonConvert.SerializeObject(appInfo));
-
+            var request = new Message.AppLifecycleRequest(appInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
+            if (result.Status != Message.ResponseStatus.Success)
             {
                 throw new Exception();
             }
         }
 
-        public async Task TransferFileAsync(AzureFileTransfer transferInfo)
+        public async Task TransferFileAsync(Message.AzureFileTransferInfo transferInfo)
         {
             //
             // C++ Azure Blob SDK not supported for ARM, so use Service to copy file to/from
@@ -274,7 +262,7 @@ namespace Microsoft.Devices.Management
                 // Retrieve a reference to a container.
                 CloudBlobContainer container = blobClient.GetContainerReference(transferInfo.ContainerName);
 
-                // Retrieve reference to a blob named "photo1.jpg".
+                // Retrieve reference to a named blob.
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(transferInfo.BlobName);
 
                 // Save blob contents to a file.
@@ -282,10 +270,9 @@ namespace Microsoft.Devices.Management
             }
 
             // use C++ service to copy file to/from App LocalData
-            var request = new DMMessage(DMCommand.TransferFile);
-            request.SetData(JsonConvert.SerializeObject(transferInfo));
+            var request = new Message.AzureFileTransferRequest(transferInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Context != 0)
+            if (result.Status != Message.ResponseStatus.Success)
             {
                 throw new Exception();
             }
@@ -316,7 +303,6 @@ namespace Microsoft.Devices.Management
             await appLocalDataFile.DeleteAsync();
 
         }
-#endif
 
         public async Task RebootSystemAsync()
         {

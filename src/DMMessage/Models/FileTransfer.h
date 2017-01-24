@@ -13,29 +13,22 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 {
     public ref class AzureFileTransferInfo sealed
     {
-    private:
-        String^ _LocalPath;
-        String^ _AppLocalDataPath;
-        String^ _ConnectionString;
-        String^ _ContainerName;
-        String^ _BlobName;
-        bool _Upload;
     public:
         AzureFileTransferInfo(String^ localPath, String^ appLocalDataPath, String^ connectionString, String^ containerName, String^ blobName, bool upload)
         {
-            _LocalPath = localPath;
-            _AppLocalDataPath = appLocalDataPath;
-            _ConnectionString = connectionString;
-            _ContainerName = containerName;
-            _BlobName = blobName;
-            _Upload = upload;
+            LocalPath = localPath;
+            AppLocalDataPath = appLocalDataPath;
+            ConnectionString = connectionString;
+            ContainerName = containerName;
+            BlobName = blobName;
+            Upload = upload;
         }
-        property String^ LocalPath { String^ get() { return _LocalPath; }; }
-        property String^ AppLocalDataPath { String^ get() { return _AppLocalDataPath; }; }
-        property String^ ConnectionString { String^ get() { return _ConnectionString; }; }
-        property String^ ContainerName { String^ get() { return _ContainerName; }; }
-        property String^ BlobName { String^ get() { return _BlobName; }; }
-        property bool Upload { bool get() { return _Upload; }; }
+        property String^ LocalPath;
+        property String^ AppLocalDataPath;
+        property String^ ConnectionString;
+        property String^ ContainerName;
+        property String^ BlobName;
+        property bool Upload;
     };
 
     public ref class AzureFileTransferRequest sealed : public IRequest
