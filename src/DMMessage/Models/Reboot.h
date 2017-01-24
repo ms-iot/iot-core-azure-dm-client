@@ -24,7 +24,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::RebootSystem; }
+            DMMessageKind get();
         }
     };
 

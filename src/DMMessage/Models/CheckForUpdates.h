@@ -24,7 +24,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::CheckUpdates; }
+            DMMessageKind get();
         }
     };
 
@@ -51,7 +51,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::CheckUpdates; }
+            DMMessageKind get();
         }
 
         virtual property ResponseStatus Status {

@@ -69,7 +69,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::InstallApp; }
+            DMMessageKind get();
         }
 
         property AppInstallInfo^ AppInstallInfo {
@@ -95,7 +95,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::InstallApp; }
+            DMMessageKind get();
         }
     };
 }

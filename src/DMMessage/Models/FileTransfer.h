@@ -71,7 +71,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::TransferFile; }
+            DMMessageKind get();
         }
 
         property AzureFileTransferInfo^ AzureFileTransferInfo {
@@ -97,7 +97,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::TransferFile; }
+            DMMessageKind get();
         }
     };
 }

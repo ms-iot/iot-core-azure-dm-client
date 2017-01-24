@@ -24,7 +24,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::GetTimeInfo; }
+            DMMessageKind get();
         }
     };
 
@@ -79,7 +79,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::GetTimeInfo; }
+            DMMessageKind get();
         }
     };
 }

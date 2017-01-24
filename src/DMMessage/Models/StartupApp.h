@@ -49,7 +49,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::AppLifcycle; }
+            DMMessageKind get();
         }
 
         property StartupAppInfo^ StartupAppInfo {
@@ -75,7 +75,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::AppLifcycle; }
+            DMMessageKind get();
         }
     };
 }

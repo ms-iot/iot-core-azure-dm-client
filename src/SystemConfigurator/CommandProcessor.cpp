@@ -116,13 +116,13 @@ IResponse^ HandleAppLifecycle(IRequest^ request)
         bool start = info->Start;
 
         AppCfg::ManageApp(appId, start);
-		return ref new AppLifecycleResponse(ResponseStatus::Success);
+		return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (Platform::Exception^ e)
     {
 		std::wstring failure(e->Message->Data());
 		TRACEP(L"ERROR DMCommand::HandleAppLifecycle: ", Utils::ConcatString(failure.c_str(), e->HResult));
-		return ref new AppLifecycleResponse(ResponseStatus::Failure);
+		return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
 	}
 }
 
@@ -137,13 +137,13 @@ IResponse^ HandleAddRemoveAppForStartup(IRequest^ request, bool add)
 
 		if (add) { CustomDeviceUiCSP::AddAsStartupApp(appId, isBackgroundApp); }
 		else { CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(appId); }
-		return ref new AppLifecycleResponse(ResponseStatus::Success);
+		return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 	}
 	catch (Platform::Exception^ e)
 	{
 		std::wstring failure(e->Message->Data());
 		TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
-		return ref new AppLifecycleResponse(ResponseStatus::Failure);
+		return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
 	}
 }
 
@@ -352,9 +352,10 @@ IResponse^ ProcessCommand(IRequest^ request)
 		return HandleAddRemoveAppForStartup(request, true);
 	case DMMessageKind::RemoveStartupApp:
 		return HandleAddRemoveAppForStartup(request, false);
-	case DMMessageKind::AppLifcycle:
-		return HandleAppLifecycle(request);
-	case DMMessageKind::TransferFile:
+    case DMMessageKind::StartApp:
+    case DMMessageKind::StopApp:
+        return HandleAppLifecycle(request);
+    case DMMessageKind::TransferFile:
 		return HandleTransferFile(request);
 	case DMMessageKind::CheckUpdates:
         return ref new CheckForUpdatesResponse(ResponseStatus::Success, true);

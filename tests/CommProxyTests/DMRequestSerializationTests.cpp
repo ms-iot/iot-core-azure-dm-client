@@ -20,11 +20,12 @@ namespace CommProxyTests
     {
         TEST_METHOD(TestIRequestSerialization)
         {
-            String^ appname = "abc";
-            IRequest^ ireg = ref new AppInstallRequest(appname);
+            auto deps = ref new Vector<String^>();
+            auto appInstallInfo = ref new AppInstallInfo("abc", "def", deps);
+            IRequest^ ireg = ref new AppInstallRequest(appInstallInfo);
             auto blob = ireg->Serialize();
-            AppInstallRequest^ req = AppInstallRequest::Deserialize(blob);
-            Assert::AreEqual(req->AppName, appname);
+            AppInstallRequest^ req = dynamic_cast<AppInstallRequest^>(AppInstallRequest::Deserialize(blob));
+            Assert::AreEqual(req->AppInstallInfo->AppxPath, appInstallInfo->AppxPath);
         }
 
         TEST_METHOD(TestIResponseSerialization)
@@ -37,19 +38,20 @@ namespace CommProxyTests
 
                 auto blob = iresponse->Serialize();
 
-                auto req = AppInstallResponse::Deserialize(blob);
+                auto req = dynamic_cast<AppInstallResponse^>(AppInstallResponse::Deserialize(blob));
                 Assert::IsTrue(req->Status == status);
             }
         }
 
         TEST_METHOD(TestIRequestSerializationThroughBlob)
         {
-            String^ appname = "xyz";
-            IRequest^ ireg = ref new AppInstallRequest(appname);
+            auto deps = ref new Vector<String^>();
+            auto appInstallInfo = ref new AppInstallInfo("abc", "def", deps);
+            IRequest^ ireg = ref new AppInstallRequest(appInstallInfo);
             auto blob = ireg->Serialize();
             auto payload = blob->MakeIRequest();
             AppInstallRequest^ req = (AppInstallRequest^)payload;
-            Assert::AreEqual(req->AppName, appname);
+            Assert::AreEqual(req->AppInstallInfo->AppxPath, appInstallInfo->AppxPath);
         }
 
         TEST_METHOD(TestIResponseSerializationThroughBlob)
@@ -93,11 +95,12 @@ namespace CommProxyTests
 
         TEST_METHOD(TestRequestRoundTripThroughNativeHandle)
         {
-            String^ appname = "xyz";
-            auto req = ref new AppInstallRequest(appname);
+            auto deps = ref new Vector<String^>();
+            auto appInstallInfo = ref new AppInstallInfo("abc", "def", deps);
+            IRequest^ req = ref new AppInstallRequest(appInstallInfo);
             auto blob = RoundTripThroughNativeHandle(req->Serialize());
-            AppInstallRequest^ req2 = AppInstallRequest::Deserialize(blob);
-            Assert::AreEqual(req->AppName, req2->AppName);
+            auto req2 = dynamic_cast<AppInstallRequest^>(AppInstallRequest::Deserialize(blob));
+            Assert::AreEqual(req2->AppInstallInfo->AppxPath, appInstallInfo->AppxPath);
         }
 
         TEST_METHOD(TestResponseRoundTripThroughNativeHandle)
@@ -108,7 +111,7 @@ namespace CommProxyTests
             {
                 auto response = ref new AppInstallResponse(status);
                 auto blob = RoundTripThroughNativeHandle(response->Serialize());
-                auto req = AppInstallResponse::Deserialize(blob);
+                auto req = dynamic_cast<AppInstallResponse^>(AppInstallResponse::Deserialize(blob));
                 Assert::IsTrue(req->Status == status);
             }
         }

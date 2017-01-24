@@ -28,9 +28,11 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     public ref class AppLifecycleRequest sealed : public IRequest
     {
+    private:
 		AppLifecycleInfo^ appInfo;
+    
     public:
-		AppLifecycleRequest(AppLifecycleInfo^ appInfo) : appInfo(appInfo) {}
+        AppLifecycleRequest(AppLifecycleInfo^ appInfo) : appInfo(appInfo) {}
 
         virtual Blob^ Serialize() {
             JsonObject^ jsonObject = ref new JsonObject();
@@ -49,34 +51,11 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::AppLifcycle; }
+            DMMessageKind get() { return (appInfo->Start) ? DMMessageKind::StartApp : DMMessageKind::StopApp; };
         }
 
         property AppLifecycleInfo^ AppLifecycleInfo {
 			Microsoft::Devices::Management::Message::AppLifecycleInfo^ get() { return appInfo; }
         }
     };
-
-    public ref class AppLifecycleResponse sealed : public IResponse
-    {
-        StatusCodeResponse statusCodeResponse;
-    public:
-		AppLifecycleResponse(ResponseStatus status) : statusCodeResponse(status, this->Tag) {}
-        virtual Blob^ Serialize() {
-            return statusCodeResponse.Serialize();
-        }
-
-        static IDataPayload^ Deserialize(Blob^ bytes) {
-            return ref new AppLifecycleResponse(StatusCodeResponse::Deserialize(bytes)->Status);
-        }
-
-        virtual property ResponseStatus Status {
-            ResponseStatus get() { return statusCodeResponse.Status; }
-        }
-
-        virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::AppLifcycle; }
-        }
-    };
-}
-}}}
+}}}}
