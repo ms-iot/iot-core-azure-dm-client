@@ -23,56 +23,56 @@ using namespace Windows::Data::Json;
 
 IResponse^ HandleInstallApp(IRequest^ request)
 {
-	try
-	{
-		auto appInstall = dynamic_cast<AppInstallRequest^>(request);
-		auto info = appInstall->AppInstallInfo;
+    try
+    {
+        auto appInstall = dynamic_cast<AppInstallRequest^>(request);
+        auto info = appInstall->AppInstallInfo;
 
-		std::vector<wstring> deps;
-		for each (auto dep in info->Dependencies)
-		{
-			deps.push_back((wstring)dep->Data());
-		}
-		auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
-		auto appxPath = (wstring)info->AppxPath->Data();
+        std::vector<wstring> deps;
+        for each (auto dep in info->Dependencies)
+        {
+            deps.push_back((wstring)dep->Data());
+        }
+        auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
+        auto appxPath = (wstring)info->AppxPath->Data();
 
-		EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
-		return ref new AppInstallResponse(ResponseStatus::Success);
-	}
-	catch (Platform::Exception^ e)
-	{
-		std::wstring failure(e->Message->Data());
-		TRACEP(L"ERROR DMCommand::HandleInstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
-		return ref new AppInstallResponse(ResponseStatus::Failure);
-	}
+        EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
+        return ref new AppInstallResponse(ResponseStatus::Success);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        TRACEP(L"ERROR DMCommand::HandleInstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new AppInstallResponse(ResponseStatus::Failure);
+    }
 }
 
 IResponse^ HandleUninstallApp(IRequest^ request)
 {
-	try
-	{
-		auto appUninstall = dynamic_cast<AppUninstallRequest^>(request);
-		auto info = appUninstall->AppUninstallInfo;
-		auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
-		auto storeApp = info->StoreApp;
+    try
+    {
+        auto appUninstall = dynamic_cast<AppUninstallRequest^>(request);
+        auto info = appUninstall->AppUninstallInfo;
+        auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
+        auto storeApp = info->StoreApp;
 
-		EnterpriseModernAppManagementCSP::UninstallApp(packageFamilyName, storeApp);
-		return ref new AppUninstallResponse(ResponseStatus::Success);
-	}
-	catch (Platform::Exception^ e)
-	{
-		std::wstring failure(e->Message->Data());
-		TRACEP(L"ERROR DMCommand::HandleUninstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
-		return ref new AppUninstallResponse(ResponseStatus::Failure);
-	}
+        EnterpriseModernAppManagementCSP::UninstallApp(packageFamilyName, storeApp);
+        return ref new AppUninstallResponse(ResponseStatus::Success);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        TRACEP(L"ERROR DMCommand::HandleUninstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new AppUninstallResponse(ResponseStatus::Failure);
+    }
 }
 
 IResponse^ HandleTransferFile(IRequest^ request)
 {
     try
     {
-		auto transferRequest = dynamic_cast<AzureFileTransferRequest^>(request);
-		auto info = transferRequest->AzureFileTransferInfo;
+        auto transferRequest = dynamic_cast<AzureFileTransferRequest^>(request);
+        auto info = transferRequest->AzureFileTransferInfo;
         auto upload = info->Upload;
         auto localPath = (wstring)info->LocalPath->Data();
 #ifdef AZURE_BLOB_SDK_FOR_ARM
@@ -96,55 +96,55 @@ IResponse^ HandleTransferFile(IRequest^ request)
         dst << src.rdbuf();
 
 #endif // AZURE_BLOB_SDK_FOR_ARM
-		return ref new AzureFileTransferResponse(ResponseStatus::Success);
+        return ref new AzureFileTransferResponse(ResponseStatus::Success);
     }
     catch (Platform::Exception^ e)
     {
         std::wstring failure(e->Message->Data());
-		TRACEP(L"ERROR DMCommand::HandleTransferFile: ", Utils::ConcatString(failure.c_str(), e->HResult));
-		return ref new AzureFileTransferResponse(ResponseStatus::Failure);
-	}
+        TRACEP(L"ERROR DMCommand::HandleTransferFile: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new AzureFileTransferResponse(ResponseStatus::Failure);
+    }
 }
 
 IResponse^ HandleAppLifecycle(IRequest^ request)
 {
-	try
-	{
-		auto appLifecycle = dynamic_cast<AppLifecycleRequest^>(request);
+    try
+    {
+        auto appLifecycle = dynamic_cast<AppLifecycleRequest^>(request);
         auto info = appLifecycle->AppLifecycleInfo;
         auto appId = (wstring)info->AppId->Data();
         bool start = info->Start;
 
         AppCfg::ManageApp(appId, start);
-		return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (Platform::Exception^ e)
     {
-		std::wstring failure(e->Message->Data());
-		TRACEP(L"ERROR DMCommand::HandleAppLifecycle: ", Utils::ConcatString(failure.c_str(), e->HResult));
-		return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-	}
+        std::wstring failure(e->Message->Data());
+        TRACEP(L"ERROR DMCommand::HandleAppLifecycle: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
 }
 
 IResponse^ HandleAddRemoveAppForStartup(IRequest^ request, bool add)
 {
-	try
-	{
-		auto startupApp = dynamic_cast<StartupAppRequest^>(request);
-		auto info = startupApp->StartupAppInfo;
-		auto appId = (wstring)info->AppId->Data();
-		auto isBackgroundApp = info->IsBackgroundApplication;
+    try
+    {
+        auto startupApp = dynamic_cast<StartupAppRequest^>(request);
+        auto info = startupApp->StartupAppInfo;
+        auto appId = (wstring)info->AppId->Data();
+        auto isBackgroundApp = info->IsBackgroundApplication;
 
-		if (add) { CustomDeviceUiCSP::AddAsStartupApp(appId, isBackgroundApp); }
-		else { CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(appId); }
-		return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-	}
-	catch (Platform::Exception^ e)
-	{
-		std::wstring failure(e->Message->Data());
-		TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
-		return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-	}
+        if (add) { CustomDeviceUiCSP::AddAsStartupApp(appId, isBackgroundApp); }
+        else { CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(appId); }
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
 }
 
 #if 0 // Not yet implemented
@@ -338,26 +338,26 @@ IResponse^ ProcessCommand(IRequest^ request)
 
     switch (request->Tag)
     {
-	case DMMessageKind::InstallApp:
-		return HandleInstallApp(request);
-	case DMMessageKind::UninstallApp:
-		return HandleInstallApp(request);
-		/*
-	case DMMessageKind::GetStartupForegroundApp:
-		return HandleListStartupApps(false);
-	case DMMessageKind::ListStartupBackgroundApps:
-		return HandleListStartupApps(true);
-		*/
-	case DMMessageKind::AddStartupApp:
-		return HandleAddRemoveAppForStartup(request, true);
-	case DMMessageKind::RemoveStartupApp:
-		return HandleAddRemoveAppForStartup(request, false);
+    case DMMessageKind::InstallApp:
+        return HandleInstallApp(request);
+    case DMMessageKind::UninstallApp:
+        return HandleInstallApp(request);
+        /*
+    case DMMessageKind::GetStartupForegroundApp:
+        return HandleListStartupApps(false);
+    case DMMessageKind::ListStartupBackgroundApps:
+        return HandleListStartupApps(true);
+        */
+    case DMMessageKind::AddStartupApp:
+        return HandleAddRemoveAppForStartup(request, true);
+    case DMMessageKind::RemoveStartupApp:
+        return HandleAddRemoveAppForStartup(request, false);
     case DMMessageKind::StartApp:
     case DMMessageKind::StopApp:
         return HandleAppLifecycle(request);
     case DMMessageKind::TransferFile:
-		return HandleTransferFile(request);
-	case DMMessageKind::CheckUpdates:
+        return HandleTransferFile(request);
+    case DMMessageKind::CheckUpdates:
         return ref new CheckForUpdatesResponse(ResponseStatus::Success, true);
     case DMMessageKind::RebootSystem:
         RebootCSP::ExecRebootNow();
