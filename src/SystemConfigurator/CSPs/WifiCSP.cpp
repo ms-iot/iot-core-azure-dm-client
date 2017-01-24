@@ -109,7 +109,7 @@ void WifiCSP::AddDisableInternetConnectivityChecks(const wstring& profileName, b
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
-    MdmProvision::RunAddData(path, disable ? L"True" : L"False");
+    MdmProvision::RunAddData(path, disable);
 }
 
 void WifiCSP::DeleteDisableInternetConnectivityChecks(const wstring& profileName)
@@ -144,7 +144,7 @@ void WifiCSP::SetDisableInternetConnectivityChecks(const wstring& profileName, b
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
-    MdmProvision::RunSet(path, disable ? L"True" : L"False");
+    MdmProvision::RunSet(path, disable);
 }
 
 void AddProxyPacUrl(const wstring& profileName, const wstring& proxyPacUrl)

@@ -112,7 +112,7 @@ void MdmProvision::RunAdd(const wstring& sid, const wstring& path, const wstring
     RunSyncML(sid, requestSyncML, resultSyncML);
 }
 
-void MdmProvision::RunAddData(const wstring& sid, const wstring& path, const wstring& value)
+void MdmProvision::RunAddData(const wstring& sid, const wstring& path, const wstring& value, const wstring& type)
 {
     wstring requestSyncML = LR"(
         <SyncBody>
@@ -125,7 +125,9 @@ void MdmProvision::RunAddData(const wstring& sid, const wstring& path, const wst
     requestSyncML += LR"(</LocURI>
                     </Target>
                     <Meta>
-                        <Format xmlns="syncml:metinf">chr</Format>
+                        <Format xmlns="syncml:metinf">)";
+    requestSyncML += type;
+    requestSyncML += LR"(</Format>
                     </Meta>
                     <Data>)";
     requestSyncML += value;
@@ -137,6 +139,11 @@ void MdmProvision::RunAddData(const wstring& sid, const wstring& path, const wst
 
     wstring resultSyncML;
     RunSyncML(sid, requestSyncML, resultSyncML);
+}
+
+void MdmProvision::RunAddDataBase64(const wstring& sid, const std::wstring& path, const std::wstring& value)
+{
+    RunAddData(sid, path, value, L"b64");
 }
 
 void MdmProvision::RunDelete(const std::wstring& sid, const std::wstring& path)
@@ -176,6 +183,40 @@ wstring MdmProvision::RunGetString(const wstring& sid, const wstring& path)
                 </Target>
                 <Meta>
                     <Type xmlns="syncml:metinf">text/plain</Type>
+                </Meta>
+              </Item>
+            </Get>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    RunSyncML(sid, requestSyncML, resultSyncML);
+
+    // Extract the result data
+    wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
+
+    wstring value;
+    Utils::ReadXmlValue(wrappedResult, RESULTS_XML_PATH, value);
+    return value;
+}
+
+std::wstring MdmProvision::RunGetBase64(const std::wstring& sid, const std::wstring& path)
+{
+    // http://www.openmobilealliance.org/tech/affiliates/syncml/syncml_metinf_v101_20010615.pdf
+    // Section 5.3.
+
+    wstring requestSyncML = LR"(
+        <SyncBody>
+            <Get>
+              <CmdID>1</CmdID>
+              <Item>
+                <Target>
+                  <LocURI>)";
+    requestSyncML += path;
+    requestSyncML += LR"(</LocURI>
+                </Target>
+                <Meta>
+                    <Type xmlns="syncml:metinf">b64</Type>
                 </Meta>
               </Item>
             </Get>
@@ -233,7 +274,9 @@ unsigned int MdmProvision::RunGetUInt(const wstring& sid, const wstring& path)
     requestSyncML += path.c_str();
     requestSyncML += LR"(</LocURI>
                 </Target>
-                <Meta><Format xmlns="syncml:metinf">int</Format></Meta>
+                <Meta>
+                    <Format xmlns="syncml:metinf">int</Format>
+                </Meta>
               </Item>
             </Get>
         </SyncBody>
@@ -283,7 +326,38 @@ void MdmProvision::RunSet(const wstring& sid, const wstring& path, const wstring
     RunSyncML(sid, requestSyncML, resultSyncML);
 }
 
-void MdmProvision::RunSet(const wstring& sid, const wstring& path, unsigned int value)
+void MdmProvision::RunSetBase64(const wstring& sid, const std::wstring& path, const std::wstring& value)
+{
+    // http://www.openmobilealliance.org/tech/affiliates/syncml/syncml_metinf_v101_20010615.pdf
+    // Section 5.3.
+    RunSet(path, value, L"b64");
+
+    wstring requestSyncML = LR"(
+        <SyncBody>
+            <Replace>
+              <CmdID>1</CmdID>
+              <Item>
+                <Target>
+                  <LocURI>)";
+    requestSyncML += path;
+    requestSyncML += LR"(</LocURI>
+                </Target>
+                <Meta>
+                    <Type xmlns="syncml:metinf">b64</Type>
+                </Meta>
+                <Data>)";
+    requestSyncML += value;
+    requestSyncML += LR"(</Data>
+              </Item>
+            </Replace>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    RunSyncML(sid, requestSyncML, resultSyncML);
+}
+
+void MdmProvision::RunSet(const wstring& sid, const wstring& path, int value)
 {
     wstring requestSyncML = LR"(
         <SyncBody>
@@ -298,6 +372,31 @@ void MdmProvision::RunSet(const wstring& sid, const wstring& path, unsigned int 
                 <Meta><Format xmlns="syncml:metinf">int</Format></Meta>
                 <Data>)";
     requestSyncML += to_wstring(value);
+    requestSyncML += LR"(</Data>
+              </Item>
+            </Replace>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    RunSyncML(sid, requestSyncML, resultSyncML);
+}
+
+void MdmProvision::RunSet(const wstring& sid, const wstring& path, bool value)
+{
+    wstring requestSyncML = LR"(
+        <SyncBody>
+            <Replace>
+              <CmdID>1</CmdID>
+              <Item>
+                <Target>
+                  <LocURI>)";
+    requestSyncML += path;
+    requestSyncML += LR"(</LocURI>
+                </Target>
+                <Meta><Format xmlns="syncml:metinf">bool</Format></Meta>
+                <Data>)";
+    requestSyncML += value ? L"True" : L"False";
     requestSyncML += LR"(</Data>
               </Item>
             </Replace>
@@ -335,10 +434,28 @@ void MdmProvision::RunAdd(const wstring& path, const wstring& value)
     RunAdd(L"", path, value);
 }
 
+void MdmProvision::RunAddData(const std::wstring& path, int value)
+{
+    // empty sid is okay for device-wide CSPs.
+    RunAddData(L"", path, Utils::MultibyteToWide(to_string(value).c_str()), L"int");
+}
+
+void MdmProvision::RunAddData(const std::wstring& path, bool value)
+{
+    // empty sid is okay for device-wide CSPs.
+    RunAddData(L"", path, Utils::MultibyteToWide(to_string(value).c_str()), L"bool");
+}
+
 void MdmProvision::RunAddData(const wstring& path, const wstring& value)
 {
     // empty sid is okay for device-wide CSPs.
     RunAddData(L"", path, value);
+}
+
+void MdmProvision::RunAddDataBase64(const wstring& path, const wstring& value)
+{
+    // empty sid is okay for device-wide CSPs.
+    RunAddDataBase64(L"", path, value);
 }
 
 void MdmProvision::RunDelete(const std::wstring& path)
@@ -351,6 +468,12 @@ wstring MdmProvision::RunGetString(const wstring& path)
 {
     // empty sid is okay for device-wide CSPs.
     return RunGetString(L"", path);
+}
+
+wstring MdmProvision::RunGetBase64(const wstring& path)
+{
+    // empty sid is okay for device-wide CSPs.
+    return RunGetBase64(L"", path);
 }
 
 unsigned int MdmProvision::RunGetUInt(const wstring& path)
@@ -371,10 +494,22 @@ void MdmProvision::RunSet(const wstring& path, const wstring& value)
     RunSet(L"", path, value);
 }
 
-void MdmProvision::RunSet(const wstring& path, unsigned int value)
+void MdmProvision::RunSet(const wstring& path, int value)
 {
     // empty sid is okay for device-wide CSPs.
     RunSet(L"", path, value);
+}
+
+void MdmProvision::RunSet(const wstring& path, bool value)
+{
+    // empty sid is okay for device-wide CSPs.
+    RunSet(L"", path, value);
+}
+
+void MdmProvision::RunSetBase64(const std::wstring& path, const std::wstring& value)
+{
+    // empty sid is okay for device-wide CSPs.
+    RunSetBase64(L"", path, value);
 }
 
 void MdmProvision::RunExec(const wstring& path)
