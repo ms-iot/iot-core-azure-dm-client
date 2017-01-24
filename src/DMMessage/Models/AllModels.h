@@ -4,9 +4,10 @@
 #include "AppUninstall.h"
 #include "CheckForUpdates.h"
 #include "FileTransfer.h"
+#include "ListApps.h"
+#include "Reboot.h"
 #include "StartupApp.h"
 #include "StatusCodeResponse.h"
-#include "Reboot.h"
 #include "TimeInfo.h"
 
 #define EMPTY_REQUEST(A) \

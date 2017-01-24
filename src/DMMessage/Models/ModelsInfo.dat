@@ -1,21 +1,21 @@
 
 #define MODELS_INFO \
-MODEL_REQDEF( FactoryReset, 1, FactoryResetRequest, StatusCodeResponse ) \
-MODEL_ALLDEF( CheckUpdates, 2, CheckForUpdatesRequest, CheckForUpdatesResponse ) \
-MODEL_REQDEF( ListApps,     3, ListAppsRequest, StatusCodeResponse ) \
-MODEL_ALLDEF( InstallApp,   4, AppInstallRequest, AppInstallResponse ) \
-MODEL_ALLDEF( UninstallApp, 5, AppUninstallRequest, AppUninstallResponse ) \
-MODEL_REQDEF( GetStartupForegroundApp, 6, GetStartupForegroundAppRequest, StatusCodeResponse ) \
-MODEL_REQDEF( ListStartupBackgroundApps, 7, ListStartupBackgroundAppsRequest, StatusCodeResponse ) \
-MODEL_ALLDEF( AddStartupApp, 8, StartupAppRequest, StartupAppResponse ) \
-MODEL_NODEF( RemoveStartupApp, 9, StartupAppRequest, StartupAppResponse ) \
-MODEL_NODEF( StartApp, 10, AppLifecycleRequest, StatusCodeResponse ) \
-MODEL_NODEF( StopApp, 11, AppLifecycleRequest, StatusCodeResponse ) \
-MODEL_REQDEF( RebootSystem, 15, RebootRequest, StatusCodeResponse ) \
-MODEL_REQDEF( SetRebootInfo, 16, SetRebootInfoRequest, StatusCodeResponse ) \
-MODEL_REQDEF( GetRebootInfo, 17, GetRebootInfoRequest, StatusCodeResponse ) \
-MODEL_ALLDEF( TransferFile, 20, AzureFileTransferRequest, AzureFileTransferResponse ) \
-MODEL_ALLDEF( GetTimeInfo, 30, TimeInfoRequest, TimeInfoResponse ) \
-MODEL_REQDEF( SetTimeInfo, 31, SetTimeInfoRequest, StatusCodeResponse ) \
-MODEL_REQDEF( GetDeviceStatus, 40, GetDeviceStatusRequest, StatusCodeResponse )
+MODEL_REQDEF(   FactoryReset,               1,  FactoryResetRequest,                StatusCodeResponse ) \
+MODEL_ALLDEF(   CheckUpdates,               2,  CheckForUpdatesRequest,             CheckForUpdatesResponse ) \
+MODEL_ALLDEF(   ListApps,                   3,  ListAppsRequest,                    ListAppsResponse ) \
+MODEL_REQDEF(   InstallApp,                 4,  AppInstallRequest,                  StatusCodeResponse ) \
+MODEL_REQDEF(   UninstallApp,               5,  AppUninstallRequest,                StatusCodeResponse ) \
+MODEL_ALLDEF(   GetStartupForegroundApp,    6,  GetStartupForegroundAppRequest,     GetStartupForegroundAppResponse ) \
+MODEL_ALLDEF(   ListStartupBackgroundApps,  7,  ListStartupBackgroundAppsRequest,   ListStartupBackgroundAppsResponse ) \
+MODEL_REQDEF(   AddStartupApp,              8,  StartupAppRequest,                  StatusCodeResponse ) \
+MODEL_NODEF (   RemoveStartupApp,           9,  StartupAppRequest,                  StatusCodeResponse ) \
+MODEL_NODEF (   StartApp,                   10, AppLifecycleRequest,                StatusCodeResponse ) \
+MODEL_NODEF (   StopApp,                    11, AppLifecycleRequest,                StatusCodeResponse ) \
+MODEL_REQDEF(   RebootSystem,               15, RebootRequest,                      StatusCodeResponse ) \
+MODEL_REQDEF(   SetRebootInfo,              16, SetRebootInfoRequest,               StatusCodeResponse ) \
+MODEL_REQDEF(   GetRebootInfo,              17, GetRebootInfoRequest,               StatusCodeResponse ) \
+MODEL_REQDEF(   TransferFile,               20, AzureFileTransferRequest,           StatusCodeResponse ) \
+MODEL_ALLDEF(   GetTimeInfo,                30, TimeInfoRequest,                    TimeInfoResponse ) \
+MODEL_REQDEF(   SetTimeInfo,                31, SetTimeInfoRequest,                 StatusCodeResponse ) \
+MODEL_REQDEF(   GetDeviceStatus,            40, GetDeviceStatusRequest,             StatusCodeResponse )
 

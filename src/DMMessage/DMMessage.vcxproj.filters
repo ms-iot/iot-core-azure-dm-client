@@ -52,5 +52,8 @@
     <ClInclude Include="Models\AppUninstall.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="Models\ListApps.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

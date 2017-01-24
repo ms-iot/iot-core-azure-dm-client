@@ -92,6 +92,7 @@
     <ClInclude Include="Models\AppUninstall.h" />
     <ClInclude Include="Models\CheckForUpdates.h" />
     <ClInclude Include="Models\FileTransfer.h" />
+    <ClInclude Include="Models\ListApps.h" />
     <ClInclude Include="Models\Reboot.h" />
     <ClInclude Include="Models\StartupApp.h" />
     <ClInclude Include="Models\StatusCodeResponse.h" />

@@ -56,26 +56,4 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             Microsoft::Devices::Management::Message::AppUninstallInfo^ get() { return appInfo; }
         }
     };
-
-    public ref class AppUninstallResponse sealed : public IResponse
-    {
-        StatusCodeResponse statusCodeResponse;
-    public:
-        AppUninstallResponse(ResponseStatus status) : statusCodeResponse(status, this->Tag) {}
-        virtual Blob^ Serialize() {
-            return statusCodeResponse.Serialize();
-        }
-
-        static IDataPayload^ Deserialize(Blob^ bytes) {
-            return ref new AppUninstallResponse(StatusCodeResponse::Deserialize(bytes)->Status);
-        }
-
-        virtual property ResponseStatus Status {
-            ResponseStatus get() { return statusCodeResponse.Status; }
-        }
-
-        virtual property DMMessageKind Tag {
-            DMMessageKind get();
-        }
-    };
 }}}}

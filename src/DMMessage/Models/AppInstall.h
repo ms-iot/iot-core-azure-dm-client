@@ -76,27 +76,4 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             Microsoft::Devices::Management::Message::AppInstallInfo^ get() { return appInfo; }
         }
     };
-
-    public ref class AppInstallResponse sealed : public IResponse
-    {
-        StatusCodeResponse statusCodeResponse;
-    public:
-        AppInstallResponse(ResponseStatus status) : statusCodeResponse(status, this->Tag) {}
-        virtual Blob^ Serialize() {
-            return statusCodeResponse.Serialize();
-        }
-
-        static IDataPayload^ Deserialize(Blob^ bytes) {
-            return ref new AppInstallResponse(StatusCodeResponse::Deserialize(bytes)->Status);
-        }
-
-        virtual property ResponseStatus Status {
-            ResponseStatus get() { return statusCodeResponse.Status; }
-        }
-
-        virtual property DMMessageKind Tag {
-            DMMessageKind get();
-        }
-    };
-}
-}}}
+}}}}

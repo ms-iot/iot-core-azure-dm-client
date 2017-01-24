@@ -6,6 +6,7 @@
 #include "DMRequest.h"
 #include "SecurityAttributes.h"
 
+#include "Models\StartupApp.h"
 #include "Models\AppInstall.h"
 #include "Models\CheckForUpdates.h"
 #include "Models\StatusCodeResponse.h"
@@ -22,9 +23,9 @@ namespace CommProxyTests
         {
             auto deps = ref new Vector<String^>();
             auto appInstallInfo = ref new AppInstallInfo("abc", "def", deps);
-            IRequest^ ireg = ref new AppInstallRequest(appInstallInfo);
+            auto ireg = ref new AppInstallRequest(appInstallInfo);
             auto blob = ireg->Serialize();
-            AppInstallRequest^ req = dynamic_cast<AppInstallRequest^>(AppInstallRequest::Deserialize(blob));
+            auto req = dynamic_cast<AppInstallRequest^>(AppInstallRequest::Deserialize(blob));
             Assert::AreEqual(req->AppInstallInfo->AppxPath, appInstallInfo->AppxPath);
         }
 
@@ -34,11 +35,9 @@ namespace CommProxyTests
 
             for (auto status : statuses)
             {
-                IResponse^ iresponse = ref new AppInstallResponse(status);
-
+                auto iresponse = ref new StatusCodeResponse(status, DMMessageKind::AddStartupApp);
                 auto blob = iresponse->Serialize();
-
-                auto req = dynamic_cast<AppInstallResponse^>(AppInstallResponse::Deserialize(blob));
+                auto req = dynamic_cast<StatusCodeResponse^>(StatusCodeResponse::Deserialize(blob));
                 Assert::IsTrue(req->Status == status);
             }
         }
@@ -47,22 +46,19 @@ namespace CommProxyTests
         {
             auto deps = ref new Vector<String^>();
             auto appInstallInfo = ref new AppInstallInfo("abc", "def", deps);
-            IRequest^ ireg = ref new AppInstallRequest(appInstallInfo);
+            auto ireg = ref new AppInstallRequest(appInstallInfo);
             auto blob = ireg->Serialize();
             auto payload = blob->MakeIRequest();
-            AppInstallRequest^ req = (AppInstallRequest^)payload;
+            auto req = (AppInstallRequest^)payload;
             Assert::AreEqual(req->AppInstallInfo->AppxPath, appInstallInfo->AppxPath);
         }
 
         TEST_METHOD(TestIResponseSerializationThroughBlob)
         {
-            IResponse^ iresponse = ref new AppInstallResponse(ResponseStatus::Success);
-
+            auto iresponse = ref new StatusCodeResponse(ResponseStatus::Success, DMMessageKind::AddStartupApp);
             auto blob = iresponse->Serialize();
-
             auto payload = blob->MakeIResponse();
-
-            AppInstallResponse^ response = (AppInstallResponse^)(payload);
+            auto response = (StatusCodeResponse^)(payload);
             Assert::IsTrue(response->Status == ResponseStatus::Success);
         }
 
@@ -97,7 +93,7 @@ namespace CommProxyTests
         {
             auto deps = ref new Vector<String^>();
             auto appInstallInfo = ref new AppInstallInfo("abc", "def", deps);
-            IRequest^ req = ref new AppInstallRequest(appInstallInfo);
+            auto req = ref new AppInstallRequest(appInstallInfo);
             auto blob = RoundTripThroughNativeHandle(req->Serialize());
             auto req2 = dynamic_cast<AppInstallRequest^>(AppInstallRequest::Deserialize(blob));
             Assert::AreEqual(req2->AppInstallInfo->AppxPath, appInstallInfo->AppxPath);
@@ -109,10 +105,12 @@ namespace CommProxyTests
 
             for (auto status : statuses)
             {
-                auto response = ref new AppInstallResponse(status);
+                auto app = ref new Platform::String(L"abc");
+                auto response = ref new GetStartupForegroundAppResponse(ResponseStatus::Success, app);
                 auto blob = RoundTripThroughNativeHandle(response->Serialize());
-                auto req = dynamic_cast<AppInstallResponse^>(AppInstallResponse::Deserialize(blob));
+                auto req = dynamic_cast<GetStartupForegroundAppResponse^>(GetStartupForegroundAppResponse::Deserialize(blob));
                 Assert::IsTrue(req->Status == status);
+                Assert::AreEqual(app, req->StartupForegroundApp);
             }
         }
     };

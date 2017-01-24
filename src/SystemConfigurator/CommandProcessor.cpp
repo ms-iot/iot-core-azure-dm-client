@@ -37,13 +37,13 @@ IResponse^ HandleInstallApp(IRequest^ request)
         auto appxPath = (wstring)info->AppxPath->Data();
 
         EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
-        return ref new AppInstallResponse(ResponseStatus::Success);
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (Platform::Exception^ e)
     {
         std::wstring failure(e->Message->Data());
         TRACEP(L"ERROR DMCommand::HandleInstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new AppInstallResponse(ResponseStatus::Failure);
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
     }
 }
 
@@ -57,13 +57,13 @@ IResponse^ HandleUninstallApp(IRequest^ request)
         auto storeApp = info->StoreApp;
 
         EnterpriseModernAppManagementCSP::UninstallApp(packageFamilyName, storeApp);
-        return ref new AppUninstallResponse(ResponseStatus::Success);
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (Platform::Exception^ e)
     {
         std::wstring failure(e->Message->Data());
         TRACEP(L"ERROR DMCommand::HandleUninstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new AppUninstallResponse(ResponseStatus::Failure);
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
     }
 }
 
@@ -96,13 +96,13 @@ IResponse^ HandleTransferFile(IRequest^ request)
         dst << src.rdbuf();
 
 #endif // AZURE_BLOB_SDK_FOR_ARM
-        return ref new AzureFileTransferResponse(ResponseStatus::Success);
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (Platform::Exception^ e)
     {
         std::wstring failure(e->Message->Data());
         TRACEP(L"ERROR DMCommand::HandleTransferFile: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new AzureFileTransferResponse(ResponseStatus::Failure);
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
     }
 }
 

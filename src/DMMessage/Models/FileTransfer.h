@@ -78,27 +78,4 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             Microsoft::Devices::Management::Message::AzureFileTransferInfo^ get() { return appInfo; }
         }
     };
-
-    public ref class AzureFileTransferResponse sealed : public IResponse
-    {
-        StatusCodeResponse statusCodeResponse;
-    public:
-        AzureFileTransferResponse(ResponseStatus status) : statusCodeResponse(status, this->Tag) {}
-        virtual Blob^ Serialize() {
-            return statusCodeResponse.Serialize();
-        }
-
-        static IDataPayload^ Deserialize(Blob^ bytes) {
-            return ref new AzureFileTransferResponse(StatusCodeResponse::Deserialize(bytes)->Status);
-        }
-
-        virtual property ResponseStatus Status {
-            ResponseStatus get() { return statusCodeResponse.Status; }
-        }
-
-        virtual property DMMessageKind Tag {
-            DMMessageKind get();
-        }
-    };
-}
-}}}
+}}}}
