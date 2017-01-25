@@ -9,11 +9,8 @@
 #include "CSPs\CustomDeviceUiCsp.h"
 #include "TimeCfg.h"
 #include "AppCfg.h"
-#include "AzureBlobCfg.h"
 
-#ifndef AZURE_BLOB_SDK_FOR_ARM
 #include <fstream>
-#endif // !AZURE_BLOB_SDK_FOR_ARM
 
 #include "Models\AllModels.h"
 
@@ -75,27 +72,12 @@ IResponse^ HandleTransferFile(IRequest^ request)
         auto info = transferRequest->AzureFileTransferInfo;
         auto upload = info->Upload;
         auto localPath = (wstring)info->LocalPath->Data();
-#ifdef AZURE_BLOB_SDK_FOR_ARM
-        auto connectionString = info->ConnectionString;
-        auto containerName = info->ContainerName;
-        auto blobName = info->BlobName;
-
-        if (upload) 
-        {
-            AzureBlobCfg::UploadFile(localPath, connectionString, containerName, blobName);
-        }
-        else
-        {
-            AzureBlobCfg::DownloadFile(connectionString, containerName, blobName, localPath);
-        }
-#else
         auto appLocalDataPath = (wstring)info->AppLocalDataPath->Data();
 
         std::ifstream  src((upload) ? localPath : appLocalDataPath, std::ios::binary);
         std::ofstream  dst((!upload) ? localPath : appLocalDataPath, std::ios::binary);
         dst << src.rdbuf();
 
-#endif // AZURE_BLOB_SDK_FOR_ARM
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (Platform::Exception^ e)
