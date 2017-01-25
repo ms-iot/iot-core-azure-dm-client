@@ -80,22 +80,22 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     public ref class ListAppsResponse sealed : public IResponse
     {
-	private:
+    private:
         ResponseStatus status;
         IMap<String^, AppInfo^>^ apps;
 
     public:
-		ListAppsResponse(ResponseStatus status, IMap<String^, AppInfo^>^ apps) : status(status), apps(apps) {}
-		ListAppsResponse(ResponseStatus status, JsonObject^ appsJson) : status(status) 
-		{
-			apps = ref new Map<String^, AppInfo^>();
-			for each (auto pair in appsJson)
-			{
-				auto pfn = pair->Key;
-				auto properties = appsJson->GetNamedObject(pfn);
-				apps->Insert(pfn, ref new AppInfo(properties));
-			}
-		}
+        ListAppsResponse(ResponseStatus status, IMap<String^, AppInfo^>^ apps) : status(status), apps(apps) {}
+        ListAppsResponse(ResponseStatus status, JsonObject^ appsJson) : status(status) 
+        {
+            apps = ref new Map<String^, AppInfo^>();
+            for each (auto pair in appsJson)
+            {
+                auto pfn = pair->Key;
+                auto properties = appsJson->GetNamedObject(pfn);
+                apps->Insert(pfn, ref new AppInfo(properties));
+            }
+        }
 
         virtual Blob^ Serialize() {
             auto jsonObject = ref new JsonObject();
@@ -116,7 +116,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             auto jsonObject = JsonObject::Parse(str);
             auto status = (ResponseStatus)(uint32_t)jsonObject->GetNamedNumber("Status");
             auto appDictionary = jsonObject->GetNamedObject("Apps");
-			return ref new ListAppsResponse(status, appDictionary);
+            return ref new ListAppsResponse(status, appDictionary);
         }
 
         virtual property DMMessageKind Tag {
