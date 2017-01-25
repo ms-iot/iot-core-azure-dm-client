@@ -12,7 +12,7 @@
 using namespace std;
 using namespace Utils;
 
-void AppCfg::ManageApp(const wstring& appId, bool start)
+void AppCfg::StartStopApp(const wstring& appId, bool start)
 {
     TRACE(__FUNCTION__);
 

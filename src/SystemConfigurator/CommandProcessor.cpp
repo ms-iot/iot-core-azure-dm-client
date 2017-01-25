@@ -18,6 +18,75 @@ using namespace Microsoft::Devices::Management::Message;
 using namespace std;
 using namespace Windows::Data::Json;
 
+IResponse^ HandleFactoryReset(IRequest^ request)
+{
+    RemoteWipeCSP::DoWipe();
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
+IResponse^ HandleGetDeviceStatus(IRequest^ request)
+{
+    throw DMExceptionWithErrorCode("Unsupported request: ", (uint32_t)request->Tag);
+    //try
+    //{
+    //    wstring deviceStatusJson = DeviceStatusCSP::GetDeviceStatusJson();
+    //    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    //}
+    //catch (DMException& e)
+    //{
+    //    TRACEP("ERROR DMCommand::HandleGetDeviceStatus: ", e.what());
+    //    return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    //}
+}
+
+IResponse^ HandleSetTimeInfo(IRequest^ request)
+{
+    throw DMExceptionWithErrorCode("Unsupported request: ", (uint32_t)request->Tag);
+    //auto setTimeInfoRequest = dynamic_cast<SetTimeInfoRequest^>(request);
+    //try
+    //{
+    //    wstring json = L"";
+    //    TimeCfg::SetTimeInfo(json);
+    //    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    //}
+    //catch (DMException& e)
+    //{
+    //    TRACEP("ERROR DMCommand::HandleSetTimeInfo: ", e.what());
+    //    return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    //}
+}
+
+IResponse^ HandleGetRebootInfo(IRequest^ request)
+{
+    throw DMExceptionWithErrorCode("Unsupported request: ", (uint32_t)request->Tag);
+    //auto getRebootInfoRequest = dynamic_cast<GetRebootInfoRequest^>(request);
+    //auto rebootInfoJson = RebootCSP::GetRebootInfoJson();
+    //return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
+IResponse^ HandleSetRebootInfo(IRequest^ request)
+{
+    throw DMExceptionWithErrorCode("Unsupported request: ", (uint32_t)request->Tag);
+    //auto setRebootInfoRequest = dynamic_cast<SetRebootInfoRequest^>(request);
+    //wstring json = L"";
+    //RebootCSP::SetRebootInfo(json);
+    //return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
+IResponse^ HandleGetTimeInfo(IRequest^ request)
+{
+    return TimeCfg::GetTimeInfo();
+}
+IResponse^ HandleRebootSystem(IRequest^ request)
+{
+    RebootCSP::ExecRebootNow();
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+IResponse^ HandleCheckUpdates(IRequest^ request)
+{
+    return ref new CheckForUpdatesResponse(ResponseStatus::Success, true);
+}
+
 IResponse^ HandleInstallApp(IRequest^ request)
 {
     try
@@ -97,7 +166,8 @@ IResponse^ HandleAppLifecycle(IRequest^ request)
         auto appId = (wstring)info->AppId->Data();
         bool start = info->Start;
 
-        AppCfg::ManageApp(appId, start);
+        if (start) AppCfg::StartApp(appId);
+        else AppCfg::StopApp(appId);
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (Platform::Exception^ e)
@@ -106,6 +176,16 @@ IResponse^ HandleAppLifecycle(IRequest^ request)
         TRACEP(L"ERROR DMCommand::HandleAppLifecycle: ", Utils::ConcatString(failure.c_str(), e->HResult));
         return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
     }
+}
+
+IResponse^ HandleStartApp(IRequest^ request)
+{
+    return HandleAppLifecycle(request);
+}
+
+IResponse^ HandleStopApp(IRequest^ request)
+{
+    return HandleAppLifecycle(request);
 }
 
 IResponse^ HandleAddRemoveAppForStartup(StartupAppInfo^ info, DMMessageKind tag, bool add)
@@ -127,7 +207,7 @@ IResponse^ HandleAddRemoveAppForStartup(StartupAppInfo^ info, DMMessageKind tag,
     }
 }
 
-IResponse^ HandleAddAppForStartup(IRequest^ request)
+IResponse^ HandleAddStartupApp(IRequest^ request)
 {
     try
     {
@@ -143,7 +223,7 @@ IResponse^ HandleAddAppForStartup(IRequest^ request)
     }
 }
 
-IResponse^ HandleRemoveAppForStartup(IRequest^ request)
+IResponse^ HandleRemoveStartupApp(IRequest^ request)
 {
     try
     {
@@ -159,23 +239,22 @@ IResponse^ HandleRemoveAppForStartup(IRequest^ request)
     }
 }
 
-IResponse^ HandleListStartupApps(bool backgroundApps)
+IResponse^ HandleGetStartupForegroundApp(IRequest^ request)
 {
-    TRACEP(L"DMCommand::HandleListStartupApps backgroundApps=", backgroundApps);
-    if (backgroundApps)
-    {
-        auto json = CustomDeviceUiCSP::GetBackgroundTasksToLaunch();
-        auto jsonArray = JsonArray::Parse(ref new Platform::String(json.c_str()));
-        return ref new ListStartupBackgroundAppsResponse(ResponseStatus::Success, jsonArray);
-    }
-    else
-    {
-        auto appId = CustomDeviceUiCSP::GetStartupAppId();
-        return ref new GetStartupForegroundAppResponse(ResponseStatus::Success, ref new Platform::String(appId.c_str()));
-    }
+    TRACE(__FUNCTION__);
+    auto appId = CustomDeviceUiCSP::GetStartupAppId();
+    return ref new GetStartupForegroundAppResponse(ResponseStatus::Success, ref new Platform::String(appId.c_str()));
 }
 
-IResponse^ HandleListApps()
+IResponse^ HandleListStartupBackgroundApps(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+    auto json = CustomDeviceUiCSP::GetBackgroundTasksToLaunch();
+    auto jsonArray = JsonArray::Parse(ref new Platform::String(json.c_str()));
+    return ref new ListStartupBackgroundAppsResponse(ResponseStatus::Success, jsonArray);
+}
+
+IResponse^ HandleListApps(IRequest^ request)
 {
     TRACE(__FUNCTION__);
     auto json = EnterpriseModernAppManagementCSP::GetInstalledApps();
@@ -277,32 +356,14 @@ IResponse^ ProcessCommand(IRequest^ request)
 
     switch (request->Tag)
     {
-    case DMMessageKind::ListApps:
-        return HandleListApps();
-    case DMMessageKind::InstallApp:
-        return HandleInstallApp(request);
-    case DMMessageKind::UninstallApp:
-        return HandleUninstallApp(request);
-    case DMMessageKind::GetStartupForegroundApp:
-        return HandleListStartupApps(false);
-    case DMMessageKind::ListStartupBackgroundApps:
-        return HandleListStartupApps(true);
-    case DMMessageKind::AddStartupApp:
-        return HandleAddAppForStartup(request);
-    case DMMessageKind::RemoveStartupApp:
-        return HandleRemoveAppForStartup(request);
-    case DMMessageKind::StartApp:
-    case DMMessageKind::StopApp:
-        return HandleAppLifecycle(request);
-    case DMMessageKind::TransferFile:
-        return HandleTransferFile(request);
-    case DMMessageKind::CheckUpdates:
-        return ref new CheckForUpdatesResponse(ResponseStatus::Success, true);
-    case DMMessageKind::RebootSystem:
-        RebootCSP::ExecRebootNow();
-        return ref new StatusCodeResponse(ResponseStatus::Success, DMMessageKind::RebootSystem);
-    case DMMessageKind::GetTimeInfo:
-        return TimeCfg::GetTimeInfo();
+#define MODEL_NODEF(A, B, C, D) case DMMessageKind::##A: { return Handle##A(request); }
+#define MODEL_REQDEF(A, B, C, D) MODEL_NODEF(A, B, C, D)
+#define MODEL_ALLDEF(A, B, C, D) MODEL_NODEF(A, B, C, D)
+#include "Models\ModelsInfo.dat"
+#undef MODEL_NODEF
+#undef MODEL_REQDEF
+#undef MODEL_ALLDEF
+
     default:
         TRACEP(L"Error: ", Utils::ConcatString(L"Unknown command: ", (uint32_t)request->Tag));
         throw DMException("Error: Unknown command");
