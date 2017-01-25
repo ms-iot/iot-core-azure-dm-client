@@ -109,6 +109,9 @@
     <ClInclude Include="AppCfg.h" />
     <ClInclude Include="AzureBlobCfg.h" />
     <ClInclude Include="CommandProcessor.h" />
+    <ClInclude Include="CSPs\CertificateInfo.h" />
+    <ClInclude Include="CSPs\CertificateStoreCSP.h" />
+    <ClInclude Include="CSPs\ClientCertificateInstallCSP.h" />
     <ClInclude Include="CSPs\CustomDeviceUiCsp.h" />
     <ClInclude Include="CSPs\DeviceStatusCSP.h" />
     <ClInclude Include="CSPs\EnterpriseModernAppManagementCSP.h" />
@@ -118,6 +121,7 @@
     <ClInclude Include="CSPs\PrivateAPIs\IProvisioningDPULocal.h" />
     <ClInclude Include="CSPs\RebootCSP.h" />
     <ClInclude Include="CSPs\RemoteWipeCSP.h" />
+    <ClInclude Include="CSPs\RootCATrustedCertificatesCSP.h" />
     <ClInclude Include="CSPs\UpdateCSP.h" />
     <ClInclude Include="CSPs\WifiCSP.h" />
     <ClInclude Include="DMService.h" />
@@ -130,6 +134,9 @@
     <ClCompile Include="AppCfg.cpp" />
     <ClCompile Include="AzureBlobCfg.cpp" />
     <ClCompile Include="CommandProcessor.cpp" />
+    <ClCompile Include="CSPs\CertificateInfo.cpp" />
+    <ClCompile Include="CSPs\CertificateStoreCSP.cpp" />
+    <ClCompile Include="CSPs\ClientCertificateInstallCSP.cpp" />
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp" />
     <ClCompile Include="CSPs\DeviceStatusCSP.cpp" />
     <ClCompile Include="CSPs\EnterpriseModernAppManagementCSP.cpp" />
@@ -138,6 +145,7 @@
     <ClCompile Include="CSPs\PrivateAPIs\CSPController.cpp" />
     <ClCompile Include="CSPs\RebootCSP.cpp" />
     <ClCompile Include="CSPs\RemoteWipeCSP.cpp" />
+    <ClCompile Include="CSPs\RootCATrustedCertificates.cpp" />
     <ClCompile Include="CSPs\UpdateCSP.cpp" />
     <ClCompile Include="CSPs\WifiCSP.cpp" />
     <ClCompile Include="DMService.cpp" />

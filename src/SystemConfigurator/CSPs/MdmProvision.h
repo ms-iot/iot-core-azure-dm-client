@@ -12,32 +12,42 @@ public:
     static void RunSyncML(const std::wstring& sid, const std::wstring& inputSyncML, std::wstring& outputSyncML);
 
     static void RunAdd(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
-    static void RunAddData(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
+    static void RunAddData(const std::wstring& sid, const std::wstring& path, const std::wstring& value, const std::wstring& type = L"chr");
+    static void RunAddDataBase64(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
 
     static void RunDelete(const std::wstring& sid, const std::wstring& path);
 
     static void RunGetStructData(const std::wstring& path, Utils::ELEMENT_HANDLER handler);
     static std::wstring RunGetString(const std::wstring& sid, const std::wstring& path);
+    static std::wstring RunGetBase64(const std::wstring& sid, const std::wstring& path);
     static unsigned int RunGetUInt(const std::wstring& sid, const std::wstring& path);
     static bool RunGetBool(const std::wstring& sid, const std::wstring& path);
 
     static void RunSet(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
-    static void RunSet(const std::wstring& sid, const std::wstring& path, unsigned int value);
+    static void RunSet(const std::wstring& sid, const std::wstring& path, int value);
+    static void RunSet(const std::wstring& sid, const std::wstring& path, bool value);
+    static void RunSetBase64(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
 
     static void RunExec(const std::wstring& sid, const std::wstring& path);
 
     // Without sid
     static void RunAdd(const std::wstring& path, const std::wstring& value);
     static void RunAddData(const std::wstring& path, const std::wstring& value);
+    static void RunAddDataBase64(const std::wstring& path, const std::wstring& value);
+    static void RunAddData(const std::wstring& path, int value);
+    static void RunAddData(const std::wstring& path, bool value);
 
     static void RunDelete(const std::wstring& path);
 
     static std::wstring RunGetString(const std::wstring& path);
+    static std::wstring RunGetBase64(const std::wstring& path);
     static unsigned int RunGetUInt(const std::wstring& path);
     static bool RunGetBool(const std::wstring& path);
 
     static void RunSet(const std::wstring& path, const std::wstring& value);
-    static void RunSet(const std::wstring& path, unsigned int value);
+    static void RunSet(const std::wstring& path, int value);
+    static void RunSet(const std::wstring& path, bool value);
+    static void RunSetBase64(const std::wstring& path, const std::wstring& value);
 
     static void RunExec(const std::wstring& path);
 

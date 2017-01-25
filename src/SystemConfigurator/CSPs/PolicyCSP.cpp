@@ -21,7 +21,7 @@ unsigned int PolicyCSP::GetActiveHoursStart()
 void PolicyCSP::SetActiveHoursStart(unsigned int hours)
 {
     TRACE(L"\n---- Set Active Hours Start\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", hours);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", static_cast<int>(hours));
     TRACEP(L"    :", hours);
 }
 
@@ -37,7 +37,7 @@ unsigned int PolicyCSP::GetActiveHoursEnd()
 void PolicyCSP::SetActiveHoursEnd(unsigned int hours)
 {
     TRACE(L"\n---- Set Active Hours End\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", hours);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", static_cast<int>(hours));
     TRACEP(L"    :", hours);
 }
 
@@ -53,7 +53,7 @@ unsigned int PolicyCSP::GetAllowAutoUpdate()
 void PolicyCSP::SetAllowAutoUpdate(unsigned int allowLevel)
 {
     TRACE(L"\n---- Set Allow Auto Update\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", allowLevel);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", static_cast<int>(allowLevel));
     TRACEP(L"    :", allowLevel);
 }
 
@@ -69,7 +69,7 @@ unsigned int PolicyCSP::GetAllowMUUpdateService()
 void PolicyCSP::SetAllowMUUpdateService(unsigned int allowLevel)
 {
     TRACE(L"\n---- Set Allow MU Update Service\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowMUUpdateService", allowLevel);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowMUUpdateService", static_cast<int>(allowLevel));
     TRACEP(L"    :", allowLevel);
 }
 
@@ -85,7 +85,7 @@ unsigned int PolicyCSP::GetAllowNonMicrosoftSignedUpdate()
 void PolicyCSP::SetAllowNonMicrosoftSignedUpdate(unsigned int allowLevel)
 {
     TRACE(L"\n---- Set Allow Non-Microsoft Signed Update\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowNonMicrosoftSignedUpdate", allowLevel);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowNonMicrosoftSignedUpdate", static_cast<int>(allowLevel));
     TRACEP(L"    :", allowLevel);
 }
 
@@ -101,7 +101,7 @@ unsigned int PolicyCSP::GetAllowUpdateService()
 void PolicyCSP::SetAllowUpdateService(unsigned int allowLevel)
 {
     TRACE(L"\n---- Set Allow Update Service\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", allowLevel);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", static_cast<int>(allowLevel));
     TRACEP(L"    :", allowLevel);
 }
 
@@ -117,7 +117,7 @@ unsigned int PolicyCSP::GetBranchReadinessLevel()
 void PolicyCSP::SetBranchReadinessLevel(unsigned int level)
 {
     TRACE(L"\n---- Set Branch Readiness Level\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", level);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", static_cast<int>(level));
     TRACEP(L"    :", level);
 }
 
@@ -133,7 +133,7 @@ unsigned int PolicyCSP::GetDeferFeatureUpdatesPeriodInDays()
 void PolicyCSP::SetDeferFeatureUpdatesPeriodInDays(unsigned int days)
 {
     TRACE(L"\n---- Set Defer Feature Updates Period In Days\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", days);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", static_cast<int>(days));
     TRACEP(L"    :", days);
 }
 
@@ -149,7 +149,7 @@ unsigned int PolicyCSP::GetDeferQualityUpdatesPeriodInDays()
 void PolicyCSP::SetDeferQualityUpdatesPeriodInDays(unsigned int days)
 {
     TRACE(L"\n---- Set Defer Quality Updates Period In Days\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", days);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", static_cast<int>(days));
     TRACEP(L"    :", days);
 }
 
@@ -165,7 +165,7 @@ unsigned int PolicyCSP::GetExcludeWUDrivers()
 void PolicyCSP::SetExcludeWUDrivers(unsigned int excludeLevel)
 {
     TRACE(L"\n---- Set ExcludeWUDrivers\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ExcludeWUDrivers", excludeLevel);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ExcludeWUDrivers", static_cast<int>(excludeLevel));
     TRACEP(L"    :", excludeLevel);
 }
 
@@ -181,7 +181,7 @@ unsigned int PolicyCSP::GetPauseFeatureUpdates()
 void PolicyCSP::SetPauseFeatureUpdates(unsigned int pauseLevel)
 {
     TRACE(L"\n---- Set PauseFeatureUpdates\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", pauseLevel);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", static_cast<int>(pauseLevel));
     TRACEP(L"    :", pauseLevel);
 }
 
@@ -197,7 +197,7 @@ unsigned int PolicyCSP::GetPauseQualityUpdates()
 void PolicyCSP::SetPauseQualityUpdates(unsigned int pauseLevel)
 {
     TRACE(L"\n---- Set PauseQualityUpdates\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", pauseLevel);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", static_cast<int>(pauseLevel));
     TRACEP(L"    :", pauseLevel);
 }
 
@@ -213,7 +213,7 @@ unsigned int PolicyCSP::GetRequireUpdateApproval()
 void PolicyCSP::SetRequireUpdateApproval(unsigned int value)
 {
     TRACE(L"\n---- Set RequireUpdateApproval\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/RequireUpdateApproval", value);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/RequireUpdateApproval", static_cast<int>(value));
     TRACEP(L"    :", value);
 }
 
@@ -229,7 +229,7 @@ unsigned int PolicyCSP::GetScheduledInstallDay()
 void PolicyCSP::SetScheduledInstallDay(unsigned int dayOfWeek)
 {
     TRACE(L"\n---- Set Scheduled Install Day\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", dayOfWeek);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", static_cast<int>(dayOfWeek));
     TRACEP(L"    :", dayOfWeek);
 }
 
@@ -245,7 +245,7 @@ unsigned int PolicyCSP::GetScheduledInstallTime()
 void PolicyCSP::SetScheduledInstallTime(unsigned int hour)
 {
     TRACE(L"\n---- Set Scheduled Install Time\n");
-    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", hour);
+    MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", static_cast<int>(hour));
     TRACEP(L"    :", hour);
 }
 
