@@ -128,77 +128,77 @@ IResponse^ HandleAppLifecycle(IRequest^ request)
 
 IResponse^ HandleAddRemoveAppForStartup(StartupAppInfo^ info, DMMessageKind tag, bool add)
 {
-	try
-	{
-		auto appId = (wstring)info->AppId->Data();
-		auto isBackgroundApp = info->IsBackgroundApplication;
+    try
+    {
+        auto appId = (wstring)info->AppId->Data();
+        auto isBackgroundApp = info->IsBackgroundApplication;
 
-		if (add) { CustomDeviceUiCSP::AddAsStartupApp(appId, isBackgroundApp); }
-		else { CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(appId); }
-		return ref new StatusCodeResponse(ResponseStatus::Success, tag);
-	}
-	catch (Platform::Exception^ e)
-	{
-		std::wstring failure(e->Message->Data());
-		TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
-		return ref new StatusCodeResponse(ResponseStatus::Failure, tag);
-	}
+        if (add) { CustomDeviceUiCSP::AddAsStartupApp(appId, isBackgroundApp); }
+        else { CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(appId); }
+        return ref new StatusCodeResponse(ResponseStatus::Success, tag);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new StatusCodeResponse(ResponseStatus::Failure, tag);
+    }
 }
 
 IResponse^ HandleAddAppForStartup(IRequest^ request)
 {
-	try
-	{
-		auto startupApp = dynamic_cast<AddStartupAppRequest^>(request);
-		auto info = startupApp->StartupAppInfo;
-		return HandleAddRemoveAppForStartup(info, request->Tag, true);
-	}
-	catch (Platform::Exception^ e)
-	{
-		std::wstring failure(e->Message->Data());
-		TRACEP(L"ERROR DMCommand::HandleAddAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
-		return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-	}
+    try
+    {
+        auto startupApp = dynamic_cast<AddStartupAppRequest^>(request);
+        auto info = startupApp->StartupAppInfo;
+        return HandleAddRemoveAppForStartup(info, request->Tag, true);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        TRACEP(L"ERROR DMCommand::HandleAddAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
 }
 
 IResponse^ HandleRemoveAppForStartup(IRequest^ request)
 {
-	try
-	{
-		auto startupApp = dynamic_cast<RemoveStartupAppRequest^>(request);
-		auto info = startupApp->StartupAppInfo;
-		return HandleAddRemoveAppForStartup(info, request->Tag, false);
-	}
-	catch (Platform::Exception^ e)
-	{
-		std::wstring failure(e->Message->Data());
-		TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
-		return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-	}
+    try
+    {
+        auto startupApp = dynamic_cast<RemoveStartupAppRequest^>(request);
+        auto info = startupApp->StartupAppInfo;
+        return HandleAddRemoveAppForStartup(info, request->Tag, false);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
 }
 
 IResponse^ HandleListStartupApps(bool backgroundApps)
 {
     TRACEP(L"DMCommand::HandleListStartupApps backgroundApps=", backgroundApps);
-	if (backgroundApps)
-	{
-		auto json = CustomDeviceUiCSP::GetBackgroundTasksToLaunch();
-		auto jsonArray = JsonArray::Parse(ref new Platform::String(json.c_str()));
-		return ref new ListStartupBackgroundAppsResponse(ResponseStatus::Success, jsonArray);
-	}
-	else
-	{
-		auto appId = CustomDeviceUiCSP::GetStartupAppId();
-		return ref new GetStartupForegroundAppResponse(ResponseStatus::Success, ref new Platform::String(appId.c_str()));
-	}
+    if (backgroundApps)
+    {
+        auto json = CustomDeviceUiCSP::GetBackgroundTasksToLaunch();
+        auto jsonArray = JsonArray::Parse(ref new Platform::String(json.c_str()));
+        return ref new ListStartupBackgroundAppsResponse(ResponseStatus::Success, jsonArray);
+    }
+    else
+    {
+        auto appId = CustomDeviceUiCSP::GetStartupAppId();
+        return ref new GetStartupForegroundAppResponse(ResponseStatus::Success, ref new Platform::String(appId.c_str()));
+    }
 }
 
 IResponse^ HandleListApps()
 {
     TRACE(__FUNCTION__);
     auto json = EnterpriseModernAppManagementCSP::GetInstalledApps();
-	auto jsonMap = JsonObject::Parse(ref new Platform::String(json.c_str()));
-	return ref new ListAppsResponse(ResponseStatus::Success, jsonMap);
+    auto jsonMap = JsonObject::Parse(ref new Platform::String(json.c_str()));
+    return ref new ListAppsResponse(ResponseStatus::Success, jsonMap);
 }
 
 #if 0 // Not yet implemented
@@ -293,11 +293,11 @@ IResponse^ ProcessCommand(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-	switch (request->Tag)
+    switch (request->Tag)
     {
-	case DMMessageKind::ListApps:
-		return HandleListApps();
-	case DMMessageKind::InstallApp:
+    case DMMessageKind::ListApps:
+        return HandleListApps();
+    case DMMessageKind::InstallApp:
         return HandleInstallApp(request);
     case DMMessageKind::UninstallApp:
         return HandleUninstallApp(request);
@@ -322,8 +322,8 @@ IResponse^ ProcessCommand(IRequest^ request)
     case DMMessageKind::GetTimeInfo:
         return TimeCfg::GetTimeInfo();
     default:
-		TRACEP(L"Error: ", Utils::ConcatString(L"Unknown command: ", (uint32_t)request->Tag));
-		throw DMException("Error: Unknown command");
+        TRACEP(L"Error: ", Utils::ConcatString(L"Unknown command: ", (uint32_t)request->Tag));
+        throw DMException("Error: Unknown command");
     }
 }
 
@@ -391,14 +391,14 @@ void Listen()
         TRACE("Client connected...");
 
         auto request = Blob::ReadFromNativeHandle(pipeHandle.Get());
-		TRACE("Request received...");
-		TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)request->Tag));
-		TRACEP(L"    ", Utils::ConcatString(L"request version:", request->Version));
+        TRACE("Request received...");
+        TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)request->Tag));
+        TRACEP(L"    ", Utils::ConcatString(L"request version:", request->Version));
 
         try
         {
             IResponse^ response = ProcessCommand(request->MakeIRequest());
-			response->Serialize()->WriteToNativeHandle(pipeHandle.Get());
+            response->Serialize()->WriteToNativeHandle(pipeHandle.Get());
         }
         catch (const DMException&)
         {

@@ -145,6 +145,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     public:
         ListStartupBackgroundAppsResponse(ResponseStatus status, IVector<String^>^ startupBackgroundApps) : status(status), startupBackgroundApps(startupBackgroundApps) {}
+
+    internal:
         ListStartupBackgroundAppsResponse(ResponseStatus status, JsonArray^ appsJson) : status(status) 
         {
             startupBackgroundApps = ref new Vector<String^>();
@@ -154,6 +156,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             }
         }
 
+    public:
         virtual Blob^ Serialize() {
             auto jsonObject = ref new JsonObject();
             jsonObject->Insert("Status", JsonValue::CreateNumberValue((uint32_t)status));

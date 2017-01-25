@@ -22,7 +22,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 #define MODEL_NODEF(A, B, C, D) { DMMessageKind::##A, { (DMRequestDeserialize*)##C##::Deserialize, (DMResponseDeserialize*)##D##::Deserialize } },
 #define MODEL_REQDEF(A, B, C, D) MODEL_NODEF(A, B, C, D)
 #define MODEL_ALLDEF(A, B, C, D) MODEL_NODEF(A, B, C, D)
-MODELS_INFO
+#include "Models\ModelsInfo.dat"
 #undef MODEL_NODEF
 #undef MODEL_REQDEF
 #undef MODEL_ALLDEF

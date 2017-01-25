@@ -55,5 +55,6 @@
     <ClInclude Include="Models\ListApps.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="DMMessageSerialization.h" />
   </ItemGroup>
 </Project>

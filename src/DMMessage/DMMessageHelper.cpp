@@ -2,7 +2,6 @@
 #include "CurrentVersion.h"
 
 #include "Models\AllModels.h"
-#include "Models\ModelsInfo.dat"
 
 using namespace Microsoft::Devices::Management::Message;
 
@@ -13,7 +12,7 @@ using namespace Microsoft::Devices::Management::Message;
 #define MODEL_ALLDEF(A, B, C, D) MODEL_REQDEF(A, B, C, D) \
 DMMessageKind D##::Tag::get() { return DMMessageKind::##A; } \
 
-MODELS_INFO
+#include "Models\ModelsInfo.dat"
 
 #undef MODEL_NODEF
 #undef MODEL_REQDEF

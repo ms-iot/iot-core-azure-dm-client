@@ -22,6 +22,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     {
     public:
         AppInfo() {}
+    
+    internal:
         AppInfo(JsonObject^ jsonApp)
         {
             SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, AppSource);
@@ -61,6 +63,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             return jsonApp;
         }
 
+    public:
         property String^ AppSource;
         property String^ Architecture;
         property String^ InstallDate;
@@ -86,6 +89,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     public:
         ListAppsResponse(ResponseStatus status, IMap<String^, AppInfo^>^ apps) : status(status), apps(apps) {}
+
+    internal:
         ListAppsResponse(ResponseStatus status, JsonObject^ appsJson) : status(status) 
         {
             apps = ref new Map<String^, AppInfo^>();
@@ -97,6 +102,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             }
         }
 
+    public:
         virtual Blob^ Serialize() {
             auto jsonObject = ref new JsonObject();
             jsonObject->Insert("Status", JsonValue::CreateNumberValue((uint32_t)status));
