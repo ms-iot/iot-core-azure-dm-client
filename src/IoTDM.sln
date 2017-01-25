@@ -9,6 +9,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SharedUtilities", "SharedUtilities\SharedUtilities.vcxitems", "{45D41ACC-2C3C-43D2-BC10-02AA73FFC7C7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoTDMClientLib", "IoTDMClientLib\IoTDMClientLib.csproj", "{F29E2C50-97BE-4C33-B601-E52AAB5596E9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{241582CD-4861-4643-A7A2-21865B779AAF} = {241582CD-4861-4643-A7A2-21865B779AAF}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CommProxyTests", "..\tests\CommProxyTests\CommProxyTests.vcxproj", "{4352E901-C90F-4CAF-BD9E-D4E063C61BE6}"
 EndProject

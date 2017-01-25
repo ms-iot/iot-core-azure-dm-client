@@ -18,13 +18,13 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             return SerializationHelper::CreateEmptyBlob((uint32_t)Tag);
         }
 
-        static RebootRequest^ Deserialize(Blob^ blob) {
+        static IDataPayload^ Deserialize(Blob^ blob) {
             assert(blob->Tag == DMMessageKind::RebootSystem);
             return ref new RebootRequest();
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::RebootSystem; }
+            DMMessageKind get();
         }
     };
 

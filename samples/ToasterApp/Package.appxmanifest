@@ -9,7 +9,7 @@
   IgnorableNamespaces="uap mp iot uap3">
 
   <Identity
-    Name="bc727cf4-0e81-4cf2-b552-59f25be561db"
+    Name="ToasterUi"
     Publisher="CN=arturl"
     Version="1.0.0.0" />
 

@@ -40,5 +40,21 @@
     <ClInclude Include="Models\TimeInfo.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="Models\AppLifecycle.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\FileTransfer.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\StartupApp.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\AppUninstall.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\ListApps.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="DMMessageSerialization.h" />
   </ItemGroup>
 </Project>

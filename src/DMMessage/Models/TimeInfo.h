@@ -18,13 +18,13 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             return SerializationHelper::CreateEmptyBlob((uint32_t)Tag);
         }
 
-        static TimeInfoRequest^ Deserialize(Blob^ bytes) {
+        static IDataPayload^ Deserialize(Blob^ bytes) {
             auto result = ref new TimeInfoRequest();
             return result;
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::GetTimeInfo; }
+            DMMessageKind get();
         }
     };
 
@@ -58,7 +58,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
 
-        static TimeInfoResponse^ Deserialize(Blob^ blob) {
+        static IDataPayload^ Deserialize(Blob^ blob) {
             String^ str = SerializationHelper::GetStringFromBlob(blob);
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto result = ref new TimeInfoResponse(ResponseStatus::Success);
@@ -79,7 +79,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::GetTimeInfo; }
+            DMMessageKind get();
         }
     };
 }

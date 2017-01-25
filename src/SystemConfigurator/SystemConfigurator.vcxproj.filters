@@ -80,6 +80,11 @@
     </ClInclude>
     <ClInclude Include="CSPs\WifiCSP.h">
       <Filter>Header Files\CSPs</Filter>
+    <ClInclude Include="AppCfg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AzureBlobCfg.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -127,6 +132,11 @@
     </ClCompile>
     <ClCompile Include="CSPs\WifiCSP.cpp">
       <Filter>Source Files\CSPs</Filter>
+    <ClCompile Include="AppCfg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AzureBlobCfg.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

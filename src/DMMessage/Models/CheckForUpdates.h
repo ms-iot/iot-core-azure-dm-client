@@ -18,13 +18,13 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             return SerializationHelper::CreateEmptyBlob((uint32_t)Tag);
         }
 
-        static CheckForUpdatesRequest^ Deserialize(Blob^ blob) {
+        static IDataPayload^ Deserialize(Blob^ blob) {
             assert(blob->Tag == DMMessageKind::CheckUpdates);
             return ref new CheckForUpdatesRequest();
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::CheckUpdates; }
+            DMMessageKind get();
         }
     };
 
@@ -42,7 +42,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
 
-        static CheckForUpdatesResponse^ Deserialize(Blob^ bytes) {
+        static IDataPayload^ Deserialize(Blob^ bytes) {
             String^ str = SerializationHelper::GetStringFromBlob(bytes);
             JsonObject^ jsonObject = JsonObject::Parse(str);
             ResponseStatus status = (ResponseStatus)(uint32_t)jsonObject->Lookup("Status")->GetNumber();
@@ -51,7 +51,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual property DMMessageKind Tag {
-            DMMessageKind get() { return DMMessageKind::CheckUpdates; }
+            DMMessageKind get();
         }
 
         virtual property ResponseStatus Status {

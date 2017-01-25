@@ -1,5 +1,6 @@
 #pragma once
 
+
 using namespace Platform;
 using namespace Platform::Metadata;
 using namespace Windows::Data::Json;
@@ -9,30 +10,12 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     [Flags]
     public enum class DMMessageKind : uint32_t
     {
-        Unknown = 0,
-        FactoryReset = 1,
-        CheckUpdates = 2,
-        ListApps = 3,
-        InstallApp = 4,
-        UninstallApp = 5,
-        GetStartupForegroundApp = 6,
-        ListStartupBackgroundApps = 7,
-        AddStartupApp = 8,
-        RemoveStartupApp = 9,
-
-        // Reboot
-        RebootSystem = 10,
-        SetRebootInfo = 11,
-        GetRebootInfo = 12,
-
-        // TimeInfo
-        GetTimeInfo = 30,
-        SetTimeInfo = 31,
-
-        // Device Status
-        GetDeviceStatus = 40,
-
-        // Generic Status response code:
-        StatusResponse = 100,
+#define MODEL_NODEF(A, B, C, D) A = B,
+#define MODEL_REQDEF(A, B, C, D) MODEL_NODEF(A, B, C, D)
+#define MODEL_ALLDEF(A, B, C, D) MODEL_NODEF(A, B, C, D)
+#include "Models\ModelsInfo.dat"
+#undef MODEL_NODEF
+#undef MODEL_REQDEF
+#undef MODEL_ALLDEF
     };
 }}}}

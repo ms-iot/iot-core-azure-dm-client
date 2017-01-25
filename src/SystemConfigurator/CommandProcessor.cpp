@@ -8,6 +8,9 @@
 #include "CSPs\RemoteWipeCSP.h"
 #include "CSPs\CustomDeviceUiCsp.h"
 #include "TimeCfg.h"
+#include "AppCfg.h"
+
+#include <fstream>
 
 #include "Models\AllModels.h"
 
@@ -15,172 +18,172 @@ using namespace Microsoft::Devices::Management::Message;
 using namespace std;
 using namespace Windows::Data::Json;
 
-#if 0 // Not yet implemented
-
-void HandleAddAppForStartup(const wstring& json, DMMessage& response)
+IResponse^ HandleInstallApp(IRequest^ request)
 {
-    //
-    // JSON expected should reflect this class:
-    //        public class StartupAppInfo
-    //        {
-    //            public string AppId { get; set; }
-    //            public bool IsBackgroundApplication { get; set; }
-    //        }
-    //
-    TRACEP(L"DMCommand::HandleAddAppForStartup json=", json);
     try
     {
-        auto jsonObject = JsonObject::Parse(ref new Platform::String(json.c_str()));
-        wstring appId = jsonObject->GetNamedString(ref new Platform::String(L"AppId"))->Data();
-        bool isBackgroundApp = jsonObject->GetNamedBoolean(ref new Platform::String(L"IsBackgroundApplication"));
+        auto appInstall = dynamic_cast<AppInstallRequest^>(request);
+        auto info = appInstall->AppInstallInfo;
 
-        CustomDeviceUiCSP::AddAsStartupApp(appId, isBackgroundApp);
-        response.SetContext(DMStatus::Succeeded);
-    }
-    catch (Platform::Exception^ e)
-    {
-        std::wstring failure(e->Message->Data());
-        response.SetData(Utils::ConcatString(failure.c_str(), e->HResult));
-        response.SetContext(DMStatus::Failed);
-    }
-}
-
-void HandleRemoveAppForStartup(const wstring& json, DMMessage& response)
-{
-    //
-    // JSON expected should reflect this class:
-    //        public class StartupAppInfo
-    //        {
-    //            public string AppId { get; set; }
-    //            public bool IsBackgroundApplication { get; set; }
-    //        }
-    //
-    TRACEP(L"DMCommand::HandleRemoveAppForStartup json=", json);
-    try
-    {
-        auto jsonObject = JsonObject::Parse(ref new Platform::String(json.c_str()));
-        wstring appId = jsonObject->GetNamedString(ref new Platform::String(L"AppId"))->Data();
-
-        CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(appId);
-        response.SetContext(DMStatus::Succeeded);
-    }
-    catch (Platform::Exception^ e)
-    {
-        std::wstring failure(e->Message->Data());
-        response.SetData(Utils::ConcatString(failure.c_str(), e->HResult));
-        response.SetContext(DMStatus::Failed);
-    }
-}
-
-void HandleListStartupApps(bool backgroundApps, DMMessage& response)
-{
-    TRACEP(L"DMCommand::HandleListStartupApps backgroundApps=", backgroundApps);
-    wstring json = (backgroundApps) ?
-        CustomDeviceUiCSP::GetBackgroundTasksToLaunch() :
-        CustomDeviceUiCSP::GetStartupAppId();
-    response.SetData(json);
-    response.SetContext(DMStatus::Succeeded);
-}
-
-void HandleListApps(DMMessage& response)
-{
-    TRACE(__FUNCTION__);
-    wstring json = EnterpriseModernAppManagementCSP::GetInstalledApps();
-    //
-    // JSON expected should reflect a map<string, AppInfo> of PackageFullName 
-    // to AppInfo where AppInfo is:
-    //        public class AppInfo
-    //        {
-    //            public string AppSource{ get; set; }
-    //            public string Architecture{ get; set; }
-    //            public string InstallDate{ get; set; }
-    //            public string InstallLocation{ get; set; }
-    //            public string IsBundle{ get; set; }
-    //            public string IsFramework{ get; set; }
-    //            public string IsProvisioned{ get; set; }
-    //            public string Name{ get; set; }
-    //            public string PackageFamilyName{ get; set; }
-    //            public string PackageStatus{ get; set; }
-    //            public string Publisher{ get; set; }
-    //            public string RequiresReinstall{ get; set; }
-    //            public string ResourceID{ get; set; }
-    //            public string Users{ get; set; }
-    //            public string Version{ get; set; }
-    //        }
-    //
-    response.SetData(json);
-    response.SetContext(DMStatus::Succeeded);
-}
-
-void HandleInstallApp(const std::wstring& json, DMMessage& response)
-{
-    //
-    // JSON expected should reflect this class:
-    //        public class AppxInstallInfo
-    //        {
-    //            public string PackageFamilyName{ get; set; }
-    //            public string AppxPath{ get; set; }
-    //            public List<string> Dependencies{ get; set; }
-    //        }
-    //
-    TRACEP(L"DMCommand::InstallApp json=", json);
-    try
-    {
-        auto jsonObject = JsonObject::Parse(ref new Platform::String(json.c_str()));
-
-        auto dependencyString = ref new Platform::String(L"Dependencies");
-        vector<wstring> deps;
-        if (jsonObject->HasKey(dependencyString))
+        std::vector<wstring> deps;
+        for each (auto dep in info->Dependencies)
         {
-            auto dependencyObject = jsonObject->GetNamedArray(dependencyString);
-            for (unsigned int i = 0; i < dependencyObject->Size; i++)
-            {
-                deps.push_back(dependencyObject->GetStringAt(i)->Data());
-            }
+            deps.push_back((wstring)dep->Data());
         }
-
-        wstring packageFamilyName = jsonObject->GetNamedString(ref new Platform::String(L"PackageFamilyName"))->Data();
-        wstring appxPath = jsonObject->GetNamedString(ref new Platform::String(L"AppxPath"))->Data();
+        auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
+        auto appxPath = (wstring)info->AppxPath->Data();
 
         EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
-        response.SetContext(DMStatus::Succeeded);
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (Platform::Exception^ e)
     {
         std::wstring failure(e->Message->Data());
-        response.SetData(Utils::ConcatString(failure.c_str(), e->HResult));
-        response.SetContext(DMStatus::Failed);
+        TRACEP(L"ERROR DMCommand::HandleInstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
     }
 }
 
-void HandleUninstallApp(const std::wstring& json, DMMessage& response)
+IResponse^ HandleUninstallApp(IRequest^ request)
 {
-    //
-    // JSON expected should reflect this class:
-    //        public class AppxUninstallInfo
-    //        {
-    //            public string PackageFamilyName{ get; set; }
-    //            public bool StoreApp { get; set; }
-    //        }
-    //
-    TRACEP(L"DMCommand::UninstallApp json=", json);
     try
     {
-        auto jsonObject = JsonObject::Parse(ref new Platform::String(json.c_str()));
-        wstring packageFamilyName = jsonObject->GetNamedString(ref new Platform::String(L"PackageFamilyName"))->Data();
-        bool storeApp = jsonObject->GetNamedBoolean(ref new Platform::String(L"StoreApp"));
+        auto appUninstall = dynamic_cast<AppUninstallRequest^>(request);
+        auto info = appUninstall->AppUninstallInfo;
+        auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
+        auto storeApp = info->StoreApp;
 
         EnterpriseModernAppManagementCSP::UninstallApp(packageFamilyName, storeApp);
-        response.SetContext(DMStatus::Succeeded);
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (Platform::Exception^ e)
     {
         std::wstring failure(e->Message->Data());
-        response.SetData(Utils::ConcatString(failure.c_str(), e->HResult));
-        response.SetContext(DMStatus::Failed);
+        TRACEP(L"ERROR DMCommand::HandleUninstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
     }
 }
 
+IResponse^ HandleTransferFile(IRequest^ request)
+{
+    try
+    {
+        auto transferRequest = dynamic_cast<AzureFileTransferRequest^>(request);
+        auto info = transferRequest->AzureFileTransferInfo;
+        auto upload = info->Upload;
+        auto localPath = (wstring)info->LocalPath->Data();
+        auto appLocalDataPath = (wstring)info->AppLocalDataPath->Data();
+
+        std::ifstream  src((upload) ? localPath : appLocalDataPath, std::ios::binary);
+        std::ofstream  dst((!upload) ? localPath : appLocalDataPath, std::ios::binary);
+        dst << src.rdbuf();
+
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        TRACEP(L"ERROR DMCommand::HandleTransferFile: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
+IResponse^ HandleAppLifecycle(IRequest^ request)
+{
+    try
+    {
+        auto appLifecycle = dynamic_cast<AppLifecycleRequest^>(request);
+        auto info = appLifecycle->AppLifecycleInfo;
+        auto appId = (wstring)info->AppId->Data();
+        bool start = info->Start;
+
+        AppCfg::ManageApp(appId, start);
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        TRACEP(L"ERROR DMCommand::HandleAppLifecycle: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
+IResponse^ HandleAddRemoveAppForStartup(StartupAppInfo^ info, DMMessageKind tag, bool add)
+{
+    try
+    {
+        auto appId = (wstring)info->AppId->Data();
+        auto isBackgroundApp = info->IsBackgroundApplication;
+
+        if (add) { CustomDeviceUiCSP::AddAsStartupApp(appId, isBackgroundApp); }
+        else { CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(appId); }
+        return ref new StatusCodeResponse(ResponseStatus::Success, tag);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new StatusCodeResponse(ResponseStatus::Failure, tag);
+    }
+}
+
+IResponse^ HandleAddAppForStartup(IRequest^ request)
+{
+    try
+    {
+        auto startupApp = dynamic_cast<AddStartupAppRequest^>(request);
+        auto info = startupApp->StartupAppInfo;
+        return HandleAddRemoveAppForStartup(info, request->Tag, true);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        TRACEP(L"ERROR DMCommand::HandleAddAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
+IResponse^ HandleRemoveAppForStartup(IRequest^ request)
+{
+    try
+    {
+        auto startupApp = dynamic_cast<RemoveStartupAppRequest^>(request);
+        auto info = startupApp->StartupAppInfo;
+        return HandleAddRemoveAppForStartup(info, request->Tag, false);
+    }
+    catch (Platform::Exception^ e)
+    {
+        std::wstring failure(e->Message->Data());
+        TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
+IResponse^ HandleListStartupApps(bool backgroundApps)
+{
+    TRACEP(L"DMCommand::HandleListStartupApps backgroundApps=", backgroundApps);
+    if (backgroundApps)
+    {
+        auto json = CustomDeviceUiCSP::GetBackgroundTasksToLaunch();
+        auto jsonArray = JsonArray::Parse(ref new Platform::String(json.c_str()));
+        return ref new ListStartupBackgroundAppsResponse(ResponseStatus::Success, jsonArray);
+    }
+    else
+    {
+        auto appId = CustomDeviceUiCSP::GetStartupAppId();
+        return ref new GetStartupForegroundAppResponse(ResponseStatus::Success, ref new Platform::String(appId.c_str()));
+    }
+}
+
+IResponse^ HandleListApps()
+{
+    TRACE(__FUNCTION__);
+    auto json = EnterpriseModernAppManagementCSP::GetInstalledApps();
+    auto jsonMap = JsonObject::Parse(ref new Platform::String(json.c_str()));
+    return ref new ListAppsResponse(ResponseStatus::Success, jsonMap);
+}
+
+#if 0 // Not yet implemented
 void ProcessCommand(DMMessage& request, DMMessage& response)
 {
     TRACE(__FUNCTION__);
@@ -190,11 +193,6 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
     auto command = (DMCommand)request.GetContext();
     switch (command)
     {
-    case DMCommand::RebootSystem:
-        response.SetData(Utils::ConcatString(L"Handling `reboot system`. cmdIndex = ", cmdIndex));
-        response.SetContext(DMStatus::Succeeded);
-        RebootCSP::ExecRebootNow();
-        break;
     case DMCommand::SetRebootInfo:
         {
             TRACE(L"SetRebootInfo:");
@@ -231,36 +229,6 @@ void ProcessCommand(DMMessage& request, DMMessage& response)
         RemoteWipeCSP::DoWipe();
         response.SetData(Utils::ConcatString(L"Handling `factory reset`. cmdIndex = ", cmdIndex));
         response.SetContext(DMStatus::Succeeded);
-        break;
-    case DMCommand::CheckUpdates:
-        response.SetData(Utils::ConcatString(L"Handling `check updates`. cmdIndex = ", cmdIndex));
-
-        // Checking for updates...
-        Sleep(1000);
-        // Done!
-
-        response.SetContext(DMStatus::Succeeded);
-        break;
-    case DMCommand::ListApps:
-        HandleListApps(response);
-        break;
-    case DMCommand::InstallApp:
-        HandleInstallApp(request.GetDataW(), response);
-        break;
-    case DMCommand::UninstallApp:
-        HandleUninstallApp(request.GetDataW(), response);
-        break;
-    case DMCommand::GetStartupForegroundApp:
-        HandleListStartupApps(false, response);
-        break;
-    case DMCommand::ListStartupBackgroundApps:
-        HandleListStartupApps(true, response);
-        break;
-    case DMCommand::AddStartupApp:
-        HandleAddAppForStartup(request.GetDataW(), response);
-        break;
-    case DMCommand::RemoveStartupApp:
-        HandleRemoveAppForStartup(request.GetDataW(), response);
         break;
     case DMCommand::SetTimeInfo:
         {
@@ -309,6 +277,25 @@ IResponse^ ProcessCommand(IRequest^ request)
 
     switch (request->Tag)
     {
+    case DMMessageKind::ListApps:
+        return HandleListApps();
+    case DMMessageKind::InstallApp:
+        return HandleInstallApp(request);
+    case DMMessageKind::UninstallApp:
+        return HandleUninstallApp(request);
+    case DMMessageKind::GetStartupForegroundApp:
+        return HandleListStartupApps(false);
+    case DMMessageKind::ListStartupBackgroundApps:
+        return HandleListStartupApps(true);
+    case DMMessageKind::AddStartupApp:
+        return HandleAddAppForStartup(request);
+    case DMMessageKind::RemoveStartupApp:
+        return HandleRemoveAppForStartup(request);
+    case DMMessageKind::StartApp:
+    case DMMessageKind::StopApp:
+        return HandleAppLifecycle(request);
+    case DMMessageKind::TransferFile:
+        return HandleTransferFile(request);
     case DMMessageKind::CheckUpdates:
         return ref new CheckForUpdatesResponse(ResponseStatus::Success, true);
     case DMMessageKind::RebootSystem:
@@ -317,6 +304,7 @@ IResponse^ ProcessCommand(IRequest^ request)
     case DMMessageKind::GetTimeInfo:
         return TimeCfg::GetTimeInfo();
     default:
+        TRACEP(L"Error: ", Utils::ConcatString(L"Unknown command: ", (uint32_t)request->Tag));
         throw DMException("Error: Unknown command");
     }
 }
@@ -385,6 +373,9 @@ void Listen()
         TRACE("Client connected...");
 
         auto request = Blob::ReadFromNativeHandle(pipeHandle.Get());
+        TRACE("Request received...");
+        TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)request->Tag));
+        TRACEP(L"    ", Utils::ConcatString(L"request version:", request->Version));
 
         try
         {
