@@ -106,7 +106,7 @@ namespace CommProxyTests
             for (auto status : statuses)
             {
                 auto app = ref new Platform::String(L"abc");
-                auto response = ref new GetStartupForegroundAppResponse(ResponseStatus::Success, app);
+                auto response = ref new GetStartupForegroundAppResponse(status, app);
                 auto blob = RoundTripThroughNativeHandle(response->Serialize());
                 auto req = dynamic_cast<GetStartupForegroundAppResponse^>(GetStartupForegroundAppResponse::Deserialize(blob));
                 Assert::IsTrue(req->Status == status);

@@ -75,7 +75,7 @@ namespace IoTDMClientLibTests
             if (request.Tag == DMMessageKind.InstallApp)
             {
                 var appinstallReq = (AppInstallRequest)request; // cast must succeed
-                this.response = new AppInstallResponse(ResponseStatus.Success);
+                this.response = new StatusCodeResponse(ResponseStatus.Success, request.Tag);
                 return Task.FromResult<IResponse>(response);
             }
             else if (request.Tag == DMMessageKind.RebootSystem)
@@ -125,10 +125,10 @@ namespace IoTDMClientLibTests
         public void MockupProxyInstallAppTest()
         {
             var twin = new TwinMockup();
-            var appname = "abc";
             var proxy = new ConfigurationProxyMockup();
 
-            var response = proxy.SendCommandAsync(new AppInstallRequest(appname)).Result;
+            var appInstallRequest = new AppInstallRequest(new AppInstallInfo() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
+            var response = proxy.SendCommandAsync(appInstallRequest).Result;
 
             Assert.AreEqual(response.Status, ResponseStatus.Success);
             Assert.AreEqual(response.Tag, DMMessageKind.InstallApp);

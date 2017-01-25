@@ -13,17 +13,19 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 {
     public ref class AppLifecycleInfo sealed
     {
-    private:
-        String^ _AppId;
-        bool _Start;
     public:
+        AppLifecycleInfo()
+        {
+            AppId = ref new Platform::String();
+            Start = true;
+        }
         AppLifecycleInfo(String^ appId, bool start)
         {
-            _AppId = appId;
-            _Start = start;
+            AppId = appId;
+            Start = start;
         }
-        property String^ AppId { String^ get() { return _AppId; }; }
-        property bool Start { bool get() { return _Start; }; }
+        property String^ AppId;
+        property bool Start;
     };
 
     public ref class AppLifecycleRequest sealed : public IRequest

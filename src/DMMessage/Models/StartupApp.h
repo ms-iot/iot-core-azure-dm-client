@@ -17,51 +17,92 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 {
     public ref class StartupAppInfo sealed
     {
-    private:
-        String^ _AppId;
-        bool _IsBackgroundApplication;
     public:
+        StartupAppInfo()
+        {
+            AppId = ref new Platform::String();
+            IsBackgroundApplication = false;
+        }
         StartupAppInfo(String^ appId, bool start)
         {
-            _AppId = appId;
-            _IsBackgroundApplication = start;
+            AppId = appId;
+            IsBackgroundApplication = start;
         }
-        property String^ AppId { String^ get() { return _AppId; }; }
-        property bool IsBackgroundApplication { bool get() { return _IsBackgroundApplication; }; }
+        property String^ AppId;
+        property bool IsBackgroundApplication;
     };
 
-    public ref class StartupAppRequest sealed : public IRequest
-    {
-        StartupAppInfo^ appInfo;
-    public:
-        StartupAppRequest(StartupAppInfo^ appInfo) : appInfo(appInfo) {}
+	ref class StartupAppRequest sealed
+	{
+	public:
+		StartupAppRequest(StartupAppInfo^ appInfo, DMMessageKind tag) 
+		{ 
+			AppInfo = appInfo; 
+			Tag = tag; 
+		}
 
-        virtual Blob^ Serialize() {
-            JsonObject^ jsonObject = ref new JsonObject();
-            jsonObject->Insert("AppId", JsonValue::CreateStringValue(appInfo->AppId));
-            jsonObject->Insert("IsBackgroundApplication", JsonValue::CreateBooleanValue(appInfo->IsBackgroundApplication));
-            return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
-        }
+		Blob^ Serialize() {
+			JsonObject^ jsonObject = ref new JsonObject();
+			jsonObject->Insert("AppId", JsonValue::CreateStringValue(AppInfo->AppId));
+			jsonObject->Insert("IsBackgroundApplication", JsonValue::CreateBooleanValue(AppInfo->IsBackgroundApplication));
+			return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
+		}
 
-        static IDataPayload^ Deserialize(Blob^ bytes) {
-            String^ str = SerializationHelper::GetStringFromBlob(bytes);
-            JsonObject^ jsonObject = JsonObject::Parse(str);
-            auto appId = jsonObject->Lookup("AppId")->GetString();
-            auto start = jsonObject->Lookup("IsBackgroundApplication")->GetBoolean();
-            auto appInfo = ref new Microsoft::Devices::Management::Message::StartupAppInfo(appId, start);
-            return ref new StartupAppRequest(appInfo);
-        }
+		static StartupAppInfo^ Deserialize(Blob^ bytes) {
+			String^ str = SerializationHelper::GetStringFromBlob(bytes);
+			JsonObject^ jsonObject = JsonObject::Parse(str);
+			auto appId = jsonObject->Lookup("AppId")->GetString();
+			auto start = jsonObject->Lookup("IsBackgroundApplication")->GetBoolean();
+			return ref new Microsoft::Devices::Management::Message::StartupAppInfo(appId, start);
+		}
 
-        virtual property DMMessageKind Tag {
-            DMMessageKind get();
-        }
+		property StartupAppInfo^ AppInfo;
+		property DMMessageKind Tag;
+	};
 
-        property StartupAppInfo^ StartupAppInfo {
-            Microsoft::Devices::Management::Message::StartupAppInfo^ get() { return appInfo; }
-        }
-    };
+	public ref class AddStartupAppRequest sealed : public IRequest
+	{
+		StartupAppRequest^ request;
+	public:
+		AddStartupAppRequest(StartupAppInfo^ appInfo) {
+			request = ref new StartupAppRequest(appInfo, Tag);
+		}
 
-    public ref class GetStartupForegroundAppResponse sealed : public IResponse
+		virtual Blob^ Serialize() { return request->Serialize(); }
+		static IDataPayload^ Deserialize(Blob^ bytes) {
+			auto appInfo = StartupAppRequest::Deserialize(bytes);
+			return ref new AddStartupAppRequest(appInfo);
+		}
+
+		virtual property DMMessageKind Tag { DMMessageKind get(); }
+
+		property StartupAppInfo^ StartupAppInfo {
+			Microsoft::Devices::Management::Message::StartupAppInfo^ get() { return request->AppInfo; }
+		}
+	};
+
+	public ref class RemoveStartupAppRequest sealed : public IRequest
+	{
+		StartupAppRequest^ request;
+	public:
+		RemoveStartupAppRequest(StartupAppInfo^ appInfo) {
+			request = ref new StartupAppRequest(appInfo, Tag);
+		}
+
+		virtual Blob^ Serialize() { return request->Serialize(); }
+		static IDataPayload^ Deserialize(Blob^ bytes) {
+			auto appInfo = StartupAppRequest::Deserialize(bytes);
+			return ref new RemoveStartupAppRequest(appInfo);
+		}
+
+		virtual property DMMessageKind Tag { DMMessageKind get(); }
+
+		property StartupAppInfo^ StartupAppInfo {
+			Microsoft::Devices::Management::Message::StartupAppInfo^ get() { return request->AppInfo; }
+		}
+	};
+
+	public ref class GetStartupForegroundAppResponse sealed : public IResponse
     {
         ResponseStatus status;
         String^ startupForegroundApp;
@@ -104,6 +145,14 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     public:
         ListStartupBackgroundAppsResponse(ResponseStatus status, IVector<String^>^ startupBackgroundApps) : status(status), startupBackgroundApps(startupBackgroundApps) {}
+		ListStartupBackgroundAppsResponse(ResponseStatus status, JsonArray^ appsJson) : status(status) 
+		{
+			startupBackgroundApps = ref new Vector<String^>();
+			for each (auto app in appsJson)
+			{
+				startupBackgroundApps->Append(app->GetString());
+			}
+		}
 
         virtual Blob^ Serialize() {
             auto jsonObject = ref new JsonObject();
@@ -117,20 +166,15 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
 
-        static IDataPayload^ Deserialize(Blob^ bytes) {
-            auto str = SerializationHelper::GetStringFromBlob(bytes);
-            auto jsonObject = JsonObject::Parse(str);
-            auto status = (ResponseStatus)(uint32_t)jsonObject->Lookup("Status")->GetNumber();
-            auto startupBackgroundApps = ref new Vector<String^>();
-            auto jsonArray = jsonObject->Lookup("StartupBackgroundApps")->GetArray();
-            for each (auto app in jsonArray)
-            {
-                startupBackgroundApps->Append(app->GetString());
-            }
-            return ref new ListStartupBackgroundAppsResponse(status, startupBackgroundApps);
-        }
+		static IDataPayload^ Deserialize(Blob^ bytes) {
+			auto str = SerializationHelper::GetStringFromBlob(bytes);
+			auto jsonObject = JsonObject::Parse(str);
+			auto status = (ResponseStatus)(uint32_t)jsonObject->Lookup("Status")->GetNumber();
+			auto jsonArray = jsonObject->Lookup("StartupBackgroundApps")->GetArray();
+			return ref new ListStartupBackgroundAppsResponse(status, jsonArray);
+		}
 
-        virtual property DMMessageKind Tag {
+		virtual property DMMessageKind Tag {
             DMMessageKind get();
         }
 

@@ -17,20 +17,22 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 {
     public ref class AppInstallInfo sealed
     {
-    private:
-        String^ _PackageFamilyName;
-        String^ _AppxPath;
-        IVector<String^>^ _Dependencies;
     public:
+        AppInstallInfo()
+        {
+            PackageFamilyName = ref new Platform::String();
+            AppxPath = ref new Platform::String();
+            Dependencies = ref new Vector<String^>();
+        }
         AppInstallInfo(String^ packageFamilyName, String^ appxPath, IVector<String^>^ dependencies)
         {
-            _PackageFamilyName = packageFamilyName;
-            _AppxPath = appxPath;
-            _Dependencies = dependencies;
+            PackageFamilyName = packageFamilyName;
+            AppxPath = appxPath;
+            Dependencies = dependencies;
         }
-        property String^ PackageFamilyName { String^ get() { return _PackageFamilyName; }; }
-        property String^ AppxPath { String^ get() { return _AppxPath; }; }
-        property IVector<String^>^ Dependencies{ IVector<String^>^ get() { return _Dependencies; }; }
+        property String^ PackageFamilyName;
+        property String^ AppxPath;
+        property IVector<String^>^ Dependencies;
     };
 
     public ref class AppInstallRequest sealed : public IRequest

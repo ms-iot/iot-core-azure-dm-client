@@ -13,13 +13,13 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     private class DMMessageDeserializer
     {
     public:
-        typedef IDataPayload^ (*DMRequestDeserialize)(Blob^ bytes);
-        typedef IDataPayload^ (*DMResponseDeserialize)(Blob^ bytes);
+        typedef IDataPayload^ (DMRequestDeserialize)(Blob^ bytes);
+        typedef IDataPayload^ (DMResponseDeserialize)(Blob^ bytes);
         typedef std::pair<DMRequestDeserialize*, DMResponseDeserialize*> DMSerializationPair;
         typedef std::map<DMMessageKind, DMSerializationPair> DMDeserializer;
 
         DMDeserializer Deserializer = {
-#define MODEL_NODEF(A, B, C, D) { DMMessageKind::##A,         { (DMRequestDeserialize*)&##C##::Deserialize,                  (DMResponseDeserialize*)&##D##::Deserialize } },
+#define MODEL_NODEF(A, B, C, D) { DMMessageKind::##A, { (DMRequestDeserialize*)##C##::Deserialize, (DMResponseDeserialize*)##D##::Deserialize } },
 #define MODEL_REQDEF(A, B, C, D) MODEL_NODEF(A, B, C, D)
 #define MODEL_ALLDEF(A, B, C, D) MODEL_NODEF(A, B, C, D)
 MODELS_INFO

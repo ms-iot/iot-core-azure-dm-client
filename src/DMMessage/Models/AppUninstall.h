@@ -13,17 +13,19 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 {
     public ref class AppUninstallInfo sealed
     {
-    private:
-        String^ _PackageFamilyName;
-        bool _StoreApp;
     public:
-        AppUninstallInfo(String^ appId, bool start)
+        AppUninstallInfo()
         {
-            _PackageFamilyName = appId;
-            _StoreApp = start;
+            PackageFamilyName = ref new Platform::String();
+            StoreApp = true;
         }
-        property String^ PackageFamilyName { String^ get() { return _PackageFamilyName; }; }
-        property bool StoreApp { bool get() { return _StoreApp; }; }
+        AppUninstallInfo(String^ packageFamilyName, bool start)
+        {
+            PackageFamilyName = packageFamilyName;
+            StoreApp = start;
+        }
+        property String^ PackageFamilyName;
+        property bool StoreApp;
     };
 
     public ref class AppUninstallRequest sealed : public IRequest

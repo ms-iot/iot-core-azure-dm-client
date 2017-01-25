@@ -11,71 +11,6 @@ using Windows.Storage;
 
 namespace Microsoft.Devices.Management
 {
-/*
-    public class AzureFileTransfer
-    {
-        public string LocalPath { get; set; }
-        public string AppLocalDataPath { get; set; }
-        public string ConnectionString { get; set; }
-        public string ContainerName { get; set; }
-        public string BlobName { get; set; }
-        public bool Upload { get; set; }
-    }
-
-    public class AppxInstallInfo
-    {
-        public string PackageFamilyName { get; set; }
-        public string AppxPath { get; set; }
-        public List<string> Dependencies { get; set; }
-
-        public AppxInstallInfo()
-        {
-            Dependencies = new List<string>();
-        }
-    }
-
-    public class AppxUninstallInfo
-    {
-        public string PackageFamilyName { get; set; }
-        public bool StoreApp { get; set; }
-    }
-
-    public class AppLifecycleInfo
-    {
-        public string AppId { get; set; }
-        public bool Start { get; set; }
-    }
-
-    public class StartupAppInfo
-    {
-        public string AppId { get; set; }
-        public bool IsBackgroundApplication { get; set; }
-    }
-    public class AppInfo
-    {
-        public string AppSource { get; set; }
-        public string Architecture { get; set; }
-        public string InstallDate { get; set; }
-        public string InstallLocation { get; set; }
-        public string IsBundle { get; set; }
-        public string IsFramework { get; set; }
-        public string IsProvisioned { get; set; }
-        public string Name { get; set; }
-        public string PackageFamilyName { get; set; }
-        public string PackageStatus { get; set; }
-        public string Publisher { get; set; }
-        public string RequiresReinstall { get; set; }
-        public string ResourceID { get; set; }
-        public string Users { get; set; }
-        public string Version { get; set; }
-
-        public static Dictionary<string, AppInfo> SetOfAppsFromJson(string json)
-        {
-            return JsonConvert.DeserializeObject<Dictionary<string, AppInfo>>(json);
-        }
-    }
-
-*/
     public class RebootInfo
     {
         public DateTime lastRebootTime;
@@ -212,7 +147,7 @@ namespace Microsoft.Devices.Management
 
         public async Task AddStartupAppAsync(Message.StartupAppInfo startupAppInfo)
         {
-            var request = new Message.StartupAppRequest(startupAppInfo);
+            var request = new Message.AddStartupAppRequest(startupAppInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
             if (result.Status != Message.ResponseStatus.Success)
             {
@@ -222,7 +157,7 @@ namespace Microsoft.Devices.Management
 
         public async Task RemoveStartupAppAsync(Message.StartupAppInfo startupAppInfo)
         {
-            var request = new Message.StartupAppRequest(startupAppInfo);
+            var request = new Message.RemoveStartupAppRequest(startupAppInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
             if (result.Status != Message.ResponseStatus.Success)
             {

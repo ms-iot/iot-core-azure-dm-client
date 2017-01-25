@@ -19,7 +19,7 @@ public: \
     } \
  \
     static IDataPayload^ Deserialize(Blob^ bytes) { \
-        return ref new FactoryResetRequest(); \
+        return ref new A##Request(); \
     } \
  \
     virtual property DMMessageKind Tag { \

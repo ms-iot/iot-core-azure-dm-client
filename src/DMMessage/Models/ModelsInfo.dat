@@ -1,3 +1,8 @@
+//
+// MODEL_ALLDEF ==> definition for XXX::Tag::get() will be created for Request and Response class
+// MODEL_REQDEF ==> definition for XXX::Tag::get() will be created for Request class only
+// MODEL_NODEF  ==> definition for XXX::Tag::get() will be not be created for any class
+//
 
 #define MODELS_INFO \
 MODEL_REQDEF(   FactoryReset,               1,  FactoryResetRequest,                StatusCodeResponse ) \
@@ -7,8 +12,8 @@ MODEL_REQDEF(   InstallApp,                 4,  AppInstallRequest,              
 MODEL_REQDEF(   UninstallApp,               5,  AppUninstallRequest,                StatusCodeResponse ) \
 MODEL_ALLDEF(   GetStartupForegroundApp,    6,  GetStartupForegroundAppRequest,     GetStartupForegroundAppResponse ) \
 MODEL_ALLDEF(   ListStartupBackgroundApps,  7,  ListStartupBackgroundAppsRequest,   ListStartupBackgroundAppsResponse ) \
-MODEL_REQDEF(   AddStartupApp,              8,  StartupAppRequest,                  StatusCodeResponse ) \
-MODEL_NODEF (   RemoveStartupApp,           9,  StartupAppRequest,                  StatusCodeResponse ) \
+MODEL_REQDEF(   AddStartupApp,              8,  AddStartupAppRequest,               StatusCodeResponse ) \
+MODEL_REQDEF(   RemoveStartupApp,           9,  RemoveStartupAppRequest,            StatusCodeResponse ) \
 MODEL_NODEF (   StartApp,                   10, AppLifecycleRequest,                StatusCodeResponse ) \
 MODEL_NODEF (   StopApp,                    11, AppLifecycleRequest,                StatusCodeResponse ) \
 MODEL_REQDEF(   RebootSystem,               15, RebootRequest,                      StatusCodeResponse ) \

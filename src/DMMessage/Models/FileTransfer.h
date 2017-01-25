@@ -14,6 +14,15 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public ref class AzureFileTransferInfo sealed
     {
     public:
+        AzureFileTransferInfo()
+        {
+            LocalPath = ref new Platform::String();
+            AppLocalDataPath = ref new Platform::String();
+            ConnectionString = ref new Platform::String();
+            ContainerName = ref new Platform::String();
+            BlobName = ref new Platform::String();
+            Upload = true;
+        }
         AzureFileTransferInfo(String^ localPath, String^ appLocalDataPath, String^ connectionString, String^ containerName, String^ blobName, bool upload)
         {
             LocalPath = localPath;
