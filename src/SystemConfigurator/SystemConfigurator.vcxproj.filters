@@ -80,6 +80,7 @@
     </ClInclude>
     <ClInclude Include="CSPs\WifiCSP.h">
       <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
     <ClInclude Include="AppCfg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -144,6 +145,7 @@
     </ClCompile>
     <ClCompile Include="CSPs\WifiCSP.cpp">
       <Filter>Source Files\CSPs</Filter>
+    </ClCompile>
     <ClCompile Include="AppCfg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
