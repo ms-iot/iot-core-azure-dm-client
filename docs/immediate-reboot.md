@@ -40,11 +40,11 @@ Successful response:
 ## Device Twin Communication
 
 After responding to the method call, the device attempts to reboot. The result
-of the attempt is recorded in the reported property `"desired.microsoft.management.lastRebootAttempt"`, which
+of the attempt is recorded in the reported property `"reported.microsoft.management.lastRebootAttempt"`, which
 is JSON object with two key/value pairs defined as follows:
 
 <pre>
-"desired" : {
+"reported" : {
     "microsoft" : {
         "management" : {
             "lastRebootAttempt" : {
@@ -56,10 +56,10 @@ is JSON object with two key/value pairs defined as follows:
 }
 </pre>
 
-*After* the device boots, the `"desired.microsoft.management.lastBootTime"` property is set, which is defined as follows:
+*After* the device boots, the `"reported.microsoft.management.lastBootTime"` property is set, which is defined as follows:
 
 <pre>
-"desired" : {
+"reported" : {
     "microsoft" : {
         "management" : {
             "lastBootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
@@ -77,7 +77,7 @@ the Immediate Reboot, [Scheduled Reboot](scheduled-reboot.md) or any other reaso
 Successful response:
 
 ```
-"desired" : {
+"reported" : {
     "microsoft" : {
         "management" : {
             "lastRebootAttempt" : {
@@ -92,7 +92,7 @@ Successful response:
 Device boots and sets `"lastBootTime"` property:
 
 ```
-"desired" : {
+"reported" : {
     "microsoft" : {
         "management" : {
             `"lastBootTime"` : "2017-01-25T13:27:33+04:00"
