@@ -12,7 +12,7 @@ The device responds immediately with the following JSON payload:
 "response" : value (<i>See below</i>)
 </pre>
 
-Possible `"response"` values of are: 
+Possible `"response"` values are: 
 - `"accepted"` - The reboot request was accepted. The device will attempt to reboot momentarily (note: the attempt might fail, see below)
 - `"rejected"` - The device rejected the reboot request. The device will not reboot.
 - `"scheduled"`- The reboot request was accepted. The device will reboot at some time in the future.
