@@ -1,60 +1,62 @@
 ## Scheduled Reboot
 
-The **Scheduled Reboot** operation is initiated by the device receiving the `"scheduledReboot"` desired property.
+The **Scheduled Reboot** operation is initiated by the device receiving the `"desired.microsoft.management.scheduledReboot"` desired property.
 
 ## Format
-The format of the `"scheduledReboot"` desired property is as follows:
+The format of the `"desired.microsoft.management.scheduledReboot"` desired property is as follows:
 
-| Parameters    | Required | Description                         |
-| ------------- |----------|:------------------------------------|
-| `"type"`      | Yes      | Possible values are specified below |
+<pre>
+"desired" : {
+    "microsoft" : {
+        "management" : {
+            "scheduledReboot" : <i>See below</i>
+        }
+    }
+}
+</pre>
 
-The `"type"` parameter must be a JSON object represented as a single key/value pair
-where the keys is either `"one-time"` or `"daily"`. The former is specified as follows:
+The possible values of the `"scheduledReboot"` key are as follows:
 
-| Parameters    | Required | Description             |
-| ------------- |----------|:------------------------|
-| `"one-time"`  | No       | Datetime in ISO 8601 format, UTC |
+ - For one-time reboot:
+ 
+ <pre>
+ {
+     "one-time" : "<i>Datetime in ISO 8601 format, UTC</i>"
+ }
+ </pre>
 
-Daily reboot specifies time to reboot:
+- For daily reboot:
 
-| Parameters    | Required | Description             |
-| ------------- |----------|:------------------------|
-| `"daily"`     | No       | Local time in *hh::mm* format |
+ <pre>
+ {
+     "daily" : "<i>Local time in <b>hh::mm</b> format</i>"
+ }
+ </pre>
 
 **Examples**
-
-Perform an immediate reboot:
-
-```
-"type" : "immediate"
-```
 
 Perform a one-time reboot on Jan 25th, 2017 at 09:00 UTC time
 
 ```
-"type" : {
-   "one-time" : "2017-01-25T09:00:00+00:00"
+"desired" : {
+    "microsoft" : {
+        "management" : {
+            "scheduledReboot" : {
+                "one-time" : "2017-01-25T09:00:00+00:00"
+            }
+        }
+    }
 }
 ```
 Start performing daily reboots at 3 AM:
 
 ```
-"type" : {
-    "periodic" : {
-        "daily" : "03:00"
-    }
-}
-```
-
-Start performing weekly reboots each Sunday at 2 AM:
-
-```
-"type" : {
-    "periodic" : {
-        "weekly" : {
-            "day" : "Sun",
-            "time" : "02:00"
+"desired" : {
+    "microsoft" : {
+        "management" : {
+            "scheduledReboot" : {
+                "daily" : "03:00"
+            }
         }
     }
 }
