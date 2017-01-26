@@ -5,7 +5,7 @@ Windows IoT Core devices can be managed via Azure IoT Hub. All device management
 
 ## Direct Method Format
 
-Some device management actions are initiated by direct methods. Such methods start with the `microsoft.management` prefix followed by method name. The method payload (when non-empty) is in JSON format. The return payload (if not empty) is also in JSON format.
+Some device management actions are initiated by direct methods. Such methods start with the `microsoft.management` prefix followed by the method name. The method payload (when non-empty) is in JSON format. The return payload (if not empty) is also in JSON format.
 
 Example:
 
