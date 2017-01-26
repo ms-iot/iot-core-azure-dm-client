@@ -41,5 +41,5 @@ Certain device management operations are initiated by desired properties set fro
 
 The specification for each operation is provided below.
 
-[Immediate Reboot](immediate-reboot.md)
-[Scheduled Reboot](scheduled-reboot.md)
+- [Immediate Reboot](immediate-reboot.md)
+- [Scheduled Reboot](scheduled-reboot.md)
