@@ -18,11 +18,11 @@ The payload for a method can look as follows:
 "parameter" : "value"
 ```
 
-The exact specification for each device management operation is defined below.
+The exact specification for each device management operation is defined in the [Specification](#specification) below.
 
 ## Device Twin Format
 
-Certain device management operations are initiated by desired properties set from the IoT Hub. For example, some configuration settings are performed by setting desired properties as depicted in the example below:
+Certain device management operations are initiated by desired properties set from the IoT Hub. For example, some configuration settings are set by the desired properties as depicted in the example below:
 
 ```
 "desired": {
