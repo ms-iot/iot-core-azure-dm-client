@@ -10,17 +10,15 @@ Some device management actions are initiated by direct methods. Such methods sta
 Example:
 
 ```
-microsoft.management.reboot
+microsoft.management.transmogrify
 ```
 
 The payload for a method can look as follows:
 ```
-{
-    "parameter" : "value"
-}
+"parameter" : "value"
 ```
 
-The exact specification for each device management operation is defined [below](Specification).
+The exact specification for each device management operation is defined below.
 
 ## Device Twin Format
 
@@ -43,4 +41,5 @@ Certain device management operations are initiated by desired properties set fro
 
 The specification for each operation is provided below.
 
-[Reboot](reboot.md)
+[Immediate Reboot](immediate-reboot.md)
+[Scheduled Reboot](scheduled-reboot.md)

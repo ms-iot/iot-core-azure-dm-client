@@ -1,81 +1,78 @@
-## Reboot
+## Immediate Reboot
 
-The **reboot** operation is initiated by the device receiving `microsoft.management.reboot` method.
+The **Immediate Reboot** operation is initiated by the device receiving the `microsoft.management.immediateReboot` method.
 
 ## Input Payload 
-Input payload is specified as follows:
-
-| Parameters    | Required | Description                                                                         |
-| ------------- |----------|:------------------------------------------------------------------------------------|
-| `"type"`      | Yes      | Possible values are either `"immediate"` or one of the JSON objects specified below |
-
-Non-immediate reboot type parameter must be a JSON object represented as a single key/value pair
-where the keys is either `"one-time"` or `"periodic"`:
-
-| Parameters    | Required | Description             |
-| ------------- |----------|:------------------------|
-| `"one-time"`  | Yes      | Datetime in ISO 8601 format, UTC |
-
-| Parameters    | Required | Description             |
-| ------------- |----------|:------------------------|
-| `"periodic"`  | Yes      | JSON object described below |
-
-Periodic reboot is specified as a single key/value pair JSON object where the key is either `"daily"` or `"weekly"`, as described below:
-
-| Parameters    | Required | Description             |
-| ------------- |----------|:------------------------|
-| `"daily"`     | No       | Local time in *hh::mm* format |
-| `"weekly"`    | No       | JSON object described below   |
-
-Weekly reboot is specified as a JSON object with keys specified as follows:
-
-| Parameters    | Required  | Description             |
-| ------------- |-----------|:------------------------|
-| `"day"`       | Yes       | One of `"Mon, `"Tue"`, `"Wed"`, `"Thur"`, `"Fri"`, `"Sat"` or `"Sun"` |
-| `"time"`      | Yes       | Local time in *hh::mm* format  |
-
-### Examples
-
-Perform an immediate reboot:
-
-```
-"type" : "immediate"
-```
-
-Perform a one-time reboot on Jan 25th, 2017 at 09:00 UTC time
-
-```
-"type" : {
-   "one-time" : "2017-01-25T09:00:00+00:00"
-}
-```
-Start performing daily reboots at 3 AM:
-
-```
-"type" : {
-    "periodic" : {
-        "daily" : "03:00"
-    }
-}
-```
-
-Start performing weekly reboots each Sunday at 2 AM:
-
-```
-"type" : {
-    "periodic" : {
-        "weekly" {
-            "day" : "Sun",
-            "time" : "02:00"
-        }
-    }
-}
-```
+Input payload is empty
 
 ## Output Payload
+The device responds immediately with the following JSON payload:
 
-TBD
+| Key           | Value |
+| ------------- |-------|
+| `"response"`  | _See below_ |
+
+Possible `"response"` values of are: 
+- `"accepted"` - The reboot request was accepted. The device will attempt to reboot momentarily (note: the attempt might fail, see below)
+- `"rejected"` - The device rejected the reboot request. The device will not reboot.
+- `"scheduled"`- The reboot request was accepted. The device will reboot at some time in the future.
+
+The device might not be in a state that allows reboot. For example, it might be
+in a middle of an important operation than cannot be disrupted. If no such
+condition is detected, the device responds by accepting the request and
+attempting to reboot.
+
+Further, the device management client needs to consult the primary app running
+on the device whether it is acceptable to reboot. The app responds based on its
+business logic which, for interactive apps, might require user consent.
+
+The state of the latest reboot attempt is communicated to the back-end via
+reported properties as described in [Device Twin Communication](#device-twin-communication) below.
+
+**Examples:**
+
+Successful response:
+
+```
+"response" : "accepted"
+```
 
 ## Device Twin Communication
 
-TBD
+After responding to the method call, the device attempts to reboot. The result
+of the attempt is recorded in the reported property `"lastRebootAttempt"`, which
+is JSON object with two key/value pairs defined as follows:
+
+| Key        | Value |
+| ---------- |-------|
+| `"time"`   | Datetime in ISO 8601 format, UTC |
+| `"status"` | `"success"` or `"failure"` |
+
+*After* the device boots, the `"lastBootTime"` property is set, which is defined as follows:
+
+| Key        | Value |
+| ---------- |-------|
+| `"lastBootTime"`   | Datetime in ISO 8601 format, UTC |
+
+
+Note that this property is set after every boot, whether it was initiated by
+the Immediate Reboot, [Scheduled Reboot](scheduled-reboot.md) or any other reason.
+
+**Examples:**
+
+Successful response:
+
+```
+"lastRebootAttempt" : {
+    "time" : "2017-01-25T13:27:33+04:00",
+    "status" : "success"
+}
+
+```
+
+Device boots and sets `"lastBootTime"` property:
+
+```
+`"lastBootTime"` : "2017-01-25T13:27:33+04:00"
+
+```
