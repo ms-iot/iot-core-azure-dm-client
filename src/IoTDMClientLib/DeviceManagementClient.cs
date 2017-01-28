@@ -81,7 +81,7 @@ namespace Microsoft.Devices.Management
         public static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
         {
             DeviceManagementClient deviceManagementClient = Create(deviceTwin, requestHandler, new SystemConfiguratorProxy());
-            deviceTwin.SetManagementClient(deviceManagementClient);
+            deviceTwin.SetMethodHandlerAsync("microsoft.management.immediateReboot", deviceManagementClient.ImmediateRebootMethodHandlerAsync);
             return deviceManagementClient;
         }
 
@@ -254,6 +254,19 @@ namespace Microsoft.Devices.Management
             };
 
             _deviceTwin.ReportProperties(collection);
+        }
+
+        private Task<string> ImmediateRebootMethodHandlerAsync(string jsonParam)
+        {
+            // Start the reboot operation asynchrnously, which may or may not succeed
+            var rebootOp = this.ImmediateRebootAsync();
+
+            // TODO: consult the active hours schedule to make sure reboot is allowed
+            var rebootAllowed = true;
+
+            var response = JsonConvert.SerializeObject(new { response = rebootAllowed ? "accepted" : "rejected" });
+
+            return Task.FromResult(response);
         }
 
         public async Task ImmediateRebootAsync()

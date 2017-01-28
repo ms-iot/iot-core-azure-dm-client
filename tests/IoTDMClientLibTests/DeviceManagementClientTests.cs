@@ -11,17 +11,17 @@ namespace IoTDMClientLibTests
 {
     class TwinMockup : IDeviceTwin
     {
-        void IDeviceTwin.SetManagementClient(DeviceManagementClient deviceManagementClient)
-        {
-            throw new NotImplementedException();
-        }
-
         void IDeviceTwin.RefreshConnection()
         {
             throw new NotImplementedException();
         }
 
         void IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)
         {
             throw new NotImplementedException();
         }
