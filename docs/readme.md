@@ -5,7 +5,7 @@ Windows IoT Core devices can be managed via Azure IoT Hub. All device management
 
 ## Direct Method Format
 
-Some device management actions are initiated by direct methods. Such methods start with the `microsoft.management` prefix followed by method name. The method payload (when non-empty) is in JSON format. The return payload (if not empty) is also in JSON format.
+Some device management actions are initiated by direct methods. Such methods start with the `microsoft.management` prefix followed by the method name. The method payload (when non-empty) is in JSON format. The return payload (if not empty) is also in JSON format.
 
 Example:
 
@@ -18,11 +18,11 @@ The payload for a method can look as follows:
 "parameter" : "value"
 ```
 
-The exact specification for each device management operation is defined below.
+The exact specification for each device management operation is defined in the [Specification](#specification) below.
 
 ## Device Twin Format
 
-Certain device management operations are initiated by desired properties set from the IoT Hub. For example, some configuration settings are performed by setting desired properties as depicted in the example below:
+Certain device management operations are initiated by desired properties set from the IoT Hub. For example, some configuration settings are set by the desired properties as depicted in the example below:
 
 ```
 "desired": {
@@ -41,5 +41,5 @@ Certain device management operations are initiated by desired properties set fro
 
 The specification for each operation is provided below.
 
-[Immediate Reboot](immediate-reboot.md)
-[Scheduled Reboot](scheduled-reboot.md)
+- [Immediate Reboot](immediate-reboot.md)
+- [Scheduled Reboot](scheduled-reboot.md)

@@ -8,11 +8,11 @@ Input payload is empty
 ## Output Payload
 The device responds immediately with the following JSON payload:
 
-| Key           | Value |
-| ------------- |-------|
-| `"response"`  | _See below_ |
+<pre>
+"response" : value (<i>See below</i>)
+</pre>
 
-Possible `"response"` values of are: 
+Possible `"response"` values are: 
 - `"accepted"` - The reboot request was accepted. The device will attempt to reboot momentarily (note: the attempt might fail, see below)
 - `"rejected"` - The device rejected the reboot request. The device will not reboot.
 - `"scheduled"`- The reboot request was accepted. The device will reboot at some time in the future.
@@ -40,19 +40,33 @@ Successful response:
 ## Device Twin Communication
 
 After responding to the method call, the device attempts to reboot. The result
-of the attempt is recorded in the reported property `"lastRebootAttempt"`, which
+of the attempt is recorded in the reported property `"reported.microsoft.management.lastRebootAttempt"`, which
 is JSON object with two key/value pairs defined as follows:
 
-| Key        | Value |
-| ---------- |-------|
-| `"time"`   | Datetime in ISO 8601 format, UTC |
-| `"status"` | `"success"` or `"failure"` |
+<pre>
+"reported" : {
+    "microsoft" : {
+        "management" : {
+            "lastRebootAttempt" : {
+                "time" : "<i>Datetime in ISO 8601 format, UTC</i>"
+                "status" : "success" <i>or</i> "failure"
+            }
+        }
+    }
+}
+</pre>
 
-*After* the device boots, the `"lastBootTime"` property is set, which is defined as follows:
+*After* the device boots, the `"reported.microsoft.management.lastBootTime"` property is set, which is defined as follows:
 
-| Key        | Value |
-| ---------- |-------|
-| `"lastBootTime"`   | Datetime in ISO 8601 format, UTC |
+<pre>
+"reported" : {
+    "microsoft" : {
+        "management" : {
+            "lastBootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
+        }
+    }
+}
+</pre>
 
 
 Note that this property is set after every boot, whether it was initiated by
@@ -63,16 +77,26 @@ the Immediate Reboot, [Scheduled Reboot](scheduled-reboot.md) or any other reaso
 Successful response:
 
 ```
-"lastRebootAttempt" : {
-    "time" : "2017-01-25T13:27:33+04:00",
-    "status" : "success"
+"reported" : {
+    "microsoft" : {
+        "management" : {
+            "lastRebootAttempt" : {
+                "time" : "2017-01-25T13:27:33+04:00",
+                "status" : "success"
+            }
+        }
+    }
 }
-
 ```
 
 Device boots and sets `"lastBootTime"` property:
 
 ```
-`"lastBootTime"` : "2017-01-25T13:27:33+04:00"
-
+"reported" : {
+    "microsoft" : {
+        "management" : {
+            `"lastBootTime"` : "2017-01-25T13:27:33+04:00"
+        }
+    }
+}
 ```
