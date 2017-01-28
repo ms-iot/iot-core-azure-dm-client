@@ -11,7 +11,7 @@ using namespace Windows::Data::Json;
 
 namespace Microsoft { namespace Devices { namespace Management { namespace Message
 {
-    public ref class RebootRequest sealed : public IRequest
+    public ref class ImmediateRebootRequest sealed : public IRequest
     {
     public:
         virtual Blob^ Serialize() {
@@ -19,8 +19,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         static IDataPayload^ Deserialize(Blob^ blob) {
-            assert(blob->Tag == DMMessageKind::RebootSystem);
-            return ref new RebootRequest();
+            assert(blob->Tag == DMMessageKind::ImmediateReboot);
+            return ref new ImmediateRebootRequest();
         }
 
         virtual property DMMessageKind Tag {

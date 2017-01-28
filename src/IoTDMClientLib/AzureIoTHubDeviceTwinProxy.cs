@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace Microsoft.Devices.Management
 
             this.deviceClient.SetMethodHandler("ReportAllPropertiesAsync", ReportAllPropertiesAsync, null);
             this.deviceClient.SetMethodHandler("DoFactoryResetAsync", DoFactoryResetAsync, null);
-            this.deviceClient.SetMethodHandler("RebootSystemAsync", RebootSystemAsync, null);
+            this.deviceClient.SetMethodHandler("microsoft.management.immediateReboot", ImmediateRebootAsync, null);
         }
 
         public void SetManagementClient(DeviceManagementClient deviceManagementClient)
@@ -71,18 +72,17 @@ namespace Microsoft.Devices.Management
             return Task.FromResult(retValue);
         }
 
-        Task<MethodResponse> RebootSystemAsync(MethodRequest methodRequest, object userContext)
+        Task<MethodResponse> ImmediateRebootAsync(MethodRequest methodRequest, object userContext)
         {
-            if (deviceManagementClient == null)
-            {
-                throw new System.Exception("ManagementClient is not set.");
-            }
+            // Start the reboot operation asynchrnously, which may or may not succeed
+            var rebootOp = deviceManagementClient.ImmediateRebootAsync();
 
-#if false // TODO
-            var t = deviceManagementClient.RebootSystemAsync();
-            // t.Wait();    // ToDo: Investigate why this causes a deadlock.
-#endif
-            var retValue = new MethodResponse(Encoding.UTF8.GetBytes(""), 0 /*(int)t.Result.returnCode*/);
+            // TODO: consult the active hours schedule to make sure reboot is allowed
+            var rebootAllowed = true;
+
+            var response = JsonConvert.SerializeObject(new { response = rebootAllowed ? "accepted" : "rejected" });
+
+            var retValue = new MethodResponse(Encoding.UTF8.GetBytes(response), 0);
             return Task.FromResult(retValue);
         }
     }

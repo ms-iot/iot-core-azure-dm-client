@@ -12,9 +12,9 @@ namespace Toaster
 {
     public sealed partial class MainPage : Page
     {
-        DeviceManagementClient DMClient;
+        DeviceManagementClient deviceManagementClient;
 
-        private const string DeviceConnectionString = "...";
+        private const string DeviceConnectionString = "HostName=iot-open-house-demo.azure-devices.net;DeviceId=dog-feeder;SharedAccessKey=Rt3JTLyI3Rj4ZCNm6pPkT8TKHTw1TMLMNnXd8u/pp9g=";
 
         public MainPage()
         {
@@ -24,45 +24,36 @@ namespace Toaster
             this.imageHot.Visibility = Visibility.Collapsed;
             DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, TransportType.Mqtt);
 
-            DMClient = DeviceManagementClient.Create(
+            this.deviceManagementClient = DeviceManagementClient.Create(
                 new AzureIoTHubDeviceTwinProxy(deviceClient), 
                 new ToasterDeviceManagementRequestHandler(this));
 
-            deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, this);
+            deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, null);
         }
 
         public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
         {
-            TwinCollection nonDMProperties = DMClient.HandleDesiredPropertiesChanged(desiredProperties);
+            this.deviceManagementClient.ProcessDeviceManagementProperties(desiredProperties);
 
-            // Application developer can process all the top-level nodes (in nonDMProperties)
-            // that did not get filtered out by DM.
+            // Application developer can process all the top-level nodes here
 
-            return null;
+            return Task.CompletedTask;
         }
 
         // This method may get called on the DM callback thread - not on the UI thread.
         public async Task<bool> YesNo(string question)
         {
-            // ToDo: This needs a clean solution (ideally before Artur sees it :)).
-            bool answered = false;
-            bool yesAnswer = false;
+            var tcs = new TaskCompletionSource<bool>();
 
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
             {
                 UserDialog dlg = new UserDialog(question);
                 ContentDialogResult dialogResult = await dlg.ShowAsync();
-                yesAnswer = dlg.Result;
-                answered = true;
+                tcs.SetResult(dlg.Result);
             });
 
-            while (!answered)
-            {
-                Debug.WriteLine("sleeping for 1 second...");
-                System.Threading.SpinWait.SpinUntil(() => false, 1000);
-            }
-
-            return yesAnswer;
+            bool yesNo = await tcs.Task;
+            return yesNo;
         }
 
         private void OnStartToasting(object sender, RoutedEventArgs e)
@@ -85,7 +76,7 @@ namespace Toaster
 
         private async void OnCheckForUpdates(object sender, RoutedEventArgs e)
         {
-            bool updatesAvailable = await DMClient.CheckForUpdatesAsync();
+            bool updatesAvailable = await deviceManagementClient.CheckForUpdatesAsync();
             if (updatesAvailable)
             {
                 System.Diagnostics.Debug.WriteLine("updates available");
@@ -100,14 +91,14 @@ namespace Toaster
             bool success = true;
             try
             {
-                await DMClient.RebootSystemAsync();
+                await deviceManagementClient.ImmediateRebootAsync();
             }
             catch(Exception)
             {
                 success = false;
             }
 
-            StatusText.Text = success?  "Succeeded!" : "Failed!";
+            StatusText.Text = success?  "Operation completed" : "Operation  failed";
         }
 
         private void OnSystemRestart(object sender, RoutedEventArgs e)
@@ -120,7 +111,7 @@ namespace Toaster
             bool success = true;
             try
             {
-                await DMClient.DoFactoryResetAsync();
+                await deviceManagementClient.DoFactoryResetAsync();
             }
             catch (Exception)
             {
@@ -132,8 +123,7 @@ namespace Toaster
 
         private void OnFactoryReset(object sender, RoutedEventArgs e)
         {
-            RestartSystem();
+            FactoryReset();
         }
-
     }
 }

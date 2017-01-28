@@ -78,10 +78,10 @@ namespace IoTDMClientLibTests
                 this.response = new StatusCodeResponse(ResponseStatus.Success, request.Tag);
                 return Task.FromResult<IResponse>(response);
             }
-            else if (request.Tag == DMMessageKind.RebootSystem)
+            else if (request.Tag == DMMessageKind.ImmediateReboot)
             {
-                var appinstallReq = (RebootRequest)request; // cast must succeed
-                this.response = new StatusCodeResponse(ResponseStatus.Success, DMMessageKind.RebootSystem);
+                var appinstallReq = (ImmediateRebootRequest)request; // cast must succeed
+                this.response = new StatusCodeResponse(ResponseStatus.Success, DMMessageKind.ImmediateReboot);
                 return Task.FromResult<IResponse>(response);
             }
             else throw new Exception("Unsupported command");
@@ -98,13 +98,13 @@ namespace IoTDMClientLibTests
         public void MockupProxyImmediateRebootTest()
         {
             var twin = new TwinMockup();
-            var requestHandler = new HandlerMockupForReboot(SystemRebootRequestResponse.StartNow);
+            var requestHandler = new HandlerMockupForReboot(SystemRebootRequestResponse.Accept);
             var proxy = new ConfigurationProxyMockup();
             var dmClient = DeviceManagementClient.Create(twin, requestHandler, proxy);
-            dmClient.RebootSystemAsync().Wait();
+            dmClient.ImmediateRebootAsync().Wait();
 
-            Assert.AreEqual(proxy.ReceivedRequest.Tag, DMMessageKind.RebootSystem);
-            Assert.AreEqual(proxy.ReturnedResponse.Tag, DMMessageKind.RebootSystem);
+            Assert.AreEqual(proxy.ReceivedRequest.Tag, DMMessageKind.ImmediateReboot);
+            Assert.AreEqual(proxy.ReturnedResponse.Tag, DMMessageKind.ImmediateReboot);
             Assert.AreEqual(proxy.ReturnedResponse.Status, ResponseStatus.Success);
         }
 
@@ -112,10 +112,10 @@ namespace IoTDMClientLibTests
         public void MockupProxyPostponedRebootTest()
         {
             var twin = new TwinMockup();
-            var requestHandler = new HandlerMockupForReboot(SystemRebootRequestResponse.AskAgainLater);
+            var requestHandler = new HandlerMockupForReboot(SystemRebootRequestResponse.Reject);
             var proxy = new ConfigurationProxyMockup();
             var dmClient = DeviceManagementClient.Create(twin, requestHandler, proxy);
-            dmClient.RebootSystemAsync().Wait();
+            dmClient.ImmediateRebootAsync().Wait();
 
             Assert.AreEqual(proxy.ReceivedRequest, null);
             Assert.AreEqual(proxy.ReturnedResponse, null);

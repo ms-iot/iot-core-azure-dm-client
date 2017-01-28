@@ -128,7 +128,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppCfg.cpp" />
-    <ClCompile Include="AzureBlobCfg.cpp" />
     <ClCompile Include="CommandProcessor.cpp" />
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp" />
     <ClCompile Include="CSPs\DeviceStatusCSP.cpp" />

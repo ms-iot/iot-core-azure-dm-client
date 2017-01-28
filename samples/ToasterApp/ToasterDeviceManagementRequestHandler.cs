@@ -30,7 +30,7 @@ namespace Toaster
         async Task<SystemRebootRequestResponse> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
         {
             bool answer = await this.mainPage.YesNo("Allow reboot?");
-            return answer ? SystemRebootRequestResponse.StartNow : SystemRebootRequestResponse.AskAgainLater;
+            return answer ? SystemRebootRequestResponse.Accept : SystemRebootRequestResponse.Reject;
         }
     }
 }

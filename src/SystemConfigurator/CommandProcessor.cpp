@@ -77,7 +77,7 @@ IResponse^ HandleGetTimeInfo(IRequest^ request)
 {
     return TimeCfg::GetTimeInfo();
 }
-IResponse^ HandleRebootSystem(IRequest^ request)
+IResponse^ HandleImmediateReboot(IRequest^ request)
 {
     RebootCSP::ExecRebootNow();
     return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
