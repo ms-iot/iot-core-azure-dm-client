@@ -14,7 +14,7 @@ namespace Toaster
     {
         DeviceManagementClient deviceManagementClient;
 
-        private const string DeviceConnectionString = "HostName=iot-open-house-demo.azure-devices.net;DeviceId=dog-feeder;SharedAccessKey=Rt3JTLyI3Rj4ZCNm6pPkT8TKHTw1TMLMNnXd8u/pp9g=";
+        private readonly string DeviceConnectionString = ConnectionStringProvider.Value;
 
         public MainPage()
         {
@@ -22,21 +22,34 @@ namespace Toaster
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
             this.imageHot.Visibility = Visibility.Collapsed;
+
+            // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
+            // as well as device management
             DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, TransportType.Mqtt);
 
-            this.deviceManagementClient = DeviceManagementClient.Create(
-                new AzureIoTHubDeviceTwinProxy(deviceClient), 
-                new ToasterDeviceManagementRequestHandler(this));
+            // IDeviceTwin abstracts away communication with the back-end.
+            // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
+            IDeviceTwin deviceTwinProxy = new AzureIoTHubDeviceTwinProxy(deviceClient);
 
+            // IDeviceManagementRequestHandler handles device management-specific requests to the app,
+            // such as whether it is OK to perform a reboot at any givem moment, according the app business logic
+            // ToasterDeviceManagementRequestHandler is the Toaster app implementation of the interface
+            IDeviceManagementRequestHandler appRequestHandler = new ToasterDeviceManagementRequestHandler(this);
+
+            // Create the DeviceManagementClient, the main entry point into device management
+            this.deviceManagementClient = DeviceManagementClient.Create(deviceTwinProxy, appRequestHandler);
+
+            // Set the callback for desired properties update. The callback will be invoked
+            // for all desired properties -- including those specific to device management
             deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, null);
         }
 
         public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
         {
+            // Let the device management client process properties specific to device management
             this.deviceManagementClient.ProcessDeviceManagementProperties(desiredProperties);
 
             // Application developer can process all the top-level nodes here
-
             return Task.CompletedTask;
         }
 
