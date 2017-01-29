@@ -11,14 +11,22 @@ using Microsoft.Azure.Devices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Devices.Management;
+using System.Configuration;
 
 namespace DMDashboard
 {
     public partial class MainWindow : Window
     {
+        Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
         public MainWindow()
         {
             InitializeComponent();
+
+            var connectionString = this.config.AppSettings.Settings["ConnectionString"];
+            if (connectionString != null && !string.IsNullOrEmpty(connectionString.Value)) {
+                ConnectionStringBox.Text = connectionString.Value;
+            }
         }
 
         private void ToggleUIElementVisibility(UIElement element)
@@ -42,6 +50,9 @@ namespace DMDashboard
         {
             _registryManager = RegistryManager.CreateFromConnectionString(connectionString);
 
+            // Avoid duplicates in the list
+            DeviceListBox.Items.Clear();
+
             // Populate devices.
             IEnumerable<Device> deviceIds = await this._registryManager.GetDevicesAsync(100);
             foreach (var deviceId in deviceIds)
@@ -49,6 +60,9 @@ namespace DMDashboard
                 Debug.WriteLine("->" + deviceId.Id);
                 DeviceListBox.Items.Add(deviceId.Id);
             }
+
+            this.config.AppSettings.Settings["ConnectionString"].Value = connectionString;
+            this.config.Save(ConfigurationSaveMode.Modified);
         }
 
         private void OnListDevices(object sender, RoutedEventArgs e)
