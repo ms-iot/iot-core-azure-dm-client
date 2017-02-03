@@ -14,18 +14,15 @@
 #define NtpServerPropertyName "NtpServer"
 
 // Json strings
-/*
-#define LocalTime L"localTime"
-#define NtpServer L"ntpServer"
-#define TimeZone L"timeZone"
-#define TimeZoneBias L"bias"
-#define TimeZoneStandardName L"standardName"
-#define TimeZoneStandardDate L"standardDate"
-#define TimeZoneStandardBias L"standardBias"
-#define TimeZoneDaylightName L"daylightName"
-#define TimeZoneDaylightDate L"daylightDate"
-#define TimeZoneDaylightBias L"daylightBias"
-*/
+#define LocalTimeString L"LocalTime"
+#define NtpServerString L"NtpServer"
+#define TimeZoneBiasString L"TimeZoneBias"
+#define TimeZoneStandardNameString L"TimeZoneStandardName"
+#define TimeZoneStandardDateString L"TimeZoneStandardDate"
+#define TimeZoneStandardBiasString L"TimeZoneStandardBias"
+#define TimeZoneDaylightNameString L"TimeZoneDaylightName"
+#define TimeZoneDaylightDateString L"TimeZoneDaylightDate"
+#define TimeZoneDaylightBiasString L"TimeZoneDaylightBias"
 
 using namespace Windows::System;
 using namespace Platform;
@@ -93,27 +90,27 @@ void TimeCfg::GetTimeInfo(TimeInfo& timeInfo)
 void TimeCfg::SetTimeInfo(const std::wstring& jsonString)
 {
     TRACE(__FUNCTION__);
-    TRACEP(L" json = ", jsonString.c_str());
+
+    TRACEP(L" SetTimeInfo json = ", jsonString.c_str());
 
     /*
     {
-        "timeInfo":
-        {
-            "ntpServer": "pool.ntp.org",
-            "timeZone" :
-            {
-                "bias": 123,
-                "standardName": "(UTC-05:00) Eastern Time (US & Canada)",
-                "standardDate": "yyyy-mm-ddThh:mm:ss,day_of_week",
-                "standardBias": 33,
-                "daylightName": "(UTC-05:00) Eastern Time (US & Canada)",
-                "daylightDate": "yyyy-mm-ddThh:mm:ss,day_of_week",
-                "daylightBias": 33
-            }
-        }
+    "timeInfo": {
+        "Tag": 0,
+        "Status": 0,
+        "TimeZoneDaylightBias": -60,
+        "TimeZoneDaylightDate": "2016-03-02T02:00:00Z",
+        "TimeZoneDaylightName": "Pacific Daylight Time1",
+        "TimeZoneStandardBias": 0,
+        "TimeZoneStandardDate": "2016-11-01T02:00:00Z",
+        "TimeZoneStandardName": "Pacific Standard Time1",
+        "TimeZoneBias": 480,
+        "LocalTime": "0001-01-01T00:00:00Z",
+        "NtpServer": "time.windows.com"
+        },
     }
     */
-#if 0 // TODO
+
     JsonValue^ value;
     if (!JsonValue::TryParse(ref new String(jsonString.c_str()), &value) || (value == nullptr))
     {
@@ -130,53 +127,48 @@ void TimeCfg::SetTimeInfo(const std::wstring& jsonString)
     JsonReader::Flatten(L"", rootObject, properties);
 
     wstring ntpServer;
-    if (JsonReader::TryFindString(properties, NtpServer, ntpServer))
+    if (JsonReader::TryFindString(properties, NtpServerString, ntpServer))
     {
         SetNtpServer(ntpServer);
     }
 
-    map<wstring, IJsonValue^>::const_iterator it = properties.find(TimeZone);
-    if (it != properties.end())
+    // ToDo: should we set wDayOfWeek to a non-zero value?
+    TIME_ZONE_INFORMATION tzi = { 0 };
+
+    JsonReader::TryFindNumber(properties, TimeZoneBiasString, tzi.Bias);
+
+    wstring standardName;
+    if (JsonReader::TryFindString(properties, TimeZoneStandardNameString, standardName))
     {
-        // ToDo: should we set wDayOfWeek to a non-zero value?
+        wcsncpy_s(tzi.StandardName, standardName.c_str(), _TRUNCATE);
+    }
 
-        TIME_ZONE_INFORMATION tzi = { 0 };
+    JsonReader::TryFindDateTime(properties, TimeZoneStandardDateString, tzi.StandardDate);
 
-        JsonReader::TryFindNumber(properties, TimeZone L"." TimeZoneBias, tzi.Bias);
+    JsonReader::TryFindNumber(properties, TimeZoneStandardBiasString, tzi.StandardBias);
 
-        wstring standardName;
-        if (JsonReader::TryFindString(properties, TimeZone L"." TimeZoneStandardName, standardName))
-        {
-            wcsncpy_s(tzi.StandardName, standardName.c_str(), _TRUNCATE);
-        }
+    wstring daylightName;
+    if (JsonReader::TryFindString(properties, TimeZoneDaylightNameString, daylightName))
+    {
+        wcsncpy_s(tzi.DaylightName, daylightName.c_str(), _TRUNCATE);
+    }
 
-        JsonReader::TryFindDateTime(properties, TimeZone L"." TimeZoneStandardDate, tzi.StandardDate);
+    JsonReader::TryFindDateTime(properties, TimeZoneDaylightDateString, tzi.DaylightDate);
 
-        JsonReader::TryFindNumber(properties, TimeZone L"." TimeZoneStandardBias, tzi.StandardBias);
+    JsonReader::TryFindNumber(properties, TimeZoneDaylightBiasString, tzi.DaylightBias);
 
-        wstring daylightName;
-        if (JsonReader::TryFindString(properties, TimeZone L"." TimeZoneDaylightName, daylightName))
-        {
-            wcsncpy_s(tzi.DaylightName, daylightName.c_str(), _TRUNCATE);
-        }
-
-        JsonReader::TryFindDateTime(properties, TimeZone L"." TimeZoneDaylightDate, tzi.DaylightDate);
-
-        JsonReader::TryFindNumber(properties, TimeZone L"." TimeZoneDaylightBias, tzi.DaylightBias);
-
-        if (!SetTimeZoneInformation(&tzi))
-        {
-            throw DMExceptionWithErrorCode("Error: failed to set time zone information. Error Code = ", GetLastError());
-        }
+    if (!SetTimeZoneInformation(&tzi))
+    {
+        throw DMExceptionWithErrorCode("Error: failed to set time zone information. Error Code = ", GetLastError());
     }
 
     TRACE(L"Time settings have been applied successfully.");
-#endif
 }
 
 void TimeCfg::SetNtpServer(const std::wstring& ntpServer)
 {
     TRACE(__FUNCTION__);
+
     TRACEP(L"New NTP Server = ", ntpServer.c_str());
 
     wstring command = L"";

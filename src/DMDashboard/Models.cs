@@ -11,27 +11,19 @@ namespace Microsoft.Devices.Management
         public DateTime dailyRebootTime;
     }
 
-    public class TimeZoneInfo
-    {
-        public long bias;
-        public string standardName;
-        public DateTime standardDate;
-        public long standardBias;
-        public string daylightName;
-        public DateTime daylightDate;
-        public long daylightBias;
-    }
-
     public class TimeInfo
     {
-        public TimeInfo()
-        {
-            timeZone = new TimeZoneInfo();
-        }
-
-        public DateTime localTime;
-        public string ntpServer;
-        public TimeZoneInfo timeZone;
+        public int Tag;
+        public int Status;
+        public long TimeZoneDaylightBias;
+        public DateTime TimeZoneDaylightDate;
+        public string TimeZoneDaylightName;
+        public long TimeZoneStandardBias;
+        public DateTime TimeZoneStandardDate;
+        public string TimeZoneStandardName;
+        public long TimeZoneBias;
+        public DateTime LocalTime;
+        public string NtpServer;
     }
 
     public struct DeviceStatus
@@ -57,9 +49,4 @@ namespace Microsoft.Devices.Management
     {
         public DesiredProperties desired;
     }
-
-
-    //public const string ReportedTimeInfoProperty = "properties.reported.timeInfo";
-    //public const string DesiredTimeInfoProperty = "properties.desired.timeInfo";
-
 }
