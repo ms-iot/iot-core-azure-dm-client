@@ -107,7 +107,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppCfg.h" />
-    <ClInclude Include="AzureBlobCfg.h" />
     <ClInclude Include="CommandProcessor.h" />
     <ClInclude Include="CSPs\CertificateInfo.h" />
     <ClInclude Include="CSPs\CertificateStoreCSP.h" />
@@ -132,7 +131,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppCfg.cpp" />
-    <ClCompile Include="AzureBlobCfg.cpp" />
     <ClCompile Include="CommandProcessor.cpp" />
     <ClCompile Include="CSPs\CertificateInfo.cpp" />
     <ClCompile Include="CSPs\CertificateStoreCSP.cpp" />

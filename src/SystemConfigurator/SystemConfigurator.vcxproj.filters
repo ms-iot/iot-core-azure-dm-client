@@ -84,9 +84,6 @@
     <ClInclude Include="AppCfg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AzureBlobCfg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CSPs\CertificateStoreCSP.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
@@ -147,9 +144,6 @@
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="AppCfg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AzureBlobCfg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\CertificateStoreCSP.cpp">
