@@ -241,6 +241,26 @@ namespace DMDashboard
             DevStatusBatteryRuntime.Text = deviceStatus.batteryRuntime.ToString();
         }
 
+        private async void AppInstallAsync()
+        {
+            CancellationToken cancellationToken = new CancellationToken();
+
+            var cxnstr = "DefaultEndpointsProtocol=https;AccountName=bfjeldsdmtest;AccountKey=FrN7I5yB4ZPuOsLtou1BlncyQo0scqv2NCC2igsnfElBgnkfe1DW8JzwCMVbx54wqSp5dQLIMztNGNGow8S6Lg==;";
+            var pfn = "TwoMinuteUwp_8wekyb3d8bbwe";
+            // arm
+            var container = "appinstntall";
+            var appx = "TwoMinuteUwp.appx";
+            var dep = "Microsoft.VCLibs.arm.14.00.appx";
+            //// x86
+            //var container = "appinstall-x86";
+            //var appx = "TwoMinuteUwp.appx";
+            //var dep = "Microsoft.VCLibs.x86.14.00.appx";
+            var jsonFormat = "{{\"PackageFamilyName\":\"{0}\",\"Appx\":{{\"ConnectionString\":\"{1}\",\"ContainerName\":\"{2}\",\"BlobName\":\"{3}\"}},\"Dependencies\":[{{\"ConnectionString\":\"{1}\",\"ContainerName\":\"{2}\",\"BlobName\":\"{4}\"}}]}}";
+            var json = string.Format(jsonFormat, pfn, cxnstr, container, appx, dep);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.appInstall", json, new TimeSpan(0, 0, 30), cancellationToken);
+            // ToDo: it'd be nice to show the result in the UI.
+        }
+
         private async void RebootSystemAsync()
         {
             CancellationToken cancellationToken = new CancellationToken();

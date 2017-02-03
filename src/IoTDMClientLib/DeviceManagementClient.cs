@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.Data.Json;
+using Microsoft.Devices.Management.Message;
 
 namespace Microsoft.Devices.Management
 {
@@ -82,6 +84,7 @@ namespace Microsoft.Devices.Management
         {
             DeviceManagementClient deviceManagementClient = Create(deviceTwin, requestHandler, new SystemConfiguratorProxy());
             deviceTwin.SetMethodHandlerAsync("microsoft.management.immediateReboot", deviceManagementClient.ImmediateRebootMethodHandlerAsync);
+            deviceTwin.SetMethodHandlerAsync("microsoft.management.appInstall", deviceManagementClient.AppInstallMethodHandlerAsync);
             return deviceManagementClient;
         }
 
@@ -103,11 +106,28 @@ namespace Microsoft.Devices.Management
             return (response as Message.CheckForUpdatesResponse).UpdatesAvailable;
         }
 
+        public async Task TransferFileAsync(AzureFileTransferInfo transferInfo)
+        {
+            // use C++ service to copy file to/from App LocalData
+            var request = new AzureFileTransferRequest(transferInfo);
+            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
+            if (result.Status != ResponseStatus.Success)
+            {
+                throw new Exception();
+            }
+        }
+
         public async Task<IDictionary<string, Message.AppInfo>> ListAppsAsync()
         {
             var request = new Message.ListAppsRequest();
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
             return (result as Message.ListAppsResponse).Apps;
+        }
+
+        private Task<string> AppInstallMethodHandlerAsync(string jsonParam)
+        {
+            var appBlobInfo = JsonConvert.DeserializeObject<IoTDMClient.AppBlobInfo>(jsonParam);
+            return appBlobInfo.AppInstallAsync(this);
         }
 
         public async Task InstallAppAsync(Message.AppInstallInfo appInstallInfo)
@@ -172,70 +192,6 @@ namespace Microsoft.Devices.Management
             {
                 throw new Exception();
             }
-        }
-
-        public async Task TransferFileAsync(Message.AzureFileTransferInfo transferInfo)
-        {
-            //
-            // C++ Azure Blob SDK not supported for ARM, so use Service to copy file to/from
-            // App's LocalData and then use C# Azure Blob SDK to transfer
-            //
-            StorageFile appLocalDataFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync("tmp", CreationCollisionOption.GenerateUniqueName);
-            transferInfo.AppLocalDataPath = appLocalDataFile.Path;
-
-            if (!transferInfo.Upload)
-            {
-                // use Azure C# Storage SDK to download file into App LocalData
-                
-                // Retrieve storage account from connection string.
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(transferInfo.ConnectionString);
-
-                // Create the blob client.
-                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-                // Retrieve a reference to a container.
-                CloudBlobContainer container = blobClient.GetContainerReference(transferInfo.ContainerName);
-
-                // Retrieve reference to a named blob.
-                CloudBlockBlob blockBlob = container.GetBlockBlobReference(transferInfo.BlobName);
-
-                // Save blob contents to a file.
-                await blockBlob.DownloadToFileAsync(appLocalDataFile);
-            }
-
-            // use C++ service to copy file to/from App LocalData
-            var request = new Message.AzureFileTransferRequest(transferInfo);
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Status != Message.ResponseStatus.Success)
-            {
-                throw new Exception();
-            }
-
-            if (transferInfo.Upload)
-            {
-                // use Azure C# Storage SDK to upload file from App LocalData
-
-                // Retrieve storage account from connection string.
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(transferInfo.ConnectionString);
-
-                // Create the blob client.
-                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-                // Retrieve a reference to a container.
-                CloudBlobContainer container = blobClient.GetContainerReference(transferInfo.ContainerName);
-
-                // Create the container if it doesn't already exist.
-                await container.CreateIfNotExistsAsync();
-
-                // Retrieve reference to a blob named "photo1.jpg".
-                CloudBlockBlob blockBlob = container.GetBlockBlobReference(transferInfo.BlobName);
-
-                // Save blob contents to a file.
-                await blockBlob.UploadFromFileAsync(appLocalDataFile);
-            }
-
-            await appLocalDataFile.DeleteAsync();
-
         }
 
         private void ReportImmediateRebootStatus(bool rebootSuccessful)
