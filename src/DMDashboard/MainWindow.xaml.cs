@@ -11,21 +11,43 @@ using Microsoft.Azure.Devices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Devices.Management;
+using Microsoft.WindowsAzure.Storage;       // Namespace for CloudStorageAccount
+using Microsoft.WindowsAzure.Storage.Blob;  // Namespace for Blob storage types
 using System.Configuration;
 
 namespace DMDashboard
 {
     public partial class MainWindow : Window
     {
+        class BlobInfo
+        {
+            public string Name { get; set; }
+            public string Type { get; set; }
+            public string Uri { get; set; }
+
+            public BlobInfo(string name, string type, string uri)
+            {
+                this.Name = name;
+                this.Type = type;
+                this.Uri = uri;
+            }
+        }
+
         Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
         public MainWindow()
         {
             InitializeComponent();
 
-            var connectionString = this.config.AppSettings.Settings["ConnectionString"];
+            var connectionString = this.config.AppSettings.Settings["IotHubConnectionString"];
             if (connectionString != null && !string.IsNullOrEmpty(connectionString.Value)) {
                 ConnectionStringBox.Text = connectionString.Value;
+            }
+
+            connectionString = this.config.AppSettings.Settings["StorageConnectionString"];
+            if (connectionString != null && !string.IsNullOrEmpty(connectionString.Value))
+            {
+                StorageConnectionStringBox.Text = connectionString.Value;
             }
         }
 
@@ -82,17 +104,63 @@ namespace DMDashboard
             DeviceConnectButton.IsEnabled = true;
         }
 
+        private void OnListContainers(object sender, RoutedEventArgs e)
+        {
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(StorageConnectionStringBox.Text);
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+            ContainersList.Items.Clear();
+            foreach (var container in blobClient.ListContainers("", ContainerListingDetails.None, null, null))
+            {
+                ContainersList.Items.Add(container.Name);
+            }
+        }
+
+        private void OnListBlobs(object sender, RoutedEventArgs e)
+        {
+            if (ContainersList.SelectedIndex == -1)
+            {
+                return;
+            }
+
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(StorageConnectionStringBox.Text);
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobContainer container = blobClient.GetContainerReference((string)ContainersList.SelectedItem);
+
+            List<BlobInfo> blobInfoList = new List<BlobInfo>();
+            foreach (IListBlobItem item in container.ListBlobs(null, false))
+            {
+                if (item.GetType() == typeof(CloudBlockBlob))
+                {
+                    CloudBlockBlob blob = (CloudBlockBlob)item;
+                    blobInfoList.Add(new BlobInfo(blob.Name, "BlockBlob", blob.Uri.ToString()));
+                }
+                else if (item.GetType() == typeof(CloudPageBlob))
+                {
+                    CloudPageBlob pageBlob = (CloudPageBlob)item;
+                    blobInfoList.Add(new BlobInfo(pageBlob.Name, "PageBlob", pageBlob.Uri.ToString()));
+
+                }
+                else if (item.GetType() == typeof(CloudBlobDirectory))
+                {
+                    CloudBlobDirectory directoryBlob = (CloudBlobDirectory)item;
+                    blobInfoList.Add(new BlobInfo("<dir>", "BlobDirectory", directoryBlob.Uri.ToString()));
+                }
+            }
+            BlobsList.ItemsSource = blobInfoList;
+        }
+
         private void TimeInfoModelToUI(TimeInfo timeInfo)
         {
-            LocalTime.Text = timeInfo.localTime.ToString();
-            NtpServer.Text = timeInfo.ntpServer;
-            ReportedTimeZoneBias.Text = timeInfo.timeZone.bias.ToString();
-            ReportedTimeZoneStandardName.Text = timeInfo.timeZone.standardName;
-            ReportedTimeZoneStandardDate.Text = timeInfo.timeZone.standardDate.ToString();
-            ReportedTimeZoneStandardBias.Text = timeInfo.timeZone.standardBias.ToString();
-            ReportedTimeZoneDaylightName.Text = timeInfo.timeZone.daylightName;
-            ReportedTimeZoneDaylightDate.Text = timeInfo.timeZone.daylightDate.ToString();
-            ReportedTimeZoneDaylightBias.Text = timeInfo.timeZone.daylightBias.ToString();
+            LocalTime.Text = timeInfo.LocalTime.ToString();
+            NtpServer.Text = timeInfo.NtpServer;
+            ReportedTimeZoneBias.Text = timeInfo.TimeZoneBias.ToString();
+            ReportedTimeZoneStandardName.Text = timeInfo.TimeZoneStandardName;
+            ReportedTimeZoneStandardDate.Text = timeInfo.TimeZoneStandardDate.ToString();
+            ReportedTimeZoneStandardBias.Text = timeInfo.TimeZoneStandardBias.ToString();
+            ReportedTimeZoneDaylightName.Text = timeInfo.TimeZoneDaylightName;
+            ReportedTimeZoneDaylightDate.Text = timeInfo.TimeZoneDaylightDate.ToString();
+            ReportedTimeZoneDaylightBias.Text = timeInfo.TimeZoneDaylightBias.ToString();
         }
 
         private void RebootInfoModelToUI(RebootInfo rebootInfo)
@@ -203,15 +271,15 @@ namespace DMDashboard
             TimeInfo timeInfo = new TimeInfo();
 
             ComboBoxItem ntpServerItem = (ComboBoxItem)DesiredNtpServer.SelectedItem;
-            timeInfo.ntpServer = (string)ntpServerItem.Content;
+            timeInfo.NtpServer = (string)ntpServerItem.Content;
 
-            timeInfo.timeZone.bias = Int32.Parse(DesiredTimeZoneBias.Text);
-            timeInfo.timeZone.standardName = DesiredTimeZoneStandardName.Text;
-            timeInfo.timeZone.standardDate = DateTime.Parse(DesiredTimeZoneStandardDate.Text);
-            timeInfo.timeZone.standardBias = Int32.Parse(DesiredTimeZoneStandardBias.Text);
-            timeInfo.timeZone.daylightName = DesiredTimeZoneDaylightName.Text;
-            timeInfo.timeZone.daylightDate = DateTime.Parse(DesiredTimeZoneDaylightDate.Text);
-            timeInfo.timeZone.daylightBias = Int32.Parse(DesiredTimeZoneDaylightBias.Text);
+            timeInfo.TimeZoneBias = Int32.Parse(DesiredTimeZoneBias.Text);
+            timeInfo.TimeZoneStandardName = DesiredTimeZoneStandardName.Text;
+            timeInfo.TimeZoneStandardDate = DateTime.Parse(DesiredTimeZoneStandardDate.Text);
+            timeInfo.TimeZoneStandardBias = Int32.Parse(DesiredTimeZoneStandardBias.Text);
+            timeInfo.TimeZoneDaylightName = DesiredTimeZoneDaylightName.Text;
+            timeInfo.TimeZoneDaylightDate = DateTime.Parse(DesiredTimeZoneDaylightDate.Text);
+            timeInfo.TimeZoneDaylightBias = Int32.Parse(DesiredTimeZoneDaylightBias.Text);
 
             return timeInfo;
         }
