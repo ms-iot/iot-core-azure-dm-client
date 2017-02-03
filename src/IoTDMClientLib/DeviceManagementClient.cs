@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -70,8 +71,6 @@ namespace Microsoft.Devices.Management
             public long batteryRuntime;
         }
 
-        // Ultimately, DeviceManagementClient will take an abstraction over DeviceClient to allow it to 
-        // send reported properties. It will never receive using it
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             this._deviceTwin = deviceTwin;
@@ -82,7 +81,7 @@ namespace Microsoft.Devices.Management
         public static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
         {
             DeviceManagementClient deviceManagementClient = Create(deviceTwin, requestHandler, new SystemConfiguratorProxy());
-            deviceTwin.SetManagementClient(deviceManagementClient);
+            deviceTwin.SetMethodHandlerAsync("microsoft.management.immediateReboot", deviceManagementClient.ImmediateRebootMethodHandlerAsync);
             return deviceManagementClient;
         }
 
@@ -239,11 +238,45 @@ namespace Microsoft.Devices.Management
 
         }
 
-        public async Task RebootSystemAsync()
+        private void ReportImmediateRebootStatus(bool rebootSuccessful)
         {
-            if (await this._requestHandler.IsSystemRebootAllowed() == SystemRebootRequestResponse.StartNow)
+            Dictionary<string, object> collection = new Dictionary<string, object>();
+            collection["microsoft"] = new
             {
-                var request = new Message.RebootRequest();
+                management = new
+                {
+                    lastRebootAttempt = new
+                    {
+                        time = DateTime.Now,
+                        status = rebootSuccessful ? "success" : "failure"
+                    }
+                }
+            };
+
+            _deviceTwin.ReportProperties(collection);
+        }
+
+        private Task<string> ImmediateRebootMethodHandlerAsync(string jsonParam)
+        {
+            // Start the reboot operation asynchrnously, which may or may not succeed
+            var rebootOp = this.ImmediateRebootAsync();
+
+            // TODO: consult the active hours schedule to make sure reboot is allowed
+            var rebootAllowed = true;
+
+            var response = JsonConvert.SerializeObject(new { response = rebootAllowed ? "accepted" : "rejected" });
+
+            return Task.FromResult(response);
+        }
+
+        public async Task ImmediateRebootAsync()
+        {
+            bool rebootSuccessful = (await this._requestHandler.IsSystemRebootAllowed() == SystemRebootRequestResponse.Accept);
+            // Report status before actually initiating reboot, to avoid the race condition
+            ReportImmediateRebootStatus(rebootSuccessful);
+            if (rebootSuccessful)
+            {
+                var request = new Message.ImmediateRebootRequest();
                 await this._systemConfiguratorProxy.SendCommandAsync(request);
             }
         }
@@ -253,36 +286,30 @@ namespace Microsoft.Devices.Management
             throw new NotImplementedException();
         }
 
-        public TwinCollection HandleDesiredPropertiesChanged(TwinCollection desiredProperties)
+        public void ProcessDeviceManagementProperties(TwinCollection desiredProperties)
         {
-            TwinCollection nonDMProperties = new TwinCollection();
-
             foreach (KeyValuePair<string, object> dp in desiredProperties)
             {
-               string valueString = dp.Value.ToString();
-                if (dp.Key == "timeInfo")
+                if (dp.Key == "microsoft" && dp.Value is JObject)
                 {
-                    if (!String.IsNullOrEmpty(valueString))
+                    JToken managementNode;
+                    if ((dp.Value as JObject).TryGetValue("management", out managementNode))
                     {
-                        Debug.WriteLine(" timeInfo json = ", valueString);
-                        SetPropertyAsync(Message.DMMessageKind.SetTimeInfo, valueString);
+                        foreach (var managementProperty in managementNode.Children().OfType<JProperty>())
+                        {
+                            switch (managementProperty.Name)
+                            {
+                                case "scheduledReboot":
+                                    // TODO
+                                    break;
+                                default:
+                                    // Not supported
+                                    break;
+                            }
+                        }
                     }
                 }
-                else if (dp.Key == "rebootInfo")
-                {
-                    if (!String.IsNullOrEmpty(valueString))
-                    {
-                        Debug.WriteLine(" rebootInfo json = ", valueString);
-                        SetPropertyAsync(Message.DMMessageKind.SetRebootInfo, valueString);
-                    }
-                }
-                else
-                {
-                    nonDMProperties[dp.Key] = dp.Value;
-                }
-            }
-
-            return nonDMProperties;
+             }
         }
 
         public async Task<Message.TimeInfoResponse> GetTimeInfoAsync()

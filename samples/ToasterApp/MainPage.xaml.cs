@@ -12,9 +12,9 @@ namespace Toaster
 {
     public sealed partial class MainPage : Page
     {
-        DeviceManagementClient DMClient;
+        DeviceManagementClient deviceManagementClient;
 
-        private const string DeviceConnectionString = "...";
+        private readonly string DeviceConnectionString = ConnectionStringProvider.Value;
 
         public MainPage()
         {
@@ -22,47 +22,51 @@ namespace Toaster
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
             this.imageHot.Visibility = Visibility.Collapsed;
+
+            // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
+            // as well as device management
             DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, TransportType.Mqtt);
 
-            DMClient = DeviceManagementClient.Create(
-                new AzureIoTHubDeviceTwinProxy(deviceClient), 
-                new ToasterDeviceManagementRequestHandler(this));
+            // IDeviceTwin abstracts away communication with the back-end.
+            // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
+            IDeviceTwin deviceTwinProxy = new AzureIoTHubDeviceTwinProxy(deviceClient);
 
-            deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, this);
+            // IDeviceManagementRequestHandler handles device management-specific requests to the app,
+            // such as whether it is OK to perform a reboot at any givem moment, according the app business logic
+            // ToasterDeviceManagementRequestHandler is the Toaster app implementation of the interface
+            IDeviceManagementRequestHandler appRequestHandler = new ToasterDeviceManagementRequestHandler(this);
+
+            // Create the DeviceManagementClient, the main entry point into device management
+            this.deviceManagementClient = DeviceManagementClient.Create(deviceTwinProxy, appRequestHandler);
+
+            // Set the callback for desired properties update. The callback will be invoked
+            // for all desired properties -- including those specific to device management
+            deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, null);
         }
 
         public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
         {
-            TwinCollection nonDMProperties = DMClient.HandleDesiredPropertiesChanged(desiredProperties);
+            // Let the device management client process properties specific to device management
+            this.deviceManagementClient.ProcessDeviceManagementProperties(desiredProperties);
 
-            // Application developer can process all the top-level nodes (in nonDMProperties)
-            // that did not get filtered out by DM.
-
-            return null;
+            // Application developer can process all the top-level nodes here
+            return Task.CompletedTask;
         }
 
         // This method may get called on the DM callback thread - not on the UI thread.
         public async Task<bool> YesNo(string question)
         {
-            // ToDo: This needs a clean solution (ideally before Artur sees it :)).
-            bool answered = false;
-            bool yesAnswer = false;
+            var tcs = new TaskCompletionSource<bool>();
 
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
             {
                 UserDialog dlg = new UserDialog(question);
                 ContentDialogResult dialogResult = await dlg.ShowAsync();
-                yesAnswer = dlg.Result;
-                answered = true;
+                tcs.SetResult(dlg.Result);
             });
 
-            while (!answered)
-            {
-                Debug.WriteLine("sleeping for 1 second...");
-                System.Threading.SpinWait.SpinUntil(() => false, 1000);
-            }
-
-            return yesAnswer;
+            bool yesNo = await tcs.Task;
+            return yesNo;
         }
 
         private void OnStartToasting(object sender, RoutedEventArgs e)
@@ -85,7 +89,7 @@ namespace Toaster
 
         private async void OnCheckForUpdates(object sender, RoutedEventArgs e)
         {
-            bool updatesAvailable = await DMClient.CheckForUpdatesAsync();
+            bool updatesAvailable = await deviceManagementClient.CheckForUpdatesAsync();
             if (updatesAvailable)
             {
                 System.Diagnostics.Debug.WriteLine("updates available");
@@ -100,14 +104,14 @@ namespace Toaster
             bool success = true;
             try
             {
-                await DMClient.RebootSystemAsync();
+                await deviceManagementClient.ImmediateRebootAsync();
             }
             catch(Exception)
             {
                 success = false;
             }
 
-            StatusText.Text = success?  "Succeeded!" : "Failed!";
+            StatusText.Text = success?  "Operation completed" : "Operation  failed";
         }
 
         private void OnSystemRestart(object sender, RoutedEventArgs e)
@@ -120,7 +124,7 @@ namespace Toaster
             bool success = true;
             try
             {
-                await DMClient.DoFactoryResetAsync();
+                await deviceManagementClient.DoFactoryResetAsync();
             }
             catch (Exception)
             {
@@ -132,8 +136,7 @@ namespace Toaster
 
         private void OnFactoryReset(object sender, RoutedEventArgs e)
         {
-            RestartSystem();
+            FactoryReset();
         }
-
     }
 }

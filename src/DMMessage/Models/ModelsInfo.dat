@@ -3,7 +3,9 @@
 // MODEL_REQDEF ==> definition for XXX::Tag::get() will be created for Request class only
 // MODEL_NODEF  ==> definition for XXX::Tag::get() will be not be created for any class
 //
-
+//            |----------------------|---------|-----------------------------------|---------------------|
+//            | Tag Name             |Tag Value| Request Type Name                 | Response Type Name  |
+//            |----------------------|---------|-----------------------------------|---------------------|
 MODEL_REQDEF(   FactoryReset,               1,  FactoryResetRequest,                StatusCodeResponse )
 MODEL_ALLDEF(   CheckUpdates,               2,  CheckForUpdatesRequest,             CheckForUpdatesResponse )
 MODEL_ALLDEF(   ListApps,                   3,  ListAppsRequest,                    ListAppsResponse )
@@ -15,7 +17,7 @@ MODEL_REQDEF(   AddStartupApp,              8,  AddStartupAppRequest,           
 MODEL_REQDEF(   RemoveStartupApp,           9,  RemoveStartupAppRequest,            StatusCodeResponse )
 MODEL_NODEF (   StartApp,                   10, AppLifecycleRequest,                StatusCodeResponse )
 MODEL_NODEF (   StopApp,                    11, AppLifecycleRequest,                StatusCodeResponse )
-MODEL_REQDEF(   RebootSystem,               15, RebootRequest,                      StatusCodeResponse )
+MODEL_REQDEF(   ImmediateReboot,            15, ImmediateRebootRequest,             StatusCodeResponse )
 MODEL_REQDEF(   SetRebootInfo,              16, SetRebootInfoRequest,               StatusCodeResponse )
 MODEL_REQDEF(   GetRebootInfo,              17, GetRebootInfoRequest,               StatusCodeResponse )
 MODEL_REQDEF(   TransferFile,               20, AzureFileTransferRequest,           StatusCodeResponse )

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
@@ -6,11 +8,6 @@ namespace Microsoft.Devices.Management
     {
         public OnPremDeviceTwinProxy(/* something */)
         {
-        }
-
-        void IDeviceTwin.SetManagementClient(DeviceManagementClient deviceManagementClient)
-        {
-            // Set a pointer to the DeviceManagementClient for callback or other scenario.
         }
 
         void IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
@@ -21,6 +18,11 @@ namespace Microsoft.Devices.Management
         void IDeviceTwin.RefreshConnection()
         {
             // Reconnect if needed
+        }
+
+        void IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)
+        {
+            throw new NotImplementedException();
         }
     }
 }

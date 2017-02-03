@@ -8,8 +8,8 @@ namespace Microsoft.Devices.Management
 {
     public enum SystemRebootRequestResponse
     {
-        StartNow,
-        AskAgainLater
+        Accept,
+        Reject
     }
 
     public class ApplicationInfo

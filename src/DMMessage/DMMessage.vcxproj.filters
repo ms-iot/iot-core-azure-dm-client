@@ -57,4 +57,7 @@
     </ClInclude>
     <ClInclude Include="DMMessageSerialization.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Models\ModelsInfo.dat" />
+  </ItemGroup>
 </Project>

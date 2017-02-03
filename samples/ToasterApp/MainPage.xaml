@@ -38,8 +38,8 @@
                 </StackPanel>
             </Grid>
             <StackPanel Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Vertical">
-                <Button Width="150" Margin="3" Content="Reset" Click="OnFactoryReset" />
-                <Button Width="150" Margin="3" Content="Restart" Click="OnSystemRestart"/>
+                <Button Width="150" Margin="3" Content="Reboot" Click="OnSystemRestart"/>
+                <Button Width="150" Margin="3" Content="Factory Reset" Click="OnFactoryReset" />
                 <Button Width="150" Margin="3" Content="Check for Updates" Click="OnCheckForUpdates"/>
 
                 <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
