@@ -27,6 +27,14 @@ namespace IoTDMClient
 
             var file = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(BlobName, CreationCollisionOption.ReplaceExisting).AsTask();
             var path = await AzureBlobFileTransfer.DownloadFile(info, file);
+
+            //
+            // TODO: need to design a way to clean these temp files up
+            //
+            //    + we could add an adjacent *.cleanup file that systemconfigurtor looks for
+            //    + we could copy these files to a temp folder that systemconfigurator cleans periodically
+            //
+
             return path;
         }
     }
