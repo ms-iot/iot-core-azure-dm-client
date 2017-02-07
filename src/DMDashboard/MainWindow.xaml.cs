@@ -33,18 +33,21 @@ namespace DMDashboard
             }
         }
 
+        static string IotHubConnectionString = "IotHubConnectionString";
+        static string StorageConnectionString = "StorageConnectionString";
+
         Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
         public MainWindow()
         {
             InitializeComponent();
 
-            var connectionString = this.config.AppSettings.Settings["IotHubConnectionString"];
+            var connectionString = this.config.AppSettings.Settings[IotHubConnectionString];
             if (connectionString != null && !string.IsNullOrEmpty(connectionString.Value)) {
                 ConnectionStringBox.Text = connectionString.Value;
             }
 
-            connectionString = this.config.AppSettings.Settings["StorageConnectionString"];
+            connectionString = this.config.AppSettings.Settings[StorageConnectionString];
             if (connectionString != null && !string.IsNullOrEmpty(connectionString.Value))
             {
                 StorageConnectionStringBox.Text = connectionString.Value;
@@ -83,7 +86,7 @@ namespace DMDashboard
                 DeviceListBox.Items.Add(deviceId.Id);
             }
 
-            this.config.AppSettings.Settings["ConnectionString"].Value = connectionString;
+            this.config.AppSettings.Settings[IotHubConnectionString].Value = connectionString;
             this.config.Save(ConfigurationSaveMode.Modified);
         }
 
@@ -104,9 +107,9 @@ namespace DMDashboard
             DeviceConnectButton.IsEnabled = true;
         }
 
-        private void OnListContainers(object sender, RoutedEventArgs e)
+        private void ListContainers(string connectionString)
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(StorageConnectionStringBox.Text);
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
             ContainersList.Items.Clear();
@@ -114,6 +117,14 @@ namespace DMDashboard
             {
                 ContainersList.Items.Add(container.Name);
             }
+
+            this.config.AppSettings.Settings[StorageConnectionString].Value = connectionString;
+            this.config.Save(ConfigurationSaveMode.Modified);
+        }
+
+        private void OnListContainers(object sender, RoutedEventArgs e)
+        {
+            ListContainers(StorageConnectionStringBox.Text);
         }
 
         private void OnListBlobs(object sender, RoutedEventArgs e)
