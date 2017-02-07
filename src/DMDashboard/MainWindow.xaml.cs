@@ -56,15 +56,6 @@ namespace DMDashboard
             {
                 StorageConnectionStringBox.Text = connectionString.Value;
             }
-
-            {
-                // BFJELDS test params
-                ConnectionStringBox.Text = @"HostName=bcfTestHub.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=9kn5aaZFqMP2iCT6hWLcOyow2Y0VOuF17TV//guwAfU=";
-                AppConnectionString.Text = @"DefaultEndpointsProtocol=https;AccountName=bfjeldsdmtest;AccountKey=FrN7I5yB4ZPuOsLtou1BlncyQo0scqv2NCC2igsnfElBgnkfe1DW8JzwCMVbx54wqSp5dQLIMztNGNGow8S6Lg==;";
-                AppContainerName.Text = @"newbcfcontainer";
-                AppAppxPath.Text = @"\\winbuilds\release\RS_PRERELEASE\15031.1000.170204-1610\woafre\bin\ut_embeddedmodesvc\TwoMinuteUwp.appx";
-                AppPackageFamilyName.Text = @"TwoMinuteUwp_8wekyb3d8bbwe";
-            }
         }
 
         private void ToggleUIElementVisibility(UIElement element)
@@ -370,7 +361,7 @@ namespace DMDashboard
         private string Browse()
         {
             var fileDialog = new OpenFileDialog();
-            fileDialog.Filter = "appx files (*.appx | *.appxbundle)";
+            fileDialog.Filter = "appx files (*.appx)|*.appx|appxbundle files (*.appxbundle)|*.appxbundle";
             fileDialog.RestoreDirectory = true;
 
             var result = fileDialog.ShowDialog();
@@ -482,7 +473,7 @@ namespace DMDashboard
             var jsonFormat = "{{\"PackageFamilyName\":\"{0}\",\"Appx\":{1},\"Dependencies\":[{2}]}}";
             var json = string.Format(jsonFormat, pfn, appJson, depsJson);
             var jo = JsonConvert.DeserializeObject(json);
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.appInstall", json, new TimeSpan(0, 0, 30), cancellationToken);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.appInstall", json, new TimeSpan(0, 2, 00), cancellationToken);
         }
     }
 }

@@ -18,6 +18,7 @@ namespace IoTDMClient
         {
             var cleanup = new List<string>();
             var result = "install failed";
+            var repeatCount = 5;
             try
             {
                 var appInstallInfo = new AppInstallInfo();
@@ -40,14 +41,29 @@ namespace IoTDMClient
             }
             catch (Exception e)
             {
-
+                result += (": " + e.Message);
             }
             finally
             {
-                foreach (var file in cleanup)
+                for (int i= 0; i < cleanup.Count; i++)
                 {
-                    var deleteFile = await ApplicationData.Current.TemporaryFolder.GetFileAsync(file);
-                    await deleteFile.DeleteAsync();
+                    try
+                    {
+                        var file = cleanup[i];
+                        var deleteFile = await ApplicationData.Current.TemporaryFolder.GetFileAsync(file);
+                        await deleteFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                    }
+                    catch (Exception e)
+                    {
+                        // sharing violation indicating that install is not done with appx file yet
+                        if (e.HResult == -2147024864 && --repeatCount > 0)
+                        {
+                            // wait for install to finish with file and try again ... limit the retries to repeatCount
+                            new System.Threading.ManualResetEvent(false).WaitOne(1000);
+                            i--;
+                            continue;
+                        }
+                    }
                 }
             }
 
