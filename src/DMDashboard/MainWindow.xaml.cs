@@ -16,8 +16,6 @@ using Microsoft.WindowsAzure.Storage.Blob;  // Namespace for Blob storage types
 using System.Configuration;
 using Microsoft.Win32;
 using System.IO;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace DMDashboard
 {
