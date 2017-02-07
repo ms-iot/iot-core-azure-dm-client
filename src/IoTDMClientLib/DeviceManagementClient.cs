@@ -1,15 +1,11 @@
 ﻿using Microsoft.Azure.Devices.Shared;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
-using Windows.Storage;
-using Windows.Data.Json;
 
 namespace Microsoft.Devices.Management
 {

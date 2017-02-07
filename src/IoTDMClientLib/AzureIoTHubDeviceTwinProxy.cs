@@ -1,11 +1,9 @@
 ﻿using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Newtonsoft.Json;
-using Microsoft.Devices.Management.Message;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.Data.Json;
 using System;
 
 namespace Microsoft.Devices.Management
@@ -43,6 +41,5 @@ namespace Microsoft.Devices.Management
         {
             // Recreate deviceClient using a new SAS token
         }
-
     }
 }

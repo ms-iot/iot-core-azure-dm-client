@@ -71,8 +71,4 @@ namespace IoTDMClient
             return response;
         }
     }
-
-    public class AppxManagement
-    {
-    }
 }
