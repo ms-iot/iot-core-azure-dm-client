@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Data.Json;
-using Microsoft.Devices.Management.Message;
 
 namespace Microsoft.Devices.Management
 {
@@ -106,12 +105,12 @@ namespace Microsoft.Devices.Management
             return (response as Message.CheckForUpdatesResponse).UpdatesAvailable;
         }
 
-        public async Task TransferFileAsync(AzureFileTransferInfo transferInfo)
+        internal async Task TransferFileAsync(Message.AzureFileTransferInfo transferInfo)
         {
             // use C++ service to copy file to/from App LocalData
-            var request = new AzureFileTransferRequest(transferInfo);
+            var request = new Message.AzureFileTransferRequest(transferInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Status != ResponseStatus.Success)
+            if (result.Status != Message.ResponseStatus.Success)
             {
                 throw new Exception();
             }

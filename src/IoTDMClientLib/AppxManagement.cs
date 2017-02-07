@@ -8,7 +8,7 @@ using Windows.Storage;
 
 namespace IoTDMClient
 {
-    public class AppBlobInfo
+    internal class AppBlobInfo
     {
         public string PackageFamilyName { get; set; }
         public BlobInfo Appx { get; set; }
@@ -22,22 +22,16 @@ namespace IoTDMClient
             {
                 var appInstallInfo = new AppInstallInfo();
 
-                // Dependencies
+                foreach (var dependencyBlobInfo in Dependencies)
                 {
-                    foreach (var dependencyBlobInfo in Dependencies)
-                    {
-                        var path = await dependencyBlobInfo.DownloadToTemp();
-                        appInstallInfo.Dependencies.Add(path);
-                        cleanup.Add(dependencyBlobInfo.BlobName);
-                    }
+                    var depPath = await dependencyBlobInfo.DownloadToTemp();
+                    appInstallInfo.Dependencies.Add(depPath);
+                    cleanup.Add(dependencyBlobInfo.BlobName);
                 }
 
-                // Appx
-                {
-                    var path = await Appx.DownloadToTemp();
-                    appInstallInfo.AppxPath = path;
-                    cleanup.Add(Appx.BlobName);
-                }
+                var path = await Appx.DownloadToTemp();
+                appInstallInfo.AppxPath = path;
+                cleanup.Add(Appx.BlobName);
 
                 appInstallInfo.PackageFamilyName = PackageFamilyName;
                 await client.InstallAppAsync(appInstallInfo);
@@ -52,11 +46,8 @@ namespace IoTDMClient
             {
                 foreach (var file in cleanup)
                 {
-                    var fileTask = ApplicationData.Current.TemporaryFolder.GetFileAsync(file).AsTask();
-                    fileTask.Wait();
-                    StorageFile fDelete = fileTask.Result;
-                    var deleteTask = fDelete.DeleteAsync().AsTask();
-                    deleteTask.Wait();
+                    var deleteFile = await ApplicationData.Current.TemporaryFolder.GetFileAsync(file);
+                    await deleteFile.DeleteAsync();
                 }
             }
 

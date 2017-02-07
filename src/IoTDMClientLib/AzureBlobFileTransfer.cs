@@ -9,7 +9,7 @@ using Windows.Storage;
 
 namespace IoTDMClient
 {
-    public class BlobInfo
+    internal class BlobInfo
     {
         public string ConnectionString { get; set; }
         public string ContainerName { get; set; }
@@ -31,7 +31,7 @@ namespace IoTDMClient
         }
     }
 
-    public class AzureBlobFileTransfer
+    internal static class AzureBlobFileTransfer
     {
         private static async Task<CloudBlockBlob> GetBlob(AzureFileTransferInfo transferInfo, bool ensureContainerExists)
         {
