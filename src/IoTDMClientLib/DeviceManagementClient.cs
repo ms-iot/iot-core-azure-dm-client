@@ -112,20 +112,20 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public async Task<IDictionary<string, Message.AppInfo>> ListAppsAsync()
+        internal async Task<IDictionary<string, Message.AppInfo>> ListAppsAsync()
         {
             var request = new Message.ListAppsRequest();
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
             return (result as Message.ListAppsResponse).Apps;
         }
 
-        private Task<string> AppInstallMethodHandlerAsync(string jsonParam)
+        internal Task<string> AppInstallMethodHandlerAsync(string jsonParam)
         {
             var appBlobInfo = JsonConvert.DeserializeObject<IoTDMClient.AppBlobInfo>(jsonParam);
             return appBlobInfo.AppInstallAsync(this);
         }
 
-        public async Task InstallAppAsync(Message.AppInstallInfo appInstallInfo)
+        internal async Task InstallAppAsync(Message.AppInstallInfo appInstallInfo)
         {
             var request = new Message.AppInstallRequest(appInstallInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
@@ -135,7 +135,7 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public async Task UninstallAppAsync(Message.AppUninstallInfo appUninstallInfo)
+        internal async Task UninstallAppAsync(Message.AppUninstallInfo appUninstallInfo)
         {
             var request = new Message.AppUninstallRequest(appUninstallInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
@@ -145,21 +145,21 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public async Task<string> GetStartupForegroundAppAsync()
+        internal async Task<string> GetStartupForegroundAppAsync()
         {
             var request = new Message.GetStartupForegroundAppRequest();
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
             return (result as Message.GetStartupForegroundAppResponse).StartupForegroundApp;
         }
 
-        public async Task<IList<string>> ListStartupBackgroundAppsAsync()
+        internal async Task<IList<string>> ListStartupBackgroundAppsAsync()
         {
             var request = new Message.ListStartupBackgroundAppsRequest();
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
             return (result as Message.ListStartupBackgroundAppsResponse).StartupBackgroundApps;
         }
 
-        public async Task AddStartupAppAsync(Message.StartupAppInfo startupAppInfo)
+        internal async Task AddStartupAppAsync(Message.StartupAppInfo startupAppInfo)
         {
             var request = new Message.AddStartupAppRequest(startupAppInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
@@ -169,7 +169,7 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public async Task RemoveStartupAppAsync(Message.StartupAppInfo startupAppInfo)
+        internal async Task RemoveStartupAppAsync(Message.StartupAppInfo startupAppInfo)
         {
             var request = new Message.RemoveStartupAppRequest(startupAppInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
@@ -179,7 +179,7 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public async Task AppLifecycleAsync(Message.AppLifecycleInfo appInfo)
+        internal async Task AppLifecycleAsync(Message.AppLifecycleInfo appInfo)
         {
             var request = new Message.AppLifecycleRequest(appInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
