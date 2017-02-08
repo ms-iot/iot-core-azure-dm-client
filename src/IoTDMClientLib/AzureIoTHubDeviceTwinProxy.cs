@@ -28,9 +28,9 @@ namespace Microsoft.Devices.Management
             this.deviceClient.UpdateReportedPropertiesAsync(azureCollection);
         }
 
-        void IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)
+        Task IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)
         {
-            this.deviceClient.SetMethodHandler(methodName, async (MethodRequest methodRequest, object userContext) =>
+            return this.deviceClient.SetMethodHandlerAsync(methodName, async (MethodRequest methodRequest, object userContext) =>
             {
                 var response = await methodHandler(methodRequest.DataAsJson);
                 return new MethodResponse(Encoding.UTF8.GetBytes(response), 0);

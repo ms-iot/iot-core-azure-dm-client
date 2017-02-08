@@ -23,6 +23,13 @@ namespace Toaster
             this.buttonStop.IsEnabled = false;
             this.imageHot.Visibility = Visibility.Collapsed;
 
+#pragma warning disable 4014
+            this.InitializeDeviceClientAsync();
+#pragma warning restore 4014
+
+        }
+        private async Task InitializeDeviceClientAsync()
+        {
             // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
             // as well as device management
             DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, TransportType.Mqtt);
@@ -37,11 +44,11 @@ namespace Toaster
             IDeviceManagementRequestHandler appRequestHandler = new ToasterDeviceManagementRequestHandler(this);
 
             // Create the DeviceManagementClient, the main entry point into device management
-            this.deviceManagementClient = DeviceManagementClient.Create(deviceTwinProxy, appRequestHandler);
+            this.deviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwinProxy, appRequestHandler);
 
             // Set the callback for desired properties update. The callback will be invoked
             // for all desired properties -- including those specific to device management
-            deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, null);
+            await deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, null);
         }
 
         public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
