@@ -14,6 +14,8 @@ using Microsoft.Devices.Management;
 using Microsoft.WindowsAzure.Storage;       // Namespace for CloudStorageAccount
 using Microsoft.WindowsAzure.Storage.Blob;  // Namespace for Blob storage types
 using System.Configuration;
+using Microsoft.Win32;
+using System.IO;
 
 namespace DMDashboard
 {
@@ -347,5 +349,129 @@ namespace DMDashboard
 
         private RegistryManager _registryManager;
         private DeviceTwinAndMethod _deviceTwin;
+
+
+        private void OnExpandAppInstall(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(AppInstallGrid);
+        }
+
+        private string Browse()
+        {
+            var fileDialog = new OpenFileDialog();
+            fileDialog.Filter = "appx files (*.appx)|*.appx|appxbundle files (*.appxbundle)|*.appxbundle";
+            fileDialog.RestoreDirectory = true;
+
+            var result = fileDialog.ShowDialog();
+            if (result != null && result.Value)
+            {
+                return fileDialog.FileName;
+            }
+
+            return null;
+        }
+
+        private void OnAppxBrowse(object sender, RoutedEventArgs e)
+        {
+            var appxPath = Browse();
+            if (appxPath != null)
+            {
+                AppAppxPath.Text = appxPath;
+            }
+        }
+
+        private void OnDep1AppxBrowse(object sender, RoutedEventArgs e)
+        {
+            var appxPath = Browse();
+            if (appxPath != null)
+            {
+                AppDep1AppxPath.Text = appxPath;
+            }
+        }
+
+        private void OnDep2AppxBrowse(object sender, RoutedEventArgs e)
+        {
+            var appxPath = Browse();
+            if (appxPath != null)
+            {
+                AppDep2AppxPath.Text = appxPath;
+            }
+        }
+
+        private void AppInstallButtonActivation(object sender, TextChangedEventArgs e)
+        {
+            bool isAppxPathProvided = (!string.IsNullOrEmpty(AppAppxPath.Text) && File.Exists(AppAppxPath.Text));
+            bool isConnectionStringProvided = (!string.IsNullOrEmpty(AppConnectionString.Text));
+            bool isContainerProvided = (!string.IsNullOrEmpty(AppContainerName.Text));
+            AppInstallButton.IsEnabled = (isAppxPathProvided && isConnectionStringProvided && isContainerProvided);
+        }
+
+        private async void AppInstallAsync(object sender, RoutedEventArgs e)
+        {
+            var cxnstr = AppConnectionString.Text;
+            var container = AppContainerName.Text;
+            var pfn = AppPackageFamilyName.Text;
+            var appx = AppAppxPath.Text;
+            var dep1 = AppDep1AppxPath.Text;
+            var dep2 = AppDep2AppxPath.Text;
+
+            // copy local file to Azure
+            {
+                // Retrieve storage account from connection string.
+                var storageAccount = CloudStorageAccount.Parse(cxnstr);
+
+                // Create the blob client.
+                var blobClient = storageAccount.CreateCloudBlobClient();
+
+                // Retrieve a reference to a container.
+                var containerRef = blobClient.GetContainerReference(container);
+
+                // Create the container if it doesn't already exist.
+                await containerRef.CreateIfNotExistsAsync();
+
+                // Appx
+                {
+                    var blob = containerRef.GetBlockBlobReference(new FileInfo(appx).Name);
+                    await blob.UploadFromFileAsync(appx);
+                }
+
+                // Dep1
+                if (!string.IsNullOrEmpty(dep1))
+                {
+                    var blob = containerRef.GetBlockBlobReference(new FileInfo(dep1).Name);
+                    await blob.UploadFromFileAsync(dep1);
+                }
+
+                // Dep2
+                if (!string.IsNullOrEmpty(dep2))
+                {
+                    var blob = containerRef.GetBlockBlobReference(new FileInfo(dep2).Name);
+                    await blob.UploadFromFileAsync(dep2);
+                }
+            }
+
+
+            // Invoke DM App Install
+            CancellationToken cancellationToken = new CancellationToken();
+
+            var blobFormat = "{{\"ConnectionString\":\"{0}\",\"ContainerName\":\"{1}\",\"BlobName\":\"{2}\"}}";
+            var appJson = string.Format(blobFormat, cxnstr, container, new FileInfo(appx).Name);
+            var depsJson = "";
+            if (!string.IsNullOrEmpty(dep1))
+            {
+                depsJson += string.Format(blobFormat, cxnstr, container, new FileInfo(dep1).Name);
+
+                if (!string.IsNullOrEmpty(dep2))
+                {
+                    depsJson += ", ";
+                    depsJson += string.Format(blobFormat, cxnstr, container, new FileInfo(dep2).Name);
+                }
+            }
+
+            var jsonFormat = "{{\"PackageFamilyName\":\"{0}\",\"Appx\":{1},\"Dependencies\":[{2}]}}";
+            var json = string.Format(jsonFormat, pfn, appJson, depsJson);
+            var jo = JsonConvert.DeserializeObject(json);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.appInstall", json, new TimeSpan(0, 2, 00), cancellationToken);
+        }
     }
 }
