@@ -121,8 +121,22 @@ namespace Microsoft.Devices.Management
 
         internal Task<string> AppInstallMethodHandlerAsync(string jsonParam)
         {
-            var appBlobInfo = JsonConvert.DeserializeObject<IoTDMClient.AppBlobInfo>(jsonParam);
-            return appBlobInfo.AppInstallAsync(this);
+            try
+            {
+                // method should return immediately .. only validate the json param
+                var appBlobInfo = JsonConvert.DeserializeObject<IoTDMClient.AppBlobInfo>(jsonParam);
+                // task should run without blocking so resonse can be generated right away
+                var appInstallTask = appBlobInfo.AppInstallAsync(this);
+                // response with success
+                var response = JsonConvert.SerializeObject(new { response = "accepted" });
+                return Task.FromResult(response);
+            }
+            catch (Exception e)
+            {
+                // response with failure
+                var response = JsonConvert.SerializeObject(new { response = "rejected", reason = e.Message });
+                return Task.FromResult(response);
+            }
         }
 
         internal async Task InstallAppAsync(Message.AppInstallInfo appInstallInfo)

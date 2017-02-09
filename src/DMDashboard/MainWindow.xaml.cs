@@ -471,7 +471,7 @@ namespace DMDashboard
             var jsonFormat = "{{\"PackageFamilyName\":\"{0}\",\"Appx\":{1},\"Dependencies\":[{2}]}}";
             var json = string.Format(jsonFormat, pfn, appJson, depsJson);
             var jo = JsonConvert.DeserializeObject(json);
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.appInstall", json, new TimeSpan(0, 2, 00), cancellationToken);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.appInstall", json, new TimeSpan(0, 0, 30), cancellationToken);
         }
     }
 }

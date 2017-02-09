@@ -27,11 +27,16 @@ Input payload contains Json according to this format:
 The device responds immediately with the following JSON payload:
 
 <pre>
-"response" : value (<i>See below</i>)
+{
+    "response" : value (<i>See below</i>)
+    "reason" : value (<i>See below</i>)
+}
 </pre>
 
 
 Possible `"response"` values are: 
-- `"install succeeded"` - The app (and associated dependencies) successfully installed.
-- `"install failed"` - The app did not install successfully.
+- `"accepted"` - The parameters sent were parsed and the App Install request was accepted.
+- `"rejected"` - The parameters sent failed to parsed and the App Install request was rejected.  See the reason field for explanation.
+
+`"reason"` is used to communicate why an App Install request was rejected if possible.
 
