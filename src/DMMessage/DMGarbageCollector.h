@@ -4,7 +4,7 @@ using namespace Platform;
 
 namespace Microsoft { namespace Devices { namespace Management { namespace Message
 {
-    public ref class DMGarbageCollection sealed {
+    public ref class DMGarbageCollector sealed {
     public:
         static property String^ TempFolder { String^ get(); }
     };

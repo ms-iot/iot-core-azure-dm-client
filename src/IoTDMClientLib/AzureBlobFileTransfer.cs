@@ -1,5 +1,4 @@
-﻿using Microsoft.Azure.Devices.Client;
-using Microsoft.Devices.Management;
+﻿using Microsoft.Devices.Management;
 using Microsoft.Devices.Management.Message;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -17,7 +16,7 @@ namespace IoTDMClient
 
         public async Task<string> DownloadToTemp(DeviceManagementClient client)
         {
-            var path = DMGarbageCollection.TempFolder + BlobName;
+            var path = DMGarbageCollector.TempFolder + BlobName;
             var info = new AzureFileTransferInfo()
             {
                 ConnectionString = ConnectionString,

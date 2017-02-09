@@ -5,7 +5,7 @@
 #include <sstream>
 #include "Utils.h"
 
-#include "..\DMMessage\GarbageCollectedTempFolder.h"
+#include "..\DMMessage\DMGarbageCollectorTempFolder.h"
 #define TRACE_LOGSROOT SC_CLEANUP_FOLDER
 
 #define TRACE_MAX_LEN 512

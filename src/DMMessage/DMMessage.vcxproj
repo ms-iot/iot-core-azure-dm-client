@@ -86,7 +86,7 @@
     <ClInclude Include="DMMessageException.h" />
     <ClInclude Include="DMMessageKind.h" />
     <ClInclude Include="DMMessageSerialization.h" />
-    <ClInclude Include="GarbageCollection.h" />
+    <ClInclude Include="DMGarbageCollector.h" />
     <ClInclude Include="IRequestIResponse.h" />
     <ClInclude Include="Models\AllModels.h" />
     <ClInclude Include="Models\AppInstall.h" />
