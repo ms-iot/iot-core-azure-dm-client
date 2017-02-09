@@ -35,7 +35,7 @@ private:
 };
 
 #ifdef _DEBUG
-Logger __declspec(selectany) gLogger(false /*console output*/, TRACE_LOGSROOT);
+Logger __declspec(selectany) gLogger(true /*console output*/, TRACE_LOGSROOT);
 
 #define TRACE(msg) gLogger.Log(msg)
 #define TRACEP(format, param) gLogger.Log(format, param)
