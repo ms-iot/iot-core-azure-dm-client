@@ -5,33 +5,33 @@ The **Install App** operation is initiated by the device receiving the `microsof
 ## Input Payload 
 Input payload contains Json according to this format:
 
-<pre>
+```
 {
-  "PackageFamilyName": <the App PackageFamilyName>,
+  "PackageFamilyName" : "MyCoolApp_1abcde2f3ghij",
   "Appx": {
-    "ConnectionString": <connection string to Azure blob>,
-    "ContainerName": <container name for Azure blob>,
-    "BlobName": <Azure blob name for App>
+    "ConnectionString" : "DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=blah",
+    "ContainerName" : "MyAppContainer",
+    "BlobName" : "MyCoolApp.appx"
   },
   "Dependencies": [
     {
-      "ConnectionString": <connection string to Azure blob>,
-      "ContainerName": <container name for Azure blob>,
-      "BlobName": <Azure blob name for App dependency>
+      "ConnectionString" : "DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=blah",
+      "ContainerName" : "MyDependencyContainer",
+      "BlobName" : "MyCoolAppDependency.appx"
     }
   ]
 }
-</pre>
+```
 
 ## Output Payload
 The device responds immediately with the following JSON payload:
 
-<pre>
+```
 {
-    "response" : value (<i>See below</i>)
-    "reason" : value (<i>See below</i>)
+    "response" : value (See below)
+    "reason" : value (See below)
 }
-</pre>
+```
 
 
 Possible `"response"` values are: 

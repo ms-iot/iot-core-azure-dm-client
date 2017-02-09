@@ -14,7 +14,7 @@ namespace IoTDMClient
         public string ContainerName { get; set; }
         public string BlobName { get; set; }
 
-        public async Task<string> DownloadToTemp(DeviceManagementClient client)
+        public async Task<string> DownloadToTempAsync(DeviceManagementClient client)
         {
             var path = DMGarbageCollector.TempFolder + BlobName;
             var info = new AzureFileTransferInfo()

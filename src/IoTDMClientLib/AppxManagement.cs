@@ -20,11 +20,11 @@ namespace IoTDMClient
                 var appInstallInfo = new AppInstallInfo();
                 foreach (var dependencyBlobInfo in Dependencies)
                 {
-                    var depPath = await dependencyBlobInfo.DownloadToTemp(client);
+                    var depPath = await dependencyBlobInfo.DownloadToTempAsync(client);
                     appInstallInfo.Dependencies.Add(depPath);
                 }
 
-                var path = await Appx.DownloadToTemp(client);
+                var path = await Appx.DownloadToTempAsync(client);
                 appInstallInfo.AppxPath = path;
 
                 appInstallInfo.PackageFamilyName = PackageFamilyName;
