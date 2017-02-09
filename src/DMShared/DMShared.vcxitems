@@ -18,4 +18,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\SerializationHelper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\Blob.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\DMMessage\GarbageCollectedTempFolder.h" />
+  </ItemGroup>
 </Project>

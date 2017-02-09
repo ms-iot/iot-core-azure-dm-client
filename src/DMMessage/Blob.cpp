@@ -2,6 +2,7 @@
 #include "Models\AllModels.h"
 #include "Blob.h"
 
+#include "..\DMMessage\GarbageCollectedTempFolder.h"
 #include "DMMessageSerialization.h"
 
 using namespace Platform;
@@ -110,4 +111,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         });
     }
 
+    String^ Blob::DMGarbageCollectedFolder::get()
+    {
+        return ref new String(SC_CLEANUP_FOLDER); 
+    }
 }}}}

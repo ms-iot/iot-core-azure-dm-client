@@ -16,20 +16,18 @@ namespace IoTDMClient
 
         public async Task<string> AppInstallAsync(DeviceManagementClient client)
         {
-            var cleanup = new List<string>();
             var result = "install failed";
             try
-            {
+                {
                 var appInstallInfo = new AppInstallInfo();
 
                 foreach (var dependencyBlobInfo in Dependencies)
                 {
-                    var depPath = await dependencyBlobInfo.DownloadToTemp();
+                    var depPath = await dependencyBlobInfo.DownloadToTemp(client);
                     appInstallInfo.Dependencies.Add(depPath);
-                    cleanup.Add(dependencyBlobInfo.BlobName);
                 }
 
-                var path = await Appx.DownloadToTemp();
+                var path = await Appx.DownloadToTemp(client);
                 appInstallInfo.AppxPath = path;
 
                 appInstallInfo.PackageFamilyName = PackageFamilyName;

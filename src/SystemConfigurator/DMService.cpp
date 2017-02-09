@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <filesystem>
 #include <assert.h>
 #include "DMService.h"
 #include "..\SharedUtilities\DMException.h"
@@ -12,6 +13,8 @@
 #define CONNECTION_RENEWAL_CHECK_INTERVAL 5
 
 using namespace std;
+using namespace std::chrono;
+using namespace std::experimental;
 
 DMService *DMService::s_service = NULL;
 
@@ -245,9 +248,49 @@ void DMService::ServiceWorkerThread(void* context)
     iotDMService->ServiceWorkerThreadHelper();
 }
 
+static VOID CALLBACK TimerCallback(PVOID /*ParameterPtr*/, BOOLEAN)
+{
+    //auto contextPtr = static_cast<DMService *>(ParameterPtr);
+
+    // handle garbage collection
+    wstring gcFolder = SC_CLEANUP_FOLDER;
+    if (filesystem::exists(gcFolder))
+    {
+        auto now = filesystem::file_time_type::clock::now();
+        wstring logExt = L"log";
+
+        for (auto& item : filesystem::directory_iterator(gcFolder))
+        {
+            // skip directories
+            if (!filesystem::is_regular_file(item)) continue;
+
+            // skip log files
+            if (logExt == item.path().extension().c_str()) continue;
+
+            // skip files written in last 24 hours
+            auto writeTime = filesystem::last_write_time(item);
+            if (!(duration_cast<hours>(now - writeTime).count() > 24)) continue;
+
+            // delete file
+            filesystem::remove(item.path());
+        }
+    }
+
+}
+
 void DMService::ServiceWorkerThreadHelper(void)
 {
     TRACE(__FUNCTION__);
+
+    CreateTimerQueueTimer(
+        &_timerQueueHandle,
+        NULL,                                   // default timer queue  
+        TimerCallback,
+        this,
+        0,                                      // start immediately  
+        1000 * 60 * 60 * 24,                    // every day  
+        WT_EXECUTEDEFAULT);
+        
     // ToDo: Need a way to unblock this call.
     //       Right now, this thread will just die when the service exits.
     Listen();

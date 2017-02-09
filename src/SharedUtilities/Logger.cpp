@@ -8,11 +8,17 @@
 
 using namespace std;
 using namespace std::tr2::sys;
+using namespace std::experimental;
 
 Logger::Logger(bool console, const wchar_t* logsRoot) :
     _console(console)
 {
-    basic_ostringstream<wchar_t> fileName;
+	if (!filesystem::exists(logsRoot))
+	{
+        filesystem::create_directory(logsRoot);
+	}
+	
+	basic_ostringstream<wchar_t> fileName;
     fileName << logsRoot;
 
     wchar_t moduleFileName[MAX_PATH] = { 0 };

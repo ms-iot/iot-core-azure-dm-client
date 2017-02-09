@@ -15,26 +15,20 @@ namespace IoTDMClient
         public string ContainerName { get; set; }
         public string BlobName { get; set; }
 
-        public async Task<string> DownloadToTemp()
+        public async Task<string> DownloadToTemp(DeviceManagementClient client)
         {
+            var path = Blob.DMGarbageCollectedFolder + BlobName;
             var info = new AzureFileTransferInfo()
             {
                 ConnectionString = ConnectionString,
                 ContainerName = ContainerName,
                 BlobName = BlobName,
-                Upload = false
+                Upload = false,
+
+                LocalPath = path
             };
 
-            var file = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(BlobName, CreationCollisionOption.ReplaceExisting).AsTask();
-            var path = await AzureBlobFileTransfer.DownloadFile(info, file);
-
-            //
-            // TODO: need to design a way to clean these temp files up
-            //
-            //    + we could add an adjacent *.cleanup file that systemconfigurtor looks for
-            //    + we could copy these files to a temp folder that systemconfigurator cleans periodically
-            //
-
+            await AzureBlobFileTransfer.TransferFileAsync(info, client);
             return path;
         }
     }
