@@ -15,7 +15,8 @@ Logger::Logger(bool console, const wchar_t* logsRoot) :
 {
     if (!filesystem::exists(logsRoot))
     {
-        filesystem::create_directory(logsRoot);
+        error_code code;
+        filesystem::create_directory(logsRoot, code);
     }
 	
 	basic_ostringstream<wchar_t> fileName;
