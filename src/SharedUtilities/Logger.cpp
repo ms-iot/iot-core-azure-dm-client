@@ -31,7 +31,7 @@ Logger::Logger(bool console, const wchar_t* logsRoot) :
     }
 
     fileName << GetCurrentProcessId();
-    fileName << L".log";
+    fileName << LOGFILE_EXT;
 
     _logFileName = fileName.str();
     Log("----New Session----------------------------------------------------------------");
