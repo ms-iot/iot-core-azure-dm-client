@@ -13,7 +13,7 @@
 [Platform::MTAThread]
 int wmain(int argc, wchar_t *argv[])
 {
-	TRACE("Entering wmain...");
+    TRACE("Entering wmain...");
 
     if ((argc > 1) && ((*argv[1] == L'-' || (*argv[1] == L'/'))))
     {
