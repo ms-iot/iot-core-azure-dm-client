@@ -5,7 +5,9 @@
 #include <sstream>
 #include "Utils.h"
 
-#define TRACE_LOGSROOT L"c:\\temp\\"
+#include "..\DMMessage\DMGarbageCollectorTempFolder.h"
+#define TRACE_LOGSROOT SC_CLEANUP_FOLDER
+
 #define TRACE_MAX_LEN 512
 
 class Logger

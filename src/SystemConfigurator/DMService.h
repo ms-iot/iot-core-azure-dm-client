@@ -55,6 +55,9 @@ private:
     SERVICE_STATUS _status;
     SERVICE_STATUS_HANDLE _statusHandle;
 
+    // timer handle
+    HANDLE _timerQueueHandle;
+
     // threads
     Utils::JoiningThread _workerThread;
     // Utils::JoiningThread _connectionRenewerThread;

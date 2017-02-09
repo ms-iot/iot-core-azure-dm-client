@@ -1,10 +1,9 @@
-﻿using Microsoft.Devices.Management.Message;
-using Microsoft.Devices.Management;
+﻿using Microsoft.Devices.Management;
+using Microsoft.Devices.Management.Message;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Windows.Storage;
 
 namespace IoTDMClient
 {
@@ -16,34 +15,30 @@ namespace IoTDMClient
 
         public async Task<string> AppInstallAsync(DeviceManagementClient client)
         {
-            var cleanup = new List<string>();
-            var result = "install failed";
             try
             {
                 var appInstallInfo = new AppInstallInfo();
-
                 foreach (var dependencyBlobInfo in Dependencies)
                 {
-                    var depPath = await dependencyBlobInfo.DownloadToTemp();
+                    var depPath = await dependencyBlobInfo.DownloadToTempAsync(client);
                     appInstallInfo.Dependencies.Add(depPath);
-                    cleanup.Add(dependencyBlobInfo.BlobName);
                 }
 
-                var path = await Appx.DownloadToTemp();
+                var path = await Appx.DownloadToTempAsync(client);
                 appInstallInfo.AppxPath = path;
 
                 appInstallInfo.PackageFamilyName = PackageFamilyName;
                 await client.InstallAppAsync(appInstallInfo);
 
-                result = "install succeeded";
+                var response = JsonConvert.SerializeObject(new { response = "succeeded" });
+                return response;
             }
             catch (Exception e)
             {
-                result += (": " + e.Message);
+                var response = JsonConvert.SerializeObject(new { response = "failed", reason = e.Message });
+                return response;
             }
 
-            var response = JsonConvert.SerializeObject(new { response = result });
-            return response;
         }
     }
 }
