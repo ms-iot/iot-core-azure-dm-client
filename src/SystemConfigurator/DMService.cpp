@@ -257,7 +257,7 @@ static VOID CALLBACK TimerCallback(PVOID /*ParameterPtr*/, BOOLEAN)
     if (filesystem::exists(gcFolder))
     {
         auto now = filesystem::file_time_type::clock::now();
-        wstring logExt = L"log";
+        wstring logExt = L".log";
 
         for (auto& item : filesystem::directory_iterator(gcFolder))
         {
@@ -269,7 +269,7 @@ static VOID CALLBACK TimerCallback(PVOID /*ParameterPtr*/, BOOLEAN)
 
             // skip files written in last 24 hours
             auto writeTime = filesystem::last_write_time(item);
-            if (!(duration_cast<hours>(now - writeTime).count() > 24)) continue;
+            if (duration_cast<hours>(now - writeTime).count() < 24) continue;
 
             // delete file
             filesystem::remove(item.path());
