@@ -10,7 +10,6 @@
 #define SERVICE_ACCOUNT          L"NT AUTHORITY\\SYSTEM"
 #define SERVICE_PASSWORD         L""
 
-
 [Platform::MTAThread]
 int wmain(int argc, wchar_t *argv[])
 {

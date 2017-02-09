@@ -13,10 +13,10 @@ using namespace std::experimental;
 Logger::Logger(bool console, const wchar_t* logsRoot) :
     _console(console)
 {
-	if (!filesystem::exists(logsRoot))
-	{
+    if (!filesystem::exists(logsRoot))
+    {
         filesystem::create_directory(logsRoot);
-	}
+    }
 	
 	basic_ostringstream<wchar_t> fileName;
     fileName << logsRoot;
