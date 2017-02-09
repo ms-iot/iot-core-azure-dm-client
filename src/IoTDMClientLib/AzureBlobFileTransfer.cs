@@ -17,7 +17,7 @@ namespace IoTDMClient
 
         public async Task<string> DownloadToTemp(DeviceManagementClient client)
         {
-            var path = Blob.DMGarbageCollectedFolder + BlobName;
+            var path = DMGarbageCollection.TempFolder + BlobName;
             var info = new AzureFileTransferInfo()
             {
                 ConnectionString = ConnectionString,

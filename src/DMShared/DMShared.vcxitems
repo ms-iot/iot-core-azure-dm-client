@@ -15,6 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\DMMessageHelper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\GarbageCollection.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\SerializationHelper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\Blob.cpp" />
   </ItemGroup>

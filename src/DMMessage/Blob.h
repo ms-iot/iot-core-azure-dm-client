@@ -37,8 +37,6 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     public:
 
-        static property String^ DMGarbageCollectedFolder { String^ get(); }
-
         // Only used for testing, clients should not use
         static Blob^ CreateFromByteArray(const Array<uint8_t>^ bytes);
 
