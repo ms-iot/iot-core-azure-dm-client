@@ -55,16 +55,25 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     }
 
+    void ValidateDataSize(uint32_t minexpected, uint32_t actual)
+    {
+        if (minexpected < actual) {
+            throw ref new Exception(E_FAIL, "Cannot read enough bytes from the stream");
+        }
+    }
+
     IAsyncOperation<Blob^>^ Blob::ReadFromIInputStreamAsync(Windows::Storage::Streams::IInputStream^ iistream)
     {
         DataReader^ reader = ref new DataReader(iistream);
         return create_async([=]() {
-            return create_task(reader->LoadAsync(sizeof(uint32_t))).then([=](auto) {
+            return create_task(reader->LoadAsync(sizeof(uint32_t))).then([=](uint32_t bytesLoaded) {
+                ValidateDataSize(sizeof(uint32_t), bytesLoaded);
                 auto dataSizeArry = ref new Array<byte>(sizeof(uint32_t));
                 reader->ReadBytes(dataSizeArry); // Don't try reader->ReadUInt32 here due to wrong endianness
                 uint32_t dataSize;
                 memcpy_s(&dataSize, sizeof(uint32_t), dataSizeArry->Data, sizeof(uint32_t));
-                return create_task(reader->LoadAsync(dataSize)).then([=](auto) {
+                return create_task(reader->LoadAsync(dataSize)).then([=](uint32_t bytesLoaded) {
+                    ValidateDataSize(dataSize, bytesLoaded);
                     Array<byte>^ data = ref new Array<byte>(dataSize);
                     reader->ReadBytes(data);
                     auto blob = Blob::CreateFromByteArray(data);

@@ -43,3 +43,4 @@ The specification for each operation is provided below.
 
 - [Immediate Reboot](immediate-reboot.md)
 - [Scheduled Reboot](scheduled-reboot.md)
+- [Install App](install-app.md)
