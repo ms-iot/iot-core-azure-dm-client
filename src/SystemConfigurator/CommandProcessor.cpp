@@ -5,7 +5,6 @@
 #include "CSPs\RebootCSP.h"
 #include "CSPs\EnterpriseModernAppManagementCSP.h"
 #include "CSPs\DeviceStatusCSP.h"
-#include "CSPs\RemoteWipeCSP.h"
 #include "CSPs\CustomDeviceUiCsp.h"
 #include "TimeCfg.h"
 #include "AppCfg.h"
@@ -20,7 +19,6 @@ using namespace Windows::Data::Json;
 
 IResponse^ HandleFactoryReset(IRequest^ request)
 {
-    RemoteWipeCSP::DoWipe();
     return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
@@ -41,19 +39,18 @@ IResponse^ HandleGetDeviceStatus(IRequest^ request)
 
 IResponse^ HandleSetTimeInfo(IRequest^ request)
 {
-    throw DMExceptionWithErrorCode("Unsupported request: ", (uint32_t)request->Tag);
-    //auto setTimeInfoRequest = dynamic_cast<SetTimeInfoRequest^>(request);
-    //try
-    //{
-    //    wstring json = L"";
-    //    TimeCfg::SetTimeInfo(json);
-    //    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    //}
-    //catch (DMException& e)
-    //{
-    //    TRACEP("ERROR DMCommand::HandleSetTimeInfo: ", e.what());
-    //    return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    //}
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        TimeCfg::SetTimeInfo(request);
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleSetTimeInfo: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
 }
 
 IResponse^ HandleGetRebootInfo(IRequest^ request)

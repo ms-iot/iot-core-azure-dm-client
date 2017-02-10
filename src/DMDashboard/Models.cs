@@ -11,19 +11,32 @@ namespace Microsoft.Devices.Management
         public DateTime dailyRebootTime;
     }
 
-    public class TimeInfo
+    namespace TimeInfo
     {
-        public int Tag;
-        public int Status;
-        public long TimeZoneDaylightBias;
-        public DateTime TimeZoneDaylightDate;
-        public string TimeZoneDaylightName;
-        public long TimeZoneStandardBias;
-        public DateTime TimeZoneStandardDate;
-        public string TimeZoneStandardName;
-        public long TimeZoneBias;
-        public DateTime LocalTime;
-        public string NtpServer;
+        public class GetResponse
+        {
+            public long TimeZoneDaylightBias;
+            public string TimeZoneDaylightDate;
+            public string TimeZoneDaylightName;
+            public long TimeZoneStandardBias;
+            public string TimeZoneStandardDate;
+            public string TimeZoneStandardName;
+            public long TimeZoneBias;
+            public string LocalTime;
+            public string NtpServer;
+        }
+
+        public class SetParams
+        {
+            public long TimeZoneDaylightBias;
+            public string TimeZoneDaylightDate;
+            public string TimeZoneDaylightName;
+            public long TimeZoneStandardBias;
+            public string TimeZoneStandardDate;
+            public string TimeZoneStandardName;
+            public long TimeZoneBias;
+            public string NtpServer;
+        }
     }
 
     public struct DeviceStatus
@@ -39,14 +52,39 @@ namespace Microsoft.Devices.Management
         public long batteryRuntime;
     }
 
+    class DesiredManagementProperties
+    {
+        public TimeInfo.SetParams timeInfo;
+        public RebootInfo rebootInfo;
+    }
+
+    class DesiredMicrosoftProperties
+    {
+        public DesiredManagementProperties management;
+
+        public DesiredMicrosoftProperties()
+        {
+            management = new DesiredManagementProperties();
+        }
+    }
+
     class DesiredProperties
     {
-        public TimeInfo timeInfo;
-        public RebootInfo rebootInfo;
+        public DesiredMicrosoftProperties microsoft;
+
+        public DesiredProperties()
+        {
+            microsoft = new DesiredMicrosoftProperties();
+        }
     }
 
     class PropertiesRoot
     {
         public DesiredProperties desired;
+
+        public PropertiesRoot()
+        {
+            desired = new DesiredProperties();
+        }
     }
 }

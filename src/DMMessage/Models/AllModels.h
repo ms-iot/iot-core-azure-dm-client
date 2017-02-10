@@ -37,5 +37,4 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     EMPTY_REQUEST(SetRebootInfo);
     EMPTY_REQUEST(GetRebootInfo);
     EMPTY_REQUEST(GetDeviceStatus);
-    EMPTY_REQUEST(SetTimeInfo);
 }}}};
