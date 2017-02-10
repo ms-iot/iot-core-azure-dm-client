@@ -11,21 +11,46 @@ using Microsoft.Azure.Devices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Devices.Management;
+using Microsoft.WindowsAzure.Storage;       // Namespace for CloudStorageAccount
+using Microsoft.WindowsAzure.Storage.Blob;  // Namespace for Blob storage types
 using System.Configuration;
 
 namespace DMDashboard
 {
     public partial class MainWindow : Window
     {
+        class BlobInfo
+        {
+            public string Name { get; set; }
+            public string Type { get; set; }
+            public string Uri { get; set; }
+
+            public BlobInfo(string name, string type, string uri)
+            {
+                this.Name = name;
+                this.Type = type;
+                this.Uri = uri;
+            }
+        }
+
+        static string IotHubConnectionString = "IotHubConnectionString";
+        static string StorageConnectionString = "StorageConnectionString";
+
         Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
         public MainWindow()
         {
             InitializeComponent();
 
-            var connectionString = this.config.AppSettings.Settings["ConnectionString"];
+            var connectionString = this.config.AppSettings.Settings[IotHubConnectionString];
             if (connectionString != null && !string.IsNullOrEmpty(connectionString.Value)) {
                 ConnectionStringBox.Text = connectionString.Value;
+            }
+
+            connectionString = this.config.AppSettings.Settings[StorageConnectionString];
+            if (connectionString != null && !string.IsNullOrEmpty(connectionString.Value))
+            {
+                StorageConnectionStringBox.Text = connectionString.Value;
             }
         }
 
@@ -61,7 +86,7 @@ namespace DMDashboard
                 DeviceListBox.Items.Add(deviceId.Id);
             }
 
-            this.config.AppSettings.Settings["ConnectionString"].Value = connectionString;
+            this.config.AppSettings.Settings[IotHubConnectionString].Value = connectionString;
             this.config.Save(ConfigurationSaveMode.Modified);
         }
 
@@ -82,17 +107,71 @@ namespace DMDashboard
             DeviceConnectButton.IsEnabled = true;
         }
 
-        private void TimeInfoModelToUI(TimeInfo timeInfo)
+        private void ListContainers(string connectionString)
         {
-            LocalTime.Text = timeInfo.localTime.ToString();
-            NtpServer.Text = timeInfo.ntpServer;
-            ReportedTimeZoneBias.Text = timeInfo.timeZone.bias.ToString();
-            ReportedTimeZoneStandardName.Text = timeInfo.timeZone.standardName;
-            ReportedTimeZoneStandardDate.Text = timeInfo.timeZone.standardDate.ToString();
-            ReportedTimeZoneStandardBias.Text = timeInfo.timeZone.standardBias.ToString();
-            ReportedTimeZoneDaylightName.Text = timeInfo.timeZone.daylightName;
-            ReportedTimeZoneDaylightDate.Text = timeInfo.timeZone.daylightDate.ToString();
-            ReportedTimeZoneDaylightBias.Text = timeInfo.timeZone.daylightBias.ToString();
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+            ContainersList.Items.Clear();
+            foreach (var container in blobClient.ListContainers("", ContainerListingDetails.None, null, null))
+            {
+                ContainersList.Items.Add(container.Name);
+            }
+
+            this.config.AppSettings.Settings[StorageConnectionString].Value = connectionString;
+            this.config.Save(ConfigurationSaveMode.Modified);
+        }
+
+        private void OnListContainers(object sender, RoutedEventArgs e)
+        {
+            ListContainers(StorageConnectionStringBox.Text);
+        }
+
+        private void OnListBlobs(object sender, RoutedEventArgs e)
+        {
+            if (ContainersList.SelectedIndex == -1)
+            {
+                return;
+            }
+
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(StorageConnectionStringBox.Text);
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobContainer container = blobClient.GetContainerReference((string)ContainersList.SelectedItem);
+
+            List<BlobInfo> blobInfoList = new List<BlobInfo>();
+            foreach (IListBlobItem item in container.ListBlobs(null, false))
+            {
+                if (item.GetType() == typeof(CloudBlockBlob))
+                {
+                    CloudBlockBlob blob = (CloudBlockBlob)item;
+                    blobInfoList.Add(new BlobInfo(blob.Name, "BlockBlob", blob.Uri.ToString()));
+                }
+                else if (item.GetType() == typeof(CloudPageBlob))
+                {
+                    CloudPageBlob pageBlob = (CloudPageBlob)item;
+                    blobInfoList.Add(new BlobInfo(pageBlob.Name, "PageBlob", pageBlob.Uri.ToString()));
+
+                }
+                else if (item.GetType() == typeof(CloudBlobDirectory))
+                {
+                    CloudBlobDirectory directoryBlob = (CloudBlobDirectory)item;
+                    blobInfoList.Add(new BlobInfo("<dir>", "BlobDirectory", directoryBlob.Uri.ToString()));
+                }
+            }
+            BlobsList.ItemsSource = blobInfoList;
+        }
+
+        private void TimeInfoModelToUI(Microsoft.Devices.Management.TimeInfo.GetResponse timeInfo)
+        {
+            LocalTime.Text = timeInfo.LocalTime.ToString();
+            NtpServer.Text = timeInfo.NtpServer;
+            ReportedTimeZoneBias.Text = timeInfo.TimeZoneBias.ToString();
+            ReportedTimeZoneStandardName.Text = timeInfo.TimeZoneStandardName;
+            ReportedTimeZoneStandardDate.Text = timeInfo.TimeZoneStandardDate.ToString();
+            ReportedTimeZoneStandardBias.Text = timeInfo.TimeZoneStandardBias.ToString();
+            ReportedTimeZoneDaylightName.Text = timeInfo.TimeZoneDaylightName;
+            ReportedTimeZoneDaylightDate.Text = timeInfo.TimeZoneDaylightDate.ToString();
+            ReportedTimeZoneDaylightBias.Text = timeInfo.TimeZoneDaylightBias.ToString();
         }
 
         private void RebootInfoModelToUI(RebootInfo rebootInfo)
@@ -109,11 +188,26 @@ namespace DMDashboard
             Debug.WriteLine("json = " + deviceTwinData.reportedPropertiesJson);
 
             JObject jsonObject = (JObject)JsonConvert.DeserializeObject(deviceTwinData.reportedPropertiesJson);
-            foreach (JProperty jsonProp in jsonObject.Children())
+
+            JToken microsoftNode;
+            if (!jsonObject.TryGetValue("microsoft", out microsoftNode) || microsoftNode.Type != JTokenType.Object)
+            {
+                return;
+            }
+            JObject microsoftObject = (JObject)microsoftNode;
+
+            JToken managementNode;
+            if (!microsoftObject.TryGetValue("management", out managementNode) || managementNode.Type != JTokenType.Object)
+            {
+                return;
+            }
+            JObject managementObject = (JObject)managementNode;
+
+            foreach (JProperty jsonProp in managementObject.Children())
             {
                 if (jsonProp.Name == "timeInfo")
                 {
-                    TimeInfo timeInfo = JsonConvert.DeserializeObject<TimeInfo>(jsonProp.Value.ToString());
+                    Microsoft.Devices.Management.TimeInfo.GetResponse timeInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.TimeInfo.GetResponse>(jsonProp.Value.ToString());
                     TimeInfoModelToUI(timeInfo);
                 }
                 else if (jsonProp.Name == "deviceStatus")
@@ -139,9 +233,16 @@ namespace DMDashboard
             ToggleUIElementVisibility(RebootGrid);
         }
 
+        /*
         private void OnExpandFactoryReset(object sender, RoutedEventArgs e)
         {
             ToggleUIElementVisibility(FactoryResetGrid);
+        }
+        */
+
+        private void OnExpandApplication(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(ApplicationGrid);
         }
 
         private void OnExpandDeviceStatus(object sender, RoutedEventArgs e)
@@ -186,10 +287,22 @@ namespace DMDashboard
             FactoryResetAsync();
         }
 
+        private async void StartAppSelfUpdate()
+        {
+            CancellationToken cancellationToken = new CancellationToken();
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.appStartSelfUpdate", "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            StartAppSelfUpdateResult.Text = result.Payload;
+        }
+
+        private void OnStartAppSelfUpdate(object sender, RoutedEventArgs e)
+        {
+            StartAppSelfUpdate();
+        }
+
         private async void UpdateDTReportedAsync()
         {
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("ReportAllPropertiesAsync", "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.reportAllProperties", "{}", new TimeSpan(0, 0, 30), cancellationToken);
             // ToDo: it'd be nice to show the result in the UI.
         }
 
@@ -198,20 +311,20 @@ namespace DMDashboard
             UpdateDTReportedAsync();
         }
 
-        private TimeInfo UIToTimeInfoModel()
+        private Microsoft.Devices.Management.TimeInfo.SetParams UIToTimeInfoModel()
         {
-            TimeInfo timeInfo = new TimeInfo();
+            Microsoft.Devices.Management.TimeInfo.SetParams timeInfo = new Microsoft.Devices.Management.TimeInfo.SetParams();
 
             ComboBoxItem ntpServerItem = (ComboBoxItem)DesiredNtpServer.SelectedItem;
-            timeInfo.ntpServer = (string)ntpServerItem.Content;
+            timeInfo.NtpServer = (string)ntpServerItem.Content;
 
-            timeInfo.timeZone.bias = Int32.Parse(DesiredTimeZoneBias.Text);
-            timeInfo.timeZone.standardName = DesiredTimeZoneStandardName.Text;
-            timeInfo.timeZone.standardDate = DateTime.Parse(DesiredTimeZoneStandardDate.Text);
-            timeInfo.timeZone.standardBias = Int32.Parse(DesiredTimeZoneStandardBias.Text);
-            timeInfo.timeZone.daylightName = DesiredTimeZoneDaylightName.Text;
-            timeInfo.timeZone.daylightDate = DateTime.Parse(DesiredTimeZoneDaylightDate.Text);
-            timeInfo.timeZone.daylightBias = Int32.Parse(DesiredTimeZoneDaylightBias.Text);
+            timeInfo.TimeZoneBias = Int32.Parse(DesiredTimeZoneBias.Text);
+            timeInfo.TimeZoneStandardName = DesiredTimeZoneStandardName.Text;
+            timeInfo.TimeZoneStandardDate = DesiredTimeZoneStandardDate.Text;
+            timeInfo.TimeZoneStandardBias = Int32.Parse(DesiredTimeZoneStandardBias.Text);
+            timeInfo.TimeZoneDaylightName = DesiredTimeZoneDaylightName.Text;
+            timeInfo.TimeZoneDaylightDate = DesiredTimeZoneDaylightDate.Text;
+            timeInfo.TimeZoneDaylightBias = Int32.Parse(DesiredTimeZoneDaylightBias.Text);
 
             return timeInfo;
         }
@@ -223,33 +336,18 @@ namespace DMDashboard
             {
                 rebootInfo.singleRebootTime = DateTime.Parse(DesiredSingleRebootTime.Text);
             }
-            if (!String.IsNullOrEmpty(DesiredSingleRebootTime.Text))
+            if (!String.IsNullOrEmpty(DesiredDailyRebootTime.Text))
             {
                 rebootInfo.dailyRebootTime = DateTime.Parse(DesiredDailyRebootTime.Text);
             }
             return rebootInfo;
         }
 
-        private void OnSetTimeInfo(object sender, RoutedEventArgs e)
-        {
-            DesiredProperties desiredProperties = new DesiredProperties();
-            desiredProperties.timeInfo = UIToTimeInfoModel();
-            SetDesired(desiredProperties);
-        }
-
-        private void OnSetRebootInfo(object sender, RoutedEventArgs e)
-        {
-            DesiredProperties desiredProperties = new DesiredProperties();
-            desiredProperties.rebootInfo = UIToRebootInfoModel();
-            SetDesired(desiredProperties);
-        }
-
-        private void SetDesired(DesiredProperties desiredProperties)
+        private void SetDesired(PropertiesRoot root)
         {
             PropertiesRoot propertiesRoot = new PropertiesRoot();
-            propertiesRoot.desired = desiredProperties;
 
-            string jsonString = "{ \"properties\" : " + JsonConvert.SerializeObject(propertiesRoot) + "}";
+            string jsonString = "{ \"properties\" : " + JsonConvert.SerializeObject(root) + "}";
 
             Debug.WriteLine("---- Desired Properties ----");
             Debug.WriteLine(jsonString);
@@ -258,12 +356,26 @@ namespace DMDashboard
             Task t = _deviceTwin.UpdateTwinData(jsonString);
         }
 
+        private void OnSetTimeInfo(object sender, RoutedEventArgs e)
+        {
+            PropertiesRoot root = new PropertiesRoot();
+            root.desired.microsoft.management.timeInfo = UIToTimeInfoModel();
+            SetDesired(root);
+        }
+
+        private void OnSetRebootInfo(object sender, RoutedEventArgs e)
+        {
+            PropertiesRoot root = new PropertiesRoot();
+            root.desired.microsoft.management.rebootInfo = UIToRebootInfoModel();
+            SetDesired(root);
+        }
+
         private void OnSetAllDesiredProperties(object sender, RoutedEventArgs e)
         {
-            DesiredProperties desiredProperties = new DesiredProperties();
-            desiredProperties.timeInfo = UIToTimeInfoModel();
-            desiredProperties.rebootInfo = UIToRebootInfoModel();
-            SetDesired(desiredProperties);
+            PropertiesRoot root = new PropertiesRoot();
+            root.desired.microsoft.management.timeInfo = UIToTimeInfoModel();
+            root.desired.microsoft.management.rebootInfo = UIToRebootInfoModel();
+            SetDesired(root);
         }
 
         private RegistryManager _registryManager;

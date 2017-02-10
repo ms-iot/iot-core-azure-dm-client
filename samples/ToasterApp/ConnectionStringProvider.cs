@@ -12,6 +12,6 @@ namespace Toaster
 {
     public static class ConnectionStringProvider
     {
-        public static string Value => "HostName=iot-open-house-demo.azure-devices.net;DeviceId=dog-feeder;SharedAccessKey=Rt3JTLyI3Rj4ZCNm6pPkT8TKHTw1TMLMNnXd8u/pp9g=";
+        public static string Value => "<connection string>";
     }
 }

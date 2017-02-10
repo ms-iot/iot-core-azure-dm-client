@@ -217,7 +217,7 @@
 
                         <Button Grid.Row="10" Grid.Column="1" Margin="3" Content="Set Time Info" Click="OnSetTimeInfo" />
                     </Grid>
-
+<!-- Commenting out FactoryReset until it is re-implemented to be 'Recovery' and 'TPM clear'.
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -243,7 +243,36 @@
                         <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Factory Reset"/>
                         <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Reset" Click="OnFactoryReset" />
                     </Grid>
+-->
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Application" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandApplication" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid x:Name="ApplicationGrid" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="270"/>
+                            <ColumnDefinition Width="270"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
 
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Self Update"/>
+                        <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Start" Click="OnStartAppSelfUpdate" />
+                        <Border Background="#F8F8F8" Margin="3">
+                            <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="StartAppSelfUpdateResult" />
+                        </Border>
+                    </Grid>
+                    
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -360,6 +389,54 @@
 
                 </StackPanel>
             </ScrollViewer>
+        </Grid>
+        <Grid Grid.Row="2" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Grid.Column="0" Margin="5" FontSize="16" FontWeight="Bold" Text="Azure Storage" />
+            <Grid Grid.Row="1" Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Connection String"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Margin="3" x:Name="StorageConnectionStringBox">
+                    <TextBox.Text>&lt;enter connection string&gt;</TextBox.Text>
+                </TextBox>
+            </Grid>
+            <Grid Grid.Row="2" Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Row="0" Grid.Column="0" Margin="3" Content="List Containers" Click="OnListContainers" Width="200" HorizontalAlignment="Left"/>
+                <ListView Grid.Row="1" Grid.Column="0" Margin="3" x:Name="ContainersList" Width="200" HorizontalAlignment="Left" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Height="200"/>
+                <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="List Blobs" Click="OnListBlobs" Width="200" HorizontalAlignment="Left"/>
+                <ListView Grid.Row="1" Grid.Column="1" Margin="3" x:Name="BlobsList" HorizontalAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Height="200">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="200"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="500"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Name}"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Type}"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Uri}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
         </Grid>
     </Grid>
 </Window>

@@ -19,9 +19,6 @@
     <Filter Include="Source Files\CSPs">
       <UniqueIdentifier>{06f27b65-3d0c-4430-a2c1-81e0204c7e9e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\CSPs\PrivateAPIs">
-      <UniqueIdentifier>{198274df-c122-4cf2-89c0-f95260528835}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\CSPs\PrivateAPIs">
       <UniqueIdentifier>{06d05780-4583-4485-8a5d-06da12cf3db1}</UniqueIdentifier>
     </Filter>
@@ -63,12 +60,6 @@
     <ClInclude Include="CSPs\UpdateCSP.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
-    <ClInclude Include="CSPs\PrivateAPIs\CSPController.h">
-      <Filter>Header Files\CSPs\PrivateAPIs</Filter>
-    </ClInclude>
-    <ClInclude Include="CSPs\PrivateAPIs\IProvisioningDPULocal.h">
-      <Filter>Header Files\CSPs\PrivateAPIs</Filter>
-    </ClInclude>
     <ClInclude Include="TimeCfg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -95,6 +86,9 @@
     </ClInclude>
     <ClInclude Include="CSPs\ClientCertificateInstallCSP.h">
       <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\PrivateAPIs\WinSDKRS2.h">
+      <Filter>Header Files\CSPs\PrivateAPIs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -127,9 +121,6 @@
     </ClCompile>
     <ClCompile Include="CSPs\UpdateCSP.cpp">
       <Filter>Source Files\CSPs</Filter>
-    </ClCompile>
-    <ClCompile Include="CSPs\PrivateAPIs\CSPController.cpp">
-      <Filter>Source Files\CSPs\PrivateAPIs</Filter>
     </ClCompile>
     <ClCompile Include="TimeCfg.cpp">
       <Filter>Source Files</Filter>

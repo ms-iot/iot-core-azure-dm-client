@@ -17,7 +17,7 @@ class TimeCfg
 
 public:
     static TimeInfoResponse^ GetTimeInfo();
-    static void SetTimeInfo(const std::wstring& jsonString);
+    static void SetTimeInfo(IRequest^ request);
 
 private:
     static void GetTimeInfo(TimeInfo& timeInfo);

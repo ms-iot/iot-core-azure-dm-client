@@ -2,11 +2,13 @@
 #include <deque>
 #include "UpdateCSP.h"
 #include "MdmProvision.h"
-#include "PrivateAPIs\CSPController.h"
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMException.h"
 
 using namespace std;
+
+// Error codes
+#define OMADM_ERROR_ALREADY_EXISTS 418 
 
 #if _DEBUG
 void UpdateCSP::LogGuids(const vector<wstring>& guids)
