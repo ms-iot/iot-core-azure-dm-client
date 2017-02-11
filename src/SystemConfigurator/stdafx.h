@@ -11,5 +11,7 @@
 #include <tchar.h>
 #include <stdint.h>
 #include <assert.h>
+#include <regex>
 #include <ppltasks.h>
+#include <exception>
 #include <windows.h>
