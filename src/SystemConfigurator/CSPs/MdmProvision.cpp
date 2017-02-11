@@ -60,8 +60,6 @@ void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, w
     TRACEP(L"Request : ", requestSyncML.c_str());
     TRACEP(L"Response: ", outputSyncML.c_str());
 
-    // The results have two top elements: Status and Results.
-    // Xml parser does not allow two top-level roots, so we have to wrap it in a root element first.
     wstring returnCodeString;
     Utils::ReadXmlValue(outputSyncML, STATUS_XML_PATH, returnCodeString);
 
@@ -236,8 +234,7 @@ void MdmProvision::RunGetStructData(const std::wstring& path, Utils::ELEMENT_HAN
     RunSyncML(L"", requestSyncML, resultSyncML);
 
     // Extract the result data
-    wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
-    Utils::ReadXmlStructData(wrappedResult, handler);
+    Utils::ReadXmlStructData(resultSyncML, handler);
 }
 
 unsigned int MdmProvision::RunGetUInt(const wstring& sid, const wstring& path)

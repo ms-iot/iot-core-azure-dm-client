@@ -84,8 +84,8 @@ namespace Microsoft.Devices.Management
         {
             DeviceManagementClient deviceManagementClient = Create(deviceTwin, requestHandler, new SystemConfiguratorProxy());
             deviceTwin.SetMethodHandlerAsync("microsoft.management.immediateReboot", deviceManagementClient.ImmediateRebootMethodHandlerAsync);
-            deviceTwin.SetMethodHandlerAsync("microsoft.management.reportAllProperties", deviceManagementClient.ReportAllMethodHandler);
-            deviceTwin.SetMethodHandlerAsync("microsoft.management.appStartSelfUpdate", deviceManagementClient.AppStartSelfUpdateMethodHandlerAsync);
+            deviceTwin.SetMethodHandlerAsync("microsoft.management.reportAllDeviceProperties", deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
+            deviceTwin.SetMethodHandlerAsync("microsoft.management.startAppSelfUpdate", deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
             return deviceManagementClient;
         }
 
@@ -302,7 +302,7 @@ namespace Microsoft.Devices.Management
             _deviceTwin.ReportProperties(collection);
         }
 
-        private async Task AppStartSelfUpdate()
+        private async Task StartAppSelfUpdate()
         {
             Debug.WriteLine("Check for updates...");
             StoreContext context = StoreContext.GetDefault();
@@ -334,11 +334,11 @@ namespace Microsoft.Devices.Management
         }
 
 
-        private Task<string> AppStartSelfUpdateMethodHandlerAsync(string jsonParam)
+        private Task<string> StartAppSelfUpdateMethodHandlerAsync(string jsonParam)
         {
-            Debug.WriteLine("AppStartSelfUpdateMethodHandlerAsync");
+            Debug.WriteLine("StartAppSelfUpdateMethodHandlerAsync");
 
-            AppStartSelfUpdate();
+            StartAppSelfUpdate();
 
             return Task.FromResult(JsonConvert.SerializeObject(new { response = "succeeded" }));
         }
@@ -422,12 +422,11 @@ namespace Microsoft.Devices.Management
             return JsonConvert.DeserializeObject<DeviceStatus>(deviceStatusJson); ;
         }
 
-        private async Task<string> ReportAllMethodHandler(string jsonParam)
+        private async Task ReportAllDeviceProperties()
         {
-            Debug.WriteLine("ReportAllMethodHandler");
+            Debug.WriteLine("ReportAllDeviceProperties");
 
             Message.TimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
-
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
             collection["microsoft"] = new
@@ -443,6 +442,13 @@ namespace Microsoft.Devices.Management
             };
 
             _deviceTwin.ReportProperties(collection);
+        }
+
+        private async Task<string> ReportAllDevicePropertiesMethodHandler(string jsonParam)
+        {
+            Debug.WriteLine("ReportAllDevicePropertiesMethodHandler");
+
+            ReportAllDeviceProperties();
 
             return JsonConvert.SerializeObject(new { response = "success" });
         }

@@ -290,7 +290,7 @@ namespace DMDashboard
         private async void StartAppSelfUpdate()
         {
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.appStartSelfUpdate", "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.startAppSelfUpdate", "{}", new TimeSpan(0, 0, 30), cancellationToken);
             StartAppSelfUpdateResult.Text = result.Payload;
         }
 
@@ -302,7 +302,7 @@ namespace DMDashboard
         private async void UpdateDTReportedAsync()
         {
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.reportAllProperties", "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.reportAllDeviceProperties", "{}", new TimeSpan(0, 0, 30), cancellationToken);
             // ToDo: it'd be nice to show the result in the UI.
         }
 
