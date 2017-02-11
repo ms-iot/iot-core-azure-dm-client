@@ -90,11 +90,9 @@ void TimeCfg::GetTimeInfo(TimeInfo& timeInfo)
     GetTimeZoneInformation(&timeInfo.timeZoneInformation);
 }
 
-void TimeCfg::SetTimeInfo(IRequest^ request)
+void TimeCfg::SetTimeInfo(SetTimeInfoRequest^ setTimeInfoRequest)
 {
     TRACE(__FUNCTION__);
-
-    auto setTimeInfoRequest = dynamic_cast<SetTimeInfoRequest^>(request);
 
     SetNtpServer(setTimeInfoRequest->TimeInfo->NtpServer->Data());
 

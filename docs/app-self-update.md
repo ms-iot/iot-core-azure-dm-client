@@ -69,7 +69,7 @@ Successful update response:
 "reported" : {
     "microsoft" : {
         "management" : {
-            "lastRebootAttempt" : {
+            "appUpdate" : {
                 "lastCheck" : "2017-01-25T13:27:33+04:00",
                 "status" : "installed"
             }

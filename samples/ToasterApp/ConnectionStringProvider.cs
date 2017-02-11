@@ -12,6 +12,6 @@ namespace Toaster
 {
     public static class ConnectionStringProvider
     {
-        public static string Value => "HostName=GMilekaStd1.azure-devices.net;DeviceId=gmileka02;SharedAccessKey=+iU29auWae7W+L/g8UjC1Bn/kToBI5OKpFtLsuucOB0=";
+        public static string Value => "<connection string>";
     }
 }

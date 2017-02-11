@@ -43,7 +43,8 @@ IResponse^ HandleSetTimeInfo(IRequest^ request)
 
     try
     {
-        TimeCfg::SetTimeInfo(request);
+        auto setTimeInfoRequest = dynamic_cast<SetTimeInfoRequest^>(request);
+        TimeCfg::SetTimeInfo(setTimeInfoRequest);
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (DMException& e)
