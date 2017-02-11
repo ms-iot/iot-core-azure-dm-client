@@ -9,6 +9,8 @@
 #include "StartupApp.h"
 #include "StatusCodeResponse.h"
 #include "TimeInfo.h"
+#include "StringResponse.h"
+#include "TpmRequests.h"
 
 #define EMPTY_REQUEST(A) \
 public ref class A##Request sealed : public IRequest \

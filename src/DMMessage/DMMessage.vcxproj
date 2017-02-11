@@ -98,7 +98,9 @@
     <ClInclude Include="Models\Reboot.h" />
     <ClInclude Include="Models\StartupApp.h" />
     <ClInclude Include="Models\StatusCodeResponse.h" />
+    <ClInclude Include="Models\StringResponse.h" />
     <ClInclude Include="Models\TimeInfo.h" />
+    <ClInclude Include="Models\TpmRequests.h" />
     <ClInclude Include="ResponseStatus.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="SerializationHelper.h" />

@@ -152,6 +152,7 @@
     </ClCompile>
     <ClCompile Include="SystemConfigurator.cpp" />
     <ClCompile Include="TimeCfg.cpp" />
+    <ClCompile Include="TpmSupport.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
