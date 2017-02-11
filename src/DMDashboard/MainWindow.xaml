@@ -373,6 +373,57 @@
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                     <Grid>
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Install App" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandAppInstall" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid x:Name="AppInstallGrid" Visibility="Visible">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="490"/>
+                            <ColumnDefinition Width="50"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Row="0" Grid.Column="0">Azure Blob Connection String</Label>
+                        <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" x:Name="AppConnectionString" TextChanged="AppInstallButtonActivation"  HorizontalAlignment="Stretch"  />
+
+                        <Label Grid.Row="1" Grid.Column="0">Azure Blob Container Name</Label>
+                        <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" x:Name="AppContainerName" TextChanged="AppInstallButtonActivation"  HorizontalAlignment="Stretch" />
+
+                        <Label Grid.Row="2" Grid.Column="0">App Package Family Name</Label>
+                        <TextBox Grid.Row="2" Grid.Column="1" x:Name="AppPackageFamilyName" TextChanged="AppInstallButtonActivation" HorizontalAlignment="Stretch" />
+
+                        <Label Grid.Row="3" Grid.Column="0">App Package (*.appx)</Label>
+                        <TextBox Grid.Row="3" Grid.Column="1" x:Name="AppAppxPath" TextChanged="AppInstallButtonActivation" HorizontalAlignment="Stretch" />
+                        <Button Grid.Row="3" Grid.Column="2" Click="OnAppxBrowse" HorizontalAlignment="Stretch" >Browse</Button>
+
+                        <Label Grid.Row="4" Grid.Column="0">App Dependency Pacakge (*.appx)</Label>
+                        <TextBox Grid.Row="4" Grid.Column="1" x:Name="AppDep1AppxPath" HorizontalAlignment="Stretch" />
+                        <Button Grid.Row="4" Grid.Column="2" Click="OnDep1AppxBrowse" HorizontalAlignment="Stretch" >Browse</Button>
+
+                        <Label Grid.Row="5" Grid.Column="0">App Dependency Pacakge (*.appx)</Label>
+                        <TextBox Grid.Row="5" Grid.Column="1" x:Name="AppDep2AppxPath" HorizontalAlignment="Stretch" />
+                        <Button Grid.Row="5" Grid.Column="2" Click="OnDep2AppxBrowse" HorizontalAlignment="Stretch" >Browse</Button>
+
+                        <Button Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" Click="AppInstallAsync" HorizontalAlignment="Stretch" x:Name="AppInstallButton">Install App</Button>
+
+                    </Grid>
+
+
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200"/>
                             <ColumnDefinition Width="270"/>
                             <ColumnDefinition Width="270"/>

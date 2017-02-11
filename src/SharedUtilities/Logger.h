@@ -5,7 +5,9 @@
 #include <sstream>
 #include "Utils.h"
 
-#define TRACE_LOGSROOT L"c:\\temp\\"
+#include "..\DMMessage\DMGarbageCollectorTempFolder.h"
+#define TRACE_LOGSROOT SC_CLEANUP_FOLDER
+
 #define TRACE_MAX_LEN 512
 
 class Logger
@@ -35,7 +37,7 @@ private:
 };
 
 #ifdef _DEBUG
-Logger __declspec(selectany) gLogger(false /*console output*/, TRACE_LOGSROOT);
+Logger __declspec(selectany) gLogger(true /*console output*/, TRACE_LOGSROOT);
 
 #define TRACE(msg) gLogger.Log(msg)
 #define TRACEP(format, param) gLogger.Log(format, param)

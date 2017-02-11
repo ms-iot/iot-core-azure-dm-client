@@ -44,4 +44,5 @@ The specification for each operation is provided below.
 - [Report All Device Properties](report-all-device-properties.md)
 - [Immediate Reboot](immediate-reboot.md)
 - [Scheduled Reboot](scheduled-reboot.md)
+- [Install App](install-app.md)
 - [Start DM Application Self-Update](app-self-update.md)

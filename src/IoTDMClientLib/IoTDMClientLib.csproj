@@ -115,6 +115,8 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppxManagement.cs" />
+    <Compile Include="AzureBlobFileTransfer.cs" />
     <Compile Include="AzureIoTHubDeviceTwinProxy.cs" />
     <Compile Include="DeviceManagementClient.cs" />
     <Compile Include="ISystemConfiguratorProxy.cs" />
