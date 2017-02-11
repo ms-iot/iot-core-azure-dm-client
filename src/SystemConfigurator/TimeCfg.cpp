@@ -90,88 +90,52 @@ void TimeCfg::GetTimeInfo(TimeInfo& timeInfo)
     GetTimeZoneInformation(&timeInfo.timeZoneInformation);
 }
 
-void TimeCfg::SetTimeInfo(const std::wstring& jsonString)
+void TimeCfg::SetTimeInfo(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-    TRACEP(L" json = ", jsonString.c_str());
 
-    /*
+    auto setTimeInfoRequest = dynamic_cast<SetTimeInfoRequest^>(request);
+
+    SetNtpServer(setTimeInfoRequest->TimeInfo->NtpServer->Data());
+
+    TIME_ZONE_INFORMATION tzi = { 0 };
+
+    // Bias...
+    tzi.Bias = setTimeInfoRequest->TimeInfo->TimeZoneBias;
+
+    TRACEP("Bias: ", to_string(setTimeInfoRequest->TimeInfo->TimeZoneBias).c_str());
+
+    TRACEP("Standard Bias: ", to_string(setTimeInfoRequest->TimeInfo->TimeZoneStandardBias).c_str());
+    TRACEP(L"Standard Name: ", setTimeInfoRequest->TimeInfo->TimeZoneStandardName->Data());
+    TRACEP(L"Standard Date: ", setTimeInfoRequest->TimeInfo->TimeZoneStandardDate->Data());
+
+    TRACEP("Daytime Bias: ", to_string(setTimeInfoRequest->TimeInfo->TimeZoneDaylightBias).c_str());
+    TRACEP(L"Daytime Name: ", setTimeInfoRequest->TimeInfo->TimeZoneDaylightName->Data());
+    TRACEP(L"Daytime Date: ", setTimeInfoRequest->TimeInfo->TimeZoneDaylightDate->Data());
+
+    // Standard...
+    wcsncpy_s(tzi.StandardName, setTimeInfoRequest->TimeInfo->TimeZoneStandardName->Data(), _TRUNCATE);
+    if (!SystemTimeFromISO8601(setTimeInfoRequest->TimeInfo->TimeZoneStandardDate->Data(), tzi.StandardDate))
     {
-        "timeInfo":
-        {
-            "ntpServer": "pool.ntp.org",
-            "timeZone" :
-            {
-                "bias": 123,
-                "standardName": "(UTC-05:00) Eastern Time (US & Canada)",
-                "standardDate": "yyyy-mm-ddThh:mm:ss,day_of_week",
-                "standardBias": 33,
-                "daylightName": "(UTC-05:00) Eastern Time (US & Canada)",
-                "daylightDate": "yyyy-mm-ddThh:mm:ss,day_of_week",
-                "daylightBias": 33
-            }
-        }
+        throw DMExceptionWithErrorCode("Error: invalid date/time format. Error Code = ", GetLastError());
     }
-    */
-#if 0 // TODO
-    JsonValue^ value;
-    if (!JsonValue::TryParse(ref new String(jsonString.c_str()), &value) || (value == nullptr))
+    tzi.StandardBias = setTimeInfoRequest->TimeInfo->TimeZoneStandardBias;
+
+    // Daytime...
+    wcsncpy_s(tzi.DaylightName, setTimeInfoRequest->TimeInfo->TimeZoneDaylightName->Data(), _TRUNCATE);
+    if (!SystemTimeFromISO8601(setTimeInfoRequest->TimeInfo->TimeZoneDaylightDate->Data(), tzi.DaylightDate))
     {
-        throw DMException("Warning: SetTimeInfo(): Invalid json.");
+        throw DMExceptionWithErrorCode("Error: invalid date/time format. Error Code = ", GetLastError());
     }
+    tzi.DaylightBias = setTimeInfoRequest->TimeInfo->TimeZoneDaylightBias;
 
-    JsonObject^ rootObject = value->GetObject();
-    if (rootObject == nullptr)
+    // Set it...
+    if (!SetTimeZoneInformation(&tzi))
     {
-        throw DMException("Warning: SetTimeInfo(): Invalid json input. Cannot find the root object.");
-    }
-
-    map<wstring, IJsonValue^> properties;
-    JsonReader::Flatten(L"", rootObject, properties);
-
-    wstring ntpServer;
-    if (JsonReader::TryFindString(properties, NtpServer, ntpServer))
-    {
-        SetNtpServer(ntpServer);
-    }
-
-    map<wstring, IJsonValue^>::const_iterator it = properties.find(TimeZone);
-    if (it != properties.end())
-    {
-        // ToDo: should we set wDayOfWeek to a non-zero value?
-
-        TIME_ZONE_INFORMATION tzi = { 0 };
-
-        JsonReader::TryFindNumber(properties, TimeZone L"." TimeZoneBias, tzi.Bias);
-
-        wstring standardName;
-        if (JsonReader::TryFindString(properties, TimeZone L"." TimeZoneStandardName, standardName))
-        {
-            wcsncpy_s(tzi.StandardName, standardName.c_str(), _TRUNCATE);
-        }
-
-        JsonReader::TryFindDateTime(properties, TimeZone L"." TimeZoneStandardDate, tzi.StandardDate);
-
-        JsonReader::TryFindNumber(properties, TimeZone L"." TimeZoneStandardBias, tzi.StandardBias);
-
-        wstring daylightName;
-        if (JsonReader::TryFindString(properties, TimeZone L"." TimeZoneDaylightName, daylightName))
-        {
-            wcsncpy_s(tzi.DaylightName, daylightName.c_str(), _TRUNCATE);
-        }
-
-        JsonReader::TryFindDateTime(properties, TimeZone L"." TimeZoneDaylightDate, tzi.DaylightDate);
-
-        JsonReader::TryFindNumber(properties, TimeZone L"." TimeZoneDaylightBias, tzi.DaylightBias);
-
-        if (!SetTimeZoneInformation(&tzi))
-        {
-            throw DMExceptionWithErrorCode("Error: failed to set time zone information. Error Code = ", GetLastError());
-        }
+        throw DMExceptionWithErrorCode("Error: failed to set time zone information. Error Code = ", GetLastError());
     }
 
     TRACE(L"Time settings have been applied successfully.");
-#endif
 }
 
 void TimeCfg::SetNtpServer(const std::wstring& ntpServer)

@@ -1,11 +1,11 @@
 #include "stdafx.h"
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMException.h"
-#include "PrivateAPIs\CSPController.h"
+#include "PrivateAPIs\WinSDKRS2.h"
 #include "..\resource.h"
 #include "MdmProvision.h"
 
-#define ROOT_XML L"Root"
+#define ROOT_XML L"SyncML\\SyncBody"
 #define ROOT_START_TAG L"<" ROOT_XML L">"
 #define ROOT_END_TAG L"</" ROOT_XML L">"
 #define STATUS_XML_PATH ROOT_XML L"\\Status\\Data\\"
@@ -37,29 +37,14 @@ void MdmProvision::SetErrorVerbosity(bool verbosity) noexcept
 
 void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, wstring& outputSyncML)
 {
-    // Potentially two attributes (session variables) you might need.
-    // 1) OMADM_TARGETEDUSERSID_VARIABLE_NAME: this is the user SID for configuration that's per-user.
-    //    This example is using the DefApps SID from the Phone, which is ignored for the sample XML.
-    //    Use "whoami /user" to get your SID on the desktop.
-    // 2) OMADM_ACCOUNTID_VARIABLE_NAME: this is the enrollment ID.
-    //    Currently sample is using the default enrollment, so we don't specify anything here.
-
     PWSTR output = nullptr;
-    HRESULT hr = E_FAIL;
-    if (sid.length())
+    HRESULT hr = RegisterDeviceWithLocalManagement(NULL);
+    if (FAILED(hr))
     {
-        TRACEP(L"MdmProvision::RunSyncML sid=", sid.c_str());
-        SYNCMLATTRIBUTE attrib[1] = { 0 };
-        attrib[0].pszName = OMADM_TARGETEDUSERSID_VARIABLE_NAME;
-        attrib[0].pszValue = sid.c_str();
+        throw DMException("RegisterDeviceWithLocalManagement", hr);
+    }
 
-        hr = MdmProvisionSyncBodyWithAttributes(requestSyncML.c_str(), nullptr, ARRAYSIZE(attrib), attrib, &output);
-    }
-    else
-    {
-        TRACE(L"MdmProvision::RunSyncML no sid");
-        hr = MdmProvisionSyncBodyWithAttributes(requestSyncML.c_str(), nullptr, 0, nullptr, &output);
-    }
+    hr = ApplyLocalManagementSyncML(requestSyncML.c_str(), &output);
     if (FAILED(hr))
     {
         TRACEP(L"Error: MdmProvisionSyncBodyWithAttributes failed. Error code = ", hr);
@@ -75,16 +60,13 @@ void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, w
     TRACEP(L"Request : ", requestSyncML.c_str());
     TRACEP(L"Response: ", outputSyncML.c_str());
 
-    // The results have two top elements: Status and Results.
-    // Xml parser does not allow two top-level roots, so we have to wrap it in a root element first.
     wstring returnCodeString;
-    wstring wrappedResult = ROOT_START_TAG + outputSyncML + ROOT_END_TAG;
-    Utils::ReadXmlValue(wrappedResult, STATUS_XML_PATH, returnCodeString);
+    Utils::ReadXmlValue(outputSyncML, STATUS_XML_PATH, returnCodeString);
 
     unsigned int returnCode = stoi(returnCodeString);
     if (returnCode >= 300)
     {
-        ReportError(requestSyncML, wrappedResult, returnCode);
+        ReportError(requestSyncML, outputSyncML, returnCode);
         throw DMExceptionWithErrorCode(returnCode);
     }
 }
@@ -192,11 +174,8 @@ wstring MdmProvision::RunGetString(const wstring& sid, const wstring& path)
     wstring resultSyncML;
     RunSyncML(sid, requestSyncML, resultSyncML);
 
-    // Extract the result data
-    wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
-
     wstring value;
-    Utils::ReadXmlValue(wrappedResult, RESULTS_XML_PATH, value);
+    Utils::ReadXmlValue(resultSyncML, RESULTS_XML_PATH, value);
     return value;
 }
 
@@ -226,11 +205,8 @@ std::wstring MdmProvision::RunGetBase64(const std::wstring& sid, const std::wstr
     wstring resultSyncML;
     RunSyncML(sid, requestSyncML, resultSyncML);
 
-    // Extract the result data
-    wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
-
     wstring value;
-    Utils::ReadXmlValue(wrappedResult, RESULTS_XML_PATH, value);
+    Utils::ReadXmlValue(resultSyncML, RESULTS_XML_PATH, value);
     return value;
 }
 
@@ -258,8 +234,7 @@ void MdmProvision::RunGetStructData(const std::wstring& path, Utils::ELEMENT_HAN
     RunSyncML(L"", requestSyncML, resultSyncML);
 
     // Extract the result data
-    wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
-    Utils::ReadXmlStructData(wrappedResult, handler);
+    Utils::ReadXmlStructData(resultSyncML, handler);
 }
 
 unsigned int MdmProvision::RunGetUInt(const wstring& sid, const wstring& path)
@@ -287,8 +262,7 @@ unsigned int MdmProvision::RunGetUInt(const wstring& sid, const wstring& path)
 
     // Extract the result data
     wstring valueString;
-    wstring wrappedResult = ROOT_START_TAG + resultSyncML + ROOT_END_TAG;
-    Utils::ReadXmlValue(wrappedResult, RESULTS_XML_PATH, valueString);
+    Utils::ReadXmlValue(resultSyncML, RESULTS_XML_PATH, valueString);
     return stoi(valueString);
 }
 
@@ -330,7 +304,6 @@ void MdmProvision::RunSetBase64(const wstring& sid, const std::wstring& path, co
 {
     // http://www.openmobilealliance.org/tech/affiliates/syncml/syncml_metinf_v101_20010615.pdf
     // Section 5.3.
-    RunSet(path, value, L"b64");
 
     wstring requestSyncML = LR"(
         <SyncBody>

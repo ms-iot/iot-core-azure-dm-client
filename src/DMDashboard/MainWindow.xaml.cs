@@ -163,7 +163,7 @@ namespace DMDashboard
             BlobsList.ItemsSource = blobInfoList;
         }
 
-        private void TimeInfoModelToUI(TimeInfo timeInfo)
+        private void TimeInfoModelToUI(Microsoft.Devices.Management.TimeInfo.GetResponse timeInfo)
         {
             LocalTime.Text = timeInfo.LocalTime.ToString();
             NtpServer.Text = timeInfo.NtpServer;
@@ -190,11 +190,26 @@ namespace DMDashboard
             Debug.WriteLine("json = " + deviceTwinData.reportedPropertiesJson);
 
             JObject jsonObject = (JObject)JsonConvert.DeserializeObject(deviceTwinData.reportedPropertiesJson);
-            foreach (JProperty jsonProp in jsonObject.Children())
+
+            JToken microsoftNode;
+            if (!jsonObject.TryGetValue("microsoft", out microsoftNode) || microsoftNode.Type != JTokenType.Object)
+            {
+                return;
+            }
+            JObject microsoftObject = (JObject)microsoftNode;
+
+            JToken managementNode;
+            if (!microsoftObject.TryGetValue("management", out managementNode) || managementNode.Type != JTokenType.Object)
+            {
+                return;
+            }
+            JObject managementObject = (JObject)managementNode;
+
+            foreach (JProperty jsonProp in managementObject.Children())
             {
                 if (jsonProp.Name == "timeInfo")
                 {
-                    TimeInfo timeInfo = JsonConvert.DeserializeObject<TimeInfo>(jsonProp.Value.ToString());
+                    Microsoft.Devices.Management.TimeInfo.GetResponse timeInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.TimeInfo.GetResponse>(jsonProp.Value.ToString());
                     TimeInfoModelToUI(timeInfo);
                 }
                 else if (jsonProp.Name == "deviceStatus")
@@ -220,9 +235,16 @@ namespace DMDashboard
             ToggleUIElementVisibility(RebootGrid);
         }
 
+        /*
         private void OnExpandFactoryReset(object sender, RoutedEventArgs e)
         {
             ToggleUIElementVisibility(FactoryResetGrid);
+        }
+        */
+
+        private void OnExpandApplication(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(ApplicationGrid);
         }
 
         private void OnExpandDeviceStatus(object sender, RoutedEventArgs e)
@@ -267,10 +289,22 @@ namespace DMDashboard
             FactoryResetAsync();
         }
 
+        private async void StartAppSelfUpdate()
+        {
+            CancellationToken cancellationToken = new CancellationToken();
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.startAppSelfUpdate", "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            StartAppSelfUpdateResult.Text = result.Payload;
+        }
+
+        private void OnStartAppSelfUpdate(object sender, RoutedEventArgs e)
+        {
+            StartAppSelfUpdate();
+        }
+
         private async void UpdateDTReportedAsync()
         {
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("ReportAllPropertiesAsync", "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.reportAllDeviceProperties", "{}", new TimeSpan(0, 0, 30), cancellationToken);
             // ToDo: it'd be nice to show the result in the UI.
         }
 
@@ -279,19 +313,19 @@ namespace DMDashboard
             UpdateDTReportedAsync();
         }
 
-        private TimeInfo UIToTimeInfoModel()
+        private Microsoft.Devices.Management.TimeInfo.SetParams UIToTimeInfoModel()
         {
-            TimeInfo timeInfo = new TimeInfo();
+            Microsoft.Devices.Management.TimeInfo.SetParams timeInfo = new Microsoft.Devices.Management.TimeInfo.SetParams();
 
             ComboBoxItem ntpServerItem = (ComboBoxItem)DesiredNtpServer.SelectedItem;
             timeInfo.NtpServer = (string)ntpServerItem.Content;
 
             timeInfo.TimeZoneBias = Int32.Parse(DesiredTimeZoneBias.Text);
             timeInfo.TimeZoneStandardName = DesiredTimeZoneStandardName.Text;
-            timeInfo.TimeZoneStandardDate = DateTime.Parse(DesiredTimeZoneStandardDate.Text);
+            timeInfo.TimeZoneStandardDate = DesiredTimeZoneStandardDate.Text;
             timeInfo.TimeZoneStandardBias = Int32.Parse(DesiredTimeZoneStandardBias.Text);
             timeInfo.TimeZoneDaylightName = DesiredTimeZoneDaylightName.Text;
-            timeInfo.TimeZoneDaylightDate = DateTime.Parse(DesiredTimeZoneDaylightDate.Text);
+            timeInfo.TimeZoneDaylightDate = DesiredTimeZoneDaylightDate.Text;
             timeInfo.TimeZoneDaylightBias = Int32.Parse(DesiredTimeZoneDaylightBias.Text);
 
             return timeInfo;
@@ -304,33 +338,18 @@ namespace DMDashboard
             {
                 rebootInfo.singleRebootTime = DateTime.Parse(DesiredSingleRebootTime.Text);
             }
-            if (!String.IsNullOrEmpty(DesiredSingleRebootTime.Text))
+            if (!String.IsNullOrEmpty(DesiredDailyRebootTime.Text))
             {
                 rebootInfo.dailyRebootTime = DateTime.Parse(DesiredDailyRebootTime.Text);
             }
             return rebootInfo;
         }
 
-        private void OnSetTimeInfo(object sender, RoutedEventArgs e)
-        {
-            DesiredProperties desiredProperties = new DesiredProperties();
-            desiredProperties.timeInfo = UIToTimeInfoModel();
-            SetDesired(desiredProperties);
-        }
-
-        private void OnSetRebootInfo(object sender, RoutedEventArgs e)
-        {
-            DesiredProperties desiredProperties = new DesiredProperties();
-            desiredProperties.rebootInfo = UIToRebootInfoModel();
-            SetDesired(desiredProperties);
-        }
-
-        private void SetDesired(DesiredProperties desiredProperties)
+        private void SetDesired(PropertiesRoot root)
         {
             PropertiesRoot propertiesRoot = new PropertiesRoot();
-            propertiesRoot.desired = desiredProperties;
 
-            string jsonString = "{ \"properties\" : " + JsonConvert.SerializeObject(propertiesRoot) + "}";
+            string jsonString = "{ \"properties\" : " + JsonConvert.SerializeObject(root) + "}";
 
             Debug.WriteLine("---- Desired Properties ----");
             Debug.WriteLine(jsonString);
@@ -339,12 +358,26 @@ namespace DMDashboard
             Task t = _deviceTwin.UpdateTwinData(jsonString);
         }
 
+        private void OnSetTimeInfo(object sender, RoutedEventArgs e)
+        {
+            PropertiesRoot root = new PropertiesRoot();
+            root.desired.microsoft.management.timeInfo = UIToTimeInfoModel();
+            SetDesired(root);
+        }
+
+        private void OnSetRebootInfo(object sender, RoutedEventArgs e)
+        {
+            PropertiesRoot root = new PropertiesRoot();
+            root.desired.microsoft.management.rebootInfo = UIToRebootInfoModel();
+            SetDesired(root);
+        }
+
         private void OnSetAllDesiredProperties(object sender, RoutedEventArgs e)
         {
-            DesiredProperties desiredProperties = new DesiredProperties();
-            desiredProperties.timeInfo = UIToTimeInfoModel();
-            desiredProperties.rebootInfo = UIToRebootInfoModel();
-            SetDesired(desiredProperties);
+            PropertiesRoot root = new PropertiesRoot();
+            root.desired.microsoft.management.timeInfo = UIToTimeInfoModel();
+            root.desired.microsoft.management.rebootInfo = UIToRebootInfoModel();
+            SetDesired(root);
         }
 
         private RegistryManager _registryManager;

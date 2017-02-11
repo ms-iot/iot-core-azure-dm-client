@@ -6,6 +6,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Foundation;
+using Windows.Services.Store;
+using Windows.Storage;
 
 namespace Microsoft.Devices.Management
 {
@@ -80,6 +83,8 @@ namespace Microsoft.Devices.Management
             DeviceManagementClient deviceManagementClient = Create(deviceTwin, requestHandler, new SystemConfiguratorProxy());
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.immediateReboot", deviceManagementClient.ImmediateRebootMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.appInstall", deviceManagementClient.AppInstallMethodHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync("microsoft.management.reportAllDeviceProperties", deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
+            await deviceTwin.SetMethodHandlerAsync("microsoft.management.startAppSelfUpdate", deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
             return deviceManagementClient;
         }
 
@@ -246,6 +251,64 @@ namespace Microsoft.Devices.Management
             }
         }
 
+        private void ReportSelfUpdateStatus(string lastCheckValue, string statusValue)
+        {
+            Dictionary<string, object> collection = new Dictionary<string, object>();
+            collection["microsoft"] = new
+            {
+                management = new
+                {
+                    appUpdate = new
+                    {
+                        lastCheck = lastCheckValue,
+                        status = statusValue,
+                    }
+                }
+            };
+            _deviceTwin.ReportProperties(collection);
+        }
+
+        private async Task StartAppSelfUpdate()
+        {
+            Debug.WriteLine("Check for updates...");
+            StoreContext context = StoreContext.GetDefault();
+
+            // Check for updates...
+            string lastCheck = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+            ReportSelfUpdateStatus(lastCheck, "checkStarting");
+
+            IReadOnlyList<StorePackageUpdate> updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
+            if (updates.Count == 0)
+            {
+                ReportSelfUpdateStatus(lastCheck, "noUpdates");
+                return;
+            }
+
+            // Download and install the updates...
+            IAsyncOperationWithProgress<StorePackageUpdateResult, StorePackageUpdateStatus> downloadOperation =
+                context.RequestDownloadAndInstallStorePackageUpdatesAsync(updates);
+
+            ReportSelfUpdateStatus(lastCheck, "updatesDownloadingAndInstalling");
+
+            // Wait for completion...
+            StorePackageUpdateResult result = await downloadOperation.AsTask();
+
+            ReportSelfUpdateStatus(lastCheck, result.OverallState == StorePackageUpdateState.Completed ? "installed" : "failed");
+
+            return;
+        }
+
+
+        private Task<string> StartAppSelfUpdateMethodHandlerAsync(string jsonParam)
+        {
+            Debug.WriteLine("StartAppSelfUpdateMethodHandlerAsync");
+
+            StartAppSelfUpdate();
+
+            return Task.FromResult(JsonConvert.SerializeObject(new { response = "succeeded" }));
+        }
+
         public async Task<DMMethodResult> DoFactoryResetAsync()
         {
             throw new NotImplementedException();
@@ -266,6 +329,33 @@ namespace Microsoft.Devices.Management
                             {
                                 case "scheduledReboot":
                                     // TODO
+                                    break;
+                                case "timeInfo":
+                                    if (managementProperty.Value.Type == JTokenType.Object)
+                                    {
+                                        Debug.WriteLine("timeInfo = " + managementProperty.Value.ToString());
+
+                                        // Default JsonConvert Deserializing changes ISO8601 date fields to "mm/dd/yyyy hh:mm:ss".
+                                        // We need to preserve the ISO8601 since that's the format SystemConfigurator understands.
+                                        // Because of that, we are not using:
+                                        // Message.SetTimeInfo requestInfo = JsonConvert.DeserializeObject<Message.SetTimeInfo>(fieldsJson);
+
+                                        Message.SetTimeInfo setTimeInfo = new Message.SetTimeInfo();
+                                        JObject subProperties = (JObject)managementProperty.Value;
+                                        setTimeInfo.NtpServer = (string)subProperties.Property("NtpServer").Value;
+                                        setTimeInfo.TimeZoneBias = (int)subProperties.Property("TimeZoneBias").Value;
+                                        setTimeInfo.TimeZoneDaylightBias = (int)subProperties.Property("TimeZoneDaylightBias").Value;
+                                        DateTime daylightDate = DateTime.Parse(subProperties.Property("TimeZoneDaylightDate").Value.ToString());
+                                        setTimeInfo.TimeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                                        setTimeInfo.TimeZoneDaylightName = (string)subProperties.Property("TimeZoneDaylightName").Value;
+                                        setTimeInfo.TimeZoneStandardBias = (int)subProperties.Property("TimeZoneStandardBias").Value;
+                                        DateTime standardDate = DateTime.Parse(subProperties.Property("TimeZoneStandardDate").Value.ToString());
+                                        setTimeInfo.TimeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                                        setTimeInfo.TimeZoneStandardName = (string)subProperties.Property("TimeZoneStandardName").Value;
+
+                                        Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest(setTimeInfo);
+                                        this._systemConfiguratorProxy.SendCommandAsync(request);
+                                    }
                                     break;
                                 default:
                                     // Not supported
@@ -298,20 +388,35 @@ namespace Microsoft.Devices.Management
             return JsonConvert.DeserializeObject<DeviceStatus>(deviceStatusJson); ;
         }
 
-        public async Task<DMMethodResult> ReportAllPropertiesAsync()
+        private async Task ReportAllDeviceProperties()
         {
-            Debug.WriteLine("ReportAllPropertiesAsync()");
-            DMMethodResult methodResult = new DMMethodResult();
+            Debug.WriteLine("ReportAllDeviceProperties");
+
+            Message.TimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
-            collection["timeInfo"] = await GetTimeInfoAsync();
+            collection["microsoft"] = new
+            {
+                management = new
+                {
+                    timeInfo = timeInfoResponse
 #if false // TODO
             collection["deviceStatus"] = await GetDeviceStatusAsync();
             collection["rebootInfo"] = await GetRebootInfoAsync();
 #endif
-            _deviceTwin.ReportProperties(collection);
+                }
+            };
 
-            return methodResult;
+            _deviceTwin.ReportProperties(collection);
+        }
+
+        private async Task<string> ReportAllDevicePropertiesMethodHandler(string jsonParam)
+        {
+            Debug.WriteLine("ReportAllDevicePropertiesMethodHandler");
+
+            ReportAllDeviceProperties();
+
+            return JsonConvert.SerializeObject(new { response = "success" });
         }
 
         //
