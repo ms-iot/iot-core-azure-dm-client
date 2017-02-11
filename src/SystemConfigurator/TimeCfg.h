@@ -17,7 +17,7 @@ class TimeCfg
 
 public:
     static TimeInfoResponse^ GetTimeInfo();
-    static void SetTimeInfo(IRequest^ request);
+    static void SetTimeInfo(SetTimeInfoRequest^ request);
 
 private:
     static void GetTimeInfo(TimeInfo& timeInfo);

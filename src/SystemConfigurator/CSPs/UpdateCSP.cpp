@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include <deque>
 #include "UpdateCSP.h"
 #include "MdmProvision.h"
 #include "..\SharedUtilities\Logger.h"

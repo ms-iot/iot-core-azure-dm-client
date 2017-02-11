@@ -14,4 +14,5 @@
 #include <regex>
 #include <ppltasks.h>
 #include <exception>
+#include <deque>
 #include <windows.h>
