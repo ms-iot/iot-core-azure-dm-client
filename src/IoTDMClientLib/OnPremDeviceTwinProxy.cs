@@ -20,7 +20,7 @@ namespace Microsoft.Devices.Management
             // Reconnect if needed
         }
 
-        void IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)
+        Task IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)
         {
             throw new NotImplementedException();
         }

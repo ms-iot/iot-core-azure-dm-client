@@ -12,7 +12,7 @@ namespace Microsoft.Devices.Management
     {
         void ReportProperties(Dictionary<string, object> collection);
 
-        void SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler);
+        Task SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler);
 
         // This API is called when the connection has expired (such as when SAS token has expired)
         void RefreshConnection();
