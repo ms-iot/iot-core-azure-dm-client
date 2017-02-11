@@ -259,6 +259,44 @@ IResponse^ HandleListApps(IRequest^ request)
     return ref new ListAppsResponse(ResponseStatus::Success, jsonMap);
 }
 
+std::string GetServiceUrl(int logicalId);
+std::string GetSASToken(int logicalId);
+
+IResponse^ HandleTpmGetServiceUrl(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+    try
+    {
+        uint32_t logicalDeviceId = dynamic_cast<TpmGetServiceUrlRequest^>(request)->LogicalDeviceId;
+        std::string serviceUrl = GetServiceUrl(logicalDeviceId);
+        auto serviceUrlW = Utils::MultibyteToWide(serviceUrl.c_str());
+        return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(serviceUrlW.c_str()), request->Tag);
+    }
+    catch (...)
+    {
+        TRACE(L"HandleTpmGetServiceUrl failed");
+        return ref new StringResponse(ResponseStatus::Failure, L"", request->Tag);
+    }
+}
+
+IResponse^ HandleTpmGetSASToken(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+    try
+    {
+        uint32_t logicalDeviceId = dynamic_cast<TpmGetSASTokenRequest^>(request)->LogicalDeviceId;
+        TRACEP(L"logicalDeviceId=", logicalDeviceId);
+        std::string sasToken = GetSASToken(logicalDeviceId);
+        auto sasTokenW = Utils::MultibyteToWide(sasToken.c_str());
+        return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(sasTokenW.c_str()), request->Tag);
+    }
+    catch (...)
+    {
+        TRACE(L"HandleTpmGetSASToken failed");
+        return ref new StringResponse(ResponseStatus::Failure, L"", request->Tag);
+    }
+}
+
 // Get request and produce a response
 IResponse^ ProcessCommand(IRequest^ request)
 {

@@ -125,44 +125,13 @@
     <Compile Include="IDeviceTwin.cs" />
     <Compile Include="OnPremDeviceTwinProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TpmDevice.cs" />
     <EmbeddedResource Include="Properties\IoTDMClient.rd.xml" />
   </ItemGroup>
   <ItemGroup>
     <SDKReference Include="WindowsIoT, Version=10.0.10586.0">
       <Name>Windows IoT Extensions for the UWP</Name>
     </SDKReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="DotNetty.Buffers">
-      <HintPath>..\..\external\AzureSDK\DotNetty.Buffers.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Codecs">
-      <HintPath>..\..\external\AzureSDK\DotNetty.Codecs.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Codecs.Mqtt">
-      <HintPath>..\..\external\AzureSDK\DotNetty.Codecs.Mqtt.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Common">
-      <HintPath>..\..\external\AzureSDK\DotNetty.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Handlers">
-      <HintPath>..\..\external\AzureSDK\DotNetty.Handlers.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Platform.UWP">
-      <HintPath>..\..\external\AzureSDK\DotNetty.Platform.UWP.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNetty.Transport">
-      <HintPath>..\..\external\AzureSDK\DotNetty.Transport.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Azure.Amqp.Uwp">
-      <HintPath>..\..\external\AzureSDK\Microsoft.Azure.Amqp.Uwp.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Azure.Devices.Client.UWP">
-      <HintPath>..\..\external\AzureSDK\Microsoft.Azure.Devices.Client.UWP.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Azure.Devices.Shared.UWP">
-      <HintPath>..\..\external\AzureSDK\Microsoft.Azure.Devices.Shared.UWP.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DMMessage\DMMessage.vcxproj">

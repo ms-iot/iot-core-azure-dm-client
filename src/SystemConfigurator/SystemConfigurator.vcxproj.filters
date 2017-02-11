@@ -149,6 +149,9 @@
     <ClCompile Include="CSPs\ClientCertificateInstallCSP.cpp">
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
+    <ClCompile Include="TpmSupport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
