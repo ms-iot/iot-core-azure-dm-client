@@ -1,6 +1,6 @@
 ## Install App
 
-The **Install App** operation is initiated by the device receiving the `microsoft.management.appInstall` method.
+The **Install App** operation is initiated by the device receiving the `microsoft.management.appInstall` method. The method starts the process of downloading and installing an Appx package along with its dependencies. The application is hosted in an Azure blob, access to which is provided to the client via the connection string, as specified below.
 
 ## Input Payload 
 Input payload contains Json according to this format:
