@@ -15,17 +15,39 @@ namespace IoTHubManager
             public CommandLineException(string message) : base(message) { }
         }
 
+        class Logger
+        {
+            public enum LogLevel
+            {
+                Minimal,
+                Normal,
+                Verbose,
+            }
+
+            public static LogLevel Level = LogLevel.Minimal;
+
+            public static void Log(LogLevel level, string message)
+            {
+                if (level > Logger.Level)
+                {
+                    return;
+                }
+                Console.WriteLine(message);
+            }
+        }
+
         class CommandLine
         {
+            public Logger.LogLevel LogLevel { get; private set; }
             public string OwnerConnectionString { get; private set; }
             public string DeviceName { get; private set; }
 
             public static void ShowUsage()
             {
-                Console.WriteLine("");
-                Console.WriteLine("Example:");
-                Console.WriteLine("    IoTHubManager.exe -OwnerConnectionString:<owner connection string> -CreateDevice:<name>");
-                Console.WriteLine("");
+                Logger.Log(Logger.LogLevel.Minimal, "");
+                Logger.Log(Logger.LogLevel.Minimal, "Example:");
+                Logger.Log(Logger.LogLevel.Minimal, "    IoTHubManager.exe -OwnerConnectionString:<owner connection string> -CreateDevice:<name>");
+                Logger.Log(Logger.LogLevel.Minimal, "");
             }
 
             public static CommandLine Parse(string[] args)
@@ -36,6 +58,8 @@ namespace IoTHubManager
                 }
 
                 CommandLine commandLine = new CommandLine();
+                commandLine.LogLevel = Logger.LogLevel.Minimal;
+
                 foreach (string arg in args)
                 {
                     string[] comps = arg.Split(':');
@@ -50,6 +74,25 @@ namespace IoTHubManager
                     else if (comps[0].Equals("-CreateDevice", StringComparison.OrdinalIgnoreCase))
                     {
                         commandLine.DeviceName = comps[1];
+                    }
+                    else if (comps[0].Equals("-LogLevel", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (comps[1].Equals("minimal", StringComparison.OrdinalIgnoreCase))
+                        {
+                            commandLine.LogLevel = Logger.LogLevel.Minimal;
+                        }
+                        else if (comps[1].Equals("normal", StringComparison.OrdinalIgnoreCase))
+                        {
+                            commandLine.LogLevel = Logger.LogLevel.Normal;
+                        }
+                        else if (comps[1].Equals("verbose", StringComparison.OrdinalIgnoreCase))
+                        {
+                            commandLine.LogLevel = Logger.LogLevel.Verbose;
+                        }
+                        else
+                        {
+                            throw new CommandLineException("Error: Invalid switch value: '" + comps[1]);
+                        }
                     }
                 }
 
@@ -108,12 +151,12 @@ namespace IoTHubManager
 
         static async Task<IEnumerable<string>> ListDevices(RegistryManager registryManager)
         {
-            Console.WriteLine("Device List:");
+            Logger.Log(Logger.LogLevel.Verbose, "Device List:");
             IEnumerable<Device> deviceIds = await registryManager.GetDevicesAsync(100);
             List<String> deviceNames = new List<string>();
             foreach (var deviceId in deviceIds)
             {
-                Console.WriteLine("-" + deviceId.Id);
+                Logger.Log(Logger.LogLevel.Verbose, "-" + deviceId.Id);
                 deviceNames.Add(deviceId.Id);
             }
             return deviceNames;
@@ -130,7 +173,7 @@ namespace IoTHubManager
             await registryManager.AddDeviceAsync(device);
 
             string deviceConnectionString = "HostName=" + hostName + ";DeviceId=" + deviceName + ";SharedAccessKey=" + primaryKey;
-            Console.WriteLine("Device Connection String = " + deviceConnectionString);
+            Logger.Log(Logger.LogLevel.Minimal, "ConnectionString=" + deviceConnectionString);
 
             return device;
         }
@@ -167,13 +210,16 @@ namespace IoTHubManager
             try
             {
                 commandLine = CommandLine.Parse(args);
+                Logger.Level = commandLine.LogLevel;
             }
             catch(CommandLineException e)
             {
-                Console.WriteLine(e.Message);
+                Logger.Log(Logger.LogLevel.Minimal, e.Message);
                 CommandLine.ShowUsage();
                 return 1;
             }
+
+            Logger.Log(Logger.LogLevel.Normal, "Command line parameters ok.");
 
             try
             {
@@ -181,10 +227,10 @@ namespace IoTHubManager
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception caught:");
+                Logger.Log(Logger.LogLevel.Minimal, "Exception caught:");
                 while (e != null)
                 {
-                    Console.WriteLine(e.Message);
+                    Logger.Log(Logger.LogLevel.Minimal, e.Message);
                     e = e.InnerException;
                 }
                 return 2;
