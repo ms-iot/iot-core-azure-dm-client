@@ -161,7 +161,7 @@ namespace IoTHubManager
             await ListDevices(registryManager);
         }
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             CommandLine commandLine = null;
             try
@@ -172,7 +172,7 @@ namespace IoTHubManager
             {
                 Console.WriteLine(e.Message);
                 CommandLine.ShowUsage();
-                return;
+                return 1;
             }
 
             try
@@ -187,7 +187,10 @@ namespace IoTHubManager
                     Console.WriteLine(e.Message);
                     e = e.InnerException;
                 }
+                return 2;
             }
+
+            return 0;
         }
     }
 }
