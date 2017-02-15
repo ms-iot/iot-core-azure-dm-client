@@ -16,11 +16,21 @@ namespace Toaster
 
         private readonly string DeviceConnectionString = ConnectionStringProvider.Value;
 
+        private void EnableDeviceManagementUI(bool enable)
+        {
+            this.buttonRestart.IsEnabled = enable;
+            this.buttonReset.IsEnabled = enable;
+            this.buttonCheckUpdates.IsEnabled = enable;
+        }
+
         public MainPage()
         {
             this.InitializeComponent();
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
+
+            // DM buttons will be enabled when we have created the DM client
+            EnableDeviceManagementUI(false);
             this.imageHot.Visibility = Visibility.Collapsed;
 
 #pragma warning disable 4014
@@ -28,6 +38,7 @@ namespace Toaster
 #pragma warning restore 4014
 
         }
+
         private async Task InitializeDeviceClientAsync()
         {
             // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
@@ -45,6 +56,8 @@ namespace Toaster
 
             // Create the DeviceManagementClient, the main entry point into device management
             this.deviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwinProxy, appRequestHandler);
+
+            EnableDeviceManagementUI(true);
 
             // Set the callback for desired properties update. The callback will be invoked
             // for all desired properties -- including those specific to device management

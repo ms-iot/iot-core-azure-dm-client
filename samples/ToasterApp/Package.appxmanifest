@@ -42,12 +42,6 @@
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
-      <Extensions>
-        <!--<uap:Extension Category="windows.appService" EntryPoint="AppServiceProvider.EchoService"> -->
-        <uap:Extension Category="windows.appService">
-          <uap3:AppService Name="com.microsoft.iot-dm" SupportsRemoteSystems="true"/>
-        </uap:Extension>
-      </Extensions>
     </Application>
   </Applications>
 

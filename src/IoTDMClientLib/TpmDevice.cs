@@ -73,14 +73,7 @@ namespace Microsoft.Devices.Management
 
         private async Task<IResponse> RunProxyAndGetResult(IRequest request)
         {
-            var result = await this.systemConfiguratorProxy.SendCommandAsync(request);
-
-            if (result.Status != Message.ResponseStatus.Success)
-            {
-                throw new Exception();
-            }
-
-            return result;
+            return await this.systemConfiguratorProxy.SendCommandAsync(request);
         }
 
     }

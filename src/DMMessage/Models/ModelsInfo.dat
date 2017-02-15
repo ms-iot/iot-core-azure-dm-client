@@ -24,7 +24,6 @@ MODEL_REQDEF(   TransferFile,               20, AzureFileTransferRequest,       
 MODEL_ALLDEF(   GetTimeInfo,                30, TimeInfoRequest,                    TimeInfoResponse )
 MODEL_REQDEF(   SetTimeInfo,                31, SetTimeInfoRequest,                 StatusCodeResponse )
 MODEL_REQDEF(   GetDeviceStatus,            40, GetDeviceStatusRequest,             StatusCodeResponse )
-// TPM Stuff:
 MODEL_REQDEF(   TpmGetServiceUrl,           41, TpmGetServiceUrlRequest,            StringResponse )
 MODEL_REQDEF(   TpmGetSASToken,             42, TpmGetSASTokenRequest,              StringResponse )
-
+MODEL_TAGONLY(  ErrorResponse,              43, StringResponse,                     StringResponse )

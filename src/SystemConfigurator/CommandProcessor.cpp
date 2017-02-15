@@ -308,10 +308,12 @@ IResponse^ ProcessCommand(IRequest^ request)
 #define MODEL_NODEF(A, B, C, D) case DMMessageKind::##A: { return Handle##A(request); }
 #define MODEL_REQDEF(A, B, C, D) MODEL_NODEF(A, B, C, D)
 #define MODEL_ALLDEF(A, B, C, D) MODEL_NODEF(A, B, C, D)
+#define MODEL_TAGONLY(A, B, C, D)
 #include "Models\ModelsInfo.dat"
 #undef MODEL_NODEF
 #undef MODEL_REQDEF
 #undef MODEL_ALLDEF
+#undef MODEL_TAGONLY
 
     default:
         TRACEP(L"Error: ", Utils::ConcatString(L"Unknown command: ", (uint32_t)request->Tag));
@@ -392,12 +394,11 @@ void Listen()
             IResponse^ response = ProcessCommand(request->MakeIRequest());
             response->Serialize()->WriteToNativeHandle(pipeHandle.Get());
         }
-        catch (const DMException&)
+        catch (const DMException& ex)
         {
-            // TODO: figure out how to respond with an error that can be meaningfully handled.
-            //       Is this problem fatal? So we could just die here...
             TRACE("DMExeption was thrown from ProcessCommand()...");
-            throw;
+            auto response = ref new StringResponse(ResponseStatus::Failure, ref new String(std::wstring(Utils::MultibyteToWide(ex.what())).c_str()), DMMessageKind::ErrorResponse);
+            response->Serialize()->WriteToNativeHandle(pipeHandle.Get());
         }
 
         // ToDo: How do we exit this loop gracefully?

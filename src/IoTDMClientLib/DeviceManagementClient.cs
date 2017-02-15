@@ -111,10 +111,6 @@ namespace Microsoft.Devices.Management
             // use C++ service to copy file to/from App LocalData
             var request = new Message.AzureFileTransferRequest(transferInfo);
             var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Status != Message.ResponseStatus.Success)
-            {
-                throw new Exception();
-            }
         }
 
         internal async Task<IDictionary<string, Message.AppInfo>> ListAppsAsync()
@@ -147,21 +143,13 @@ namespace Microsoft.Devices.Management
         internal async Task InstallAppAsync(Message.AppInstallInfo appInstallInfo)
         {
             var request = new Message.AppInstallRequest(appInstallInfo);
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Status != Message.ResponseStatus.Success)
-            {
-                throw new Exception();
-            }
+            await this._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         internal async Task UninstallAppAsync(Message.AppUninstallInfo appUninstallInfo)
         {
             var request = new Message.AppUninstallRequest(appUninstallInfo);
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Status != Message.ResponseStatus.Success)
-            {
-                throw new Exception();
-            }
+            await this._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         internal async Task<string> GetStartupForegroundAppAsync()
@@ -181,31 +169,19 @@ namespace Microsoft.Devices.Management
         internal async Task AddStartupAppAsync(Message.StartupAppInfo startupAppInfo)
         {
             var request = new Message.AddStartupAppRequest(startupAppInfo);
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Status != Message.ResponseStatus.Success)
-            {
-                throw new Exception();
-            }
+            await this._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         internal async Task RemoveStartupAppAsync(Message.StartupAppInfo startupAppInfo)
         {
             var request = new Message.RemoveStartupAppRequest(startupAppInfo);
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Status != Message.ResponseStatus.Success)
-            {
-                throw new Exception();
-            }
+            await this._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         internal async Task AppLifecycleAsync(Message.AppLifecycleInfo appInfo)
         {
             var request = new Message.AppLifecycleRequest(appInfo);
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            if (result.Status != Message.ResponseStatus.Success)
-            {
-                throw new Exception();
-            }
+            await this._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         private void ReportImmediateRebootStatus(bool rebootSuccessful)
