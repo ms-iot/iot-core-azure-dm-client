@@ -84,9 +84,9 @@ namespace CommProxyTests
                 0,
                 nullptr);
 
-            inputBlob->WriteToNativeHandle(pipeHandleWrite.Get());
+            inputBlob->WriteToNativeHandle(pipeHandleWrite.Get64());
 
-            return Blob::ReadFromNativeHandle(pipeHandleRead.Get());
+            return Blob::ReadFromNativeHandle(pipeHandleRead.Get64());
         }
 
         TEST_METHOD(TestRequestRoundTripThroughNativeHandle)

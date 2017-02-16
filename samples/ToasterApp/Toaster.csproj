@@ -16,6 +16,11 @@
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <PackageCertificateThumbprint>11DE330A6466060E175F0DA89754E06577052FFA</PackageCertificateThumbprint>
+    <PackageCertificateKeyFile>Toaster_StoreKey.pfx</PackageCertificateKeyFile>
+    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxBundle>Always</AppxBundle>
+    <AppxBundlePlatforms>x86|arm</AppxBundlePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -93,6 +98,7 @@
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
     <None Include="project.json" />
+    <None Include="Toaster_StoreKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App.xaml.cs">
@@ -117,6 +123,7 @@
     <Content Include="Assets\gear.png" />
     <Content Include="Assets\hot.png" />
     <Content Include="Assets\toaster.png" />
+    <None Include="Package.StoreAssociation.xml" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -128,13 +135,13 @@
     <Content Include="..\..\src\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' == 'x86'">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\src\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' == 'x86'">
+    <Content Include="..\..\src\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' == 'x86' And '$(Configuration)' == 'Debug'">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\src\$(Platform)\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' != 'x86'">
+    <Content Include="..\..\src\$(Platform)\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\src\$(Platform)\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' != 'x86'">
+    <Content Include="..\..\src\$(Platform)\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -135,6 +135,7 @@ namespace Utils
         }
 
         HANDLE Get() { return _handle; }
+        uint64_t Get64() { return reinterpret_cast<uint64_t>(_handle); }
         HANDLE* GetAddress() { return &_handle; }
 
         BOOL Close()
