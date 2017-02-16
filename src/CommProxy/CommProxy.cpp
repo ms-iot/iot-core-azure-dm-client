@@ -56,11 +56,11 @@ Blob^ GetResponseFromSystemConfigurator(Blob^ request, const wchar_t* pipeName)
 
     TRACE("Writing request to pipe...");
 
-    request->WriteToNativeHandle(pipeHandle.Get());
+    request->WriteToNativeHandle(pipeHandle.Get64());
 
     TRACE("Reading response from pipe...");
 
-    Blob^ response = Blob::ReadFromNativeHandle(pipeHandle.Get());
+    Blob^ response = Blob::ReadFromNativeHandle(pipeHandle.Get64());
 
     TRACE("Done writing and reading.");
 
@@ -76,7 +76,7 @@ int main(Platform::Array<Platform::String^>^ args)
     {
         TRACE("Reading request from stdin...");
 
-        Blob^ request = Blob::ReadFromNativeHandle(stdinHandle.Get());
+        Blob^ request = Blob::ReadFromNativeHandle(stdinHandle.Get64());
 
         try
         {
@@ -84,12 +84,12 @@ int main(Platform::Array<Platform::String^>^ args)
 
             Blob^ response = GetResponseFromSystemConfigurator(request, PipeName);
 
-            response->WriteToNativeHandle(stdoutHandle.Get());
+            response->WriteToNativeHandle(stdoutHandle.Get64());
         }
         catch (Exception^ ex)
         {
             auto response = ref new StringResponse(ResponseStatus::Failure, ex->Message, DMMessageKind::ErrorResponse);
-            response->Serialize()->WriteToNativeHandle(stdoutHandle.Get());
+            response->Serialize()->WriteToNativeHandle(stdoutHandle.Get64());
         }
         // Return code 0 means the caller should get the output from the output stream
         return 0;

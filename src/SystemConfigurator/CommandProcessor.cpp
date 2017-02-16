@@ -384,7 +384,7 @@ void Listen()
         pipeConnection.Connect(pipeHandle.Get());
         TRACE("Client connected...");
 
-        auto request = Blob::ReadFromNativeHandle(pipeHandle.Get());
+        auto request = Blob::ReadFromNativeHandle(pipeHandle.Get64());
         TRACE("Request received...");
         TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)request->Tag));
         TRACEP(L"    ", Utils::ConcatString(L"request version:", request->Version));
@@ -392,13 +392,13 @@ void Listen()
         try
         {
             IResponse^ response = ProcessCommand(request->MakeIRequest());
-            response->Serialize()->WriteToNativeHandle(pipeHandle.Get());
+            response->Serialize()->WriteToNativeHandle(pipeHandle.Get64());
         }
         catch (const DMException& ex)
         {
             TRACE("DMExeption was thrown from ProcessCommand()...");
             auto response = ref new StringResponse(ResponseStatus::Failure, ref new String(std::wstring(Utils::MultibyteToWide(ex.what())).c_str()), DMMessageKind::ErrorResponse);
-            response->Serialize()->WriteToNativeHandle(pipeHandle.Get());
+            response->Serialize()->WriteToNativeHandle(pipeHandle.Get64());
         }
 
         // ToDo: How do we exit this loop gracefully?

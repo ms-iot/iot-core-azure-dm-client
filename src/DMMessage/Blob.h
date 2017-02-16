@@ -41,10 +41,10 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         static Blob^ CreateFromByteArray(const Array<uint8_t>^ bytes);
 
         // Serialization
-        static Blob^ ReadFromNativeHandle(IntPtr handle);
+        static Blob^ ReadFromNativeHandle(uint64_t handle);
         static IAsyncOperation<Blob^>^ ReadFromIInputStreamAsync(IInputStream^ iistream);
 
-        void WriteToNativeHandle(IntPtr handle);
+        void WriteToNativeHandle(uint64_t handle);
         IAsyncAction^ WriteToIOutputStreamAsync(IOutputStream^ iostream);
 
         // Parsing

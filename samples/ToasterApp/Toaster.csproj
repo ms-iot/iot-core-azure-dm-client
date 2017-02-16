@@ -128,13 +128,13 @@
     <Content Include="..\..\src\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' == 'x86'">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\src\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' == 'x86'">
+    <Content Include="..\..\src\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' == 'x86' And '$(Configuration)' == 'Debug'">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\src\$(Platform)\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' != 'x86'">
+    <Content Include="..\..\src\$(Platform)\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\src\$(Platform)\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' != 'x86'">
+    <Content Include="..\..\src\$(Platform)\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
