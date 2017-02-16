@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:iot="http://schemas.microsoft.com/appx/manifest/iot/windows10" xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" IgnorableNamespaces="uap mp iot uap3">
-  <Identity Name="23983CETAthensQuality.IoTToasterSample" Publisher="CN=43A90DFA-A03E-4002-A434-F4B3FCCACC1D" Version="1.1.3.0" />
-  <mp:PhoneIdentity PhoneProductId="bc727cf4-0e81-4cf2-b552-59f25be561db" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+  <Identity Name="23983CETAthensQuality.IoTToasterSample" Publisher="CN=9713EC0E-538A-438A-9E17-2BA14860B20D" Version="1.1.3.0" />
+  <mp:PhoneIdentity PhoneProductId="AA3E03EF-BB6E-498E-B3B4-692D4E982198" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>IoTToasterSample</DisplayName>
     <PublisherDisplayName>CET IoT Core Quality</PublisherDisplayName>
