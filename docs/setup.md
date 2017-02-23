@@ -27,6 +27,7 @@ To leverage these items on your IotCore device, follow these steps:
 1. Setup your IotCore device using `IoT Dashboard`
 1. Download the [dm-proto-private code](https://github.com/ms-iot/dm-proto-private) from github and open `IoTDM.sln` in Visual Studio
     + *[until TPM implementation]* Update samples\Toaster\ConnectionStringProvider.cs to use appropriate IotHub device connection string
+1. Configure the Toaster project as the StartUp project by selecting Toaster in the Solution Explorer and selecting `Set as StartUp Project` in the Project  menu (this option is also available in the Solution Explorer's right click context menu).
 1. Set the Configuration to x86 and `Build > Rebuild Solution`
 1. Set the Configuration as required by your device and `Build > Rebuild Solution`
 1. Deploy to your device by selecting Remote Machine, entering your device's IP address (or name), and `Build > Deploy Solution`.
