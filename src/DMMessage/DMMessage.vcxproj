@@ -92,6 +92,7 @@
     <ClInclude Include="Models\AppInstall.h" />
     <ClInclude Include="Models\AppLifecycle.h" />
     <ClInclude Include="Models\AppUninstall.h" />
+    <ClInclude Include="Models\CertificateConfiguration.h" />
     <ClInclude Include="Models\CheckForUpdates.h" />
     <ClInclude Include="Models\FileTransfer.h" />
     <ClInclude Include="Models\ListApps.h" />
