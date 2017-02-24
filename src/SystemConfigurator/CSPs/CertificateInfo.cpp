@@ -160,3 +160,30 @@ void CertificateInfo::AddTemplateName(const std::wstring& certPath, const std::w
 
     MdmProvision::RunAddData(path, value);
 }
+
+void CertificateInfo::AddCertificate(const std::wstring& path, const std::wstring& hash, const std::wstring& certificateInBase64)
+{
+    TRACE(__FUNCTION__);
+
+    wstring fullPath = path;
+    fullPath += L"/";
+    fullPath += hash;
+    fullPath += L"/EncodedCertificate";
+
+    TRACEP(L"Adding : ", fullPath.c_str());
+
+    MdmProvision::RunAddData(fullPath, certificateInBase64);
+}
+
+void CertificateInfo::DeleteCertificate(const wstring& path, const wstring& hash)
+{
+    TRACE(__FUNCTION__);
+
+    wstring fullPath = path;
+    fullPath += L"/";
+    fullPath += hash;
+
+    TRACEP(L"Deleting : ", fullPath.c_str());
+
+    MdmProvision::RunDelete(path);
+}

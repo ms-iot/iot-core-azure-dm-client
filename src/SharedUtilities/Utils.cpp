@@ -25,7 +25,7 @@ namespace Utils
 {
     wstring GetSidForAccount(const wchar_t* userAccount)
     {
-        std::wstring sidString = L"";
+        wstring sidString = L"";
 
         BYTE userSidBytes[SECURITY_MAX_SID_SIZE] = {};
         PSID userSid = reinterpret_cast<PSID>(userSidBytes);
@@ -391,7 +391,7 @@ namespace Utils
         }
     }
 
-    void ReadXmlStructData(const std::wstring& resultSyncML, Utils::ELEMENT_HANDLER handler)
+    void ReadXmlStructData(const wstring& resultSyncML, Utils::ELEMENT_HANDLER handler)
     {
         DWORD bufferSize = static_cast<DWORD>(resultSyncML.size() * sizeof(resultSyncML[0]));
         char* buffer = (char*)GlobalAlloc(GMEM_FIXED, bufferSize);
@@ -522,7 +522,7 @@ namespace Utils
         return GetEnvironmentVariable(L"SystemRoot");
     }
 
-    std::wstring GetProgramDataFolder()
+    wstring GetProgramDataFolder()
     {
         return GetEnvironmentVariable(L"ProgramData");
     }
@@ -671,6 +671,66 @@ namespace Utils
 
         TRACEP("Command return Code: ", returnCode);
         TRACEP("Command output : ", output.c_str());
+    }
+
+    void LoadFile(const wstring& fileName, vector<char>& buffer)
+    {
+        TRACE(__FUNCTION__);
+        TRACEP(L"fileName = ", fileName.c_str());
+
+        ifstream file(fileName, ios::in | ios::binary | ios::ate);    string line;
+        if (!file.is_open())
+        {
+            throw new DMException("Error: failed to open binary file!");
+        }
+
+        buffer.resize(static_cast<unsigned int>(file.tellg()));
+        file.seekg(0, ios::beg);
+        if (!file.read(buffer.data(), buffer.size()))
+        {
+            throw new DMException("Error: failed to read file!");
+        }
+        file.close();
+    }
+
+    wstring ToBase64(unsigned char* buffer, size_t bufferSize)
+    {
+        TRACE(__FUNCTION__);
+
+        wstring base64;
+        DWORD destinationSize = 0;
+        if (!CryptBinaryToString(buffer, bufferSize, CRYPT_STRING_BASE64, nullptr, &destinationSize))
+        {
+            throw new DMException("Error: cannot obtain the required size to encode buffer into base64.");
+        }
+
+        wchar_t* destinationBuffer = static_cast<LPTSTR> (HeapAlloc(GetProcessHeap(), HEAP_NO_SERIALIZE, destinationSize * sizeof(wchar_t)));
+        if (!destinationBuffer)
+        {
+            throw new DMException("Error: cannot allocate buffer to hold encode buffer.");
+        }
+
+        BOOL result = CryptBinaryToString(buffer, bufferSize, CRYPT_STRING_BASE64, destinationBuffer, &destinationSize);
+        if (result)
+        {
+            base64 = wstring(destinationBuffer, destinationSize);
+        }
+        HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, destinationBuffer);
+        if (!result)
+        {
+            throw new DMException("Error: cannot convert binary stream to base64.");
+        }
+        return base64;
+    }
+
+    wstring FileToBase64(const wstring& fileName)
+    {
+        TRACE(__FUNCTION__);
+        TRACEP(L"fileName = ", fileName.c_str());
+
+        vector<char> buffer;
+        LoadFile(fileName, buffer);
+        return ToBase64(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size());
     }
 
 }

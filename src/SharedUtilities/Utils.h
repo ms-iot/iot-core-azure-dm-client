@@ -160,4 +160,8 @@ namespace Utils
 
         HANDLE _handle;
     };
+
+    void LoadFile(const std::wstring& fileName, std::vector<char>& buffer);
+    std::wstring ToBase64(unsigned char* buffer, size_t bufferSize);
+    std::wstring FileToBase64(const std::wstring& fileName);
 }

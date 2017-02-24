@@ -74,7 +74,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>mdmlocalmanagement.lib;xmllite.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>crypt32.lib;mdmlocalmanagement.lib;xmllite.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
@@ -121,6 +121,7 @@
     <ClInclude Include="AppCfg.h" />
     <ClInclude Include="CommandProcessor.h" />
     <ClInclude Include="CSPs\CertificateInfo.h" />
+    <ClInclude Include="CSPs\CertificateManagement.h" />
     <ClInclude Include="CSPs\CertificateStoreCSP.h" />
     <ClInclude Include="CSPs\ClientCertificateInstallCSP.h" />
     <ClInclude Include="CSPs\CustomDeviceUiCsp.h" />
@@ -144,6 +145,7 @@
     <ClCompile Include="AppCfg.cpp" />
     <ClCompile Include="CommandProcessor.cpp" />
     <ClCompile Include="CSPs\CertificateInfo.cpp" />
+    <ClCompile Include="CSPs\CertificateManagement.cpp" />
     <ClCompile Include="CSPs\CertificateStoreCSP.cpp" />
     <ClCompile Include="CSPs\ClientCertificateInstallCSP.cpp" />
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp" />

@@ -2,6 +2,8 @@
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMRequest.h"
 #include "..\SharedUtilities\SecurityAttributes.h"
+#include "CSPs\MdmProvision.h"
+#include "CSPs\CertificateManagement.h"
 #include "CSPs\RebootCSP.h"
 #include "CSPs\EnterpriseModernAppManagementCSP.h"
 #include "CSPs\DeviceStatusCSP.h"
@@ -19,7 +21,7 @@ using namespace Windows::Data::Json;
 
 IResponse^ HandleFactoryReset(IRequest^ request)
 {
-    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetDeviceStatus(IRequest^ request)
@@ -54,6 +56,62 @@ IResponse^ HandleSetTimeInfo(IRequest^ request)
     }
 }
 
+IResponse^ HandleGetCertificateConfiguration(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        CertificateConfiguration^ configuration = ref new CertificateConfiguration();
+
+        // ToDo: use constants?
+        configuration->certificateStore_CA_System = ref new String(MdmProvision::RunGetString(L"./Vendor/MSFT/CertificateStore/CA/System").c_str());
+        configuration->certificateStore_Root_System = ref new String(MdmProvision::RunGetString(L"./Vendor/MSFT/CertificateStore/Root/System").c_str());
+        configuration->certificateStore_My_User = ref new String(MdmProvision::RunGetString(L"./Vendor/MSFT/CertificateStore/My/User").c_str());
+        configuration->certificateStore_My_System = ref new String(MdmProvision::RunGetString(L"./Vendor/MSFT/CertificateStore/My/System").c_str());
+
+        configuration->rootCATrustedCertificates_Root = ref new String(MdmProvision::RunGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/Root").c_str());
+        configuration->rootCATrustedCertificates_CA = ref new String(MdmProvision::RunGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/CA").c_str());
+        configuration->rootCATrustedCertificates_TrustedPublisher = ref new String(MdmProvision::RunGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher").c_str());
+        configuration->rootCATrustedCertificates_TrustedPeople = ref new String(MdmProvision::RunGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople").c_str());
+
+        return ref new GetCertificateConfigurationResponse(ResponseStatus::Success, configuration);
+    }
+    catch (DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleGetCertificateConfiguration: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
+IResponse^ HandleSetCertificateConfiguration(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        auto setCertificateConfigurationRequest = dynamic_cast<SetCertificateConfigurationRequest^>(request);
+        CertificateConfiguration^ configuration = setCertificateConfigurationRequest->Configuration;
+
+        CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/CA/System", configuration->certificateStore_CA_System->Data());
+        CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/Root/System", configuration->certificateStore_Root_System->Data());
+        CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/My/User", configuration->certificateStore_My_User->Data());
+        CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/My/System", configuration->certificateStore_My_System->Data());
+
+        CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/Root", configuration->rootCATrustedCertificates_Root->Data());
+        CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/CA", configuration->rootCATrustedCertificates_CA->Data());
+        CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher", configuration->rootCATrustedCertificates_TrustedPublisher->Data());
+        CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople", configuration->rootCATrustedCertificates_TrustedPeople->Data());
+
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleSetCertificateConfiguration: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
 IResponse^ HandleGetRebootInfo(IRequest^ request)
 {
     throw DMExceptionWithErrorCode("Unsupported request: ", (uint32_t)request->Tag);
@@ -75,11 +133,13 @@ IResponse^ HandleGetTimeInfo(IRequest^ request)
 {
     return TimeCfg::GetTimeInfo();
 }
+
 IResponse^ HandleImmediateReboot(IRequest^ request)
 {
     RebootCSP::ExecRebootNow();
     return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
+
 IResponse^ HandleCheckUpdates(IRequest^ request)
 {
     return ref new CheckForUpdatesResponse(ResponseStatus::Success, true);
@@ -261,6 +321,7 @@ IResponse^ HandleListApps(IRequest^ request)
 }
 
 std::string GetServiceUrl(int logicalId);
+
 std::string GetSASToken(int logicalId);
 
 IResponse^ HandleTpmGetServiceUrl(IRequest^ request)
