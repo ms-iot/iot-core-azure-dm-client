@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -66,6 +67,16 @@ namespace DMDashboard
             {
                 element.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private void OnExpandAzureStorage(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(AzureStorageGrid);
+        }
+
+        private void OnExpandCertificates(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(CertificateStackPanel);
         }
 
         private void OnExpandTimeInfo(object sender, RoutedEventArgs e)
@@ -184,6 +195,30 @@ namespace DMDashboard
             ReportedDailyRebootTime.Text = rebootInfo.dailyRebootTime.ToString();
         }
 
+        private void CertificateInfoToUI(string hashesString, ListView targetListView)
+        {
+            if (String.IsNullOrEmpty(hashesString))
+            {
+                return;
+            }
+            string[] hashes = hashesString.Split('/');
+            Array.Sort<string>(hashes);
+            targetListView.ItemsSource = hashes;
+        }
+
+        private void CertificatesInfoToUI(Microsoft.Devices.Management.Certificates certificatesInfo)
+        {
+            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_CA, ReportedRootCATrustedCertificates_CA);
+            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_Root, ReportedRootCATrustedCertificates_Root);
+            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_TrustedPublisher, ReportedRootCATrustedCertificates_TrustedPublisher);
+            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_TrustedPeople, ReportedRootCATrustedCertificates_TrustedPeople);
+
+            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_CA_System, ReportedCertificateStore_CA_System);
+            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_Root_System, ReportedCertificateStore_Root_System);
+            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_My_User, ReportedCertificateStore_My_User);
+            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_My_System, ReportedCertificateStore_My_System);
+        }
+
         private async void ReadDTReported()
         {
             DeviceTwinData deviceTwinData = await _deviceTwin.GetDeviceTwinData();
@@ -211,6 +246,11 @@ namespace DMDashboard
                 {
                     Microsoft.Devices.Management.TimeInfo.GetResponse timeInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.TimeInfo.GetResponse>(jsonProp.Value.ToString());
                     TimeInfoModelToUI(timeInfo);
+                }
+                if (jsonProp.Name == "certificates")
+                {
+                    Microsoft.Devices.Management.Certificates certificatesInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.Certificates>(jsonProp.Value.ToString());
+                    CertificatesInfoToUI(certificatesInfo);
                 }
                 else if (jsonProp.Name == "deviceStatus")
                 {
@@ -345,12 +385,11 @@ namespace DMDashboard
             return rebootInfo;
         }
 
-        private void SetDesired(PropertiesRoot root)
+        private void SetDesired(string sectionString)
         {
-            PropertiesRoot propertiesRoot = new PropertiesRoot();
-
-            string jsonString = "{ \"properties\" : " + JsonConvert.SerializeObject(root) + "}";
-
+            string prefix = "{ \"properties\" : {\"desired\":{\"microsoft\":{\"management\":{";
+            string suffix = "}}}}}";
+            string jsonString = prefix + sectionString + suffix; // "{ \"properties\" : " + JsonConvert.SerializeObject(root) + "}";
             Debug.WriteLine("---- Desired Properties ----");
             Debug.WriteLine(jsonString);
 
@@ -360,29 +399,60 @@ namespace DMDashboard
 
         private void OnSetTimeInfo(object sender, RoutedEventArgs e)
         {
-            PropertiesRoot root = new PropertiesRoot();
-            root.desired.microsoft.management.timeInfo = UIToTimeInfoModel();
-            SetDesired(root);
+            SetDesired(UIToTimeInfoModel().ToJson());
+        }
+
+        private ExternalStorage UIToExternalStorageModel()
+        {
+            ExternalStorage externalStorage = new ExternalStorage();
+            externalStorage.connectionString = AzureStorageConnectionString.Text;
+            externalStorage.container = AzureStorageContainerName.Text;
+            return externalStorage;
+        }
+
+        private void OnSetExternalStorageInfo(object sender, RoutedEventArgs e)
+        {
+            SetDesired(UIToExternalStorageModel().ToJson());
+        }
+
+        private Certificates.CertificateConfiguration UIToCertificateConfiguration()
+        {
+            Certificates.CertificateConfiguration certificateConfiguration = new Certificates.CertificateConfiguration();
+            certificateConfiguration.rootCATrustedCertificates_Root = RootCATrustedCertificates_Root.FileNamesString;
+            certificateConfiguration.rootCATrustedCertificates_CA = RootCATrustedCertificates_CA.FileNamesString;
+            certificateConfiguration.rootCATrustedCertificates_TrustedPublisher = RootCATrustedCertificates_TrustedPublisher.FileNamesString;
+            certificateConfiguration.rootCATrustedCertificates_TrustedPeople = RootCATrustedCertificates_TrustedPeople.FileNamesString;
+            certificateConfiguration.certificateStore_CA_System = CertificateStore_CA_System.FileNamesString;
+            certificateConfiguration.certificateStore_Root_System = CertificateStore_Root_System.FileNamesString;
+            certificateConfiguration.certificateStore_My_User = CertificateStore_My_User.FileNamesString;
+            certificateConfiguration.certificateStore_My_System = CertificateStore_My_System.FileNamesString;
+            return certificateConfiguration;
+        }
+
+        private void OnSetCertificateConfiguration(object sender, RoutedEventArgs e)
+        {
+            SetDesired(UIToCertificateConfiguration().ToJson());
         }
 
         private void OnSetRebootInfo(object sender, RoutedEventArgs e)
         {
-            PropertiesRoot root = new PropertiesRoot();
-            root.desired.microsoft.management.rebootInfo = UIToRebootInfoModel();
-            SetDesired(root);
+            SetDesired(UIToRebootInfoModel().ToJson());
         }
 
         private void OnSetAllDesiredProperties(object sender, RoutedEventArgs e)
         {
-            PropertiesRoot root = new PropertiesRoot();
-            root.desired.microsoft.management.timeInfo = UIToTimeInfoModel();
-            root.desired.microsoft.management.rebootInfo = UIToRebootInfoModel();
-            SetDesired(root);
+            StringBuilder json = new StringBuilder();
+
+            json.Append(UIToTimeInfoModel().ToJson());
+            json.Append(",");
+            json.Append(UIToExternalStorageModel().ToJson());
+            json.Append(",");
+            json.Append(UIToCertificateConfiguration().ToJson());
+            json.Append(",");
+            json.Append(UIToRebootInfoModel().ToJson());
+
+            SetDesired(json.ToString());
         }
-
-        private RegistryManager _registryManager;
-        private DeviceTwinAndMethod _deviceTwin;
-
 
         private void OnExpandAppInstall(object sender, RoutedEventArgs e)
         {
@@ -506,5 +576,13 @@ namespace DMDashboard
             var jo = JsonConvert.DeserializeObject(json);
             DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.appInstall", json, new TimeSpan(0, 0, 30), cancellationToken);
         }
+
+        private void OnExpandAzureStorageExplorer(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(AzureStorageExplorer);
+        }
+
+        private RegistryManager _registryManager;
+        private DeviceTwinAndMethod _deviceTwin;
     }
 }

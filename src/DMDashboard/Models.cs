@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json;
 
 namespace Microsoft.Devices.Management
 {
@@ -9,6 +10,11 @@ namespace Microsoft.Devices.Management
         public DateTime lastRebootCmdTime;
         public DateTime singleRebootTime;
         public DateTime dailyRebootTime;
+
+        public string ToJson()
+        {
+            return "\"rebootInfo\" : " + JsonConvert.SerializeObject(this);
+        }
     }
 
     namespace TimeInfo
@@ -36,6 +42,11 @@ namespace Microsoft.Devices.Management
             public string TimeZoneStandardName;
             public long TimeZoneBias;
             public string NtpServer;
+
+            public string ToJson()
+            {
+                return "\"timeInfo\" : " + JsonConvert.SerializeObject(this);
+            }
         }
     }
 
@@ -52,39 +63,38 @@ namespace Microsoft.Devices.Management
         public long batteryRuntime;
     }
 
-    class DesiredManagementProperties
+    class ExternalStorage
     {
-        public TimeInfo.SetParams timeInfo;
-        public RebootInfo rebootInfo;
-    }
+        public string connectionString;
+        public string container;
 
-    class DesiredMicrosoftProperties
-    {
-        public DesiredManagementProperties management;
-
-        public DesiredMicrosoftProperties()
+        public string ToJson()
         {
-            management = new DesiredManagementProperties();
+            return "\"externalStorage\" : " + JsonConvert.SerializeObject(this);
         }
     }
 
-    class DesiredProperties
+    class Certificates
     {
-        public DesiredMicrosoftProperties microsoft;
-
-        public DesiredProperties()
+        public class CertificateConfiguration
         {
-            microsoft = new DesiredMicrosoftProperties();
-        }
-    }
+            public string rootCATrustedCertificates_Root;
+            public string rootCATrustedCertificates_CA;
+            public string rootCATrustedCertificates_TrustedPublisher;
+            public string rootCATrustedCertificates_TrustedPeople;
+            public string certificateStore_CA_System;
+            public string certificateStore_Root_System;
+            public string certificateStore_My_User;
+            public string certificateStore_My_System;
 
-    class PropertiesRoot
-    {
-        public DesiredProperties desired;
-
-        public PropertiesRoot()
-        {
-            desired = new DesiredProperties();
+            public string ToJson()
+            {
+                return "\"certificates\" : " + JsonConvert.SerializeObject(this);
+            }
         }
+
+        public uint Tag;
+        public uint Status;
+        public CertificateConfiguration Configuration;
     }
 }

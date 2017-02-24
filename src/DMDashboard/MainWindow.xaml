@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DMDashboard"
         mc:Ignorable="d"
-        Title="MainWindow" Height="700" Width="1100">
+        Title="MainWindow" Height="700" Width="1260">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -34,7 +34,7 @@
         <Grid Grid.Row="1" Grid.Column="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="210"/>
-                <ColumnDefinition Width="800"/>
+                <ColumnDefinition Width="1060"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Row="0" Grid.Column="0">
                 <Grid.RowDefinitions>
@@ -48,6 +48,171 @@
             </Grid>
             <ScrollViewer Grid.Row="0" Grid.Column="1">
                 <StackPanel Orientation="Vertical" x:Name="ConnectedProperties" IsEnabled="False" Grid.RowSpan="2">
+
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Azure Storage" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandAzureStorage" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid x:Name="AzureStorageGrid" Visibility="Visible">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="400"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3">Connection String</TextBlock>
+                        <Border Grid.Row="1" Grid.Column="1" Margin="3" Background="#F8F8F8">
+                            <TextBox x:Name="AzureStorageConnectionString" HorizontalAlignment="Stretch" Text="DefaultEndpointsProtocol=https;AccountName=gmilekastore00;AccountKey=J3Gr0Hz2HZR/OMxCur2oXkIp/V8+N5k5JNgRwlrZcSGtw7u6TFqJ2IkMbA6VOwnji02PnW4mKDWU96nFGVeAmQ==;" />
+                        </Border>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" >Container Name</TextBlock>
+                        <Border Grid.Row="2" Grid.Column="1" Margin="3" Background="#F8F8F8">
+                            <TextBox x:Name="AzureStorageContainerName" HorizontalAlignment="Stretch" Text="certificates"/>
+                        </Border>
+
+                        <Button Grid.Row="3" Grid.Column="1" Margin="3" Content="Set External Storage Info" Click="OnSetExternalStorageInfo" />
+
+                    </Grid>
+
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Certificates" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandCertificates" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <StackPanel x:Name="CertificateStackPanel" Orientation="Vertical" Visibility="Visible">
+                        <TextBlock Margin="3,10,3,3">./Device/Vendor/MSFT/RootCATrustedCertificates</TextBlock>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="400"/>
+                                <ColumnDefinition Width="400"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Margin="20,3,3,3">Root</TextBlock>
+                            <ListView Grid.Row="2" Grid.Column="2" Margin="3" Height="150" VerticalAlignment="Top" 
+                                                        x:Name="ReportedRootCATrustedCertificates_Root"/>
+                            <local:CertificateSelector Grid.Row="2" Grid.Column="1"
+                                                       x:Name="RootCATrustedCertificates_Root"
+                                                       ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                       ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       FileNamesString=""/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Margin="20,3,3,3">CA</TextBlock>
+                            <ListView Grid.Row="3" Grid.Column="2" Margin="3" Height="150" VerticalAlignment="Top" 
+                                                        x:Name="ReportedRootCATrustedCertificates_CA"/>
+                            <local:CertificateSelector Grid.Row="3" Grid.Column="1"
+                                                       x:Name="RootCATrustedCertificates_CA"
+                                                       ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                       ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       FileNamesString=""/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Margin="20,3,3,3">TrustedPublisher</TextBlock>
+                            <ListView Grid.Row="4" Grid.Column="2" Margin="3" Height="150" VerticalAlignment="Top" 
+                                                        x:Name="ReportedRootCATrustedCertificates_TrustedPublisher"/>
+                            <local:CertificateSelector Grid.Row="4" Grid.Column="1"
+                                                       x:Name="RootCATrustedCertificates_TrustedPublisher"
+                                                       ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                       ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       FileNamesString=""/>
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Margin="20,3,3,3">TrustedPeople</TextBlock>
+                            <ListView Grid.Row="5" Grid.Column="2" Margin="3" Height="150" VerticalAlignment="Top" 
+                                                        x:Name="ReportedRootCATrustedCertificates_TrustedPeople"/>
+                            <local:CertificateSelector Grid.Row="5" Grid.Column="1"
+                                                       x:Name="RootCATrustedCertificates_TrustedPeople"
+                                                       ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                       ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       FileNamesString=""/>
+                        </Grid>
+                        <TextBlock Margin="3,10,3,3">./Vendor/MSFT/CertificateStore</TextBlock>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="400"/>
+                                <ColumnDefinition Width="400"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Margin="20,3,3,3">CA/System</TextBlock>
+                            <ListView Grid.Row="2" Grid.Column="2" Margin="3" Height="150" VerticalAlignment="Top" 
+                                                        x:Name="ReportedCertificateStore_CA_System"/>
+                            <local:CertificateSelector Grid.Row="2" Grid.Column="1"
+                                                       x:Name="CertificateStore_CA_System"
+                                                       ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                       ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       FileNamesString=""/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Margin="20,3,3,3" >Root/System</TextBlock>
+                            <ListView Grid.Row="3" Grid.Column="2" Margin="3" Height="150" VerticalAlignment="Top" 
+                                                        x:Name="ReportedCertificateStore_Root_System"/>
+                            <local:CertificateSelector Grid.Row="3" Grid.Column="1"
+                                                       x:Name="CertificateStore_Root_System"
+                                                       ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                       ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       FileNamesString=""/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Margin="20,3,3,3" >My/User</TextBlock>
+                            <ListView Grid.Row="4" Grid.Column="2" Margin="3" Height="150" VerticalAlignment="Top" 
+                                                        x:Name="ReportedCertificateStore_My_User"/>
+                            <local:CertificateSelector Grid.Row="4" Grid.Column="1"
+                                                       x:Name="CertificateStore_My_User"
+                                                       ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                       ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       FileNamesString=""/>
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Margin="20,3,3,3" >My/System</TextBlock>
+                            <ListView Grid.Row="5" Grid.Column="2" Margin="3" Height="150" VerticalAlignment="Top" 
+                                                        x:Name="ReportedCertificateStore_My_System"/>
+                            <local:CertificateSelector Grid.Row="5" Grid.Column="1"
+                                                       x:Name="CertificateStore_My_System"
+                                                       ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                       ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       FileNamesString=""/>
+
+                            <Button Grid.Row="6" Grid.Column="1" Margin="3,20,3,3" Content="Set Certificate Configuration" Click="OnSetCertificateConfiguration" />
+                        </Grid>
+                    </StackPanel>
 
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                     <Grid>
@@ -69,8 +234,8 @@
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="270"/>
-                            <ColumnDefinition Width="270"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
@@ -135,8 +300,8 @@
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="270"/>
-                            <ColumnDefinition Width="270"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
@@ -234,8 +399,8 @@
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="270"/>
-                            <ColumnDefinition Width="270"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
@@ -260,8 +425,8 @@
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="270"/>
-                            <ColumnDefinition Width="270"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
@@ -299,8 +464,8 @@
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="270"/>
-                            <ColumnDefinition Width="270"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
@@ -379,7 +544,7 @@
                         <TextBlock Grid.Column="1" Margin="3" Text="Install App" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                         <Button Grid.Column="0" Click="OnExpandAppInstall" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
-                    <Grid x:Name="AppInstallGrid" Visibility="Visible">
+                    <Grid x:Name="AppInstallGrid" Visibility="Collapsed">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -396,37 +561,46 @@
                         </Grid.ColumnDefinitions>
 
                         <Label Grid.Row="0" Grid.Column="0">Azure Blob Connection String</Label>
-                        <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" x:Name="AppConnectionString" TextChanged="AppInstallButtonActivation"  HorizontalAlignment="Stretch"  />
+                        <Border Grid.Row="0" Grid.Column="1" Margin="3" Background="#F8F8F8">
+                            <TextBox Grid.ColumnSpan="2" x:Name="AppConnectionString" TextChanged="AppInstallButtonActivation"  HorizontalAlignment="Stretch"  />
+                        </Border>
 
                         <Label Grid.Row="1" Grid.Column="0">Azure Blob Container Name</Label>
-                        <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" x:Name="AppContainerName" TextChanged="AppInstallButtonActivation"  HorizontalAlignment="Stretch" />
+                        <Border Grid.Row="1" Grid.Column="1" Margin="3" Background="#F8F8F8">
+                            <TextBox Grid.ColumnSpan="2" x:Name="AppContainerName" TextChanged="AppInstallButtonActivation"  HorizontalAlignment="Stretch" />
+                        </Border>
 
                         <Label Grid.Row="2" Grid.Column="0">App Package Family Name</Label>
-                        <TextBox Grid.Row="2" Grid.Column="1" x:Name="AppPackageFamilyName" TextChanged="AppInstallButtonActivation" HorizontalAlignment="Stretch" />
+                        <Border Grid.Row="2" Grid.Column="1" Margin="3" Background="#F8F8F8">
+                            <TextBox x:Name="AppPackageFamilyName" TextChanged="AppInstallButtonActivation" HorizontalAlignment="Stretch" />
+                        </Border>
 
                         <Label Grid.Row="3" Grid.Column="0">App Package (*.appx)</Label>
-                        <TextBox Grid.Row="3" Grid.Column="1" x:Name="AppAppxPath" TextChanged="AppInstallButtonActivation" HorizontalAlignment="Stretch" />
-                        <Button Grid.Row="3" Grid.Column="2" Click="OnAppxBrowse" HorizontalAlignment="Stretch" >Browse</Button>
+                        <Border Grid.Row="3" Grid.Column="1" Margin="3" Background="#F8F8F8">
+                            <TextBox x:Name="AppAppxPath" TextChanged="AppInstallButtonActivation" HorizontalAlignment="Stretch" />
+                        </Border>
+                        <Button Grid.Row="3" Grid.Column="2" Margin="3" Click="OnAppxBrowse" HorizontalAlignment="Stretch" >Browse</Button>
 
                         <Label Grid.Row="4" Grid.Column="0">App Dependency Pacakge (*.appx)</Label>
-                        <TextBox Grid.Row="4" Grid.Column="1" x:Name="AppDep1AppxPath" HorizontalAlignment="Stretch" />
-                        <Button Grid.Row="4" Grid.Column="2" Click="OnDep1AppxBrowse" HorizontalAlignment="Stretch" >Browse</Button>
+                        <Border Grid.Row="4" Grid.Column="1" Margin="3" Background="#F8F8F8">
+                            <TextBox x:Name="AppDep1AppxPath" HorizontalAlignment="Stretch" />
+                        </Border>
+                        <Button Grid.Row="4" Grid.Column="2" Margin="3" Click="OnDep1AppxBrowse" HorizontalAlignment="Stretch" >Browse</Button>
 
                         <Label Grid.Row="5" Grid.Column="0">App Dependency Pacakge (*.appx)</Label>
-                        <TextBox Grid.Row="5" Grid.Column="1" x:Name="AppDep2AppxPath" HorizontalAlignment="Stretch" />
-                        <Button Grid.Row="5" Grid.Column="2" Click="OnDep2AppxBrowse" HorizontalAlignment="Stretch" >Browse</Button>
-
-                        <Button Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" Click="AppInstallAsync" HorizontalAlignment="Stretch" x:Name="AppInstallButton">Install App</Button>
-
+                        <Border Grid.Row="5" Grid.Column="1" Margin="3" Background="#F8F8F8">
+                            <TextBox x:Name="AppDep2AppxPath" HorizontalAlignment="Stretch" />
+                        </Border>
+                        <Button Grid.Row="5" Grid.Column="2" Margin="3" Click="OnDep2AppxBrowse" HorizontalAlignment="Stretch" >Browse</Button>
+                        <Button Grid.Row="6" Grid.Column="1" Margin="3" Click="AppInstallAsync" HorizontalAlignment="Stretch" x:Name="AppInstallButton">Install App</Button>
                     </Grid>
-
 
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="270"/>
-                            <ColumnDefinition Width="270"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -445,48 +619,56 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="0" Margin="5" FontSize="16" FontWeight="Bold" Text="Azure Storage" />
-            <Grid Grid.Row="1" Grid.Column="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Connection String"/>
-                <TextBox Grid.Row="0" Grid.Column="1" Margin="3" x:Name="StorageConnectionStringBox">
-                    <TextBox.Text>&lt;enter connection string&gt;</TextBox.Text>
-                </TextBox>
-            </Grid>
-            <Grid Grid.Row="2" Grid.Column="0">
+            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+                <Button Click="OnExpandAzureStorageExplorer" Margin="3" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Margin="5" FontSize="16" FontWeight="Bold" Text="Azure Storage Explorer" />
+            </StackPanel>
+            <Grid Grid.Row="1" Grid.Column="0" x:Name="AzureStorageExplorer" Visibility="Collapsed">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Button Grid.Row="0" Grid.Column="0" Margin="3" Content="List Containers" Click="OnListContainers" Width="200" HorizontalAlignment="Left"/>
-                <ListView Grid.Row="1" Grid.Column="0" Margin="3" x:Name="ContainersList" Width="200" HorizontalAlignment="Left" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Height="200"/>
-                <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="List Blobs" Click="OnListBlobs" Width="200" HorizontalAlignment="Left"/>
-                <ListView Grid.Row="1" Grid.Column="1" Margin="3" x:Name="BlobsList" HorizontalAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Height="200">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="200"/>
-                                    <ColumnDefinition Width="100"/>
-                                    <ColumnDefinition Width="500"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding Name}"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Type}"/>
-                                <TextBlock Grid.Column="2" Text="{Binding Uri}"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                <Grid Grid.Row="0" Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Connection String"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Margin="3" x:Name="StorageConnectionStringBox">
+                        <TextBox.Text>&lt;enter connection string&gt;</TextBox.Text>
+                    </TextBox>
+                </Grid>
+                <Grid Grid.Row="1" Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Row="0" Grid.Column="0" Margin="3" Content="List Containers" Click="OnListContainers" Width="200" HorizontalAlignment="Left"/>
+                    <ListView Grid.Row="1" Grid.Column="0" Margin="3" x:Name="ContainersList" Width="200" HorizontalAlignment="Left" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Height="200"/>
+                    <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="List Blobs" Click="OnListBlobs" Width="200" HorizontalAlignment="Left"/>
+                    <ListView Grid.Row="1" Grid.Column="1" Margin="3" x:Name="BlobsList" HorizontalAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Height="200">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="500"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Type}"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Uri}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>
