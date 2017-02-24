@@ -58,6 +58,12 @@ namespace Microsoft.Devices.Management
             public string response;
         }
 
+        public struct ExternalStorage
+        {
+            public string connectionString;
+            public string containerName;
+        }
+
         public struct DeviceStatus
         {
             public long secureBootState;
@@ -76,6 +82,7 @@ namespace Microsoft.Devices.Management
             this._deviceTwin = deviceTwin;
             this._requestHandler = requestHandler;
             this._systemConfiguratorProxy = systemConfiguratorProxy;
+            this._externalStorage = new ExternalStorage();
         }
 
         public static async Task<DeviceManagementClient> CreateAsync(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
@@ -290,8 +297,22 @@ namespace Microsoft.Devices.Management
             throw new NotImplementedException();
         }
 
+        public static async void ProcessDesiredCertificateConfiguration(
+            DeviceManagementClient client,
+            string connectionString,
+            string containerName,
+            Microsoft.Devices.Management.Message.CertificateConfiguration certificateConfiguration)
+        {
+
+            await IoTDMClient.CertificateManagement.DownloadCertificates(client, connectionString, containerName, certificateConfiguration);
+            var request = new Microsoft.Devices.Management.Message.SetCertificateConfigurationRequest(certificateConfiguration);
+            client._systemConfiguratorProxy.SendCommandAsync(request);
+        }
+
         public void ProcessDeviceManagementProperties(TwinCollection desiredProperties)
         {
+            Message.CertificateConfiguration certificateConfiguration = null;
+
             foreach (KeyValuePair<string, object> dp in desiredProperties)
             {
                 if (dp.Key == "microsoft" && dp.Value is JObject)
@@ -305,6 +326,24 @@ namespace Microsoft.Devices.Management
                             {
                                 case "scheduledReboot":
                                     // TODO
+                                    break;
+                                case "externalStorage":
+                                    if (managementProperty.Value.Type == JTokenType.Object)
+                                    {
+                                        Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
+                                        JObject subProperties = (JObject)managementProperty.Value;
+
+                                        _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
+                                        _externalStorage.containerName = (string)subProperties.Property("container").Value;
+                                    }
+                                    break;
+                                case "certificates":
+                                    if (managementProperty.Value.Type == JTokenType.Object)
+                                    {
+                                        // Capture the configuration here.
+                                        // To apply the configuration we need to wait until externalStorage has been configured too.
+                                        certificateConfiguration = IoTDMClient.CertificateManagement.GetDesiredCertificateConfiguration(managementProperty);
+                                    }
                                     break;
                                 case "timeInfo":
                                     if (managementProperty.Value.Type == JTokenType.Object)
@@ -341,12 +380,28 @@ namespace Microsoft.Devices.Management
                     }
                 }
              }
+
+            // Need to keep this until externalStorage is processed.
+            // ToDo: The client does not get a full copy of the device twin when it first connects! (regression?)
+            //       This means that the externalStorage might not get set when the machine connects.
+            if (!String.IsNullOrEmpty(_externalStorage.connectionString) &&
+                !String.IsNullOrEmpty(_externalStorage.containerName) &&
+                certificateConfiguration != null)
+            {
+                ProcessDesiredCertificateConfiguration(this, _externalStorage.connectionString, _externalStorage.containerName, certificateConfiguration);
+            }
         }
 
         public async Task<Message.TimeInfoResponse> GetTimeInfoAsync()
         {
             var request = new Message.TimeInfoRequest();
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.TimeInfoResponse);
+        }
+
+        public async Task<Message.GetCertificateConfigurationResponse> GetCertificateConfigurationAsync()
+        {
+            var request = new Message.GetCertificateConfigurationRequest();
+            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetCertificateConfigurationResponse);
         }
 
         public async Task<RebootInfo> GetRebootInfoAsync()
@@ -368,14 +423,16 @@ namespace Microsoft.Devices.Management
         {
             Debug.WriteLine("ReportAllDeviceProperties");
 
-            Message.TimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
+            Message.TimeInfoResponse timeInfo = await GetTimeInfoAsync();
+            Message.GetCertificateConfigurationResponse certificateConfiguration = await GetCertificateConfigurationAsync();
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
             collection["microsoft"] = new
             {
                 management = new
                 {
-                    timeInfo = timeInfoResponse
+                    timeInfo = timeInfo,
+                    certificates = certificateConfiguration
 #if false // TODO
             collection["deviceStatus"] = await GetDeviceStatusAsync();
             collection["rebootInfo"] = await GetRebootInfoAsync();
@@ -413,6 +470,7 @@ namespace Microsoft.Devices.Management
         ISystemConfiguratorProxy _systemConfiguratorProxy;
         IDeviceManagementRequestHandler _requestHandler;
         IDeviceTwin _deviceTwin;
+        ExternalStorage _externalStorage;
     }
 
 }
