@@ -90,6 +90,9 @@
     <ClInclude Include="CSPs\PrivateAPIs\WinSDKRS2.h">
       <Filter>Header Files\CSPs\PrivateAPIs</Filter>
     </ClInclude>
+    <ClInclude Include="CSPs\CertificateManagement.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -151,6 +154,9 @@
     </ClCompile>
     <ClCompile Include="TpmSupport.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\CertificateManagement.cpp">
+      <Filter>Source Files\CSPs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

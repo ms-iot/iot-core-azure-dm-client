@@ -97,4 +97,20 @@ namespace Microsoft.Devices.Management
         public uint Status;
         public CertificateConfiguration Configuration;
     }
+
+    class GetCertificateDetailsRequest
+    {
+        public string path;
+        public string hash;
+    }
+
+    class GetCertificateDetailsResponse
+    {
+        public int Tag;
+        public int Status;
+        public string ValidTo;
+        public string ValidFrom;
+        public string IssuedTo;
+        public string IssuedBy;
+    }
 }

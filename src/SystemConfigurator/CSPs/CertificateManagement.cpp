@@ -11,6 +11,7 @@ void CertificateManagement::SyncCertificates(const std::wstring& path, const std
 {
     TRACE(__FUNCTION__);
 
+    // Retrieve the current state
     wstring currentHashes = MdmProvision::RunGetString(path);
 
     vector<wstring> currentHashesVector;

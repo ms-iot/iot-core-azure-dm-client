@@ -3,6 +3,7 @@
 #include "..\SharedUtilities\DMRequest.h"
 #include "..\SharedUtilities\SecurityAttributes.h"
 #include "CSPs\MdmProvision.h"
+#include "CSPs\CertificateInfo.h"
 #include "CSPs\CertificateManagement.h"
 #include "CSPs\RebootCSP.h"
 #include "CSPs\EnterpriseModernAppManagementCSP.h"
@@ -108,6 +109,34 @@ IResponse^ HandleSetCertificateConfiguration(IRequest^ request)
     catch (DMException& e)
     {
         TRACEP("ERROR DMCommand::HandleSetCertificateConfiguration: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
+IResponse^ HandleGetCertificateDetails(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        auto getCertificateDetailsRequest = dynamic_cast<GetCertificateDetailsRequest^>(request);
+        wstring path = getCertificateDetailsRequest->path->Data();
+        wstring hash = getCertificateDetailsRequest->hash->Data();
+        TRACEP(L"path = ", path.c_str());
+        TRACEP(L"hash = ", hash.c_str());
+        CertificateInfo certificateInfo(path + L"/" + hash);
+
+        GetCertificateDetailsResponse^ getCertificateDetailsResponse = ref new GetCertificateDetailsResponse(ResponseStatus::Success);
+        getCertificateDetailsResponse->IssuedBy = ref new String(certificateInfo.GetIssuedBy().c_str());
+        getCertificateDetailsResponse->IssuedTo = ref new String(certificateInfo.GetIssuedTo().c_str());
+        getCertificateDetailsResponse->ValidFrom = ref new String(certificateInfo.GetValidFrom().c_str());
+        getCertificateDetailsResponse->ValidTo = ref new String(certificateInfo.GetValidTo().c_str());
+
+        return getCertificateDetailsResponse;
+    }
+    catch (DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleGetCertificateDetails: ", e.what());
         return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
     }
 }

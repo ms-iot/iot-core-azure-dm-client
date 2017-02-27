@@ -9,5 +9,6 @@ namespace Microsoft.Devices.Management
     internal interface ISystemConfiguratorProxy
     {
         Task<Message.IResponse> SendCommandAsync(Message.IRequest command);
+        Message.IResponse SendCommand(Message.IRequest command);
     }
 }

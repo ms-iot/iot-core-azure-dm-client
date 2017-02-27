@@ -10,6 +10,7 @@
 #include "StatusCodeResponse.h"
 #include "TimeInfo.h"
 #include "CertificateConfiguration.h"
+#include "CertificateDetails.h"
 #include "StringResponse.h"
 #include "TpmRequests.h"
 

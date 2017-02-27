@@ -5,32 +5,33 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:DMDashboard"
              mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <local:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <!--
-        <Border Grid.Row="0" Grid.Column="0" Margin="3" Background="#F8F8F8">
-            <TextBox x:Name="HashesTextBox" 
-                     HorizontalAlignment="Stretch" 
-                     Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=HashesString, Mode=TwoWay}"/>
-        </Border>
-        -->
         <ListView Grid.Row="0" Grid.Column="0" Margin="3" Height="150" x:Name="CertificateList">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="250"/>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="30"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding Hash}"/>
-                        <TextBlock Grid.Column="1" Text="{Binding FileName}"/>
+                        <TextBlock Grid.Column="0" Margin="5,3" Text="{Binding Hash}"/>
+                        <TextBlock Grid.Column="1" Margin="5,3" Text="{Binding FileName}"/>
+                        <Button Grid.Column="2" Margin="5,3" Content="..." Click="OnShowDetails"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <Button Grid.Row="1" Grid.Column="0" Margin="3" Content="Compose" Click="OnCompose"/>
+        <Button Grid.Row="1" Grid.Column="0" Margin="3" Content="Add/Remove" Click="OnAddRemove"
+                Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=ModifyEnabled, Converter={StaticResource booleanToVisibilityConverter}}"/>
     </Grid>
 </UserControl>

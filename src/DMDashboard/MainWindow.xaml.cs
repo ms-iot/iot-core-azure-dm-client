@@ -55,6 +55,24 @@ namespace DMDashboard
             {
                 StorageConnectionStringBox.Text = connectionString.Value;
             }
+
+            Desired_RootCATrustedCertificates_Root.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_RootCATrustedCertificates_CA.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_RootCATrustedCertificates_TrustedPublisher.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_RootCATrustedCertificates_TrustedPeople.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_CertificateStore_CA_System.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_CertificateStore_Root_System.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_CertificateStore_My_User.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_CertificateStore_My_System.ShowCertificateDetails += ShowCertificateDetails;
+
+            Reported_RootCATrustedCertificates_Root.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_RootCATrustedCertificates_CA.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_RootCATrustedCertificates_TrustedPublisher.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_RootCATrustedCertificates_TrustedPeople.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_CertificateStore_CA_System.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_CertificateStore_Root_System.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_CertificateStore_My_User.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_CertificateStore_My_System.ShowCertificateDetails += ShowCertificateDetails;
         }
 
         private void ToggleUIElementVisibility(UIElement element)
@@ -195,7 +213,7 @@ namespace DMDashboard
             ReportedDailyRebootTime.Text = rebootInfo.dailyRebootTime.ToString();
         }
 
-        private void CertificateInfoToUI(string hashesString, ListView targetListView)
+        private void CertificateInfoToUI(string hashesString, CertificateSelector certificateSelector)
         {
             if (String.IsNullOrEmpty(hashesString))
             {
@@ -203,20 +221,31 @@ namespace DMDashboard
             }
             string[] hashes = hashesString.Split('/');
             Array.Sort<string>(hashes);
-            targetListView.ItemsSource = hashes;
+            if (certificateSelector != null)
+            {
+                List<CertificateSelector.CertificateData> certificateList = new List<CertificateSelector.CertificateData>();
+                foreach (string hash in hashes)
+                {
+                    CertificateSelector.CertificateData certificateData = new CertificateSelector.CertificateData();
+                    certificateData.Hash = hash;
+                    certificateData.FileName = "<unknown>";
+                    certificateList.Add(certificateData);
+                }
+                certificateSelector.SetCertificateList(certificateList);
+            }
         }
 
         private void CertificatesInfoToUI(Microsoft.Devices.Management.Certificates certificatesInfo)
         {
-            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_CA, ReportedRootCATrustedCertificates_CA);
-            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_Root, ReportedRootCATrustedCertificates_Root);
-            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_TrustedPublisher, ReportedRootCATrustedCertificates_TrustedPublisher);
-            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_TrustedPeople, ReportedRootCATrustedCertificates_TrustedPeople);
+            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_CA, Reported_RootCATrustedCertificates_CA);
+            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_Root, Reported_RootCATrustedCertificates_Root);
+            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_TrustedPublisher, Reported_RootCATrustedCertificates_TrustedPublisher);
+            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_TrustedPeople, Reported_RootCATrustedCertificates_TrustedPeople);
 
-            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_CA_System, ReportedCertificateStore_CA_System);
-            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_Root_System, ReportedCertificateStore_Root_System);
-            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_My_User, ReportedCertificateStore_My_User);
-            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_My_System, ReportedCertificateStore_My_System);
+            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_CA_System, Reported_CertificateStore_CA_System);
+            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_Root_System, Reported_CertificateStore_Root_System);
+            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_My_User, Reported_CertificateStore_My_User);
+            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_My_System, Reported_CertificateStore_My_System);
         }
 
         private async void ReadDTReported()
@@ -418,14 +447,14 @@ namespace DMDashboard
         private Certificates.CertificateConfiguration UIToCertificateConfiguration()
         {
             Certificates.CertificateConfiguration certificateConfiguration = new Certificates.CertificateConfiguration();
-            certificateConfiguration.rootCATrustedCertificates_Root = RootCATrustedCertificates_Root.FileNamesString;
-            certificateConfiguration.rootCATrustedCertificates_CA = RootCATrustedCertificates_CA.FileNamesString;
-            certificateConfiguration.rootCATrustedCertificates_TrustedPublisher = RootCATrustedCertificates_TrustedPublisher.FileNamesString;
-            certificateConfiguration.rootCATrustedCertificates_TrustedPeople = RootCATrustedCertificates_TrustedPeople.FileNamesString;
-            certificateConfiguration.certificateStore_CA_System = CertificateStore_CA_System.FileNamesString;
-            certificateConfiguration.certificateStore_Root_System = CertificateStore_Root_System.FileNamesString;
-            certificateConfiguration.certificateStore_My_User = CertificateStore_My_User.FileNamesString;
-            certificateConfiguration.certificateStore_My_System = CertificateStore_My_System.FileNamesString;
+            certificateConfiguration.rootCATrustedCertificates_Root = Desired_RootCATrustedCertificates_Root.FileNamesString;
+            certificateConfiguration.rootCATrustedCertificates_CA = Desired_RootCATrustedCertificates_CA.FileNamesString;
+            certificateConfiguration.rootCATrustedCertificates_TrustedPublisher = Desired_RootCATrustedCertificates_TrustedPublisher.FileNamesString;
+            certificateConfiguration.rootCATrustedCertificates_TrustedPeople = Desired_RootCATrustedCertificates_TrustedPeople.FileNamesString;
+            certificateConfiguration.certificateStore_CA_System = Desired_CertificateStore_CA_System.FileNamesString;
+            certificateConfiguration.certificateStore_Root_System = Desired_CertificateStore_Root_System.FileNamesString;
+            certificateConfiguration.certificateStore_My_User = Desired_CertificateStore_My_User.FileNamesString;
+            certificateConfiguration.certificateStore_My_System = Desired_CertificateStore_My_System.FileNamesString;
             return certificateConfiguration;
         }
 
@@ -580,6 +609,43 @@ namespace DMDashboard
         private void OnExpandAzureStorageExplorer(object sender, RoutedEventArgs e)
         {
             ToggleUIElementVisibility(AzureStorageExplorer);
+        }
+
+        private async Task<DeviceMethodReturnValue> RequestCertificateDetailsAsync(string path, string hash)
+        {
+            GetCertificateDetailsRequest getCertificateDetailsRequest = new GetCertificateDetailsRequest();
+            getCertificateDetailsRequest.path = path;
+            getCertificateDetailsRequest.hash = hash;
+            string parametersJson = JsonConvert.SerializeObject(getCertificateDetailsRequest);
+            Debug.WriteLine(parametersJson);
+
+            CancellationToken cancellationToken = new CancellationToken();
+            return await _deviceTwin.CallDeviceMethod("microsoft.management.getCertificateDetails", parametersJson, new TimeSpan(0, 0, 30), cancellationToken);
+        }
+
+        private async void ShowCertificateDetailsAsync(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        {
+            if (!certificateData.DetailsAvailable)
+            {
+                MessageBox.Show("Retrieving details from the device...");
+                DeviceMethodReturnValue result = await RequestCertificateDetailsAsync(sender.CertificatesPath, certificateData.Hash);
+                GetCertificateDetailsResponse response = JsonConvert.DeserializeObject<GetCertificateDetailsResponse>(result.Payload);
+
+                certificateData.Issuer = response.IssuedBy;
+                certificateData.Subject = response.IssuedTo;
+                certificateData.IssueDate = DateTime.Parse(response.ValidFrom);
+                certificateData.ExpiryDate = DateTime.Parse(response.ValidTo);
+            }
+
+            CertificateDetails certificateDetails = new CertificateDetails();
+            certificateDetails.Owner = this;
+            certificateDetails.DataContext = certificateData;
+            certificateDetails.ShowDialog();
+        }
+
+        private void ShowCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        {
+            ShowCertificateDetailsAsync(sender, certificateData);
         }
 
         private RegistryManager _registryManager;

@@ -64,6 +64,12 @@ namespace Microsoft.Devices.Management
             public string containerName;
         }
 
+        public struct GetCertificateDetailsParams
+        {
+            public string path;
+            public string hash;
+        }
+
         public struct DeviceStatus
         {
             public long secureBootState;
@@ -92,6 +98,7 @@ namespace Microsoft.Devices.Management
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.appInstall", deviceManagementClient.AppInstallMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.reportAllDeviceProperties", deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.startAppSelfUpdate", deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync("microsoft.management.getCertificateDetails", deviceManagementClient.GetCertificateDetails);
             return deviceManagementClient;
         }
 
@@ -290,6 +297,22 @@ namespace Microsoft.Devices.Management
             StartAppSelfUpdate();
 
             return Task.FromResult(JsonConvert.SerializeObject(new { response = "succeeded" }));
+        }
+
+        private Task<string> GetCertificateDetails(string jsonParam)
+        {
+            Debug.WriteLine("GetCertificateDetails");
+
+            GetCertificateDetailsParams parameters = JsonConvert.DeserializeObject<GetCertificateDetailsParams>(jsonParam);
+
+            var request = new Microsoft.Devices.Management.Message.GetCertificateDetailsRequest();
+            request.path = parameters.path;
+            request.hash = parameters.hash;
+
+            Message.GetCertificateDetailsResponse response = _systemConfiguratorProxy.SendCommand(request) as Message.GetCertificateDetailsResponse;
+            Debug.WriteLine("response = " + JsonConvert.SerializeObject(response));
+
+            return Task.FromResult(JsonConvert.SerializeObject(response));
         }
 
         public async Task<DMMethodResult> DoFactoryResetAsync()

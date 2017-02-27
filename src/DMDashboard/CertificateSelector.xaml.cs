@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Security.Cryptography.X509Certificates;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -9,17 +9,33 @@ namespace DMDashboard
 {
     public partial class CertificateSelector : UserControl
     {
-        class CertificateData
+        public delegate void ShowCertificateDetailsDelegate(CertificateSelector sender, CertificateData certificateData);
+
+        public class CertificateData
         {
-            public string FileName { get; set; }
             public string Hash { get; set; }
+            public bool DetailsAvailable { get; set; }
+            public string FileName { get; set; }
+            public string FriendlyName { get; set; }
+            public string Issuer { get; set; }
+            public string Subject { get; set; }
+            public int Version { get; set; }
+            public DateTime IssueDate { get; set; }
+            public DateTime ExpiryDate { get; set; }
+
+            public CertificateData()
+            {
+                DetailsAvailable = false;
+            }
         }
 
         static char Separator = '/';
 
         public static readonly DependencyProperty ConnectionStringProperty = DependencyProperty.Register("ConnectionString", typeof(string), typeof(CertificateSelector));
         public static readonly DependencyProperty ContainerNameProperty = DependencyProperty.Register("ContainerName", typeof(string), typeof(CertificateSelector));
-        public static readonly DependencyProperty HashesStringProperty = DependencyProperty.Register("FileNamesString", typeof(string), typeof(CertificateSelector));
+        public static readonly DependencyProperty FileNamesStringProperty = DependencyProperty.Register("FileNamesString", typeof(string), typeof(CertificateSelector));
+        public static readonly DependencyProperty ModifyEnabledProperty = DependencyProperty.Register("ModifyEnabled", typeof(bool), typeof(CertificateSelector));
+        public static readonly DependencyProperty CertificatesPathProperty = DependencyProperty.Register("CertificatesPath", typeof(string), typeof(CertificateSelector));
 
         public string ConnectionString
         {
@@ -35,12 +51,27 @@ namespace DMDashboard
 
         public string FileNamesString
         {
-            get { return (string)GetValue(HashesStringProperty); }
-            set { SetValue(HashesStringProperty, value); }
+            get { return (string)GetValue(FileNamesStringProperty); }
+            set { SetValue(FileNamesStringProperty, value); }
         }
+
+        public bool ModifyEnabled
+        {
+            get { return (bool)GetValue(ModifyEnabledProperty); }
+            set { SetValue(ModifyEnabledProperty, value); }
+        }
+
+        public string CertificatesPath
+        {
+            get { return (string)GetValue(CertificatesPathProperty); }
+            set { SetValue(CertificatesPathProperty, value); }
+        }
+
+        public ShowCertificateDetailsDelegate ShowCertificateDetails { get; set; }
 
         public CertificateSelector()
         {
+            ModifyEnabled = true;
             InitializeComponent();
         }
 
@@ -59,7 +90,7 @@ namespace DMDashboard
             return newParent as System.Windows.Window;
         }
 
-        private void OnCompose(object sender, RoutedEventArgs e)
+        private void OnAddRemove(object sender, RoutedEventArgs e)
         {
             Window parentWindow = FindParentWindow();
             if (parentWindow == null)
@@ -85,23 +116,51 @@ namespace DMDashboard
             // Construct the new FileNamesString
             FileNamesString = "";
             List<CertificateData> certificateList = new List<CertificateData>();
-            foreach (string fileName in azureBlobSelector.BlobFileNames)
+            if (azureBlobSelector.BlobFileNames != null)
             {
-                CertificateData certificateData = new CertificateData();
-                certificateData.FileName = fileName;
-                certificateData.Hash = CertificateHelpers.GetCertificateInfo(ConnectionString, ContainerName, fileName, @"c:\temp\certificates").Thumbprint;
-                certificateList.Add(certificateData);
-
-                if (FileNamesString.Length != 0)
+                foreach (string fileName in azureBlobSelector.BlobFileNames)
                 {
-                    FileNamesString += Separator;
+                    CertificateData certificateData = new CertificateData();
+                    certificateData.FileName = fileName;
+
+                    X509Certificate2 x509Certificate2 = CertificateHelpers.GetCertificateInfo(ConnectionString, ContainerName, fileName, @"c:\temp\certificates");
+                    certificateData.Hash = x509Certificate2.Thumbprint;
+                    certificateData.FriendlyName = x509Certificate2.FriendlyName;
+                    certificateData.Issuer = x509Certificate2.Issuer;
+                    certificateData.Subject = x509Certificate2.Subject;
+                    certificateData.Version = x509Certificate2.Version;
+                    certificateData.IssueDate = x509Certificate2.NotBefore;
+                    certificateData.ExpiryDate = x509Certificate2.NotAfter;
+                    certificateData.DetailsAvailable = true;
+                    certificateList.Add(certificateData);
+
+                    if (FileNamesString.Length != 0)
+                    {
+                        FileNamesString += Separator;
+                    }
+                    FileNamesString += fileName;
                 }
-                FileNamesString += fileName;
             }
 
             // Update the UI
             certificateList.Sort((x, y) => x.Hash.CompareTo(y.Hash));
             CertificateList.ItemsSource = certificateList;
+        }
+
+        public void SetCertificateList(IEnumerable<CertificateData> certificateList)
+        {
+            CertificateList.ItemsSource = certificateList;
+        }
+
+        private void OnShowDetails(object sender, RoutedEventArgs e)
+        {
+            if (ShowCertificateDetails != null)
+            {
+                Button btn = (Button)sender;
+                CertificateData certificateData = (CertificateData)btn.DataContext;
+                ShowCertificateDetails(this, certificateData);
+            }
+
         }
     }
 }
