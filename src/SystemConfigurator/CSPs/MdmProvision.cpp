@@ -12,7 +12,6 @@
 #define RESULTS_XML_PATH ROOT_XML L"\\Results\\Item\\Data\\"
 
 using namespace std;
-using namespace Windows::Data::Json;
 
 bool MdmProvision::s_errorVerbosity = false;
 

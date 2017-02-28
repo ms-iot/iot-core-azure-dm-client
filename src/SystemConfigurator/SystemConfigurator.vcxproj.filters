@@ -78,9 +78,6 @@
     <ClInclude Include="CSPs\CertificateStoreCSP.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
-    <ClInclude Include="CSPs\RootCATrustedCertificatesCSP.h">
-      <Filter>Header Files\CSPs</Filter>
-    </ClInclude>
     <ClInclude Include="CSPs\CertificateInfo.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
@@ -141,9 +138,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\CertificateStoreCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
-    </ClCompile>
-    <ClCompile Include="CSPs\RootCATrustedCertificates.cpp">
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\CertificateInfo.cpp">

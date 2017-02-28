@@ -2,6 +2,7 @@
 #include "CommandProcessor.h"
 #include "DMService.h"
 #include "..\SharedUtilities\Logger.h"
+#include "CSPs\EnterpriseModernAppManagementCSP.h"
 
 #define SERVICE_NAME             L"SystemConfigurator"
 #define SERVICE_DISPLAY_NAME     L"System Configurator"
@@ -9,6 +10,8 @@
 #define SERVICE_DEPENDENCIES     L""
 #define SERVICE_ACCOUNT          L"NT AUTHORITY\\SYSTEM"
 #define SERVICE_PASSWORD         L""
+
+using namespace std;
 
 [Platform::MTAThread]
 int wmain(int argc, wchar_t *argv[])
@@ -35,6 +38,16 @@ int wmain(int argc, wchar_t *argv[])
         else if (_wcsicmp(L"debug", argv[1] + 1) == 0)
         {
             Listen();
+        }
+        else if (_wcsicmp(L"1", argv[1] + 1) == 0)
+        {
+            vector<wstring> dependentPackages;
+            dependentPackages.push_back(L"C:\\temp\\test\\Microsoft.VCLibs.140.00_14.0.24123.0_x64__8wekyb3d8bbwe.appx");
+            dependentPackages.push_back(L"C:\\temp\\test\\Microsoft.NET.Native.Runtime.1.4_1.4.24201.0_x64__8wekyb3d8bbwe.appx");
+            dependentPackages.push_back(L"C:\\temp\\test\\Microsoft.NET.Native.Framework.1.3_1.3.24201.0_x64__8wekyb3d8bbwe.appx");
+            EnterpriseModernAppManagementCSP::InstallApp(L"23983CETAthensQuality.IoTCoreSmartDisplay_1w720vyc4ccym",
+                L"C:\\temp\\test\\1.2.9.0\\e37d3b833dea43308bb689999de744c5.appxbundle"
+                , dependentPackages);
         }
     }
     else

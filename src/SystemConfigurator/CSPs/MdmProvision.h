@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\SharedUtilities\Utils.h"
+#include "Utils.h"
 #include <string>
 
 class MdmProvision
