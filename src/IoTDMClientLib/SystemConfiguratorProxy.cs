@@ -52,34 +52,7 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        /*
-        // ToDo: Fix: error CS1061: 'T' does not contain a definition for 'Status'.
-        private void Wait<T>(T action, int milliSeconds)
-        {
-            while (action.Status != Windows.Foundation.AsyncStatus.Completed)
-            {
-                System.Threading.Tasks.Task.Delay(milliSeconds).Wait();
-            }
-        }
-        */
-
-        private void Wait(Windows.Foundation.IAsyncAction action, int milliSeconds)
-        {
-            while (action.Status != Windows.Foundation.AsyncStatus.Completed)
-            {
-                System.Threading.Tasks.Task.Delay(milliSeconds).Wait();
-            }
-        }
-
-        private void Wait(Windows.Foundation.IAsyncOperation<ProcessLauncherResult> action, int milliSeconds)
-        {
-            while (action.Status != Windows.Foundation.AsyncStatus.Completed)
-            {
-                System.Threading.Tasks.Task.Delay(milliSeconds).Wait();
-            }
-        }
-
-        private void Wait(Windows.Foundation.IAsyncOperation<Blob> action, int milliSeconds)
+        private void Wait<T>(T action, int milliSeconds) where T : Windows.Foundation.IAsyncInfo
         {
             while (action.Status != Windows.Foundation.AsyncStatus.Completed)
             {

@@ -46,3 +46,4 @@ The specification for each operation is provided below.
 - [Scheduled Reboot](scheduled-reboot.md)
 - [Install App](install-app.md)
 - [Start DM Application Self-Update](app-self-update.md)
+- [Manage Certificates](certificate-management.md)

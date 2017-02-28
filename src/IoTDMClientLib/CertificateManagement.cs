@@ -13,8 +13,7 @@ namespace IoTDMClient
         {
             if (certificateConfigurationJson.Value.Type != JTokenType.Object)
             {
-                // report incorrect json.
-                return null;
+                throw new Exception("Invalid json object for certificate configuration.");
             }
 
             Debug.WriteLine("certificates = " + certificateConfigurationJson.Value.ToString());

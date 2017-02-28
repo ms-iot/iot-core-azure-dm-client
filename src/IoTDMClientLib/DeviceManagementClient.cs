@@ -320,7 +320,7 @@ namespace Microsoft.Devices.Management
             throw new NotImplementedException();
         }
 
-        public static async void ProcessDesiredCertificateConfiguration(
+        private static async void ProcessDesiredCertificateConfiguration(
             DeviceManagementClient client,
             string connectionString,
             string containerName,
@@ -421,7 +421,7 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.TimeInfoResponse);
         }
 
-        public async Task<Message.GetCertificateConfigurationResponse> GetCertificateConfigurationAsync()
+        private async Task<Message.GetCertificateConfigurationResponse> GetCertificateConfigurationAsync()
         {
             var request = new Message.GetCertificateConfigurationRequest();
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetCertificateConfigurationResponse);
