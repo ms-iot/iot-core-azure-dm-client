@@ -144,6 +144,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DMMessage\DMMessage.vcxproj">
+      <Project>{241582cd-4861-4643-a7a2-21865b779aaf}</Project>
+      <Name>DMMessage</Name>
+    </ProjectReference>
     <ProjectReference Include="..\IoTDMClientLib\IoTDMClientLib.csproj">
       <Project>{f29e2c50-97be-4c33-b601-e52aab5596e9}</Project>
       <Name>IoTDMClientLib</Name>
@@ -160,4 +164,23 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="_LocalResolvePrimaryProjectWinmdFiles" BeforeTargets="BeforeGenerateAppxManifest" AfterTargets="_ResolvePrimaryProjectWinmdFiles" Condition="'$(OutputType)' != 'exe' and '$(AppxPackage)' == 'true' AND '$(ContainsStartupTask)' == 'true'">
+    <ItemGroup>
+      <!-- Remove anything set in _ResolvePrimaryProjectWinmdFiles -->
+      <_AppxWinmdFilesToHarvest Remove="@(_AppxWinmdFilesToHarvest)" />
+      <_AppxWinmdFilesToHarvest Include="@(PackagingOutputs)" Condition="'%(PackagingOutputs.Extension)' == '.winmd' &#xD;&#xA;                                             and '%(PackagingOutputs.ProjectName)' == '$(ProjectName)'&#xD;&#xA;                                             and '%(PackagingOutputs.ResolvedFrom)' != 'GetSDKReferenceFiles'">
+        <!-- This covers the Managed Background Application winmd which does NOT have a WinMDFileType value set -->
+        <ImageRuntime Condition="'$(PrimaryProjectWinmdImageRuntimeOverride)' == ''&#xD;&#xA;                                 and '@(Language)' != 'C++'">WindowsRuntime 1.4;CLR v4.0.30319</ImageRuntime>
+        <!-- This covers the C++ Background Application winmd which does NOT have a WinMDFileType value set -->
+        <ImageRuntime Condition="'$(PrimaryProjectWinmdImageRuntimeOverride)' == ''&#xD;&#xA;                                 and '@(Language)' == 'C++'">WindowsRuntime 1.4</ImageRuntime>
+        <!-- This covers Managed Windows Runtime Component winmds -->
+        <ImageRuntime Condition="'$(PrimaryProjectWinmdImageRuntimeOverride)' == ''&#xD;&#xA;                                 and '%(PackagingOutputs.WinMDFileType)' == 'Managed'">WindowsRuntime 1.4;CLR v4.0.30319</ImageRuntime>
+        <!-- This covers Native Windows Runtime Component winmds -->
+        <!-- This covers Native Windows Runtime Component winmds for DynamicLibrary projects -->
+        <ImageRuntime Condition="'$(PrimaryProjectWinmdImageRuntimeOverride)' == ''&#xD;&#xA;                                 and ('%(PackagingOutputs.WinMDFileType)' == 'Native' or '%(PackagingOutputs.ProjectType)' == 'DynamicLibrary')">WindowsRuntime 1.4</ImageRuntime>
+        <!-- This provides an override -->
+        <ImageRuntime Condition="'$(PrimaryProjectWinmdImageRuntimeOverride)' != ''">$(PrimaryProjectWinmdImageRuntimeOverride)</ImageRuntime>
+      </_AppxWinmdFilesToHarvest>
+    </ItemGroup>
+  </Target>
 </Project>
