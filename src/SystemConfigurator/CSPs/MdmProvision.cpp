@@ -442,6 +442,22 @@ wstring MdmProvision::RunGetString(const wstring& path)
     return RunGetString(L"", path);
 }
 
+bool MdmProvision::TryGetString(const wstring& path, wstring& value)
+{
+    bool success = true;
+    try
+    {
+        value = RunGetString(path);
+    }
+    catch (DMException& e)
+    {
+        success = false;
+        TRACEP(L"Error: GetString() - path     : ", path.c_str());
+        TRACEP("Error: GetString() - exception: ", e.what());
+    }
+    return success;
+}
+
 wstring MdmProvision::RunGetBase64(const wstring& path)
 {
     // empty sid is okay for device-wide CSPs.

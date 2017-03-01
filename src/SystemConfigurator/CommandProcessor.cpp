@@ -61,28 +61,42 @@ IResponse^ HandleGetCertificateConfiguration(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
+    wstring certificateStore_CA_System;
+    wstring certificateStore_Root_System;
+    wstring certificateStore_My_User;
+    wstring certificateStore_My_System;
+    wstring rootCATrustedCertificates_Root;
+    wstring rootCATrustedCertificates_CA;
+    wstring rootCATrustedCertificates_TrustedPublisher;
+    wstring rootCATrustedCertificates_TrustedPeople;
+
+    bool success = true;
+    success = MdmProvision::TryGetString(L"./Vendor/MSFT/CertificateStore/CA/System", certificateStore_CA_System) && success;
+    success = MdmProvision::TryGetString(L"./Vendor/MSFT/CertificateStore/Root/System", certificateStore_Root_System) && success;
+    success = MdmProvision::TryGetString(L"./Vendor/MSFT/CertificateStore/My/User", certificateStore_My_User) && success;
+    success = MdmProvision::TryGetString(L"./Vendor/MSFT/CertificateStore/My/System", certificateStore_My_System) && success;
+    success = MdmProvision::TryGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/Root", rootCATrustedCertificates_Root) && success;
+    success = MdmProvision::TryGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/CA", rootCATrustedCertificates_CA) && success;
+    success = MdmProvision::TryGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher", rootCATrustedCertificates_TrustedPublisher) && success;
+    success = MdmProvision::TryGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople", rootCATrustedCertificates_TrustedPeople) && success;
+
+    CertificateConfiguration^ configuration = ref new CertificateConfiguration();
+
+    configuration->certificateStore_CA_System = ref new String(certificateStore_CA_System.c_str());
+    configuration->certificateStore_Root_System = ref new String(certificateStore_Root_System.c_str());
+    configuration->certificateStore_My_User = ref new String(certificateStore_My_User.c_str());
+    configuration->certificateStore_My_System = ref new String(certificateStore_My_System.c_str());
+    configuration->rootCATrustedCertificates_Root = ref new String(rootCATrustedCertificates_Root.c_str());
+    configuration->rootCATrustedCertificates_CA = ref new String(rootCATrustedCertificates_CA.c_str());
+    configuration->rootCATrustedCertificates_TrustedPublisher = ref new String(rootCATrustedCertificates_TrustedPublisher.c_str());
+    configuration->rootCATrustedCertificates_TrustedPeople = ref new String(rootCATrustedCertificates_TrustedPeople.c_str());
+
+    if (!success)
     {
-        CertificateConfiguration^ configuration = ref new CertificateConfiguration();
-
-        // ToDo: use constants?
-        configuration->certificateStore_CA_System = ref new String(MdmProvision::RunGetString(L"./Vendor/MSFT/CertificateStore/CA/System").c_str());
-        configuration->certificateStore_Root_System = ref new String(MdmProvision::RunGetString(L"./Vendor/MSFT/CertificateStore/Root/System").c_str());
-        configuration->certificateStore_My_User = ref new String(MdmProvision::RunGetString(L"./Vendor/MSFT/CertificateStore/My/User").c_str());
-        configuration->certificateStore_My_System = ref new String(MdmProvision::RunGetString(L"./Vendor/MSFT/CertificateStore/My/System").c_str());
-
-        configuration->rootCATrustedCertificates_Root = ref new String(MdmProvision::RunGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/Root").c_str());
-        configuration->rootCATrustedCertificates_CA = ref new String(MdmProvision::RunGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/CA").c_str());
-        configuration->rootCATrustedCertificates_TrustedPublisher = ref new String(MdmProvision::RunGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher").c_str());
-        configuration->rootCATrustedCertificates_TrustedPeople = ref new String(MdmProvision::RunGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople").c_str());
-
-        return ref new GetCertificateConfigurationResponse(ResponseStatus::Success, configuration);
+        return ref new GetCertificateConfigurationResponse(ResponseStatus::Failure, configuration);
     }
-    catch (DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleGetCertificateConfiguration: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+
+    return ref new GetCertificateConfigurationResponse(ResponseStatus::Success, configuration);
 }
 
 IResponse^ HandleSetCertificateConfiguration(IRequest^ request)
