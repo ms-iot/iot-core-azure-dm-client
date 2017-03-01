@@ -33,7 +33,7 @@ IResponse^ HandleGetDeviceStatus(IRequest^ request)
     //    wstring deviceStatusJson = DeviceStatusCSP::GetDeviceStatusJson();
     //    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     //}
-    //catch (DMException& e)
+    //catch (const DMException& e)
     //{
     //    TRACEP("ERROR DMCommand::HandleGetDeviceStatus: ", e.what());
     //    return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
@@ -50,7 +50,7 @@ IResponse^ HandleSetTimeInfo(IRequest^ request)
         TimeCfg::SetTimeInfo(setTimeInfoRequest);
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
-    catch (DMException& e)
+    catch (const DMException& e)
     {
         TRACEP("ERROR DMCommand::HandleSetTimeInfo: ", e.what());
         return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
@@ -120,7 +120,7 @@ IResponse^ HandleSetCertificateConfiguration(IRequest^ request)
 
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
-    catch (DMException& e)
+    catch (const DMException& e)
     {
         TRACEP("ERROR DMCommand::HandleSetCertificateConfiguration: ", e.what());
         return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
@@ -150,7 +150,7 @@ IResponse^ HandleGetCertificateDetails(IRequest^ request)
 
         return getCertificateDetailsResponse;
     }
-    catch (DMException& e)
+    catch (const DMException& e)
     {
         TRACEP("ERROR DMCommand::HandleGetCertificateDetails: ", e.what());
         return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);

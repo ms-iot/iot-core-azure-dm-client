@@ -162,6 +162,6 @@ namespace Utils
     };
 
     void LoadFile(const std::wstring& fileName, std::vector<char>& buffer);
-    std::wstring ToBase64(unsigned char* buffer, size_t bufferSize);
+    std::wstring ToBase64(std::vector<char>& buffer);
     std::wstring FileToBase64(const std::wstring& fileName);
 }
