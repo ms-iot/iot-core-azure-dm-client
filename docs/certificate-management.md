@@ -67,26 +67,49 @@ The DM client reports the hashes of installed certificates under the pre-defined
     }
 </pre>
 
-## Get Detailed Information About An Installed Certificate
-To get more details about any of the installed certificates, the request can be initiated by calling `microsoft.management.getCertificateDetails` method.
+## Retrieve Certificate Details
+To get more details about any of the installed certificates, the request can be initiated by calling the asynchronous `microsoft.management.getCertificateDetails` method.
+The method will schedule a job on the device to capture the certificate details in a json file and upload it to the specified blob in Azure Storage.
+The method returns immediately and indicates that it has accepted or rejected the job.
 
 ### Input Payload 
-<pre>
+```
 {
-    "path" : "csp path"
-    "hash" : "hashValue"
+    "path" : "csp path",
+    "hash" : "hashValue",
+    "connectionString" : "connectionStrng",
+    "containerName" : "containerName",
+    "output" : "blobFileName"
 }
-</pre>
+````
 
-### Output Payload
+## Output Payload
+The device responds immediately with the following JSON payload:
+
+```
+{
+    "response" : value (See below)
+    "reason" : value (See below)
+}
+```
+
+Possible `"response"` values are: 
+- `"accepted"` - The reboot request was accepted. The device will retrieve the certificate details and upload it to the Azure Storage specified in the input parameters.
+- `"rejected"` - The device rejected the request.
+
+`"reason"` is used to communicate why an App Install request was rejected if possible.
+
+### Uploaded File Format
 <pre>
 {
-    "Tag" : 52
-    "Status" : value
-    "IssuedTo" : "issued to value"
-    "IssuedBy" : "issued by value"
-    "ValidTo" : dateTime
-    "ValidFrom" : dateTime
+    "Tag" : 52,
+    "Status" : value,
+    "Base64Encoding" : "Base64Encoding value",
+	"TemplateName" : "TemplateName",
+    "IssuedTo" : "issued to value",
+    "IssuedBy" : "issued by value",
+    "ValidTo" : "date time value",
+    "ValidFrom" : "date time value"
 }
 </pre>
 
@@ -114,27 +137,4 @@ If the operator wants to install a new certificate (MyCertificate.cer) to ./Devi
         }
       }
     }
-</pre>
-
-### Retrieve Detailed Installed Certificate Information
-
-If the operator wants to retrieve detailed information of certificate that has just been installed (in the example above), given its hash in the 'reported' properties section, the system should call `microsoft.management.getCertificateDetails` with the following parameters:
-
-<pre>
-{
-    "path" : "./Device/Vendor/MSFT/RootCATrustedCertificates/Root"
-    "hash" : "MyCertificateHash"
-}
-</pre>
-
-The return payload should be:
-<pre>
-{
-    "Tag" : 52
-    "Status" : value
-    "IssuedTo" : "issued to value"
-    "IssuedBy" : "issued by value"
-    "ValidTo" : "dateTime"
-    "ValidFrom" : "dateTime"
-}
 </pre>

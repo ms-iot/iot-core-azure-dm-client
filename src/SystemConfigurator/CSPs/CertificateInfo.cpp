@@ -49,7 +49,7 @@ void CertificateInfo::SetIssuedBy(const std::wstring& certPath, const std::wstri
 
     wstring path = certPath + L"/IssuedBy";
 
-    MdmProvision::RunSetBase64(path, value);
+    MdmProvision::RunSet(path, value);
 }
 
 void CertificateInfo::AddIssuedBy(const std::wstring& certPath, const std::wstring& value)
@@ -74,7 +74,7 @@ void CertificateInfo::SetIssuedTo(const std::wstring& certPath, const std::wstri
 
     wstring path = certPath + L"/IssuedTo";
 
-    MdmProvision::RunSetBase64(path, value);
+    MdmProvision::RunSet(path, value);
 }
 
 void CertificateInfo::AddIssuedTo(const std::wstring& certPath, const std::wstring& value)
@@ -99,7 +99,7 @@ void CertificateInfo::SetValidFrom(const std::wstring& certPath, const std::wstr
 
     wstring path = certPath + L"/ValidFrom";
 
-    MdmProvision::RunSetBase64(path, value);
+    MdmProvision::RunSet(path, value);
 }
 
 void CertificateInfo::AddValidFrom(const std::wstring& certPath, const std::wstring& value)
@@ -124,7 +124,7 @@ void CertificateInfo::SetValidTo(const std::wstring& certPath, const std::wstrin
 
     wstring path = certPath + L"/ValidTo";
 
-    MdmProvision::RunSetBase64(path, value);
+    MdmProvision::RunSet(path, value);
 }
 
 void CertificateInfo::AddValidTo(const std::wstring& certPath, const std::wstring& value)
@@ -149,7 +149,7 @@ void CertificateInfo::SetTemplateName(const std::wstring& certPath, const std::w
 
     wstring path = certPath + L"/TemplateName";
 
-    MdmProvision::RunSetBase64(path, value);
+    MdmProvision::RunSet(path, value);
 }
 
 void CertificateInfo::AddTemplateName(const std::wstring& certPath, const std::wstring& value)

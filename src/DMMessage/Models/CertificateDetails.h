@@ -49,20 +49,24 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     {
         StatusCodeResponse statusCodeResponse;
     public:
-        property String^ IssuedBy;
-        property String^ IssuedTo;
-        property String^ ValidFrom;
-        property String^ ValidTo;
+        property String^ base64Encoding;
+        property String^ templateName;
+        property String^ issuedBy;
+        property String^ issuedTo;
+        property String^ validFrom;
+        property String^ validTo;
 
         GetCertificateDetailsResponse(ResponseStatus status) : statusCodeResponse(status, this->Tag) {}
 
         virtual Blob^ Serialize() {
 
             JsonObject^ jsonObject = ref new JsonObject();
-            jsonObject->Insert("IssuedBy", JsonValue::CreateStringValue(IssuedBy));
-            jsonObject->Insert("IssuedTo", JsonValue::CreateStringValue(IssuedTo));
-            jsonObject->Insert("ValidFrom", JsonValue::CreateStringValue(ValidFrom));
-            jsonObject->Insert("ValidTo", JsonValue::CreateStringValue(ValidTo));
+            jsonObject->Insert("Base64Encoding", JsonValue::CreateStringValue(base64Encoding));
+            jsonObject->Insert("TemplateName", JsonValue::CreateStringValue(templateName));
+            jsonObject->Insert("IssuedBy", JsonValue::CreateStringValue(issuedBy));
+            jsonObject->Insert("IssuedTo", JsonValue::CreateStringValue(issuedTo));
+            jsonObject->Insert("ValidFrom", JsonValue::CreateStringValue(validFrom));
+            jsonObject->Insert("ValidTo", JsonValue::CreateStringValue(validTo));
 
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
@@ -73,10 +77,12 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto getCertificateDetailsResponse = ref new GetCertificateDetailsResponse(ResponseStatus::Success);
-            getCertificateDetailsResponse->IssuedBy = jsonObject->Lookup("IssuedBy")->GetString();
-            getCertificateDetailsResponse->IssuedTo = jsonObject->Lookup("IssuedTo")->GetString();
-            getCertificateDetailsResponse->ValidFrom = jsonObject->Lookup("ValidFrom")->GetString();
-            getCertificateDetailsResponse->ValidTo = jsonObject->Lookup("ValidTo")->GetString();
+            getCertificateDetailsResponse->base64Encoding = jsonObject->Lookup("Base64Encoding")->GetString();
+            getCertificateDetailsResponse->templateName = jsonObject->Lookup("TemplateName")->GetString();
+            getCertificateDetailsResponse->issuedBy = jsonObject->Lookup("IssuedBy")->GetString();
+            getCertificateDetailsResponse->issuedTo = jsonObject->Lookup("IssuedTo")->GetString();
+            getCertificateDetailsResponse->validFrom = jsonObject->Lookup("ValidFrom")->GetString();
+            getCertificateDetailsResponse->validTo = jsonObject->Lookup("ValidTo")->GetString();
 
             return getCertificateDetailsResponse;
         }

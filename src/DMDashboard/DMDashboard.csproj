@@ -129,12 +129,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CertificateExportDetails.xaml.cs">
+      <DependentUpon>CertificateExportDetails.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WPFUtils.cs" />
     <Page Include="AzureBlobSelector.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="CertificateDetails.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CertificateExportDetails.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

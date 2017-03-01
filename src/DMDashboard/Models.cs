@@ -98,10 +98,13 @@ namespace Microsoft.Devices.Management
         public CertificateConfiguration Configuration;
     }
 
-    class GetCertificateDetailsRequest
+    class GetCertificateDetailsParams
     {
         public string path;
         public string hash;
+        public string connectionString;
+        public string containerName;
+        public string blobName;
     }
 
     class GetCertificateDetailsResponse

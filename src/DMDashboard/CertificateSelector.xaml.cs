@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,9 +12,22 @@ namespace DMDashboard
     public partial class CertificateSelector : UserControl
     {
         public delegate void ShowCertificateDetailsDelegate(CertificateSelector sender, CertificateData certificateData);
+        public delegate void ExportCertificateDetailsDelegate(CertificateSelector sender, CertificateData certificateData);
 
         public class CertificateData
         {
+            class CertificateJsonData
+            {
+                public int Status { get; set; }
+                public int Tag { get; set; }
+                public string base64Encoding { get; set; }
+                public string issuedBy { get; set; }
+                public string issuedTo { get; set; }
+                public string templateName { get; set; }
+                public string validFrom { get; set; }
+                public string validTo { get; set; }
+            }
+
             public string Hash { get; set; }
             public bool DetailsAvailable { get; set; }
             public string FileName { get; set; }
@@ -22,11 +37,52 @@ namespace DMDashboard
             public int Version { get; set; }
             public DateTime IssueDate { get; set; }
             public DateTime ExpiryDate { get; set; }
+            public string Base64Encoding { get; set; }
+            public string TemplateName { get; set; }
 
             public CertificateData()
             {
                 DetailsAvailable = false;
             }
+
+            public void LoadFromCerAzureBlob(string connectionString, string containerName, string blobName, string targetFolder)
+            {
+                X509Certificate2 x509Certificate2 = CertificateHelpers.GetCertificateInfo(connectionString, containerName, blobName, targetFolder);
+                FileName = blobName;
+                Hash = x509Certificate2.Thumbprint;
+                FriendlyName = x509Certificate2.FriendlyName;
+                Issuer = x509Certificate2.Issuer;
+                Subject = x509Certificate2.Subject;
+                Version = x509Certificate2.Version;
+                IssueDate = x509Certificate2.NotBefore;
+                ExpiryDate = x509Certificate2.NotAfter;
+                Base64Encoding = Convert.ToBase64String(x509Certificate2.GetRawCertData());
+                DetailsAvailable = true;
+            }
+
+            public void LoadFromJsonAzureBlob(string connectionString, string containerName, string blobName, string targetFolder)
+            {
+                AzureStorageHelpers.DownloadAzureFile(connectionString, containerName, blobName, targetFolder);
+
+                string fullFileName = targetFolder + "\\" + blobName;
+                if (!File.Exists(fullFileName))
+                {
+                    throw new Exception("Error: failed to download certificate json file!");
+                }
+
+                string jsonString = File.ReadAllText(fullFileName);
+                FileName = blobName;
+                CertificateJsonData data = JsonConvert.DeserializeObject<CertificateJsonData>(jsonString);
+
+                Issuer = data.issuedBy;
+                Subject = data.issuedTo;
+                IssueDate = DateTime.Parse(data.validFrom);
+                ExpiryDate = DateTime.Parse(data.validTo);
+                Base64Encoding = data.base64Encoding;
+                TemplateName = data.templateName;
+                DetailsAvailable = true;
+            }
+
         }
 
         static char Separator = '/';
@@ -34,8 +90,10 @@ namespace DMDashboard
         public static readonly DependencyProperty ConnectionStringProperty = DependencyProperty.Register("ConnectionString", typeof(string), typeof(CertificateSelector));
         public static readonly DependencyProperty ContainerNameProperty = DependencyProperty.Register("ContainerName", typeof(string), typeof(CertificateSelector));
         public static readonly DependencyProperty FileNamesStringProperty = DependencyProperty.Register("FileNamesString", typeof(string), typeof(CertificateSelector));
-        public static readonly DependencyProperty ModifyEnabledProperty = DependencyProperty.Register("ModifyEnabled", typeof(bool), typeof(CertificateSelector));
+        public static readonly DependencyProperty ModifyEnabledProperty = DependencyProperty.Register("EnableAddRemove", typeof(bool), typeof(CertificateSelector));
         public static readonly DependencyProperty CertificatesPathProperty = DependencyProperty.Register("CertificatesPath", typeof(string), typeof(CertificateSelector));
+        public static readonly DependencyProperty EnableExportProperty = DependencyProperty.Register("EnableExport", typeof(bool), typeof(CertificateSelector));
+        public static readonly DependencyProperty EnableFileNameProperty = DependencyProperty.Register("EnableFileName", typeof(bool), typeof(CertificateSelector));
 
         public string ConnectionString
         {
@@ -55,7 +113,7 @@ namespace DMDashboard
             set { SetValue(FileNamesStringProperty, value); }
         }
 
-        public bool ModifyEnabled
+        public bool EnableAddRemove
         {
             get { return (bool)GetValue(ModifyEnabledProperty); }
             set { SetValue(ModifyEnabledProperty, value); }
@@ -67,11 +125,26 @@ namespace DMDashboard
             set { SetValue(CertificatesPathProperty, value); }
         }
 
+        public bool EnableExport
+        {
+            get { return (bool)GetValue(EnableExportProperty); }
+            set { SetValue(EnableExportProperty, value); }
+        }
+
+        public bool EnableFileName
+        {
+            get { return (bool)GetValue(EnableFileNameProperty); }
+            set { SetValue(EnableFileNameProperty, value); }
+        }
+
         public ShowCertificateDetailsDelegate ShowCertificateDetails { get; set; }
+        public ExportCertificateDetailsDelegate ExportCertificateDetails { get; set; }
 
         public CertificateSelector()
         {
-            ModifyEnabled = true;
+            EnableAddRemove = true;
+            EnableExport = true;
+            EnableFileName = true;
             InitializeComponent();
         }
 
@@ -89,7 +162,7 @@ namespace DMDashboard
 
             return newParent as System.Windows.Window;
         }
-
+        
         private void OnAddRemove(object sender, RoutedEventArgs e)
         {
             Window parentWindow = FindParentWindow();
@@ -109,7 +182,7 @@ namespace DMDashboard
             }
 
             // Show contents of the container, and make the ones in currentBlobFileNames as selected.
-            AzureBlobSelector azureBlobSelector = new AzureBlobSelector(currentBlobFileNames, ConnectionString, ContainerName);
+            AzureBlobSelector azureBlobSelector = new AzureBlobSelector(currentBlobFileNames, ConnectionString, ContainerName, ".cer");
             azureBlobSelector.Owner = parentWindow;
             azureBlobSelector.ShowDialog();
 
@@ -121,17 +194,7 @@ namespace DMDashboard
                 foreach (string fileName in azureBlobSelector.BlobFileNames)
                 {
                     CertificateData certificateData = new CertificateData();
-                    certificateData.FileName = fileName;
-
-                    X509Certificate2 x509Certificate2 = CertificateHelpers.GetCertificateInfo(ConnectionString, ContainerName, fileName, @"c:\temp\certificates");
-                    certificateData.Hash = x509Certificate2.Thumbprint;
-                    certificateData.FriendlyName = x509Certificate2.FriendlyName;
-                    certificateData.Issuer = x509Certificate2.Issuer;
-                    certificateData.Subject = x509Certificate2.Subject;
-                    certificateData.Version = x509Certificate2.Version;
-                    certificateData.IssueDate = x509Certificate2.NotBefore;
-                    certificateData.ExpiryDate = x509Certificate2.NotAfter;
-                    certificateData.DetailsAvailable = true;
+                    certificateData.LoadFromCerAzureBlob(ConnectionString, ContainerName, fileName, @"c:\temp\certificates");
                     certificateList.Add(certificateData);
 
                     if (FileNamesString.Length != 0)
@@ -158,9 +221,23 @@ namespace DMDashboard
             {
                 Button btn = (Button)sender;
                 CertificateData certificateData = (CertificateData)btn.DataContext;
+                if (!certificateData.DetailsAvailable)
+                {
+                    string blobName = certificateData.Hash + ".json";
+                    certificateData.LoadFromJsonAzureBlob(ConnectionString, ContainerName, blobName, @"c:\temp\certificates");
+                }
                 ShowCertificateDetails(this, certificateData);
             }
+        }
 
+        private void OnExportDetails(object sender, RoutedEventArgs e)
+        {
+            if (ExportCertificateDetails != null)
+            {
+                Button btn = (Button)sender;
+                CertificateData certificateData = (CertificateData)btn.DataContext;
+                ExportCertificateDetails(this, certificateData);
+            }
         }
     }
 }

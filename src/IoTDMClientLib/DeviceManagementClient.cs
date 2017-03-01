@@ -4,7 +4,9 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Services.Store;
@@ -68,6 +70,9 @@ namespace Microsoft.Devices.Management
         {
             public string path;
             public string hash;
+            public string connectionString;
+            public string containerName;
+            public string blobName;
         }
 
         public struct DeviceStatus
@@ -299,18 +304,51 @@ namespace Microsoft.Devices.Management
             return Task.FromResult(JsonConvert.SerializeObject(new { response = "succeeded" }));
         }
 
-        private Task<string> GetCertificateDetails(string jsonParam)
+        private async Task GetCertificateDetailsAsync(string jsonParam)
         {
-            Debug.WriteLine("GetCertificateDetails");
-
             GetCertificateDetailsParams parameters = JsonConvert.DeserializeObject<GetCertificateDetailsParams>(jsonParam);
 
             var request = new Microsoft.Devices.Management.Message.GetCertificateDetailsRequest();
             request.path = parameters.path;
             request.hash = parameters.hash;
 
-            Message.GetCertificateDetailsResponse response = _systemConfiguratorProxy.SendCommand(request) as Message.GetCertificateDetailsResponse;
-            Debug.WriteLine("response = " + JsonConvert.SerializeObject(response));
+            Message.GetCertificateDetailsResponse response = await _systemConfiguratorProxy.SendCommandAsync(request) as Message.GetCertificateDetailsResponse;
+
+            string jsonString = JsonConvert.SerializeObject(response);
+            Debug.WriteLine("response = " + jsonString);
+
+            var info = new Message.AzureFileTransferInfo()
+            {
+                ConnectionString = parameters.connectionString,
+                ContainerName = parameters.containerName,
+                BlobName = parameters.blobName,
+                Upload = true,
+                LocalPath = ""
+            };
+
+            var appLocalDataFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(parameters.blobName, CreationCollisionOption.ReplaceExisting);
+            using (StreamWriter writer = new StreamWriter(await appLocalDataFile.OpenStreamForWriteAsync()))
+            {
+                await writer.WriteAsync(jsonString);
+            }
+            await IoTDMClient.AzureBlobFileTransfer.UploadFile(info, appLocalDataFile);
+
+            appLocalDataFile.DeleteAsync();
+        }
+
+        private Task<string> GetCertificateDetails(string jsonParam)
+        {
+            Debug.WriteLine("GetCertificateDetails");
+
+            var response = new { response = "succeeded", reason = "" };
+            try
+            {
+                GetCertificateDetailsAsync(jsonParam);
+            }
+            catch(Exception e)
+            {
+                response = new { response = "rejected:", reason = e.Message };
+            }
 
             return Task.FromResult(JsonConvert.SerializeObject(response));
         }

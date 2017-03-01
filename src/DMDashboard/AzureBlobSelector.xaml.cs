@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using Microsoft.WindowsAzure.Storage;
@@ -22,14 +23,13 @@ namespace DMDashboard
 
         public List<string> BlobFileNames { get; private set; }
 
-        public AzureBlobSelector(IEnumerable<string> fileNames, string connectionString, string containerName)
+        public AzureBlobSelector(IEnumerable<string> fileNames, string connectionString, string containerName, string extensionFilter)
         {
             InitializeComponent();
-
-            PopulateBlobList(fileNames, connectionString, containerName);
+            PopulateBlobList(fileNames, connectionString, containerName, extensionFilter);
         }
 
-        private void PopulateBlobList(IEnumerable<string> fileNames, string connectionString, string containerName)
+        private void PopulateBlobList(IEnumerable<string> fileNames, string connectionString, string containerName, string extensionFilter)
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
@@ -41,8 +41,12 @@ namespace DMDashboard
                 if (item.GetType() == typeof(CloudBlockBlob))
                 {
                     CloudBlockBlob blob = (CloudBlockBlob)item;
-                    bool selected = fileNames.Any(x => x == blob.Name);
-                    _blobInfoList.Add(new BlobData(selected, blob.Name));
+                    string extension = Path.GetExtension(blob.Name);
+                    if (string.IsNullOrEmpty(extensionFilter) || extension.Equals(extensionFilter, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        bool selected = fileNames.Any(x => x == blob.Name);
+                        _blobInfoList.Add(new BlobData(selected, blob.Name));
+                    }
                 }
             }
             BlobList.ItemsSource = _blobInfoList;

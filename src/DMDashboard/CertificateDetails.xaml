@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DMDashboard"
         mc:Ignorable="d"
-        Title="CertificateDetails" Height="250" Width="450">
+        Title="CertificateDetails" Height="700" Width="620">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -16,42 +16,63 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="100"/>
-            <ColumnDefinition Width="350"/>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="450"/>
         </Grid.ColumnDefinitions>
-        <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="File Name"/>
-        <TextBlock Grid.Row="0" Grid.Column="1" Margin="3"
-                   Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.FileName}"/>
-
-        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Hash"/>
-        <TextBlock Grid.Row="1" Grid.Column="1" Margin="3"
-                   Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.Hash}"/>
-
-        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Friendly Name"/>
-        <TextBlock Grid.Row="2" Grid.Column="1" Margin="3"
-                   Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.FriendlyName}"/>
-
-        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Issuer"/>
-        <TextBlock Grid.Row="3" Grid.Column="1" Margin="3"
-                   Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.Issuer}"/>
-
-        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Subject"/>
-        <TextBlock Grid.Row="4" Grid.Column="1" Margin="3"
-                   Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.Subject}"/>
-
-        <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Version"/>
-        <TextBlock Grid.Row="5" Grid.Column="1" Margin="3"
-                   Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.Version}"/>
-
-        <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Issue Date"/>
-        <TextBlock Grid.Row="6" Grid.Column="1" Margin="3"
-                   Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.IssueDate}"/>
-
-        <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Expiry Date"/>
-        <TextBlock Grid.Row="7" Grid.Column="1" Margin="3"
-                   Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ExpiryDate}"/>
+        <TextBlock Grid.Row="0" Grid.Column="0" Margin="5" Text="File Name"/>
+        <Border Grid.Row="0" Grid.Column="1" Margin="5" Background="#F0F0F0">
+            <TextBlock Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.FileName}"/>
+        </Border>
         
+        <TextBlock Grid.Row="1" Grid.Column="0" Margin="5" Text="Hash"/>
+        <Border Grid.Row="1" Grid.Column="1" Margin="5" Background="#F0F0F0">
+            <TextBlock Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.Hash}"/>
+        </Border>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Margin="5" Text="Friendly Name"/>
+        <Border Grid.Row="2" Grid.Column="1" Margin="5" Background="#F0F0F0">
+            <TextBlock Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.FriendlyName}"/>
+        </Border>
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Margin="5" Text="Issuer"/>
+        <Border Grid.Row="3" Grid.Column="1" Margin="5" Background="#F0F0F0">
+            <TextBlock Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.Issuer}"/>
+        </Border>
+        
+        <TextBlock Grid.Row="4" Grid.Column="0" Margin="5" Text="Subject"/>
+        <Border Grid.Row="4" Grid.Column="1" Margin="5" Background="#F0F0F0">
+            <TextBlock Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.Subject}"/>
+        </Border>
+
+        <TextBlock Grid.Row="5" Grid.Column="0" Margin="5" Text="Version"/>
+        <Border Grid.Row="5" Grid.Column="1" Margin="5" Background="#F0F0F0">
+            <TextBlock Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.Version}"/>
+        </Border>
+        
+        <TextBlock Grid.Row="6" Grid.Column="0" Margin="5" Text="Issue Date"/>
+        <Border Grid.Row="6" Grid.Column="1" Margin="5" Background="#F0F0F0">
+            <TextBlock Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.IssueDate}"/>
+        </Border>
+        
+        <TextBlock Grid.Row="7" Grid.Column="0" Margin="5" Text="Expiry Date"/>
+        <Border Grid.Row="7" Grid.Column="1" Margin="5" Background="#F0F0F0">
+            <TextBlock Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ExpiryDate}"/>
+        </Border>
+
+        <TextBlock Grid.Row="8" Grid.Column="0" Margin="5" Text="Template Name"/>
+        <Border Grid.Row="8" Grid.Column="1" Margin="5" Background="#F0F0F0">
+            <TextBlock Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.TemplateName}"/>
+        </Border>
+        
+        <TextBlock Grid.Row="9" Grid.Column="0" Margin="5" Text="Base 64 Encoding"/>
+        <Border Grid.Row="9" Grid.Column="1" Margin="5" Height="400" Background="#F0F0F0">
+            <TextBlock TextWrapping="Wrap"
+                       Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.Base64Encoding}"/>
+        </Border>
+
     </Grid>
 </Window>

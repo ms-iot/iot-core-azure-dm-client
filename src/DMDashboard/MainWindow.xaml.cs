@@ -66,6 +66,7 @@ namespace DMDashboard
             Desired_CertificateStore_My_System.ShowCertificateDetails += ShowCertificateDetails;
 
             Reported_RootCATrustedCertificates_Root.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_RootCATrustedCertificates_Root.ExportCertificateDetails += ExportCertificateDetails;
             Reported_RootCATrustedCertificates_CA.ShowCertificateDetails += ShowCertificateDetails;
             Reported_RootCATrustedCertificates_TrustedPublisher.ShowCertificateDetails += ShowCertificateDetails;
             Reported_RootCATrustedCertificates_TrustedPeople.ShowCertificateDetails += ShowCertificateDetails;
@@ -110,12 +111,16 @@ namespace DMDashboard
             DeviceListBox.Items.Clear();
 
             // Populate devices.
-            IEnumerable<Device> deviceIds = await this._registryManager.GetDevicesAsync(100);
-            foreach (var deviceId in deviceIds)
+            IEnumerable<Device> devices = await this._registryManager.GetDevicesAsync(100);
+            List<string> deviceIds = new List<string>();
+            foreach (var device in devices)
             {
-                Debug.WriteLine("->" + deviceId.Id);
-                DeviceListBox.Items.Add(deviceId.Id);
+                Debug.WriteLine("->" + device.Id);
+                deviceIds.Add(device.Id);
             }
+
+            deviceIds.Sort();
+            DeviceListBox.ItemsSource = deviceIds;
 
             this.config.AppSettings.Settings[IotHubConnectionString].Value = connectionString;
             this.config.Save(ConfigurationSaveMode.Modified);
@@ -611,41 +616,55 @@ namespace DMDashboard
             ToggleUIElementVisibility(AzureStorageExplorer);
         }
 
-        private async Task<DeviceMethodReturnValue> RequestCertificateDetailsAsync(string path, string hash)
+        private async Task<DeviceMethodReturnValue> RequestCertificateDetailsAsync(string connectionString, string containerName, string cspPath, string hash, string targetFileName)
         {
-            GetCertificateDetailsRequest getCertificateDetailsRequest = new GetCertificateDetailsRequest();
-            getCertificateDetailsRequest.path = path;
-            getCertificateDetailsRequest.hash = hash;
-            string parametersJson = JsonConvert.SerializeObject(getCertificateDetailsRequest);
+            GetCertificateDetailsParams getCertificateDetailsParams = new GetCertificateDetailsParams();
+            getCertificateDetailsParams.path = cspPath;
+            getCertificateDetailsParams.hash = hash;
+            getCertificateDetailsParams.connectionString = connectionString;
+            getCertificateDetailsParams.containerName = containerName;
+            getCertificateDetailsParams.blobName = hash + ".json";
+            string parametersJson = JsonConvert.SerializeObject(getCertificateDetailsParams);
             Debug.WriteLine(parametersJson);
 
             CancellationToken cancellationToken = new CancellationToken();
             return await _deviceTwin.CallDeviceMethod("microsoft.management.getCertificateDetails", parametersJson, new TimeSpan(0, 0, 30), cancellationToken);
         }
 
-        private async void ShowCertificateDetailsAsync(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        private void ShowCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
         {
-            if (!certificateData.DetailsAvailable)
-            {
-                MessageBox.Show("Retrieving details from the device...");
-                DeviceMethodReturnValue result = await RequestCertificateDetailsAsync(sender.CertificatesPath, certificateData.Hash);
-                GetCertificateDetailsResponse response = JsonConvert.DeserializeObject<GetCertificateDetailsResponse>(result.Payload);
-
-                certificateData.Issuer = response.IssuedBy;
-                certificateData.Subject = response.IssuedTo;
-                certificateData.IssueDate = DateTime.Parse(response.ValidFrom);
-                certificateData.ExpiryDate = DateTime.Parse(response.ValidTo);
-            }
-
             CertificateDetails certificateDetails = new CertificateDetails();
             certificateDetails.Owner = this;
             certificateDetails.DataContext = certificateData;
             certificateDetails.ShowDialog();
         }
 
-        private void ShowCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        private async void ExportCertificateDetailsAsync(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
         {
-            ShowCertificateDetailsAsync(sender, certificateData);
+            MessageBox.Show("Exporting certificate details from the device to Azure storage...");
+            string targetFileName = certificateData.Hash + ".json";
+            DeviceMethodReturnValue result = await RequestCertificateDetailsAsync(AzureStorageConnectionString.Text, AzureStorageContainerName.Text, sender.CertificatesPath, certificateData.Hash, targetFileName);
+            GetCertificateDetailsResponse response = JsonConvert.DeserializeObject<GetCertificateDetailsResponse>(result.Payload);
+            if (response == null || response.Status != 0)
+            {
+                MessageBox.Show("Error: could not schedule certificate export");
+                return;
+            }
+
+            CertificateExportDetails.CertificateExportDetailsData certificateExportDetailsData = new CertificateExportDetails.CertificateExportDetailsData();
+            certificateExportDetailsData.ConnectionString = AzureStorageConnectionString.Text;
+            certificateExportDetailsData.ContainerName = AzureStorageContainerName.Text;
+            certificateExportDetailsData.BlobName = targetFileName;
+
+            CertificateExportDetails certificateExportDetails = new CertificateExportDetails();
+            certificateExportDetails.Owner = this;
+            certificateExportDetails.DataContext = certificateExportDetailsData;
+            certificateExportDetails.Show();
+        }
+
+        private void ExportCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        {
+            ExportCertificateDetailsAsync(sender, certificateData);
         }
 
         private RegistryManager _registryManager;

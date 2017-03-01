@@ -127,10 +127,12 @@ IResponse^ HandleGetCertificateDetails(IRequest^ request)
         CertificateInfo certificateInfo(path + L"/" + hash);
 
         GetCertificateDetailsResponse^ getCertificateDetailsResponse = ref new GetCertificateDetailsResponse(ResponseStatus::Success);
-        getCertificateDetailsResponse->IssuedBy = ref new String(certificateInfo.GetIssuedBy().c_str());
-        getCertificateDetailsResponse->IssuedTo = ref new String(certificateInfo.GetIssuedTo().c_str());
-        getCertificateDetailsResponse->ValidFrom = ref new String(certificateInfo.GetValidFrom().c_str());
-        getCertificateDetailsResponse->ValidTo = ref new String(certificateInfo.GetValidTo().c_str());
+        getCertificateDetailsResponse->issuedBy = ref new String(certificateInfo.GetIssuedBy().c_str());
+        getCertificateDetailsResponse->issuedTo = ref new String(certificateInfo.GetIssuedTo().c_str());
+        getCertificateDetailsResponse->validFrom = ref new String(certificateInfo.GetValidFrom().c_str());
+        getCertificateDetailsResponse->validTo = ref new String(certificateInfo.GetValidTo().c_str());
+        getCertificateDetailsResponse->base64Encoding = ref new String(certificateInfo.GetCertificateInBase64().c_str());
+        getCertificateDetailsResponse->templateName = ref new String(certificateInfo.GetTemplateName().c_str());
 
         return getCertificateDetailsResponse;
     }

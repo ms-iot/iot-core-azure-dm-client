@@ -124,13 +124,15 @@
                                                        CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/Root"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       EnableExport="False"
                                                        FileNamesString=""/>
                             <local:CertificateSelector Grid.Row="2" Grid.Column="2"
                                                        x:Name="Reported_RootCATrustedCertificates_Root"
                                                        CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/Root"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                       ModifyEnabled="False"
+                                                       EnableAddRemove="False"
+                                                       EnableFileName="False"
                                                        FileNamesString=""/>
 
                             <TextBlock Grid.Row="3" Grid.Column="0" Margin="20,3,3,3">CA</TextBlock>
@@ -139,13 +141,15 @@
                                                        CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/CA"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       EnableExport="False"
                                                        FileNamesString=""/>
                             <local:CertificateSelector Grid.Row="3" Grid.Column="2"
                                                        x:Name="Reported_RootCATrustedCertificates_CA"
                                                        CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/CA"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                       ModifyEnabled="False"
+                                                       EnableAddRemove="False"
+                                                       EnableFileName="False"
                                                        FileNamesString=""/>
 
                             <TextBlock Grid.Row="4" Grid.Column="0" Margin="20,3,3,3">TrustedPublisher</TextBlock>
@@ -154,13 +158,15 @@
                                                        CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       EnableExport="False"
                                                        FileNamesString=""/>
                             <local:CertificateSelector Grid.Row="4" Grid.Column="2"
                                                        x:Name="Reported_RootCATrustedCertificates_TrustedPublisher"
                                                        CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                       ModifyEnabled="False"
+                                                       EnableAddRemove="False"
+                                                       EnableFileName="False"
                                                        FileNamesString=""/>
 
                             <TextBlock Grid.Row="5" Grid.Column="0" Margin="20,3,3,3">TrustedPeople</TextBlock>
@@ -169,13 +175,15 @@
                                                        CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       EnableExport="False"
                                                        FileNamesString=""/>
                             <local:CertificateSelector Grid.Row="5" Grid.Column="2"
                                                        x:Name="Reported_RootCATrustedCertificates_TrustedPeople"
                                                        CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                       ModifyEnabled="False"
+                                                       EnableAddRemove="False"
+                                                       EnableFileName="False"
                                                        FileNamesString=""/>
                         </Grid>
                         <TextBlock Margin="3,10,3,3">./Vendor/MSFT/CertificateStore</TextBlock>
@@ -204,13 +212,15 @@
                                                        CertificatesPath="./Vendor/MSFT/CertificateStore/CA/System"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       EnableExport="False"
                                                        FileNamesString=""/>
                             <local:CertificateSelector Grid.Row="2" Grid.Column="2"
                                                        x:Name="Reported_CertificateStore_CA_System"
                                                        CertificatesPath="./Vendor/MSFT/CertificateStore/CA/System"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                       ModifyEnabled="False"
+                                                       EnableAddRemove="False"
+                                                       EnableFileName="False"
                                                        FileNamesString=""/>
 
                             <TextBlock Grid.Row="3" Grid.Column="0" Margin="20,3,3,3" >Root/System</TextBlock>
@@ -219,13 +229,15 @@
                                                        CertificatesPath="./Vendor/MSFT/CertificateStore/Root/System"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       EnableExport="False"
                                                        FileNamesString=""/>
                             <local:CertificateSelector Grid.Row="3" Grid.Column="2"
                                                        x:Name="Reported_CertificateStore_Root_System"
                                                        CertificatesPath="./Vendor/MSFT/CertificateStore/Root/System"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                       ModifyEnabled="False"
+                                                       EnableAddRemove="False"
+                                                       EnableFileName="False"
                                                        FileNamesString=""/>
 
                             <TextBlock Grid.Row="4" Grid.Column="0" Margin="20,3,3,3" >My/User</TextBlock>
@@ -234,13 +246,15 @@
                                                        CertificatesPath="./Vendor/MSFT/CertificateStore/My/User"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       EnableExport="False"
                                                        FileNamesString=""/>
                             <local:CertificateSelector Grid.Row="4" Grid.Column="2"
                                                        x:Name="Reported_CertificateStore_My_User"
                                                        CertificatesPath="./Vendor/MSFT/CertificateStore/My/User"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                       ModifyEnabled="False"
+                                                       EnableAddRemove="False"
+                                                       EnableFileName="False"
                                                        FileNamesString=""/>
 
                             <TextBlock Grid.Row="5" Grid.Column="0" Margin="20,3,3,3" >My/System</TextBlock>
@@ -251,13 +265,15 @@
                                                        CertificatesPath="./Vendor/MSFT/CertificateStore/My/System"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                       EnableExport="False"
                                                        FileNamesString=""/>
                             <local:CertificateSelector Grid.Row="5" Grid.Column="2"
                                                        x:Name="Reported_CertificateStore_My_System"
                                                        CertificatesPath="./Vendor/MSFT/CertificateStore/My/System"
                                                        ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                        ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                       ModifyEnabled="False"
+                                                       EnableAddRemove="False"
+                                                       EnableFileName="False"
                                                        FileNamesString=""/>
 
                             <Button Grid.Row="6" Grid.Column="1" Margin="3,20,3,3" Content="Set Certificate Configuration" Click="OnSetCertificateConfiguration" />

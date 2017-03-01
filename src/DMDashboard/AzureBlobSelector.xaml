@@ -17,7 +17,7 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="50"/>
-                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="300"/>
                         </Grid.ColumnDefinitions>
                         <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
                         <TextBlock Grid.Column="1" Text="{Binding FileName}"/>

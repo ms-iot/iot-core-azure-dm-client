@@ -20,18 +20,26 @@
                 <DataTemplate>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="250"/>
-                            <ColumnDefinition Width="80"/>
-                            <ColumnDefinition Width="30"/>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Margin="5,3" Text="{Binding Hash}"/>
-                        <TextBlock Grid.Column="1" Margin="5,3" Text="{Binding FileName}"/>
-                        <Button Grid.Column="2" Margin="5,3" Content="..." Click="OnShowDetails"/>
+                        <TextBlock Grid.Column="0" Margin="5,3" Text="{Binding Hash}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="1" Margin="5,3" Width="80" Text="{Binding FileName}"
+                                Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}},
+                                                     Path=EnableFileName, 
+                                                     Converter={StaticResource booleanToVisibilityConverter}}"/>
+                        <Button Grid.Column="2" Margin="5,3" Width="60" Content="Export" Click="OnExportDetails"
+                                Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}},
+                                                     Path=EnableExport, 
+                                                     Converter={StaticResource booleanToVisibilityConverter}}"/>
+                        <Button Grid.Column="3" Margin="5,3" Width="60" Content="Details" Click="OnShowDetails"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
         <Button Grid.Row="1" Grid.Column="0" Margin="3" Content="Add/Remove" Click="OnAddRemove"
-                Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=ModifyEnabled, Converter={StaticResource booleanToVisibilityConverter}}"/>
+                Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=EnableAddRemove, Converter={StaticResource booleanToVisibilityConverter}}"/>
     </Grid>
 </UserControl>
