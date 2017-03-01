@@ -79,8 +79,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             setTimeInfo->TimeZoneDaylightDate = jsonObject->Lookup("TimeZoneDaylightDate")->GetString();
             setTimeInfo->TimeZoneDaylightBias = (int)jsonObject->Lookup("TimeZoneDaylightBias")->GetNumber();
 
-            auto result = ref new SetTimeInfoRequest(setTimeInfo);
-            return result;
+            return ref new SetTimeInfoRequest(setTimeInfo);
         }
 
         virtual property DMMessageKind Tag {
@@ -144,4 +143,4 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     };
 }
 }}}
-#pragma once
+

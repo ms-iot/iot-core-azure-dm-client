@@ -4,7 +4,9 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Services.Store;
@@ -58,6 +60,21 @@ namespace Microsoft.Devices.Management
             public string response;
         }
 
+        public struct ExternalStorage
+        {
+            public string connectionString;
+            public string containerName;
+        }
+
+        public struct GetCertificateDetailsParams
+        {
+            public string path;
+            public string hash;
+            public string connectionString;
+            public string containerName;
+            public string blobName;
+        }
+
         public struct DeviceStatus
         {
             public long secureBootState;
@@ -76,6 +93,7 @@ namespace Microsoft.Devices.Management
             this._deviceTwin = deviceTwin;
             this._requestHandler = requestHandler;
             this._systemConfiguratorProxy = systemConfiguratorProxy;
+            this._externalStorage = new ExternalStorage();
         }
 
         public static async Task<DeviceManagementClient> CreateAsync(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
@@ -85,6 +103,7 @@ namespace Microsoft.Devices.Management
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.appInstall", deviceManagementClient.AppInstallMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.reportAllDeviceProperties", deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.startAppSelfUpdate", deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync("microsoft.management.getCertificateDetails", deviceManagementClient.GetCertificateDetails);
             return deviceManagementClient;
         }
 
@@ -285,13 +304,76 @@ namespace Microsoft.Devices.Management
             return Task.FromResult(JsonConvert.SerializeObject(new { response = "succeeded" }));
         }
 
+        private async Task GetCertificateDetailsAsync(string jsonParam)
+        {
+            GetCertificateDetailsParams parameters = JsonConvert.DeserializeObject<GetCertificateDetailsParams>(jsonParam);
+
+            var request = new Microsoft.Devices.Management.Message.GetCertificateDetailsRequest();
+            request.path = parameters.path;
+            request.hash = parameters.hash;
+
+            Message.GetCertificateDetailsResponse response = await _systemConfiguratorProxy.SendCommandAsync(request) as Message.GetCertificateDetailsResponse;
+
+            string jsonString = JsonConvert.SerializeObject(response);
+            Debug.WriteLine("response = " + jsonString);
+
+            var info = new Message.AzureFileTransferInfo()
+            {
+                ConnectionString = parameters.connectionString,
+                ContainerName = parameters.containerName,
+                BlobName = parameters.blobName,
+                Upload = true,
+                LocalPath = ""
+            };
+
+            var appLocalDataFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(parameters.blobName, CreationCollisionOption.ReplaceExisting);
+            using (StreamWriter writer = new StreamWriter(await appLocalDataFile.OpenStreamForWriteAsync()))
+            {
+                await writer.WriteAsync(jsonString);
+            }
+            await IoTDMClient.AzureBlobFileTransfer.UploadFile(info, appLocalDataFile);
+
+            appLocalDataFile.DeleteAsync();
+        }
+
+        private Task<string> GetCertificateDetails(string jsonParam)
+        {
+            Debug.WriteLine("GetCertificateDetails");
+
+            var response = new { response = "succeeded", reason = "" };
+            try
+            {
+                GetCertificateDetailsAsync(jsonParam);
+            }
+            catch(Exception e)
+            {
+                response = new { response = "rejected:", reason = e.Message };
+            }
+
+            return Task.FromResult(JsonConvert.SerializeObject(response));
+        }
+
         public async Task<DMMethodResult> DoFactoryResetAsync()
         {
             throw new NotImplementedException();
         }
 
+        private static async void ProcessDesiredCertificateConfiguration(
+            DeviceManagementClient client,
+            string connectionString,
+            string containerName,
+            Microsoft.Devices.Management.Message.CertificateConfiguration certificateConfiguration)
+        {
+
+            await IoTDMClient.CertificateManagement.DownloadCertificates(client, connectionString, containerName, certificateConfiguration);
+            var request = new Microsoft.Devices.Management.Message.SetCertificateConfigurationRequest(certificateConfiguration);
+            client._systemConfiguratorProxy.SendCommandAsync(request);
+        }
+
         public void ProcessDeviceManagementProperties(TwinCollection desiredProperties)
         {
+            Message.CertificateConfiguration certificateConfiguration = null;
+
             foreach (KeyValuePair<string, object> dp in desiredProperties)
             {
                 if (dp.Key == "microsoft" && dp.Value is JObject)
@@ -305,6 +387,24 @@ namespace Microsoft.Devices.Management
                             {
                                 case "scheduledReboot":
                                     // TODO
+                                    break;
+                                case "externalStorage":
+                                    if (managementProperty.Value.Type == JTokenType.Object)
+                                    {
+                                        Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
+                                        JObject subProperties = (JObject)managementProperty.Value;
+
+                                        _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
+                                        _externalStorage.containerName = (string)subProperties.Property("container").Value;
+                                    }
+                                    break;
+                                case "certificates":
+                                    if (managementProperty.Value.Type == JTokenType.Object)
+                                    {
+                                        // Capture the configuration here.
+                                        // To apply the configuration we need to wait until externalStorage has been configured too.
+                                        certificateConfiguration = IoTDMClient.CertificateManagement.GetDesiredCertificateConfiguration(managementProperty);
+                                    }
                                     break;
                                 case "timeInfo":
                                     if (managementProperty.Value.Type == JTokenType.Object)
@@ -341,12 +441,28 @@ namespace Microsoft.Devices.Management
                     }
                 }
              }
+
+            // Need to keep this until externalStorage is processed.
+            // ToDo: The client does not get a full copy of the device twin when it first connects! (regression?)
+            //       This means that the externalStorage might not get set when the machine connects.
+            if (!String.IsNullOrEmpty(_externalStorage.connectionString) &&
+                !String.IsNullOrEmpty(_externalStorage.containerName) &&
+                certificateConfiguration != null)
+            {
+                ProcessDesiredCertificateConfiguration(this, _externalStorage.connectionString, _externalStorage.containerName, certificateConfiguration);
+            }
         }
 
         public async Task<Message.TimeInfoResponse> GetTimeInfoAsync()
         {
             var request = new Message.TimeInfoRequest();
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.TimeInfoResponse);
+        }
+
+        private async Task<Message.GetCertificateConfigurationResponse> GetCertificateConfigurationAsync()
+        {
+            var request = new Message.GetCertificateConfigurationRequest();
+            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetCertificateConfigurationResponse);
         }
 
         public async Task<RebootInfo> GetRebootInfoAsync()
@@ -368,14 +484,16 @@ namespace Microsoft.Devices.Management
         {
             Debug.WriteLine("ReportAllDeviceProperties");
 
-            Message.TimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
+            Message.TimeInfoResponse timeInfo = await GetTimeInfoAsync();
+            Message.GetCertificateConfigurationResponse certificateConfiguration = await GetCertificateConfigurationAsync();
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
             collection["microsoft"] = new
             {
                 management = new
                 {
-                    timeInfo = timeInfoResponse
+                    timeInfo = timeInfo,
+                    certificates = certificateConfiguration
 #if false // TODO
             collection["deviceStatus"] = await GetDeviceStatusAsync();
             collection["rebootInfo"] = await GetRebootInfoAsync();
@@ -413,6 +531,7 @@ namespace Microsoft.Devices.Management
         ISystemConfiguratorProxy _systemConfiguratorProxy;
         IDeviceManagementRequestHandler _requestHandler;
         IDeviceTwin _deviceTwin;
+        ExternalStorage _externalStorage;
     }
 
 }

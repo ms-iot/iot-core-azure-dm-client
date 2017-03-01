@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -54,6 +55,25 @@ namespace DMDashboard
             {
                 StorageConnectionStringBox.Text = connectionString.Value;
             }
+
+            Desired_RootCATrustedCertificates_Root.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_RootCATrustedCertificates_CA.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_RootCATrustedCertificates_TrustedPublisher.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_RootCATrustedCertificates_TrustedPeople.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_CertificateStore_CA_System.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_CertificateStore_Root_System.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_CertificateStore_My_User.ShowCertificateDetails += ShowCertificateDetails;
+            Desired_CertificateStore_My_System.ShowCertificateDetails += ShowCertificateDetails;
+
+            Reported_RootCATrustedCertificates_Root.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_RootCATrustedCertificates_Root.ExportCertificateDetails += ExportCertificateDetails;
+            Reported_RootCATrustedCertificates_CA.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_RootCATrustedCertificates_TrustedPublisher.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_RootCATrustedCertificates_TrustedPeople.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_CertificateStore_CA_System.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_CertificateStore_Root_System.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_CertificateStore_My_User.ShowCertificateDetails += ShowCertificateDetails;
+            Reported_CertificateStore_My_System.ShowCertificateDetails += ShowCertificateDetails;
         }
 
         private void ToggleUIElementVisibility(UIElement element)
@@ -66,6 +86,16 @@ namespace DMDashboard
             {
                 element.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private void OnExpandAzureStorage(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(AzureStorageGrid);
+        }
+
+        private void OnExpandCertificates(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(CertificateStackPanel);
         }
 
         private void OnExpandTimeInfo(object sender, RoutedEventArgs e)
@@ -81,12 +111,16 @@ namespace DMDashboard
             DeviceListBox.Items.Clear();
 
             // Populate devices.
-            IEnumerable<Device> deviceIds = await this._registryManager.GetDevicesAsync(100);
-            foreach (var deviceId in deviceIds)
+            IEnumerable<Device> devices = await this._registryManager.GetDevicesAsync(100);
+            List<string> deviceIds = new List<string>();
+            foreach (var device in devices)
             {
-                Debug.WriteLine("->" + deviceId.Id);
-                DeviceListBox.Items.Add(deviceId.Id);
+                Debug.WriteLine("->" + device.Id);
+                deviceIds.Add(device.Id);
             }
+
+            deviceIds.Sort();
+            DeviceListBox.ItemsSource = deviceIds;
 
             this.config.AppSettings.Settings[IotHubConnectionString].Value = connectionString;
             this.config.Save(ConfigurationSaveMode.Modified);
@@ -184,6 +218,41 @@ namespace DMDashboard
             ReportedDailyRebootTime.Text = rebootInfo.dailyRebootTime.ToString();
         }
 
+        private void CertificateInfoToUI(string hashesString, CertificateSelector certificateSelector)
+        {
+            if (String.IsNullOrEmpty(hashesString))
+            {
+                return;
+            }
+            string[] hashes = hashesString.Split('/');
+            Array.Sort<string>(hashes);
+            if (certificateSelector != null)
+            {
+                List<CertificateSelector.CertificateData> certificateList = new List<CertificateSelector.CertificateData>();
+                foreach (string hash in hashes)
+                {
+                    CertificateSelector.CertificateData certificateData = new CertificateSelector.CertificateData();
+                    certificateData.Hash = hash;
+                    certificateData.FileName = "<unknown>";
+                    certificateList.Add(certificateData);
+                }
+                certificateSelector.SetCertificateList(certificateList);
+            }
+        }
+
+        private void CertificatesInfoToUI(Microsoft.Devices.Management.Certificates certificatesInfo)
+        {
+            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_CA, Reported_RootCATrustedCertificates_CA);
+            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_Root, Reported_RootCATrustedCertificates_Root);
+            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_TrustedPublisher, Reported_RootCATrustedCertificates_TrustedPublisher);
+            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_TrustedPeople, Reported_RootCATrustedCertificates_TrustedPeople);
+
+            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_CA_System, Reported_CertificateStore_CA_System);
+            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_Root_System, Reported_CertificateStore_Root_System);
+            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_My_User, Reported_CertificateStore_My_User);
+            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_My_System, Reported_CertificateStore_My_System);
+        }
+
         private async void ReadDTReported()
         {
             DeviceTwinData deviceTwinData = await _deviceTwin.GetDeviceTwinData();
@@ -211,6 +280,11 @@ namespace DMDashboard
                 {
                     Microsoft.Devices.Management.TimeInfo.GetResponse timeInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.TimeInfo.GetResponse>(jsonProp.Value.ToString());
                     TimeInfoModelToUI(timeInfo);
+                }
+                if (jsonProp.Name == "certificates")
+                {
+                    Microsoft.Devices.Management.Certificates certificatesInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.Certificates>(jsonProp.Value.ToString());
+                    CertificatesInfoToUI(certificatesInfo);
                 }
                 else if (jsonProp.Name == "deviceStatus")
                 {
@@ -345,12 +419,11 @@ namespace DMDashboard
             return rebootInfo;
         }
 
-        private void SetDesired(PropertiesRoot root)
+        private void SetDesired(string sectionString)
         {
-            PropertiesRoot propertiesRoot = new PropertiesRoot();
-
-            string jsonString = "{ \"properties\" : " + JsonConvert.SerializeObject(root) + "}";
-
+            string prefix = "{ \"properties\" : {\"desired\":{\"microsoft\":{\"management\":{";
+            string suffix = "}}}}}";
+            string jsonString = prefix + sectionString + suffix; // "{ \"properties\" : " + JsonConvert.SerializeObject(root) + "}";
             Debug.WriteLine("---- Desired Properties ----");
             Debug.WriteLine(jsonString);
 
@@ -360,29 +433,60 @@ namespace DMDashboard
 
         private void OnSetTimeInfo(object sender, RoutedEventArgs e)
         {
-            PropertiesRoot root = new PropertiesRoot();
-            root.desired.microsoft.management.timeInfo = UIToTimeInfoModel();
-            SetDesired(root);
+            SetDesired(UIToTimeInfoModel().ToJson());
+        }
+
+        private ExternalStorage UIToExternalStorageModel()
+        {
+            ExternalStorage externalStorage = new ExternalStorage();
+            externalStorage.connectionString = AzureStorageConnectionString.Text;
+            externalStorage.container = AzureStorageContainerName.Text;
+            return externalStorage;
+        }
+
+        private void OnSetExternalStorageInfo(object sender, RoutedEventArgs e)
+        {
+            SetDesired(UIToExternalStorageModel().ToJson());
+        }
+
+        private Certificates.CertificateConfiguration UIToCertificateConfiguration()
+        {
+            Certificates.CertificateConfiguration certificateConfiguration = new Certificates.CertificateConfiguration();
+            certificateConfiguration.rootCATrustedCertificates_Root = Desired_RootCATrustedCertificates_Root.FileNamesString;
+            certificateConfiguration.rootCATrustedCertificates_CA = Desired_RootCATrustedCertificates_CA.FileNamesString;
+            certificateConfiguration.rootCATrustedCertificates_TrustedPublisher = Desired_RootCATrustedCertificates_TrustedPublisher.FileNamesString;
+            certificateConfiguration.rootCATrustedCertificates_TrustedPeople = Desired_RootCATrustedCertificates_TrustedPeople.FileNamesString;
+            certificateConfiguration.certificateStore_CA_System = Desired_CertificateStore_CA_System.FileNamesString;
+            certificateConfiguration.certificateStore_Root_System = Desired_CertificateStore_Root_System.FileNamesString;
+            certificateConfiguration.certificateStore_My_User = Desired_CertificateStore_My_User.FileNamesString;
+            certificateConfiguration.certificateStore_My_System = Desired_CertificateStore_My_System.FileNamesString;
+            return certificateConfiguration;
+        }
+
+        private void OnSetCertificateConfiguration(object sender, RoutedEventArgs e)
+        {
+            SetDesired(UIToCertificateConfiguration().ToJson());
         }
 
         private void OnSetRebootInfo(object sender, RoutedEventArgs e)
         {
-            PropertiesRoot root = new PropertiesRoot();
-            root.desired.microsoft.management.rebootInfo = UIToRebootInfoModel();
-            SetDesired(root);
+            SetDesired(UIToRebootInfoModel().ToJson());
         }
 
         private void OnSetAllDesiredProperties(object sender, RoutedEventArgs e)
         {
-            PropertiesRoot root = new PropertiesRoot();
-            root.desired.microsoft.management.timeInfo = UIToTimeInfoModel();
-            root.desired.microsoft.management.rebootInfo = UIToRebootInfoModel();
-            SetDesired(root);
+            StringBuilder json = new StringBuilder();
+
+            json.Append(UIToTimeInfoModel().ToJson());
+            json.Append(",");
+            json.Append(UIToExternalStorageModel().ToJson());
+            json.Append(",");
+            json.Append(UIToCertificateConfiguration().ToJson());
+            json.Append(",");
+            json.Append(UIToRebootInfoModel().ToJson());
+
+            SetDesired(json.ToString());
         }
-
-        private RegistryManager _registryManager;
-        private DeviceTwinAndMethod _deviceTwin;
-
 
         private void OnExpandAppInstall(object sender, RoutedEventArgs e)
         {
@@ -506,5 +610,64 @@ namespace DMDashboard
             var jo = JsonConvert.DeserializeObject(json);
             DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.appInstall", json, new TimeSpan(0, 0, 30), cancellationToken);
         }
+
+        private void OnExpandAzureStorageExplorer(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(AzureStorageExplorer);
+        }
+
+        private async Task<DeviceMethodReturnValue> RequestCertificateDetailsAsync(string connectionString, string containerName, string cspPath, string hash, string targetFileName)
+        {
+            GetCertificateDetailsParams getCertificateDetailsParams = new GetCertificateDetailsParams();
+            getCertificateDetailsParams.path = cspPath;
+            getCertificateDetailsParams.hash = hash;
+            getCertificateDetailsParams.connectionString = connectionString;
+            getCertificateDetailsParams.containerName = containerName;
+            getCertificateDetailsParams.blobName = hash + ".json";
+            string parametersJson = JsonConvert.SerializeObject(getCertificateDetailsParams);
+            Debug.WriteLine(parametersJson);
+
+            CancellationToken cancellationToken = new CancellationToken();
+            return await _deviceTwin.CallDeviceMethod("microsoft.management.getCertificateDetails", parametersJson, new TimeSpan(0, 0, 30), cancellationToken);
+        }
+
+        private void ShowCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        {
+            CertificateDetails certificateDetails = new CertificateDetails();
+            certificateDetails.Owner = this;
+            certificateDetails.DataContext = certificateData;
+            certificateDetails.ShowDialog();
+        }
+
+        private async void ExportCertificateDetailsAsync(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        {
+            MessageBox.Show("Exporting certificate details from the device to Azure storage...");
+            string targetFileName = certificateData.Hash + ".json";
+            DeviceMethodReturnValue result = await RequestCertificateDetailsAsync(AzureStorageConnectionString.Text, AzureStorageContainerName.Text, sender.CertificatesPath, certificateData.Hash, targetFileName);
+            GetCertificateDetailsResponse response = JsonConvert.DeserializeObject<GetCertificateDetailsResponse>(result.Payload);
+            if (response == null || response.Status != 0)
+            {
+                MessageBox.Show("Error: could not schedule certificate export");
+                return;
+            }
+
+            CertificateExportDetails.CertificateExportDetailsData certificateExportDetailsData = new CertificateExportDetails.CertificateExportDetailsData();
+            certificateExportDetailsData.ConnectionString = AzureStorageConnectionString.Text;
+            certificateExportDetailsData.ContainerName = AzureStorageContainerName.Text;
+            certificateExportDetailsData.BlobName = targetFileName;
+
+            CertificateExportDetails certificateExportDetails = new CertificateExportDetails();
+            certificateExportDetails.Owner = this;
+            certificateExportDetails.DataContext = certificateExportDetailsData;
+            certificateExportDetails.Show();
+        }
+
+        private void ExportCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        {
+            ExportCertificateDetailsAsync(sender, certificateData);
+        }
+
+        private RegistryManager _registryManager;
+        private DeviceTwinAndMethod _deviceTwin;
     }
 }
