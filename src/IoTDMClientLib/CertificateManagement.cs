@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using Microsoft.Devices.Management;
+using Microsoft.Devices.Management.Message;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -9,7 +10,7 @@ namespace IoTDMClient
 {
     class CertificateManagement
     {
-        public static Microsoft.Devices.Management.Message.CertificateConfiguration GetDesiredCertificateConfiguration(JProperty certificateConfigurationJson)
+        public static CertificateConfiguration GetDesiredCertificateConfiguration(JProperty certificateConfigurationJson)
         {
             if (certificateConfigurationJson.Value.Type != JTokenType.Object)
             {
@@ -19,7 +20,7 @@ namespace IoTDMClient
             Debug.WriteLine("certificates = " + certificateConfigurationJson.Value.ToString());
             JObject subProperties = (JObject)certificateConfigurationJson.Value;
 
-            Microsoft.Devices.Management.Message.CertificateConfiguration certificateConfiguration = new Microsoft.Devices.Management.Message.CertificateConfiguration();
+            CertificateConfiguration certificateConfiguration = new CertificateConfiguration();
             certificateConfiguration.rootCATrustedCertificates_Root = (string)subProperties.Property("rootCATrustedCertificates_Root").Value;
             certificateConfiguration.rootCATrustedCertificates_CA = (string)subProperties.Property("rootCATrustedCertificates_CA").Value;
             certificateConfiguration.rootCATrustedCertificates_TrustedPublisher = (string)subProperties.Property("rootCATrustedCertificates_TrustedPublisher").Value;
@@ -35,10 +36,8 @@ namespace IoTDMClient
         private static async Task DownloadCertificates(DeviceManagementClient client, string connectionString, string containerName, HashSet<string> certificateFilesSet)
         {
             // ToDo: since our cache is temporary, we might have to download those files everytime to verify the hashes.
-            if (certificateFilesSet == null || certificateFilesSet.Count == 0)
-            {
-                return;
-            }
+            Debug.Assert(certificateFilesSet != null);
+
             foreach (string fileName in certificateFilesSet)
             {
                 IoTDMClient.BlobInfo blobInfo = new IoTDMClient.BlobInfo();
@@ -59,17 +58,14 @@ namespace IoTDMClient
                 return;
             }
             string[] hashes = hashesString.Split(separator);
-            foreach (string hash in hashes)
-            {
-                certificateFilesSet.Add(hash);
-            }
+            certificateFilesSet.UnionWith(hashes);
         }
 
         public static async Task DownloadCertificates(
             DeviceManagementClient client,
             string connectionString,
             string containerName,
-            Microsoft.Devices.Management.Message.CertificateConfiguration certificateConfiguration)
+            CertificateConfiguration certificateConfiguration)
         {
             HashSet<string> certificateFilesSet = new HashSet<string>();
 

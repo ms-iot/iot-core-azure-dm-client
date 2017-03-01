@@ -678,7 +678,9 @@ namespace Utils
         TRACE(__FUNCTION__);
         TRACEP(L"fileName = ", fileName.c_str());
 
-        ifstream file(fileName, ios::in | ios::binary | ios::ate);    string line;
+        ifstream file(fileName, ios::in | ios::binary | ios::ate);
+
+        string line;
         if (!file.is_open())
         {
             throw new DMException("Error: failed to open binary file!");
@@ -693,34 +695,23 @@ namespace Utils
         file.close();
     }
 
-    wstring ToBase64(unsigned char* buffer, size_t bufferSize)
+    wstring ToBase64(std::vector<char>& buffer)
     {
         TRACE(__FUNCTION__);
 
-        wstring base64;
         DWORD destinationSize = 0;
-        if (!CryptBinaryToString(buffer, bufferSize, CRYPT_STRING_BASE64, nullptr, &destinationSize))
+        if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size(), CRYPT_STRING_BASE64, nullptr, &destinationSize))
         {
             throw new DMException("Error: cannot obtain the required size to encode buffer into base64.");
         }
 
-        wchar_t* destinationBuffer = static_cast<LPTSTR> (HeapAlloc(GetProcessHeap(), HEAP_NO_SERIALIZE, destinationSize * sizeof(wchar_t)));
-        if (!destinationBuffer)
-        {
-            throw new DMException("Error: cannot allocate buffer to hold encode buffer.");
-        }
-
-        BOOL result = CryptBinaryToString(buffer, bufferSize, CRYPT_STRING_BASE64, destinationBuffer, &destinationSize);
-        if (result)
-        {
-            base64 = wstring(destinationBuffer, destinationSize);
-        }
-        HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, destinationBuffer);
-        if (!result)
+        vector<wchar_t> destinationBuffer(destinationSize);
+        if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size(), CRYPT_STRING_BASE64, destinationBuffer.data(), &destinationSize))
         {
             throw new DMException("Error: cannot convert binary stream to base64.");
         }
-        return base64;
+
+        return wstring(destinationBuffer.size(), destinationSize);
     }
 
     wstring FileToBase64(const wstring& fileName)
@@ -730,7 +721,7 @@ namespace Utils
 
         vector<char> buffer;
         LoadFile(fileName, buffer);
-        return ToBase64(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size());
+        return ToBase64(buffer);
     }
 
 }

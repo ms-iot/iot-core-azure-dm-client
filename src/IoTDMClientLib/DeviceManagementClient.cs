@@ -103,7 +103,7 @@ namespace Microsoft.Devices.Management
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.appInstall", deviceManagementClient.AppInstallMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.reportAllDeviceProperties", deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.startAppSelfUpdate", deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
-            await deviceTwin.SetMethodHandlerAsync("microsoft.management.getCertificateDetails", deviceManagementClient.GetCertificateDetails);
+            await deviceTwin.SetMethodHandlerAsync("microsoft.management.getCertificateDetails", deviceManagementClient.GetCertificateDetailsHandlerAsync);
             return deviceManagementClient;
         }
 
@@ -308,7 +308,7 @@ namespace Microsoft.Devices.Management
         {
             GetCertificateDetailsParams parameters = JsonConvert.DeserializeObject<GetCertificateDetailsParams>(jsonParam);
 
-            var request = new Microsoft.Devices.Management.Message.GetCertificateDetailsRequest();
+            var request = new Message.GetCertificateDetailsRequest();
             request.path = parameters.path;
             request.hash = parameters.hash;
 
@@ -333,16 +333,17 @@ namespace Microsoft.Devices.Management
             }
             await IoTDMClient.AzureBlobFileTransfer.UploadFile(info, appLocalDataFile);
 
-            appLocalDataFile.DeleteAsync();
+            await appLocalDataFile.DeleteAsync();
         }
 
-        private Task<string> GetCertificateDetails(string jsonParam)
+        private Task<string> GetCertificateDetailsHandlerAsync(string jsonParam)
         {
-            Debug.WriteLine("GetCertificateDetails");
+            Debug.WriteLine("GetCertificateDetailsHandlerAsync");
 
             var response = new { response = "succeeded", reason = "" };
             try
             {
+                // Submit the work and return immediately.
                 GetCertificateDetailsAsync(jsonParam);
             }
             catch(Exception e)
@@ -362,16 +363,17 @@ namespace Microsoft.Devices.Management
             DeviceManagementClient client,
             string connectionString,
             string containerName,
-            Microsoft.Devices.Management.Message.CertificateConfiguration certificateConfiguration)
+            Message.CertificateConfiguration certificateConfiguration)
         {
 
             await IoTDMClient.CertificateManagement.DownloadCertificates(client, connectionString, containerName, certificateConfiguration);
-            var request = new Microsoft.Devices.Management.Message.SetCertificateConfigurationRequest(certificateConfiguration);
+            var request = new Message.SetCertificateConfigurationRequest(certificateConfiguration);
             client._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         public void ProcessDeviceManagementProperties(TwinCollection desiredProperties)
         {
+            // ToDo: We should not throw here. All problems need to be logged.
             Message.CertificateConfiguration certificateConfiguration = null;
 
             foreach (KeyValuePair<string, object> dp in desiredProperties)
