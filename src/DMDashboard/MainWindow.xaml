@@ -58,7 +58,7 @@
                         <TextBlock Grid.Column="1" Margin="3" Text="Azure Storage" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                         <Button Grid.Column="0" Click="OnExpandAzureStorage" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
-                    <Grid x:Name="AzureStorageGrid" Visibility="Visible">
+                    <Grid x:Name="AzureStorageGrid" Visibility="Collapsed">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -97,7 +97,7 @@
                         <TextBlock Grid.Column="1" Margin="3" Text="Certificates" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                         <Button Grid.Column="0" Click="OnExpandCertificates" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
-                    <StackPanel x:Name="CertificateStackPanel" Orientation="Vertical" Visibility="Visible">
+                    <StackPanel x:Name="CertificateStackPanel" Orientation="Vertical" Visibility="Collapsed">
                         <TextBlock Margin="3,10,3,3">./Device/Vendor/MSFT/RootCATrustedCertificates</TextBlock>
                         <Grid>
                             <Grid.RowDefinitions>

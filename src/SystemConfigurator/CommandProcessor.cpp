@@ -47,7 +47,7 @@ IResponse^ HandleSetTimeInfo(IRequest^ request)
     try
     {
         auto setTimeInfoRequest = dynamic_cast<SetTimeInfoRequest^>(request);
-        TimeCfg::SetTimeInfo(setTimeInfoRequest);
+        TimeCfg::Set(setTimeInfoRequest);
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (const DMException& e)
@@ -176,7 +176,7 @@ IResponse^ HandleSetRebootInfo(IRequest^ request)
 
 IResponse^ HandleGetTimeInfo(IRequest^ request)
 {
-    return TimeCfg::GetTimeInfo();
+    return TimeCfg::Get();
 }
 
 IResponse^ HandleImmediateReboot(IRequest^ request)

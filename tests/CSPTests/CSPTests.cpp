@@ -7,7 +7,9 @@
 
 void ShowUsage()
 {
-    TRACE("This test needs to be run under a SYSTEM account.");
+    TRACE("To run this test:");
+    TRACE("- Run under a SYSTEM account.");
+    TRACE("- SystemConfigurator must not be running (i.e. not local DM is enrolled).");
     TRACE("");
     TRACE("Example:");
     TRACE("    schtasks /Create /SC ONCE /RU \"SYSTEM\" /TN TestCSPsTask /TR C:\\temp\\CSPTests.exe /ST 14:00");

@@ -21,27 +21,27 @@ namespace Microsoft.Devices.Management
     {
         public class GetResponse
         {
-            public long TimeZoneDaylightBias;
-            public string TimeZoneDaylightDate;
-            public string TimeZoneDaylightName;
-            public long TimeZoneStandardBias;
-            public string TimeZoneStandardDate;
-            public string TimeZoneStandardName;
-            public long TimeZoneBias;
-            public string LocalTime;
-            public string NtpServer;
+            public long timeZoneDaylightBias;
+            public string timeZoneDaylightDate;
+            public string timeZoneDaylightName;
+            public long timeZoneStandardBias;
+            public string timeZoneStandardDate;
+            public string timeZoneStandardName;
+            public long timeZoneBias;
+            public string localTime;
+            public string ntpServer;
         }
 
         public class SetParams
         {
-            public long TimeZoneDaylightBias;
-            public string TimeZoneDaylightDate;
-            public string TimeZoneDaylightName;
-            public long TimeZoneStandardBias;
-            public string TimeZoneStandardDate;
-            public string TimeZoneStandardName;
-            public long TimeZoneBias;
-            public string NtpServer;
+            public long timeZoneDaylightBias;
+            public string timeZoneDaylightDate;
+            public string timeZoneDaylightName;
+            public long timeZoneStandardBias;
+            public string timeZoneStandardDate;
+            public string timeZoneStandardName;
+            public long timeZoneBias;
+            public string ntpServer;
 
             public string ToJson()
             {
