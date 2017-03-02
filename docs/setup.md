@@ -36,7 +36,7 @@ To leverage these items on your IotCore device, follow these steps (steps below 
 1. Verify that **SystemConfigurator.exe** and **CommProxy.exe** are present:
 
         Toaster with Debug ARM configuration: C:\Data\Users\DefaultAccount\AppData\Local\DevelopmentFiles\ToasterUiVS.Debug_ARM.msft
-        IoTDMBackgroundwith Debug ARM configuration: C:\Data\Users\DefaultAccount\AppData\Local\DevelopmentFiles\23983CETAthensQuality.IoTDMBackgroundSampleVS.Debug_ARM.msft
+        IoTDMBackground with Debug ARM configuration: C:\Data\Users\DefaultAccount\AppData\Local\DevelopmentFiles\23983CETAthensQuality.IoTDMBackgroundSampleVS.Debug_ARM.msft
 
 1. From `SSH` shell, run (assuming Toaster app with Debug ARM configuration, for IoTDMBackground use path specified in previous step):
 
