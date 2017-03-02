@@ -131,6 +131,18 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png">
       <InProject>false</InProject>
     </Content>
+    <Content Include="..\..\src\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' == 'x86' And '$(Configuration)' == 'Debug'">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\src\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' == 'x86' And '$(Configuration)' == 'Debug'">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\src\$(Platform)\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\src\$(Platform)\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\DMMessage\DMMessage.vcxproj">
