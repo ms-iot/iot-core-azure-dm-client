@@ -21,9 +21,6 @@
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
       <Extensions>
-        <uap:Extension Category="windows.appService" EntryPoint="IoTDMBackground.DMClientAppService">
-          <uap:AppService Name="DMClientAppService" />
-        </uap:Extension>
         <Extension Category="windows.backgroundTasks" EntryPoint="IoTDMBackground.DMClientBackgroundApplication">
           <BackgroundTasks>
             <iot:Task Type="startup" />

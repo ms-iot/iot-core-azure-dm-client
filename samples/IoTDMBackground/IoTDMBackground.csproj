@@ -100,7 +100,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConnectionStringProvider.cs" />
-    <Compile Include="DMClientAppService.cs" />
     <Compile Include="DMClientBackgroundApplication.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
