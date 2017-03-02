@@ -21,6 +21,9 @@
     <PackageCertificateKeyFile>IoTDMBackground_TemporaryKey.pfx</PackageCertificateKeyFile>
     <AppxPackage>true</AppxPackage>
     <ContainsStartupTask>true</ContainsStartupTask>
+    <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
+    <AppxBundle>Always</AppxBundle>
+    <AppxBundlePlatforms>arm</AppxBundlePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <DebugSymbols>true</DebugSymbols>
@@ -130,25 +133,13 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png">
       <InProject>false</InProject>
     </Content>
-    <Content Include="..\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' == 'x86'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' == 'x86'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\$(Platform)\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' != 'x86'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\$(Platform)\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' != 'x86'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DMMessage\DMMessage.vcxproj">
+    <ProjectReference Include="..\..\src\DMMessage\DMMessage.vcxproj">
       <Project>{241582cd-4861-4643-a7a2-21865b779aaf}</Project>
       <Name>DMMessage</Name>
     </ProjectReference>
-    <ProjectReference Include="..\IoTDMClientLib\IoTDMClientLib.csproj">
+    <ProjectReference Include="..\..\src\IoTDMClientLib\IoTDMClientLib.csproj">
       <Project>{f29e2c50-97be-4c33-b601-e52aab5596e9}</Project>
       <Name>IoTDMClientLib</Name>
     </ProjectReference>
