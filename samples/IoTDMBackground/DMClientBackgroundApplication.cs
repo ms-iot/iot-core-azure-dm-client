@@ -17,17 +17,16 @@ namespace IoTDMBackground
 
         Task<ApplicationInfo> IDeviceManagementRequestHandler.GetApplicationInfo()
         {
-            var appInfo = // get info from any AppService connections
-            new ApplicationInfo
+            var appInfo = new ApplicationInfo
             {
-                ApplicationName = "IoTDMBackground",
+                ApplicationName = Package.Current.DisplayName,
                 PackageFamilyName = Package.Current.Id.FamilyName
             };
 
             return Task<ApplicationInfo>.FromResult(appInfo);
         }
 
-        // Answer the question "is it OK to reboot the toaster"
+        // It is always ok to reboot
         Task<SystemRebootRequestResponse> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
         {
             return Task.FromResult(SystemRebootRequestResponse.Accept);
@@ -36,8 +35,6 @@ namespace IoTDMBackground
 
     public sealed class DMClientBackgroundApplication : IBackgroundTask
     {
-        private readonly string DeviceConnectionString = ConnectionStringProvider.Value;
-
         private DeviceManagementClient _dmClient;
         private BackgroundTaskDeferral _deferral;
 
@@ -45,9 +42,15 @@ namespace IoTDMBackground
         {
             _deferral = taskInstance.GetDeferral();
 
+            // TODO: Get ConnectionString from TPM.  Use slot 0
+            // TpmDevice tpm = new TpmDevice(0);
+            // string deviceConnectionString = await tpm.GetConnectionString();
+
+            string deviceConnectionString = "<connection string>";
+
             // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
             // as well as device management
-            DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, TransportType.Mqtt);
+            DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
 
             // IDeviceTwin abstracts away communication with the back-end.
             // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
