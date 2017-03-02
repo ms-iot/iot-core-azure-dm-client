@@ -15,12 +15,13 @@ Microsoft has created a sample implementation for each of these parts in ms-iot/
 
 Here is a high level description of what is there:
 
-1. **Toaster** - a *Device Application* representing a fictional smart toaster.  This is a UWP app that can be deployed from Visual Studio (using either Build > Deploy Solution or F5).
+1. **Toaster** - a foreground UI *Device Application* representing a fictional smart toaster.  In this case, device management is a part of the *Device Application*.  This is a UWP app that can be deployed from Visual Studio (using either Build > Deploy Solution or F5).
+1. **IoTDMBackground** - a Background Application enabling simple device managment independent of any UI app.  In this case the *Device Application* is totally separated from the device management.  This is a UWP Background Application that can be deployed from Visual Studio (using either Build > Deploy Solution or F5).
 1. **DMDashboard** - a *Device Dashboard* allowing registered smart toasters to be managed.  This is a .NET desktop application that can be built and run from Visual Studio.
 
 ## Development setup
 
-To leverage these items on your IotCore device, follow these steps:
+To leverage these items on your IotCore device, follow these steps (steps below assume Toaster, but will work if applied to IoTDMBackground as well):
 
 1. Setup your `Azure IotHub` account.
 1. Install `Visual Studio 2015 Update 3` (be sure UWP features are enabled)
@@ -32,10 +33,16 @@ To leverage these items on your IotCore device, follow these steps:
 1. Set the Configuration as required by your device and `Build > Rebuild Solution`
 1. Deploy to your device by selecting Remote Machine, entering your device's IP address (or name), and `Build > Deploy Solution`.
 1. Using SSH (or PowerShell) connect to your device as Administrator.
-1. Verify that **SystemConfigurator.exe** and **CommProxy.exe** are in this folder (assuming ARM configuration): C:\Data\Users\DefaultAccount\AppData\Local\DevelopmentFiles\ToasterUiVS.Debug_ARM.msft
-1. From `SSH` shell, run (assuming ARM configuration):
+1. Verify that **SystemConfigurator.exe** and **CommProxy.exe** are present:
+
+        Toaster with Debug ARM configuration: C:\Data\Users\DefaultAccount\AppData\Local\DevelopmentFiles\ToasterUiVS.Debug_ARM.msft
+        IoTDMBackgroundwith Debug ARM configuration: C:\Data\Users\DefaultAccount\AppData\Local\DevelopmentFiles\23983CETAthensQuality.IoTDMBackgroundSampleVS.Debug_ARM.msft
+
+1. From `SSH` shell, run (assuming Toaster app with Debug ARM configuration, for IoTDMBackground use path specified in previous step):
 
         cd C:\Data\Users\DefaultAccount\AppData\Local\DevelopmentFiles\ToasterUiVS.Debug_ARM.msft
+        net stop SystemConfigurator
+        SystemConfigurator.exe -remove
         SystemConfigurator.exe -install
         net start SystemConfigurator
 
@@ -48,7 +55,7 @@ To leverage these items on your IotCore device, follow these steps:
 The major differences between the Development and OEM setup are:
 
 1. **CommProxy.exe** and **SystemConfiguration.exe** should not be placed in the *Device Application* folder.  We recommend `C:\Windows\System32`.
-    + The reference in *IoTClientDM* to *CommProxy* must be updated in `SystemConfiguratorProxy.cs` to specify the new location.
+    + The reference in *IoTDMClientLib* to *CommProxy* must be updated in `SystemConfiguratorProxy.cs` to specify the new location.
 
             var processLauncherResult = await ProcessLauncher.RunToCompletionAsync(@"C:\Windows\System32\CommProxy.exe", "", processLauncherOptions);
 
