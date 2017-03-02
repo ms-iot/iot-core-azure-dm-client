@@ -21,7 +21,7 @@ MODEL_REQDEF(   ImmediateReboot,            15, ImmediateRebootRequest,         
 MODEL_REQDEF(   SetRebootInfo,              16, SetRebootInfoRequest,               StatusCodeResponse )
 MODEL_REQDEF(   GetRebootInfo,              17, GetRebootInfoRequest,               StatusCodeResponse )
 MODEL_REQDEF(   TransferFile,               20, AzureFileTransferRequest,           StatusCodeResponse )
-MODEL_ALLDEF(   GetTimeInfo,                30, TimeInfoRequest,                    TimeInfoResponse )
+MODEL_ALLDEF(   GetTimeInfo,                30, GetTimeInfoRequest,                 GetTimeInfoResponse )
 MODEL_REQDEF(   SetTimeInfo,                31, SetTimeInfoRequest,                 StatusCodeResponse )
 MODEL_REQDEF(   GetDeviceStatus,            40, GetDeviceStatusRequest,             StatusCodeResponse )
 MODEL_REQDEF(   TpmGetServiceUrl,           41, TpmGetServiceUrlRequest,            StringResponse )

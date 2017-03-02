@@ -16,10 +16,10 @@ class TimeCfg
     };
 
 public:
-    static TimeInfoResponse^ GetTimeInfo();
-    static void SetTimeInfo(SetTimeInfoRequest^ request);
+    static GetTimeInfoResponse^ Get();
+    static void Set(SetTimeInfoRequest^ request);
 
 private:
-    static void GetTimeInfo(TimeInfo& timeInfo);
+    static void Get(TimeInfo& info);
     static void SetNtpServer(const std::wstring& ntpServer);
 };

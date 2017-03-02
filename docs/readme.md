@@ -47,3 +47,4 @@ The specification for each operation is provided below.
 - [Install App](install-app.md)
 - [Start DM Application Self-Update](app-self-update.md)
 - [Manage Certificates](certificate-management.md)
+- [Manage Time Configuration](time.md)

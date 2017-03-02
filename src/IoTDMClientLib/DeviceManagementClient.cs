@@ -420,16 +420,16 @@ namespace Microsoft.Devices.Management
 
                                         Message.SetTimeInfo setTimeInfo = new Message.SetTimeInfo();
                                         JObject subProperties = (JObject)managementProperty.Value;
-                                        setTimeInfo.NtpServer = (string)subProperties.Property("NtpServer").Value;
-                                        setTimeInfo.TimeZoneBias = (int)subProperties.Property("TimeZoneBias").Value;
-                                        setTimeInfo.TimeZoneDaylightBias = (int)subProperties.Property("TimeZoneDaylightBias").Value;
-                                        DateTime daylightDate = DateTime.Parse(subProperties.Property("TimeZoneDaylightDate").Value.ToString());
-                                        setTimeInfo.TimeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                                        setTimeInfo.TimeZoneDaylightName = (string)subProperties.Property("TimeZoneDaylightName").Value;
-                                        setTimeInfo.TimeZoneStandardBias = (int)subProperties.Property("TimeZoneStandardBias").Value;
-                                        DateTime standardDate = DateTime.Parse(subProperties.Property("TimeZoneStandardDate").Value.ToString());
-                                        setTimeInfo.TimeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                                        setTimeInfo.TimeZoneStandardName = (string)subProperties.Property("TimeZoneStandardName").Value;
+                                        setTimeInfo.ntpServer = (string)subProperties.Property("ntpServer").Value;
+                                        setTimeInfo.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
+                                        setTimeInfo.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
+                                        DateTime daylightDate = DateTime.Parse(subProperties.Property("timeZoneDaylightDate").Value.ToString());
+                                        setTimeInfo.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                                        setTimeInfo.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
+                                        setTimeInfo.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
+                                        DateTime standardDate = DateTime.Parse(subProperties.Property("timeZoneStandardDate").Value.ToString());
+                                        setTimeInfo.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                                        setTimeInfo.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
 
                                         Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest(setTimeInfo);
                                         this._systemConfiguratorProxy.SendCommandAsync(request);
@@ -455,10 +455,10 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public async Task<Message.TimeInfoResponse> GetTimeInfoAsync()
+        public async Task<Message.GetTimeInfoResponse> GetTimeInfoAsync()
         {
-            var request = new Message.TimeInfoRequest();
-            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.TimeInfoResponse);
+            var request = new Message.GetTimeInfoRequest();
+            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetTimeInfoResponse);
         }
 
         private async Task<Message.GetCertificateConfigurationResponse> GetCertificateConfigurationAsync()
@@ -486,7 +486,7 @@ namespace Microsoft.Devices.Management
         {
             Debug.WriteLine("ReportAllDeviceProperties");
 
-            Message.TimeInfoResponse timeInfo = await GetTimeInfoAsync();
+            Message.GetTimeInfoResponse timeInfo = await GetTimeInfoAsync();
             Message.GetCertificateConfigurationResponse certificateConfiguration = await GetCertificateConfigurationAsync();
 
             Dictionary<string, object> collection = new Dictionary<string, object>();

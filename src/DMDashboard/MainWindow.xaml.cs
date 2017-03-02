@@ -199,15 +199,15 @@ namespace DMDashboard
 
         private void TimeInfoModelToUI(Microsoft.Devices.Management.TimeInfo.GetResponse timeInfo)
         {
-            LocalTime.Text = timeInfo.LocalTime.ToString();
-            NtpServer.Text = timeInfo.NtpServer;
-            ReportedTimeZoneBias.Text = timeInfo.TimeZoneBias.ToString();
-            ReportedTimeZoneStandardName.Text = timeInfo.TimeZoneStandardName;
-            ReportedTimeZoneStandardDate.Text = timeInfo.TimeZoneStandardDate.ToString();
-            ReportedTimeZoneStandardBias.Text = timeInfo.TimeZoneStandardBias.ToString();
-            ReportedTimeZoneDaylightName.Text = timeInfo.TimeZoneDaylightName;
-            ReportedTimeZoneDaylightDate.Text = timeInfo.TimeZoneDaylightDate.ToString();
-            ReportedTimeZoneDaylightBias.Text = timeInfo.TimeZoneDaylightBias.ToString();
+            LocalTime.Text = timeInfo.localTime.ToString();
+            NtpServer.Text = timeInfo.ntpServer;
+            ReportedTimeZoneBias.Text = timeInfo.timeZoneBias.ToString();
+            ReportedTimeZoneStandardName.Text = timeInfo.timeZoneStandardName;
+            ReportedTimeZoneStandardDate.Text = timeInfo.timeZoneStandardDate.ToString();
+            ReportedTimeZoneStandardBias.Text = timeInfo.timeZoneStandardBias.ToString();
+            ReportedTimeZoneDaylightName.Text = timeInfo.timeZoneDaylightName;
+            ReportedTimeZoneDaylightDate.Text = timeInfo.timeZoneDaylightDate.ToString();
+            ReportedTimeZoneDaylightBias.Text = timeInfo.timeZoneDaylightBias.ToString();
         }
 
         private void RebootInfoModelToUI(RebootInfo rebootInfo)
@@ -392,15 +392,15 @@ namespace DMDashboard
             Microsoft.Devices.Management.TimeInfo.SetParams timeInfo = new Microsoft.Devices.Management.TimeInfo.SetParams();
 
             ComboBoxItem ntpServerItem = (ComboBoxItem)DesiredNtpServer.SelectedItem;
-            timeInfo.NtpServer = (string)ntpServerItem.Content;
+            timeInfo.ntpServer = (string)ntpServerItem.Content;
 
-            timeInfo.TimeZoneBias = Int32.Parse(DesiredTimeZoneBias.Text);
-            timeInfo.TimeZoneStandardName = DesiredTimeZoneStandardName.Text;
-            timeInfo.TimeZoneStandardDate = DesiredTimeZoneStandardDate.Text;
-            timeInfo.TimeZoneStandardBias = Int32.Parse(DesiredTimeZoneStandardBias.Text);
-            timeInfo.TimeZoneDaylightName = DesiredTimeZoneDaylightName.Text;
-            timeInfo.TimeZoneDaylightDate = DesiredTimeZoneDaylightDate.Text;
-            timeInfo.TimeZoneDaylightBias = Int32.Parse(DesiredTimeZoneDaylightBias.Text);
+            timeInfo.timeZoneBias = Int32.Parse(DesiredTimeZoneBias.Text);
+            timeInfo.timeZoneStandardName = DesiredTimeZoneStandardName.Text;
+            timeInfo.timeZoneStandardDate = DesiredTimeZoneStandardDate.Text;
+            timeInfo.timeZoneStandardBias = Int32.Parse(DesiredTimeZoneStandardBias.Text);
+            timeInfo.timeZoneDaylightName = DesiredTimeZoneDaylightName.Text;
+            timeInfo.timeZoneDaylightDate = DesiredTimeZoneDaylightDate.Text;
+            timeInfo.timeZoneDaylightBias = Int32.Parse(DesiredTimeZoneDaylightBias.Text);
 
             return timeInfo;
         }
