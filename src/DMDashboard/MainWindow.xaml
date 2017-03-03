@@ -297,6 +297,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200"/>
@@ -314,30 +315,37 @@
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Last Restart" />
-                        <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="n/a" />
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Last Reboot Cmd Status"/>
                         <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
                             <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" Text="" x:Name="LastRebootTime"/>
+                                <TextBlock Width="200" x:Name="LastRebootCmdStatus" />
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Single Reboot" />
-                        <TextBox Grid.Row="3" Grid.Column="1" Margin="3" Text="2016-10-10T17:00:00Z" x:Name="DesiredSingleRebootTime"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Last Boot" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" Text="n/a" />
                         <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" Text="" x:Name="LastBootTime"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="One-Time Reboot" />
+                        <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="2016-10-10T17:00:00Z" x:Name="DesiredSingleRebootTime"/>
+                        <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
                             <Border Margin="3" Background="#F8F8F8">
                                 <TextBlock Width="200" x:Name="ReportedSingleRebootTime"/>
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Daily Reboot" />
-                        <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="" x:Name="DesiredDailyRebootTime"/>
-                        <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
+                        <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Daily Reboot" />
+                        <TextBox Grid.Row="5" Grid.Column="1" Margin="3" Text="" x:Name="DesiredDailyRebootTime"/>
+                        <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal">
                             <Border Margin="3" Background="#F8F8F8">
                                 <TextBlock Width="200" x:Name="ReportedDailyRebootTime"/>
                             </Border>
                         </StackPanel>
-                        <Button Grid.Row="5" Grid.Column="1" Margin="3" Content="Set Reboot Info" Click="OnSetRebootInfo" />
+                        <Button Grid.Row="6" Grid.Column="1" Margin="3" Content="Set Reboot Info" Click="OnSetRebootInfo" />
                     </Grid>
 
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
