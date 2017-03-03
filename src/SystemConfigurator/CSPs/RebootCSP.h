@@ -7,7 +7,7 @@ class RebootCSP
 public:
     RebootCSP();
 
-    static void ExecRebootNow();
+    static void ExecRebootNow(const std::wstring& lastRebootCmdTime);
 
     static std::wstring GetSingleScheduleTime();
     static void SetSingleScheduleTime(const std::wstring& dailyScheduleTime);

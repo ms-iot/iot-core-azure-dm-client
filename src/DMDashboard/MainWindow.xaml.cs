@@ -213,7 +213,8 @@ namespace DMDashboard
         private void RebootInfoModelToUI(Microsoft.Devices.Management.RebootInfo.GetResponse rebootInfo)
         {
             LastRebootCmdTime.Text = rebootInfo.lastRebootCmdTime.ToString();
-            LastRebootTime.Text = rebootInfo.lastRebootTime.ToString();
+            LastRebootCmdStatus.Text = rebootInfo.lastRebootCmdStatus.ToString();
+            LastBootTime.Text = rebootInfo.lastBootTime.ToString();
             ReportedSingleRebootTime.Text = rebootInfo.singleRebootTime.ToString();
             ReportedDailyRebootTime.Text = rebootInfo.dailyRebootTime.ToString();
         }

@@ -8,8 +8,9 @@ namespace Microsoft.Devices.Management
     {
         public class GetResponse
         {
-            public string lastRebootTime;
+            public string lastBootTime;
             public string lastRebootCmdTime;
+            public string lastRebootCmdStatus;
             public string singleRebootTime;
             public string dailyRebootTime;
         }

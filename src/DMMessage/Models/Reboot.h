@@ -14,13 +14,22 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public ref class ImmediateRebootRequest sealed : public IRequest
     {
     public:
+
+        property String^ lastRebootCmdTime;
+
         virtual Blob^ Serialize() {
-            return SerializationHelper::CreateEmptyBlob((uint32_t)Tag);
+            JsonObject^ jsonObject = ref new JsonObject();
+            jsonObject->Insert("lastRebootCmdTime", JsonValue::CreateStringValue(lastRebootCmdTime));
+            return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
 
         static IDataPayload^ Deserialize(Blob^ blob) {
             assert(blob->Tag == DMMessageKind::ImmediateReboot);
-            return ref new ImmediateRebootRequest();
+            String^ str = SerializationHelper::GetStringFromBlob(blob);
+            JsonObject^ jsonObject = JsonObject::Parse(str);
+            auto request = ref new ImmediateRebootRequest();
+            request->lastRebootCmdTime = jsonObject->Lookup("lastRebootCmdTime")->GetString();
+            return request;
         }
 
         virtual property DMMessageKind Tag {
@@ -77,7 +86,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     {
         StatusCodeResponse statusCodeResponse;
     public:
-        property String^ lastRebootTime;
+        property String^ lastBootTime;
         property String^ lastRebootCmdTime;
         property String^ singleRebootTime;
         property String^ dailyRebootTime;
@@ -86,7 +95,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
         virtual Blob^ Serialize() {
             JsonObject^ jsonObject = ref new JsonObject();
-            jsonObject->Insert("lastRebootTime", JsonValue::CreateStringValue(lastRebootTime));
+            jsonObject->Insert("lastBootTime", JsonValue::CreateStringValue(lastBootTime));
             jsonObject->Insert("lastRebootCmdTime", JsonValue::CreateStringValue(lastRebootCmdTime));
             jsonObject->Insert("singleRebootTime", JsonValue::CreateStringValue(singleRebootTime));
             jsonObject->Insert("dailyRebootTime", JsonValue::CreateStringValue(dailyRebootTime));
@@ -97,7 +106,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             String^ str = SerializationHelper::GetStringFromBlob(blob);
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto result = ref new GetRebootInfoResponse(ResponseStatus::Success);
-            result->lastRebootTime = jsonObject->Lookup("lastRebootTime")->GetString();
+            result->lastBootTime = jsonObject->Lookup("lastBootTime")->GetString();
             result->lastRebootCmdTime = jsonObject->Lookup("lastRebootCmdTime")->GetString();
             result->singleRebootTime = jsonObject->Lookup("singleRebootTime")->GetString();
             result->dailyRebootTime = jsonObject->Lookup("dailyRebootTime")->GetString();

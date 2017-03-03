@@ -168,7 +168,7 @@ IResponse^ HandleGetRebootInfo(IRequest^ request)
         GetRebootInfoResponse^ response = ref new GetRebootInfoResponse(ResponseStatus::Success);
         response->singleRebootTime = ref new String(RebootCSP::GetSingleScheduleTime().data());
         response->dailyRebootTime = ref new String(RebootCSP::GetDailyScheduleTime().data());
-        response->lastRebootTime = ref new String(RebootCSP::GetLastRebootTime().data());
+        response->lastBootTime = ref new String(RebootCSP::GetLastRebootTime().data());
         response->lastRebootCmdTime = ref new String(RebootCSP::GetLastRebootCmdTime().data());
         return response;
     }
@@ -204,8 +204,19 @@ IResponse^ HandleGetTimeInfo(IRequest^ request)
 
 IResponse^ HandleImmediateReboot(IRequest^ request)
 {
-    RebootCSP::ExecRebootNow();
-    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        auto immediateRebootRequest = dynamic_cast<ImmediateRebootRequest^>(request);
+        RebootCSP::ExecRebootNow(immediateRebootRequest->lastRebootCmdTime->Data());
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleImmediateReboot: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
 }
 
 IResponse^ HandleCheckUpdates(IRequest^ request)

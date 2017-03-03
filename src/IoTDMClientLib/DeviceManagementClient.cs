@@ -14,42 +14,6 @@ using Windows.Storage;
 
 namespace Microsoft.Devices.Management
 {
-    public class RebootInfo
-    {
-        public DateTime lastRebootTime;
-        public DateTime lastRebootCmdTime;
-        public DateTime singleRebootTime;
-        public DateTime dailyRebootTime;
-
-        internal RebootInfo(RebootInfoInternal rebootInfoInternal)
-        {
-            if (!String.IsNullOrEmpty(rebootInfoInternal.lastRebootTime))
-            {
-                lastRebootTime = DateTime.Parse(rebootInfoInternal.lastRebootTime);
-            }
-            if (!String.IsNullOrEmpty(rebootInfoInternal.lastRebootCmdTime))
-            {
-                lastRebootCmdTime = DateTime.Parse(rebootInfoInternal.lastRebootCmdTime);
-            }
-            if (!String.IsNullOrEmpty(rebootInfoInternal.singleRebootTime))
-            {
-                singleRebootTime = DateTime.Parse(rebootInfoInternal.singleRebootTime);
-            }
-            if (!String.IsNullOrEmpty(rebootInfoInternal.dailyRebootTime))
-            {
-                dailyRebootTime = DateTime.Parse(rebootInfoInternal.dailyRebootTime);
-            }
-        }
-    }
-
-    internal class RebootInfoInternal
-    {
-        public string lastRebootTime;
-        public string lastRebootCmdTime;
-        public string singleRebootTime;
-        public string dailyRebootTime;
-    }
-
     // This is the main entry point into DM
     public class DeviceManagementClient
     {
@@ -203,17 +167,17 @@ namespace Microsoft.Devices.Management
             await this._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
-        private void ReportImmediateRebootStatus(bool rebootSuccessful)
+        private void ReportImmediateRebootStatus(bool rebootAllowed, string rebootCmdTime)
         {
             Dictionary<string, object> collection = new Dictionary<string, object>();
             collection["microsoft"] = new
             {
                 management = new
                 {
-                    lastImmediateRebootAttempt = new
+                    rebootInfo = new
                     {
-                        time = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                        status = rebootSuccessful ? "success" : "failure"
+                        lastRebootCmdTime = rebootCmdTime,
+                        lastRebootCmdStatus = (rebootAllowed ? "accepted" : "rejected" )
                     }
                 }
             };
@@ -236,12 +200,14 @@ namespace Microsoft.Devices.Management
 
         public async Task ImmediateRebootAsync()
         {
-            bool rebootSuccessful = (await this._requestHandler.IsSystemRebootAllowed() == SystemRebootRequestResponse.Accept);
+            bool rebootAllowed = (await this._requestHandler.IsSystemRebootAllowed() == SystemRebootRequestResponse.Accept);
             // Report status before actually initiating reboot, to avoid the race condition
-            ReportImmediateRebootStatus(rebootSuccessful);
-            if (rebootSuccessful)
+            string rebootCmdTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            ReportImmediateRebootStatus(rebootAllowed, rebootCmdTime);
+            if (rebootAllowed)
             {
                 var request = new Message.ImmediateRebootRequest();
+                request.lastRebootCmdTime = rebootCmdTime;
                 await this._systemConfiguratorProxy.SendCommandAsync(request);
             }
         }

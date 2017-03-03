@@ -7,23 +7,7 @@
 #include "..\SharedUtilities\JsonHelpers.h"
 #include "..\SharedUtilities\TimeHelpers.h"
 
-// Json strings
-#define LastRebootTime L"lastRebootTime"
-#define LastRebootCmdTime L"lastRebootCmdTime"
-#define SingleRebootTime L"singleRebootTime"
-#define DailyRebootTime L"dailyRebootTime"
-
-using namespace Windows::System;
-using namespace Platform;
-using namespace Windows::Data::Json;
-using namespace Windows::System::Profile;
-using namespace Windows::Foundation::Collections;
-
 using namespace std;
-
-#ifdef GetObject
-#undef GetObject
-#endif
 
 // Reboot CSP docs
 // https://msdn.microsoft.com/en-us/library/windows/hardware/mt720802(v=vs.85).aspx
@@ -43,11 +27,11 @@ RebootCSP::RebootCSP()
     _lastRebootTime = Utils::GetCurrentDateTimeString();
 }
 
-void RebootCSP::ExecRebootNow()
+void RebootCSP::ExecRebootNow(const wstring& lastRebootCmdTime)
 {
     TRACE(__FUNCTION__);
 
-    Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryLastRebootCmd, Utils::GetCurrentDateTimeString());
+    Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryLastRebootCmd, lastRebootCmdTime);
 
     TRACE(L"\n---- Run Reboot Now\n");
     MdmProvision::RunExec(L"./Device/Vendor/MSFT/Reboot/RebootNow");

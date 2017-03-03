@@ -7,16 +7,16 @@ The **Reboot Management** functionality allows the operator to perform the follo
 - Schedule reboots
   - Schedule a reboot for a certain time - to be executed once, or daily - and inspect that schedule in the device twin.
 
-## Retrieve Last Reboot Time
+## Retrieve Last Boot Time
 
-*After* the device reboots, the `"reported.microsoft.management.rebootInfo.lastRebootTime"` property is set, which is defined as follows:
+*After* the device reboots, the `"reported.microsoft.management.rebootInfo.lastBootTime"` property is set, which is defined as follows:
 
 <pre>
 "reported" : {
     "microsoft" : {
         "management" : {
             "rebootInfo" : {
-                "lastRebootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
+                "lastBootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
             }
         }
     }
@@ -25,14 +25,14 @@ The **Reboot Management** functionality allows the operator to perform the follo
 
 **Example**
 
-Device boots and sets `"lastRebootTime"` property:
+Device boots and sets `"lastBootTime"` property:
 
 ```
 "reported" : {
     "microsoft" : {
         "management" : {
             "rebootInfo" : {
-                `"lastRebootTime"` : "2017-01-25T13:34:33+04:00"
+                `"lastBootTime"` : "2017-01-25T13:34:33+04:00"
             }
         }
     }
@@ -58,10 +58,9 @@ The device responds immediately with the following JSON payload:
 Possible `"response"` values are: 
 - `"accepted"` - The reboot request was accepted. The device will attempt to reboot momentarily (note: the attempt might fail, see below)
 - `"rejected"` - The device rejected the reboot request. The device will not reboot.
-- `"scheduled"`- The reboot request was accepted. The device will reboot at some time in the future.
 
 The device might not be in a state that allows reboot. For example, it might be
-in a middle of an important operation than cannot be disrupted. If no such
+in a middle of an important operation that cannot be disrupted. If no such
 condition is detected, the device responds by accepting the request and
 attempting to reboot.
 
@@ -69,8 +68,11 @@ Further, the device management client needs to consult the primary app running
 on the device whether it is acceptable to reboot. The app responds based on its
 business logic which, for interactive apps, might require user consent.
 
-The state of the latest reboot attempt is communicated to the back-end via
+The state of the latest reboot request is communicated to the back-end via
 reported properties as described in [Device Twin Communication](#device-twin-communication) below.
+
+After the device reboots, `"reported.microsoft.management.rebootInfo.lastBootTime"` will be set to a new value.
+This can be used to confirm the reboot took place.
 
 **Examples:**
 
@@ -83,30 +85,27 @@ Successful response:
 ### Device Twin Communication
 
 After responding to the method call, the device attempts to reboot. The result
-of the attempt is recorded in the reported property `"reported.microsoft.management.lastImmediateRebootAttempt"`, which
+of the attempt is recorded in the reported property `"reported.microsoft.management.rebootInfo.lastRebootCmdTime"`, which
 is JSON object with two key/value pairs defined as follows:
 
 <pre>
 "reported" : {
     "microsoft" : {
         "management" : {
-            "lastImmediateRebootAttempt" : {
-                "time" : "<i>Datetime in ISO 8601 format, UTC</i>"
-                "status" : "success" <i>or</i> "failure"
-            }
             "rebootInfo" : {
-                "lastRebootCmdTime": "<i>Datetime in ISO 8601 format, UTC</i>",
+                "lastRebootCmdTime": "<i>Datetime in ISO 8601 format, UTC</i>"
+                "lastRebootCmdStatus": "<i>value</i>"
             }
         }
     }
 }
 </pre>
 
-**ToDo** : we probably do not need both properties.
+`"lastRebootCmdTime"` is persisted on the device. It reflects the last time the device received an immediate reboot command. 
 
-**lastImmediateRebootAttempt** is not persisted on the device. It provides immediate confirmation that the immediate reboot command has been received by the device.
-
-**lastRebootCmdTime** is persisted on the device. It reflects the last time the device received an immediate reboot command. 
+`"lastRebootCmdStatus"` possible values are: 
+- `"accepted"` - The reboot request was accepted. The device will attempt to reboot momentarily.
+- `"rejected"` - The device rejected the reboot request. The device will not reboot.
 
 **Examples:**
 
@@ -116,9 +115,9 @@ Successful response:
 "reported" : {
     "microsoft" : {
         "management" : {
-            "lastImmediateRebootAttempt" : {
-                "time" : "2017-01-25T13:27:33+04:00",
-                "status" : "success"
+            "rebootInfo" : {
+                "lastRebootCmdTime": "2017-01-25T13:27:33+04:00"
+                "lastRebootCmdStatus": "accepted"
             }
         }
     }
