@@ -90,8 +90,8 @@ The major differences between the Development and OEM setup are:
                     >
                     <serviceData
                         dependOnService="rpcss,http"
-                        description="@%SystemRoot%\system32\systemconfigurator.dll,-2"
-                        displayName="@%SystemRoot%\system32\systemconfigurator.dll,-1"
+                        description="SystemConfigurator"
+                        displayName="SystemConfigurator"
                         errorControl="normal"
                         imagePath="%systemroot%\system32\systemconfigurator.exe"
                         name="systemconfigurator"
