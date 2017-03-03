@@ -56,5 +56,20 @@ std::string GetServiceUrl(int logicalId)
 std::string GetSASToken(int logicalId)
 {
     const std::string response = RunLimpet(logicalId, L"-ast");
-    return response;
+
+    // There is a bug in Limpet that produces the entire connection string and not only the SAS token
+    // Work around by extracting the actual connection string
+    // The workaround will continue to work (but will be unnecessary) once the bug in Limpet is fixed
+
+    std::regex rgx(".*(SharedAccessSignature sr.*)");
+    std::smatch match;
+
+    if (std::regex_search(response.begin(), response.end(), match, rgx))
+    {
+        auto m = match[1];
+        return m.str();
+    }
+    auto responseW = Utils::MultibyteToWide(response.c_str());
+    TRACEP(L"Unexpected response from Limpet:", responseW.c_str());
+    throw DMException("cannot parse Limpet response. Is TPM supported?");
 }
