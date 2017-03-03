@@ -27,6 +27,8 @@ return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 
 IResponse^ HandleGetDeviceStatus(IRequest^ request)
 {
+    TRACE(__FUNCTION__);
+
     throw DMExceptionWithErrorCode("Unsupported request: ", (uint32_t)request->Tag);
     //try
     //{
@@ -159,19 +161,40 @@ IResponse^ HandleGetCertificateDetails(IRequest^ request)
 
 IResponse^ HandleGetRebootInfo(IRequest^ request)
 {
-    throw DMExceptionWithErrorCode("Unsupported request: ", (uint32_t)request->Tag);
-    //auto getRebootInfoRequest = dynamic_cast<GetRebootInfoRequest^>(request);
-    //auto rebootInfoJson = RebootCSP::GetRebootInfoJson();
-    //return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        GetRebootInfoResponse^ response = ref new GetRebootInfoResponse(ResponseStatus::Success);
+        response->singleRebootTime = ref new String(RebootCSP::GetSingleScheduleTime().data());
+        response->dailyRebootTime = ref new String(RebootCSP::GetDailyScheduleTime().data());
+        response->lastRebootTime = ref new String(RebootCSP::GetLastRebootTime().data());
+        response->lastRebootCmdTime = ref new String(RebootCSP::GetLastRebootCmdTime().data());
+        return response;
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleGetRebootInfo: ", e.what());
+        return ref new GetRebootInfoResponse(ResponseStatus::Failure);
+    }
 }
 
 IResponse^ HandleSetRebootInfo(IRequest^ request)
 {
-    throw DMExceptionWithErrorCode("Unsupported request: ", (uint32_t)request->Tag);
-    //auto setRebootInfoRequest = dynamic_cast<SetRebootInfoRequest^>(request);
-    //wstring json = L"";
-    //RebootCSP::SetRebootInfo(json);
-    //return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        auto setRebootInfoRequest = dynamic_cast<SetRebootInfoRequest^>(request);
+        RebootCSP::SetSingleScheduleTime(setRebootInfoRequest->singleRebootTime->Data());
+        RebootCSP::SetDailyScheduleTime(setRebootInfoRequest->dailyRebootTime->Data());
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleSetRebootInfo: ", e.what());
+        return ref new GetRebootInfoResponse(ResponseStatus::Failure);
+    }
 }
 
 IResponse^ HandleGetTimeInfo(IRequest^ request)

@@ -1,19 +1,28 @@
 ﻿using System;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Devices.Management
 {
-    // ToDo: Need to move this to a common place for both DMDashboard and IoTDMClientLib.
-    public class RebootInfo
+    namespace RebootInfo
     {
-        public DateTime lastRebootTime;
-        public DateTime lastRebootCmdTime;
-        public DateTime singleRebootTime;
-        public DateTime dailyRebootTime;
-
-        public string ToJson()
+        public class GetResponse
         {
-            return "\"rebootInfo\" : " + JsonConvert.SerializeObject(this);
+            public string lastRebootTime;
+            public string lastRebootCmdTime;
+            public string singleRebootTime;
+            public string dailyRebootTime;
+        }
+
+        public class SetParams
+        {
+            public DateTime singleRebootTime;
+            public DateTime dailyRebootTime;
+
+            public string ToJson()
+            {
+                return "\"scheduledReboot\" : " + JsonConvert.SerializeObject(this);
+            }
         }
     }
 

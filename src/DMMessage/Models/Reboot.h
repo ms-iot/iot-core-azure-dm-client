@@ -28,4 +28,90 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
     };
 
+    public ref class SetRebootInfoRequest sealed : public IRequest
+    {
+    public:
+        property String^ singleRebootTime;
+        property String^ dailyRebootTime;
+
+        virtual Blob^ Serialize() {
+            JsonObject^ jsonObject = ref new JsonObject();
+            jsonObject->Insert("singleRebootTime", JsonValue::CreateStringValue(singleRebootTime));
+            jsonObject->Insert("dailyRebootTime", JsonValue::CreateStringValue(dailyRebootTime));
+            return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
+        }
+
+        static IDataPayload^ Deserialize(Blob^ blob) {
+            String^ str = SerializationHelper::GetStringFromBlob(blob);
+
+            JsonObject^ jsonObject = JsonObject::Parse(str);
+            auto result = ref new SetRebootInfoRequest();
+            result->singleRebootTime = jsonObject->Lookup("singleRebootTime")->GetString();
+            result->dailyRebootTime = jsonObject->Lookup("dailyRebootTime")->GetString();
+            return result;
+        }
+
+        virtual property DMMessageKind Tag {
+            DMMessageKind get();
+        }
+    };
+
+    public ref class GetRebootInfoRequest sealed : public IRequest
+    {
+    public:
+        virtual Blob^ Serialize() {
+            return SerializationHelper::CreateEmptyBlob((uint32_t)Tag);
+        }
+
+        static IDataPayload^ Deserialize(Blob^ bytes) {
+            auto result = ref new GetRebootInfoRequest();
+            return result;
+        }
+
+        virtual property DMMessageKind Tag {
+            DMMessageKind get();
+        }
+    };
+
+    public ref class GetRebootInfoResponse sealed : public IResponse
+    {
+        StatusCodeResponse statusCodeResponse;
+    public:
+        property String^ lastRebootTime;
+        property String^ lastRebootCmdTime;
+        property String^ singleRebootTime;
+        property String^ dailyRebootTime;
+
+        GetRebootInfoResponse(ResponseStatus status) : statusCodeResponse(status, this->Tag) {}
+
+        virtual Blob^ Serialize() {
+            JsonObject^ jsonObject = ref new JsonObject();
+            jsonObject->Insert("lastRebootTime", JsonValue::CreateStringValue(lastRebootTime));
+            jsonObject->Insert("lastRebootCmdTime", JsonValue::CreateStringValue(lastRebootCmdTime));
+            jsonObject->Insert("singleRebootTime", JsonValue::CreateStringValue(singleRebootTime));
+            jsonObject->Insert("dailyRebootTime", JsonValue::CreateStringValue(dailyRebootTime));
+            return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
+        }
+
+        static IDataPayload^ Deserialize(Blob^ blob) {
+            String^ str = SerializationHelper::GetStringFromBlob(blob);
+            JsonObject^ jsonObject = JsonObject::Parse(str);
+            auto result = ref new GetRebootInfoResponse(ResponseStatus::Success);
+            result->lastRebootTime = jsonObject->Lookup("lastRebootTime")->GetString();
+            result->lastRebootCmdTime = jsonObject->Lookup("lastRebootCmdTime")->GetString();
+            result->singleRebootTime = jsonObject->Lookup("singleRebootTime")->GetString();
+            result->dailyRebootTime = jsonObject->Lookup("dailyRebootTime")->GetString();
+            return result;
+        }
+
+        virtual property ResponseStatus Status {
+            ResponseStatus get() { return statusCodeResponse.Status; }
+        }
+
+        virtual property DMMessageKind Tag {
+            DMMessageKind get();
+        }
+    };
+
+
 }}}}

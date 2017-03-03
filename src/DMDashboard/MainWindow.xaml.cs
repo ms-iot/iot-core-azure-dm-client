@@ -210,7 +210,7 @@ namespace DMDashboard
             ReportedTimeZoneDaylightBias.Text = timeInfo.timeZoneDaylightBias.ToString();
         }
 
-        private void RebootInfoModelToUI(RebootInfo rebootInfo)
+        private void RebootInfoModelToUI(Microsoft.Devices.Management.RebootInfo.GetResponse rebootInfo)
         {
             LastRebootCmdTime.Text = rebootInfo.lastRebootCmdTime.ToString();
             LastRebootTime.Text = rebootInfo.lastRebootTime.ToString();
@@ -293,7 +293,8 @@ namespace DMDashboard
                 }
                 else if (jsonProp.Name == "rebootInfo")
                 {
-                    RebootInfo rebootInfo = JsonConvert.DeserializeObject<RebootInfo>(jsonProp.Value.ToString());
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    var rebootInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.RebootInfo.GetResponse>(jsonProp.Value.ToString());
                     RebootInfoModelToUI(rebootInfo);
                 }
             }
@@ -405,9 +406,9 @@ namespace DMDashboard
             return timeInfo;
         }
 
-        private RebootInfo UIToRebootInfoModel()
+        private Microsoft.Devices.Management.RebootInfo.SetParams UIToRebootInfoModel()
         {
-            RebootInfo rebootInfo = new RebootInfo();
+            var rebootInfo = new Microsoft.Devices.Management.RebootInfo.SetParams();
             if (!String.IsNullOrEmpty(DesiredSingleRebootTime.Text))
             {
                 rebootInfo.singleRebootTime = DateTime.Parse(DesiredSingleRebootTime.Text);

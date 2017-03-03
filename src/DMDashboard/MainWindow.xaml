@@ -322,7 +322,7 @@
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Single Reboot" />
+                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="One-Time Reboot" />
                         <TextBox Grid.Row="3" Grid.Column="1" Margin="3" Text="2016-10-10T17:00:00Z" x:Name="DesiredSingleRebootTime"/>
                         <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
                             <Border Margin="3" Background="#F8F8F8">

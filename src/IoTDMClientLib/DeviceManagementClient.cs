@@ -210,9 +210,9 @@ namespace Microsoft.Devices.Management
             {
                 management = new
                 {
-                    lastRebootAttempt = new
+                    lastImmediateRebootAttempt = new
                     {
-                        time = DateTime.Now,
+                        time = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                         status = rebootSuccessful ? "success" : "failure"
                     }
                 }
@@ -388,12 +388,28 @@ namespace Microsoft.Devices.Management
                             switch (managementProperty.Name)
                             {
                                 case "scheduledReboot":
-                                    // TODO
+                                    if (managementProperty.Value.Type == JTokenType.Object)
+                                    {
+                                        Debug.WriteLine("scheduledReboot = " + managementProperty.Value.ToString());
+
+                                        JObject subProperties = (JObject)managementProperty.Value;
+
+                                        var request = new Message.SetRebootInfoRequest();
+
+                                        DateTime singleRebootTime = DateTime.Parse(subProperties.Property("singleRebootTime").Value.ToString());
+                                        request.singleRebootTime = singleRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+                                        DateTime dailyRebootTime = DateTime.Parse(subProperties.Property("dailyRebootTime").Value.ToString());
+                                        request.dailyRebootTime = dailyRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+                                        this._systemConfiguratorProxy.SendCommandAsync(request);
+                                    }
                                     break;
                                 case "externalStorage":
                                     if (managementProperty.Value.Type == JTokenType.Object)
                                     {
                                         Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
+
                                         JObject subProperties = (JObject)managementProperty.Value;
 
                                         _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
@@ -418,20 +434,19 @@ namespace Microsoft.Devices.Management
                                         // Because of that, we are not using:
                                         // Message.SetTimeInfo requestInfo = JsonConvert.DeserializeObject<Message.SetTimeInfo>(fieldsJson);
 
-                                        Message.SetTimeInfo setTimeInfo = new Message.SetTimeInfo();
+                                        Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest();
                                         JObject subProperties = (JObject)managementProperty.Value;
-                                        setTimeInfo.ntpServer = (string)subProperties.Property("ntpServer").Value;
-                                        setTimeInfo.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
-                                        setTimeInfo.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
+                                        request.ntpServer = (string)subProperties.Property("ntpServer").Value;
+                                        request.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
+                                        request.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
                                         DateTime daylightDate = DateTime.Parse(subProperties.Property("timeZoneDaylightDate").Value.ToString());
-                                        setTimeInfo.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                                        setTimeInfo.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
-                                        setTimeInfo.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
+                                        request.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                                        request.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
+                                        request.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
                                         DateTime standardDate = DateTime.Parse(subProperties.Property("timeZoneStandardDate").Value.ToString());
-                                        setTimeInfo.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                                        setTimeInfo.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
+                                        request.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                                        request.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
 
-                                        Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest(setTimeInfo);
                                         this._systemConfiguratorProxy.SendCommandAsync(request);
                                     }
                                     break;
@@ -467,12 +482,10 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetCertificateConfigurationResponse);
         }
 
-        public async Task<RebootInfo> GetRebootInfoAsync()
+        private async Task<Message.GetRebootInfoResponse> GetRebootInfoAsync()
         {
-            string jsonString = await GetPropertyAsync(Message.DMMessageKind.GetRebootInfo);
-            Debug.WriteLine(" json rebootInfo = " + jsonString);
-            RebootInfoInternal rebootInfoInternal = JsonConvert.DeserializeObject<RebootInfoInternal>(jsonString);
-            return new RebootInfo(rebootInfoInternal);
+            var request = new Message.GetRebootInfoRequest();
+            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetRebootInfoResponse);
         }
 
         public async Task<DeviceStatus> GetDeviceStatusAsync()
@@ -486,19 +499,20 @@ namespace Microsoft.Devices.Management
         {
             Debug.WriteLine("ReportAllDeviceProperties");
 
-            Message.GetTimeInfoResponse timeInfo = await GetTimeInfoAsync();
-            Message.GetCertificateConfigurationResponse certificateConfiguration = await GetCertificateConfigurationAsync();
+            Message.GetTimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
+            Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await GetCertificateConfigurationAsync();
+            Message.GetRebootInfoResponse rebootInfoResponse = await GetRebootInfoAsync();
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
             collection["microsoft"] = new
             {
                 management = new
                 {
-                    timeInfo = timeInfo,
-                    certificates = certificateConfiguration
+                    timeInfo = timeInfoResponse,
+                    certificates = certificateConfigurationResponse,
+                    rebootInfo = rebootInfoResponse
 #if false // TODO
             collection["deviceStatus"] = await GetDeviceStatusAsync();
-            collection["rebootInfo"] = await GetRebootInfoAsync();
 #endif
                 }
             };

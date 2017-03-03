@@ -38,7 +38,5 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     EMPTY_REQUEST(ListApps);
     EMPTY_REQUEST(GetStartupForegroundApp);
     EMPTY_REQUEST(ListStartupBackgroundApps);
-    EMPTY_REQUEST(SetRebootInfo);
-    EMPTY_REQUEST(GetRebootInfo);
     EMPTY_REQUEST(GetDeviceStatus);
 }}}};

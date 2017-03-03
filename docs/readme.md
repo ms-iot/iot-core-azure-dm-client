@@ -42,9 +42,8 @@ Certain device management operations are initiated by desired properties set fro
 The specification for each operation is provided below.
 
 - [Report All Device Properties](report-all-device-properties.md)
-- [Immediate Reboot](immediate-reboot.md)
-- [Scheduled Reboot](scheduled-reboot.md)
+- [Reboot Management](reboot-management.md)
 - [Install App](install-app.md)
 - [Start DM Application Self-Update](app-self-update.md)
-- [Manage Certificates](certificate-management.md)
-- [Manage Time Configuration](time.md)
+- [Certificates Management](certificate-management.md)
+- [Time Management](time-management.md)
