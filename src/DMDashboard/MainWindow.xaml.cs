@@ -213,7 +213,7 @@ namespace DMDashboard
         private void RebootInfoModelToUI(Microsoft.Devices.Management.RebootInfo.GetResponse rebootInfo)
         {
             LastRebootCmdTime.Text = rebootInfo.lastRebootCmdTime.ToString();
-            LastRebootCmdStatus.Text = rebootInfo.lastRebootCmdStatus.ToString();
+            LastRebootCmdStatus.Text = rebootInfo.lastRebootCmdStatus?.ToString();
             LastBootTime.Text = rebootInfo.lastBootTime.ToString();
             ReportedSingleRebootTime.Text = rebootInfo.singleRebootTime.ToString();
             ReportedDailyRebootTime.Text = rebootInfo.dailyRebootTime.ToString();
@@ -287,10 +287,10 @@ namespace DMDashboard
                     Microsoft.Devices.Management.Certificates certificatesInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.Certificates>(jsonProp.Value.ToString());
                     CertificatesInfoToUI(certificatesInfo);
                 }
-                else if (jsonProp.Name == "deviceStatus")
+                else if (jsonProp.Name == "deviceInfo")
                 {
-                    Microsoft.Devices.Management.DeviceStatus deviceStatus = JsonConvert.DeserializeObject<Microsoft.Devices.Management.DeviceStatus>(jsonProp.Value.ToString());
-                    DeviceStatusModelToUI(deviceStatus);
+                    Microsoft.Devices.Management.DeviceInfo deviceInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.DeviceInfo>(jsonProp.Value.ToString());
+                    DeviceStatusModelToUI(deviceInfo);
                 }
                 else if (jsonProp.Name == "rebootInfo")
                 {
@@ -323,22 +323,37 @@ namespace DMDashboard
             ToggleUIElementVisibility(ApplicationGrid);
         }
 
-        private void OnExpandDeviceStatus(object sender, RoutedEventArgs e)
+        private void OnExpandDeviceInfo(object sender, RoutedEventArgs e)
         {
-            ToggleUIElementVisibility(DevicestatusGrid);
+            ToggleUIElementVisibility(DeviceInfoGrid);
         }
 
-        private void DeviceStatusModelToUI(Microsoft.Devices.Management.DeviceStatus deviceStatus)
+        private void DeviceStatusModelToUI(Microsoft.Devices.Management.DeviceInfo deviceInfo)
         {
-            DevStatusSecureBootState.Text = deviceStatus.secureBootState.ToString();
-            DevStatusIPAddressV4.Text = deviceStatus.macAddressIpV4;
-            DevStatusIPAddressV6.Text = deviceStatus.macAddressIpV6;
-            DevStatusIsConnected.IsChecked = deviceStatus.macAddressIsConnected;
-            DevStatusMacAddressType.Text = deviceStatus.macAddressType.ToString();
-            DevStatusOSEdition.Text = deviceStatus.osType;
-            DevStatusBatteryStatus.Text = deviceStatus.batteryStatus.ToString();
-            DevStatusBatteryRemaining.Text = deviceStatus.batteryRemaining.ToString();
-            DevStatusBatteryRuntime.Text = deviceStatus.batteryRuntime.ToString();
+            DevInfoId.Text = deviceInfo.id;
+            DevInfoManufacturer.Text = deviceInfo.manufacturer;
+            DevInfoModel.Text = deviceInfo.model;
+            DevInfoDmVer.Text = deviceInfo.dmVer;
+            DevInfoLang.Text = deviceInfo.lang;
+            DevInfoType.Text = deviceInfo.type;
+            DevInfoOEM.Text = deviceInfo.oem;
+            DevInfoHwVer.Text = deviceInfo.hwVer;
+            DevInfoFwVer.Text = deviceInfo.fwVer;
+            DevInfoOSVer.Text = deviceInfo.osVer;
+            DevInfoPlatform.Text = deviceInfo.platform;
+            DevInfoProcessorType.Text = deviceInfo.processorType;
+            DevInfoRadioSwVer.Text = deviceInfo.radioSwVer;
+            DevInfoDisplayResolution.Text = deviceInfo.displayResolution;
+            DevInfoCommercializationOperator.Text = deviceInfo.commercializationOperator;
+            DevInfoProcessorArchitecture.Text = deviceInfo.processorArchitecture;
+            DevInfoName.Text = deviceInfo.name;
+            DevInfoTotalStorage.Text = deviceInfo.totalStorage;
+            DevInfoTotalMemory.Text = deviceInfo.totalMemory;
+            DevInfoSecureBootState.Text = deviceInfo.secureBootState;
+            DevInfoOSEdition.Text = deviceInfo.osEdition;
+            DevInfoBatteryStatus.Text = deviceInfo.batteryStatus;
+            DevInfoBatteryRemaining.Text = deviceInfo.batteryRemaining;
+            DevInfoBatteryRuntime.Text = deviceInfo.batteryRuntime;
         }
 
         private async void RebootSystemAsync()

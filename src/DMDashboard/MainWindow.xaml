@@ -518,23 +518,41 @@
                             <ColumnDefinition Width="40"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="1" Margin="3" Text="Device Status" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
-                        <Button Grid.Column="0" Click="OnExpandDeviceStatus" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Device Info" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandDeviceInfo" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
-                    <Grid x:Name="DevicestatusGrid" Visibility="Collapsed">
+                    <Grid x:Name="DeviceInfoGrid" Visibility="Collapsed">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200"/>
@@ -544,68 +562,174 @@
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Secure Boot State"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Id"/>
                         <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
                             <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="DevStatusSecureBootState"/>
+                                <TextBlock Width="200" x:Name="DevInfoId"/>
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="IPv4 Address"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Manufacturer"/>
                         <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
                             <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="DevStatusIPAddressV4"/>
+                                <TextBlock Width="200" x:Name="DevInfoManufacturer"/>
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="IPv6 Address"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Model"/>
                         <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
                             <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="DevStatusIPAddressV6"/>
+                                <TextBlock Width="200" x:Name="DevInfoModel"/>
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Is Connected"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Device Management Ver"/>
                         <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
                             <Border Background="#F8F8F8" Margin="3">
-                                <CheckBox Width="200" x:Name="DevStatusIsConnected"/>
+                                <TextBlock Width="200" x:Name="DevInfoDmVer"/>
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Address Type"/>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Language"/>
                         <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal">
                             <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="DevStatusMacAddressType"/>
+                                <TextBlock Width="200" x:Name="DevInfoLang"/>
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="OS Edition"/>
+                        <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Type"/>
                         <StackPanel Grid.Row="6" Grid.Column="2" Orientation="Horizontal">
                             <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="DevStatusOSEdition"/>
+                                <TextBlock Width="200" x:Name="DevInfoType"/>
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Battery Status"/>
+                        <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="OEM"/>
                         <StackPanel Grid.Row="7" Grid.Column="2" Orientation="Horizontal">
                             <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="DevStatusBatteryStatus"/>
+                                <TextBlock Width="200" x:Name="DevInfoOEM"/>
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Battery Remaining"/>
+                        <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Hwardware Ver"/>
                         <StackPanel Grid.Row="8" Grid.Column="2" Orientation="Horizontal">
                             <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="DevStatusBatteryRemaining"/>
+                                <TextBlock Width="200" x:Name="DevInfoHwVer"/>
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="9" Grid.Column="0" Margin="3" Text="Battery Runtime"/>
+                        <TextBlock Grid.Row="9" Grid.Column="0" Margin="3" Text="Firmware Ver"/>
                         <StackPanel Grid.Row="9" Grid.Column="2" Orientation="Horizontal">
                             <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="DevStatusBatteryRuntime"/>
+                                <TextBlock Width="200" x:Name="DevInfoFwVer"/>
                             </Border>
                         </StackPanel>
+
+                        <TextBlock Grid.Row="10" Grid.Column="0" Margin="3" Text="OS Ver"/>
+                        <StackPanel Grid.Row="10" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoOSVer"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="11" Grid.Column="0" Margin="3" Text="Platform"/>
+                        <StackPanel Grid.Row="11" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoPlatform"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="12" Grid.Column="0" Margin="3" Text="ProcessorType"/>
+                        <StackPanel Grid.Row="12" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoProcessorType"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="13" Grid.Column="0" Margin="3" Text="Radio Software Ver"/>
+                        <StackPanel Grid.Row="13" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoRadioSwVer"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="14" Grid.Column="0" Margin="3" Text="DisplayResolution"/>
+                        <StackPanel Grid.Row="14" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoDisplayResolution"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="15" Grid.Column="0" Margin="3" Text="Commercialization Operator"/>
+                        <StackPanel Grid.Row="15" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoCommercializationOperator"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="16" Grid.Column="0" Margin="3" Text="Processor Architecture"/>
+                        <StackPanel Grid.Row="16" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoProcessorArchitecture"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="17" Grid.Column="0" Margin="3" Text="Name"/>
+                        <StackPanel Grid.Row="17" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoName"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="18" Grid.Column="0" Margin="3" Text="Total Storage (MB)"/>
+                        <StackPanel Grid.Row="18" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoTotalStorage"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="19" Grid.Column="0" Margin="3" Text="Total Memory (MB)"/>
+                        <StackPanel Grid.Row="19" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoTotalMemory"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="20" Grid.Column="0" Margin="3" Text="Secure Boot State"/>
+                        <StackPanel Grid.Row="20" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoSecureBootState"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="21" Grid.Column="0" Margin="3" Text="OS Edition"/>
+                        <StackPanel Grid.Row="21" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoOSEdition"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="22" Grid.Column="0" Margin="3" Text="Battery Status"/>
+                        <StackPanel Grid.Row="22" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoBatteryStatus"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="23" Grid.Column="0" Margin="3" Text="Battery Remaining"/>
+                        <StackPanel Grid.Row="23" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoBatteryRemaining"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="24" Grid.Column="0" Margin="3" Text="Battery Runtime"/>
+                        <StackPanel Grid.Row="24" Grid.Column="2" Orientation="Horizontal">
+                            <Border Background="#F8F8F8" Margin="3">
+                                <TextBlock Width="200" x:Name="DevInfoBatteryRuntime"/>
+                            </Border>
+                        </StackPanel>
+
                     </Grid>
 
 

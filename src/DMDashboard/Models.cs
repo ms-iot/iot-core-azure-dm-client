@@ -60,17 +60,36 @@ namespace Microsoft.Devices.Management
         }
     }
 
-    public struct DeviceStatus
+    public struct DeviceInfo
     {
-        public long secureBootState;
-        public string macAddressIpV4;
-        public string macAddressIpV6;
-        public bool macAddressIsConnected;
-        public long macAddressType;
-        public string osType;
-        public long batteryStatus;
-        public long batteryRemaining;
-        public long batteryRuntime;
+        public string id;
+        public string manufacturer;
+        public string model;
+        public string dmVer;
+        public string lang;
+
+        public string type;
+        public string oem;
+        public string hwVer;
+        public string fwVer;
+        public string osVer;
+
+        public string platform;
+        public string processorType;
+        public string radioSwVer;
+        public string displayResolution;
+        public string commercializationOperator;
+
+        public string processorArchitecture;
+        public string name;
+        public string totalStorage;
+        public string totalMemory;
+        public string secureBootState;
+
+        public string osEdition;
+        public string batteryStatus;
+        public string batteryRemaining;
+        public string batteryRuntime;
     }
 
     class ExternalStorage

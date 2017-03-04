@@ -69,6 +69,9 @@
     <ClInclude Include="Models\CertificateDetails.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="Models\DeviceInfo.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Models\ModelsInfo.dat" />

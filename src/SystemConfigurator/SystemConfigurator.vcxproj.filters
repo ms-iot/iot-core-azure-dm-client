@@ -63,9 +63,6 @@
     <ClInclude Include="TimeCfg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CSPs\DeviceStatusCSP.h">
-      <Filter>Header Files\CSPs</Filter>
-    </ClInclude>
     <ClInclude Include="CSPs\CustomDeviceUiCsp.h">
       <Filter>Source Files\CSPs</Filter>
     </ClInclude>
@@ -124,9 +121,6 @@
     </ClCompile>
     <ClCompile Include="TimeCfg.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSPs\DeviceStatusCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp">
       <Filter>Source Files\CSPs</Filter>

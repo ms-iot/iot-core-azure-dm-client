@@ -125,7 +125,6 @@
     <ClInclude Include="CSPs\CertificateStoreCSP.h" />
     <ClInclude Include="CSPs\ClientCertificateInstallCSP.h" />
     <ClInclude Include="CSPs\CustomDeviceUiCsp.h" />
-    <ClInclude Include="CSPs\DeviceStatusCSP.h" />
     <ClInclude Include="CSPs\EnterpriseModernAppManagementCSP.h" />
     <ClInclude Include="CSPs\MdmProvision.h" />
     <ClInclude Include="CSPs\PolicyCSP.h" />
@@ -148,7 +147,6 @@
     <ClCompile Include="CSPs\CertificateStoreCSP.cpp" />
     <ClCompile Include="CSPs\ClientCertificateInstallCSP.cpp" />
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp" />
-    <ClCompile Include="CSPs\DeviceStatusCSP.cpp" />
     <ClCompile Include="CSPs\EnterpriseModernAppManagementCSP.cpp" />
     <ClCompile Include="CSPs\MdmProvision.cpp" />
     <ClCompile Include="CSPs\PolicyCSP.cpp" />
