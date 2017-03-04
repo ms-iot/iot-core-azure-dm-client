@@ -39,19 +39,6 @@ namespace Microsoft.Devices.Management
             public string blobName;
         }
 
-        public struct DeviceStatus
-        {
-            public long secureBootState;
-            public string macAddressIpV4;
-            public string macAddressIpV6;
-            public bool macAddressIsConnected;
-            public long macAddressType;
-            public string osType;
-            public long batteryStatus;
-            public long batteryRemaining;
-            public long batteryRuntime;
-        }
-
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             this._deviceTwin = deviceTwin;
@@ -454,11 +441,10 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetRebootInfoResponse);
         }
 
-        public async Task<DeviceStatus> GetDeviceStatusAsync()
+        public async Task<Message.GetDeviceInfoResponse> GetDeviceInfoAsync()
         {
-            string deviceStatusJson = await GetPropertyAsync(Message.DMMessageKind.GetDeviceStatus);
-            Debug.WriteLine(" json deviceStatus = " + deviceStatusJson);
-            return JsonConvert.DeserializeObject<DeviceStatus>(deviceStatusJson); ;
+            var request = new Message.GetDeviceInfoRequest();
+            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetDeviceInfoResponse);
         }
 
         private async Task ReportAllDeviceProperties()
@@ -468,6 +454,7 @@ namespace Microsoft.Devices.Management
             Message.GetTimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
             Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await GetCertificateConfigurationAsync();
             Message.GetRebootInfoResponse rebootInfoResponse = await GetRebootInfoAsync();
+            Message.GetDeviceInfoResponse deviceInfoResponse = await GetDeviceInfoAsync();
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
             collection["microsoft"] = new
@@ -476,10 +463,8 @@ namespace Microsoft.Devices.Management
                 {
                     timeInfo = timeInfoResponse,
                     certificates = certificateConfigurationResponse,
-                    rebootInfo = rebootInfoResponse
-#if false // TODO
-            collection["deviceStatus"] = await GetDeviceStatusAsync();
-#endif
+                    rebootInfo = rebootInfoResponse,
+                    deviceInfo = deviceInfoResponse
                 }
             };
 

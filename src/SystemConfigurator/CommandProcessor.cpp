@@ -7,7 +7,6 @@
 #include "CSPs\CertificateManagement.h"
 #include "CSPs\RebootCSP.h"
 #include "CSPs\EnterpriseModernAppManagementCSP.h"
-#include "CSPs\DeviceStatusCSP.h"
 #include "CSPs\CustomDeviceUiCsp.h"
 #include "TimeCfg.h"
 #include "AppCfg.h"
@@ -25,21 +24,117 @@ IResponse^ HandleFactoryReset(IRequest^ request)
 return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
-IResponse^ HandleGetDeviceStatus(IRequest^ request)
+IResponse^ HandleGetDeviceInfo(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    throw DMExceptionWithErrorCode("Unsupported request: ", (uint32_t)request->Tag);
-    //try
-    //{
-    //    wstring deviceStatusJson = DeviceStatusCSP::GetDeviceStatusJson();
-    //    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    //}
-    //catch (const DMException& e)
-    //{
-    //    TRACEP("ERROR DMCommand::HandleGetDeviceStatus: ", e.what());
-    //    return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    //}
+    wstring id;
+    wstring manufacturer;
+    wstring model;
+    wstring dmVer;
+    wstring lang;
+
+    wstring type;
+    wstring oem;
+    wstring hwVer;
+    wstring fwVer;
+    wstring osVer;
+
+    wstring platform;
+    wstring processorType;
+    wstring radioSwVer;
+    wstring displayResolution;
+    wstring commercializationOperator;
+
+    wstring processorArchitecture;
+    wstring name;
+    wstring totalStorage;
+    wstring totalMemory;
+    wstring secureBootState;
+
+    wstring osEdition;
+    wstring batteryStatus;
+    wstring batteryRemaining;
+    wstring batteryRuntime;
+
+    bool success = true;
+    success = MdmProvision::TryGetString(L"./DevInfo/DevId", id) && success;
+    success = MdmProvision::TryGetString(L"./DevInfo/Man", manufacturer) && success;
+    success = MdmProvision::TryGetString(L"./DevInfo/Mod", model) && success;
+    success = MdmProvision::TryGetString(L"./DevInfo/DmV", dmVer) && success;
+    success = MdmProvision::TryGetString(L"./DevInfo/Lang", lang) && success;
+
+    success = MdmProvision::TryGetString(L"./DevDetail/DevTyp", type) && success;
+    success = MdmProvision::TryGetString(L"./DevDetail/OEM", oem) && success;
+    success = MdmProvision::TryGetString(L"./DevDetail/HwV", hwVer) && success;
+    success = MdmProvision::TryGetString(L"./DevDetail/FwV", fwVer) && success;
+    success = MdmProvision::TryGetString(L"./DevDetail/SwV", osVer) && success;
+
+    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/OSPlatform", platform) && success;
+    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/ProcessorType", processorType) && success;
+    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/RadioSwV", radioSwVer) && success;
+    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/Resolution", displayResolution) && success;
+    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/CommercializationOperator", commercializationOperator) && success;
+
+    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/ProcessorArchitecture", processorArchitecture) && success;
+    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/DeviceName", name) && success;
+
+    ULARGE_INTEGER sizeInBytes;
+    if (GetDiskFreeSpaceEx(L"c:\\", NULL, &sizeInBytes, NULL))
+    {
+        unsigned int sizeInMB = static_cast<unsigned int>(sizeInBytes.QuadPart / 1024 / 1024);
+        totalStorage = Utils::MultibyteToWide(to_string(sizeInMB).c_str());
+    }
+    else
+    {
+        totalStorage = wstring(L"error: ") + Utils::MultibyteToWide(to_string(GetLastError()).c_str());
+        success = false;
+    }
+
+    success = MdmProvision::TryGetNumber<unsigned int>(L"./DevDetail/Ext/Microsoft/TotalRAM", totalMemory) && success;
+    success = MdmProvision::TryGetNumber<unsigned int>(L"./Vendor/MSFT/DeviceStatus/SecureBootState", secureBootState) && success;
+    success = MdmProvision::TryGetString(L"./Vendor/MSFT/DeviceStatus/OS/Edition", osEdition) && success;
+    success = MdmProvision::TryGetNumber<unsigned int>(L"./Vendor/MSFT/DeviceStatus/Battery/Status", batteryStatus) && success;
+    success = MdmProvision::TryGetNumber<char>(L"./Vendor/MSFT/DeviceStatus/Battery/EstimatedChargeRemaining", batteryRemaining) && success;
+    success = MdmProvision::TryGetNumber<int>(L"./Vendor/MSFT/DeviceStatus/Battery/EstimatedRuntime", batteryRuntime) && success;
+
+    GetDeviceInfoResponse^ getDeviceInfoResponse = ref new GetDeviceInfoResponse(ResponseStatus::Success);
+
+    getDeviceInfoResponse->id = ref new String(id.c_str());
+    getDeviceInfoResponse->manufacturer = ref new String(manufacturer.c_str());
+    getDeviceInfoResponse->model = ref new String(model.c_str());
+    getDeviceInfoResponse->dmVer = ref new String(dmVer.c_str());
+    getDeviceInfoResponse->lang = ref new String(lang.c_str());
+
+    getDeviceInfoResponse->type = ref new String(type.c_str());
+    getDeviceInfoResponse->oem = ref new String(oem.c_str());
+    getDeviceInfoResponse->hwVer = ref new String(hwVer.c_str());
+    getDeviceInfoResponse->fwVer = ref new String(fwVer.c_str());
+    getDeviceInfoResponse->osVer = ref new String(osVer.c_str());
+
+    getDeviceInfoResponse->platform = ref new String(platform.c_str());
+    getDeviceInfoResponse->processorType = ref new String(processorType.c_str());
+    getDeviceInfoResponse->radioSwVer = ref new String(radioSwVer.c_str());
+    getDeviceInfoResponse->displayResolution = ref new String(displayResolution.c_str());
+    getDeviceInfoResponse->commercializationOperator = ref new String(commercializationOperator.c_str());
+
+    getDeviceInfoResponse->processorArchitecture = ref new String(processorArchitecture.c_str());
+    getDeviceInfoResponse->name = ref new String(name.c_str());
+    getDeviceInfoResponse->totalStorage = ref new String(totalStorage.c_str());
+    getDeviceInfoResponse->totalMemory = ref new String(totalMemory.c_str());
+    getDeviceInfoResponse->secureBootState = ref new String(secureBootState.c_str());
+
+    getDeviceInfoResponse->osEdition = ref new String(osEdition.c_str());
+    getDeviceInfoResponse->batteryStatus = ref new String(batteryStatus.c_str());
+    getDeviceInfoResponse->batteryRemaining = ref new String(batteryRemaining.c_str());
+    getDeviceInfoResponse->batteryRuntime = ref new String(batteryRuntime.c_str());
+
+    if (!success)
+    {
+        return ref new GetDeviceInfoResponse(ResponseStatus::Failure);
+    }
+
+    return getDeviceInfoResponse;
 }
 
 IResponse^ HandleSetTimeInfo(IRequest^ request)

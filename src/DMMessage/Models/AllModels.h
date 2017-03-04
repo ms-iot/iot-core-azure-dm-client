@@ -8,9 +8,10 @@
 #include "Reboot.h"
 #include "StartupApp.h"
 #include "StatusCodeResponse.h"
-#include "TimeInfo.h"
 #include "CertificateConfiguration.h"
 #include "CertificateDetails.h"
+#include "DeviceInfo.h"
+#include "TimeInfo.h"
 #include "StringResponse.h"
 #include "TpmRequests.h"
 
@@ -38,5 +39,4 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     EMPTY_REQUEST(ListApps);
     EMPTY_REQUEST(GetStartupForegroundApp);
     EMPTY_REQUEST(ListStartupBackgroundApps);
-    EMPTY_REQUEST(GetDeviceStatus);
 }}}};

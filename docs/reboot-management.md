@@ -146,6 +146,8 @@ The format of the `"desired.microsoft.management.scheduledReboot"` desired prope
 }
 </pre>
 
+Note that the full date and time are required when specifying the daily reboot time. The date will denote when the daily reboot should start taking place.
+
 **Examples**
 
 Perform a singleRebootTime reboot on Jan 25th, 2017 at 09:00 UTC time and also reboot daily at 3 AM:
