@@ -10,6 +10,7 @@
 #include "CSPs\CustomDeviceUiCsp.h"
 #include "TimeCfg.h"
 #include "AppCfg.h"
+#include "TpmSupport.h"
 
 #include <fstream>
 
@@ -21,63 +22,98 @@ using namespace Windows::Data::Json;
 
 IResponse^ HandleFactoryReset(IRequest^ request)
 {
-return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        auto resetRequest = dynamic_cast<FactoryResetRequest^>(request);
+        TRACEP(L"clearTPM = ", (resetRequest->clearTPM ? L"true" : L"false"));
+        TRACEP(L"recoveryPartitionGUID = ", resetRequest->recoveryPartitionGUID->Data());
+
+        // Clear the TPM if requested...
+        if (resetRequest->clearTPM)
+        {
+            ClearTPM();
+        }
+
+        // Schedule the recovery...
+        unsigned long returnCode = 0;
+        string output;
+        wstring command = Utils::GetSystemRootFolder() + L"\\bcdedit.exe  /set {bootmgr} bootsequence {" + resetRequest->recoveryPartitionGUID->Data() + L"}";
+        TRACE(command.c_str());
+        Utils::LaunchProcess(command, returnCode, output);
+        if (returnCode != 0)
+        {
+            throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
+        }
+
+        // Reboot the device...
+        RebootCSP::ExecRebootNow(Utils::GetCurrentDateTimeString());
+
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleSetTimeInfo: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
 }
 
 IResponse^ HandleGetDeviceInfo(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    wstring id;
-    wstring manufacturer;
-    wstring model;
-    wstring dmVer;
-    wstring lang;
+    // ToDo: We need an efficient way of communicating details about errors for each of the various settings.
 
-    wstring type;
-    wstring oem;
-    wstring hwVer;
-    wstring fwVer;
-    wstring osVer;
+    wstring id = L"<error>";
+    wstring manufacturer = L"<error>";
+    wstring model = L"<error>";
+    wstring dmVer = L"<error>";
+    wstring lang = L"<error>";
 
-    wstring platform;
-    wstring processorType;
-    wstring radioSwVer;
-    wstring displayResolution;
-    wstring commercializationOperator;
+    wstring type = L"<error>";
+    wstring oem = L"<error>";
+    wstring hwVer = L"<error>";
+    wstring fwVer = L"<error>";
+    wstring osVer = L"<error>";
 
-    wstring processorArchitecture;
-    wstring name;
-    wstring totalStorage;
-    wstring totalMemory;
-    wstring secureBootState;
+    wstring platform = L"<error>";
+    wstring processorType = L"<error>";
+    wstring radioSwVer = L"<error>";
+    wstring displayResolution = L"<error>";
+    wstring commercializationOperator = L"<error>";
 
-    wstring osEdition;
-    wstring batteryStatus;
-    wstring batteryRemaining;
-    wstring batteryRuntime;
+    wstring processorArchitecture = L"<error>";
+    wstring name = L"<error>";
+    wstring totalStorage = L"<error>";
+    wstring totalMemory = L"<error>";
+    wstring secureBootState = L"<error>";
 
-    bool success = true;
-    success = MdmProvision::TryGetString(L"./DevInfo/DevId", id) && success;
-    success = MdmProvision::TryGetString(L"./DevInfo/Man", manufacturer) && success;
-    success = MdmProvision::TryGetString(L"./DevInfo/Mod", model) && success;
-    success = MdmProvision::TryGetString(L"./DevInfo/DmV", dmVer) && success;
-    success = MdmProvision::TryGetString(L"./DevInfo/Lang", lang) && success;
+    wstring osEdition = L"<error>";
+    wstring batteryStatus = L"<error>";
+    wstring batteryRemaining = L"<error>";
+    wstring batteryRuntime = L"<error>";
 
-    success = MdmProvision::TryGetString(L"./DevDetail/DevTyp", type) && success;
-    success = MdmProvision::TryGetString(L"./DevDetail/OEM", oem) && success;
-    success = MdmProvision::TryGetString(L"./DevDetail/HwV", hwVer) && success;
-    success = MdmProvision::TryGetString(L"./DevDetail/FwV", fwVer) && success;
-    success = MdmProvision::TryGetString(L"./DevDetail/SwV", osVer) && success;
+    MdmProvision::TryGetString(L"./DevInfo/DevId", id);
+    MdmProvision::TryGetString(L"./DevInfo/Man", manufacturer);
+    MdmProvision::TryGetString(L"./DevInfo/Mod", model);
+    MdmProvision::TryGetString(L"./DevInfo/DmV", dmVer);
+    MdmProvision::TryGetString(L"./DevInfo/Lang", lang);
 
-    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/OSPlatform", platform) && success;
-    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/ProcessorType", processorType) && success;
-    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/RadioSwV", radioSwVer) && success;
-    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/Resolution", displayResolution) && success;
-    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/CommercializationOperator", commercializationOperator) && success;
+    MdmProvision::TryGetString(L"./DevDetail/DevTyp", type);
+    MdmProvision::TryGetString(L"./DevDetail/OEM", oem);
+    MdmProvision::TryGetString(L"./DevDetail/HwV", hwVer);
+    MdmProvision::TryGetString(L"./DevDetail/FwV", fwVer);
+    MdmProvision::TryGetString(L"./DevDetail/SwV", osVer);
 
-    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/ProcessorArchitecture", processorArchitecture) && success;
-    success = MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/DeviceName", name) && success;
+    MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/OSPlatform", platform);
+    MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/ProcessorType", processorType);
+    MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/RadioSwV", radioSwVer);
+    MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/Resolution", displayResolution);
+    MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/CommercializationOperator", commercializationOperator);
+
+    MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/ProcessorArchitecture", processorArchitecture);
+    MdmProvision::TryGetString(L"./DevDetail/Ext/Microsoft/DeviceName", name);
 
     ULARGE_INTEGER sizeInBytes;
     if (GetDiskFreeSpaceEx(L"c:\\", NULL, &sizeInBytes, NULL))
@@ -88,15 +124,15 @@ IResponse^ HandleGetDeviceInfo(IRequest^ request)
     else
     {
         totalStorage = wstring(L"error: ") + Utils::MultibyteToWide(to_string(GetLastError()).c_str());
-        success = false;
+        false;
     }
 
-    success = MdmProvision::TryGetNumber<unsigned int>(L"./DevDetail/Ext/Microsoft/TotalRAM", totalMemory) && success;
-    success = MdmProvision::TryGetNumber<unsigned int>(L"./Vendor/MSFT/DeviceStatus/SecureBootState", secureBootState) && success;
-    success = MdmProvision::TryGetString(L"./Vendor/MSFT/DeviceStatus/OS/Edition", osEdition) && success;
-    success = MdmProvision::TryGetNumber<unsigned int>(L"./Vendor/MSFT/DeviceStatus/Battery/Status", batteryStatus) && success;
-    success = MdmProvision::TryGetNumber<char>(L"./Vendor/MSFT/DeviceStatus/Battery/EstimatedChargeRemaining", batteryRemaining) && success;
-    success = MdmProvision::TryGetNumber<int>(L"./Vendor/MSFT/DeviceStatus/Battery/EstimatedRuntime", batteryRuntime) && success;
+    MdmProvision::TryGetNumber<unsigned int>(L"./DevDetail/Ext/Microsoft/TotalRAM", totalMemory);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Vendor/MSFT/DeviceStatus/SecureBootState", secureBootState);
+    MdmProvision::TryGetString(L"./Vendor/MSFT/DeviceStatus/OS/Edition", osEdition);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Vendor/MSFT/DeviceStatus/Battery/Status", batteryStatus);
+    MdmProvision::TryGetNumber<char>(L"./Vendor/MSFT/DeviceStatus/Battery/EstimatedChargeRemaining", batteryRemaining);
+    MdmProvision::TryGetNumber<int>(L"./Vendor/MSFT/DeviceStatus/Battery/EstimatedRuntime", batteryRuntime);
 
     GetDeviceInfoResponse^ getDeviceInfoResponse = ref new GetDeviceInfoResponse(ResponseStatus::Success);
 
@@ -129,11 +165,6 @@ IResponse^ HandleGetDeviceInfo(IRequest^ request)
     getDeviceInfoResponse->batteryRemaining = ref new String(batteryRemaining.c_str());
     getDeviceInfoResponse->batteryRuntime = ref new String(batteryRuntime.c_str());
 
-    if (!success)
-    {
-        return ref new GetDeviceInfoResponse(ResponseStatus::Failure);
-    }
-
     return getDeviceInfoResponse;
 }
 
@@ -158,24 +189,23 @@ IResponse^ HandleGetCertificateConfiguration(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    wstring certificateStore_CA_System;
-    wstring certificateStore_Root_System;
-    wstring certificateStore_My_User;
-    wstring certificateStore_My_System;
-    wstring rootCATrustedCertificates_Root;
-    wstring rootCATrustedCertificates_CA;
-    wstring rootCATrustedCertificates_TrustedPublisher;
-    wstring rootCATrustedCertificates_TrustedPeople;
+    wstring certificateStore_CA_System = L"<error>";
+    wstring certificateStore_Root_System = L"<error>";
+    wstring certificateStore_My_User = L"<error>";
+    wstring certificateStore_My_System = L"<error>";
+    wstring rootCATrustedCertificates_Root = L"<error>";
+    wstring rootCATrustedCertificates_CA = L"<error>";
+    wstring rootCATrustedCertificates_TrustedPublisher = L"<error>";
+    wstring rootCATrustedCertificates_TrustedPeople = L"<error>";
 
-    bool success = true;
-    success = MdmProvision::TryGetString(L"./Vendor/MSFT/CertificateStore/CA/System", certificateStore_CA_System) && success;
-    success = MdmProvision::TryGetString(L"./Vendor/MSFT/CertificateStore/Root/System", certificateStore_Root_System) && success;
-    success = MdmProvision::TryGetString(L"./Vendor/MSFT/CertificateStore/My/User", certificateStore_My_User) && success;
-    success = MdmProvision::TryGetString(L"./Vendor/MSFT/CertificateStore/My/System", certificateStore_My_System) && success;
-    success = MdmProvision::TryGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/Root", rootCATrustedCertificates_Root) && success;
-    success = MdmProvision::TryGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/CA", rootCATrustedCertificates_CA) && success;
-    success = MdmProvision::TryGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher", rootCATrustedCertificates_TrustedPublisher) && success;
-    success = MdmProvision::TryGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople", rootCATrustedCertificates_TrustedPeople) && success;
+    MdmProvision::TryGetString(L"./Vendor/MSFT/CertificateStore/CA/System", certificateStore_CA_System);
+    MdmProvision::TryGetString(L"./Vendor/MSFT/CertificateStore/Root/System", certificateStore_Root_System);
+    MdmProvision::TryGetString(L"./Vendor/MSFT/CertificateStore/My/User", certificateStore_My_User);
+    MdmProvision::TryGetString(L"./Vendor/MSFT/CertificateStore/My/System", certificateStore_My_System);
+    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/Root", rootCATrustedCertificates_Root);
+    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/CA", rootCATrustedCertificates_CA);
+    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher", rootCATrustedCertificates_TrustedPublisher);
+    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople", rootCATrustedCertificates_TrustedPeople);
 
     CertificateConfiguration^ configuration = ref new CertificateConfiguration();
 
@@ -188,11 +218,6 @@ IResponse^ HandleGetCertificateConfiguration(IRequest^ request)
     configuration->rootCATrustedCertificates_TrustedPublisher = ref new String(rootCATrustedCertificates_TrustedPublisher.c_str());
     configuration->rootCATrustedCertificates_TrustedPeople = ref new String(rootCATrustedCertificates_TrustedPeople.c_str());
 
-    if (!success)
-    {
-        return ref new GetCertificateConfigurationResponse(ResponseStatus::Failure, configuration);
-    }
-
     return ref new GetCertificateConfigurationResponse(ResponseStatus::Success, configuration);
 }
 
@@ -203,7 +228,7 @@ IResponse^ HandleSetCertificateConfiguration(IRequest^ request)
     try
     {
         auto setCertificateConfigurationRequest = dynamic_cast<SetCertificateConfigurationRequest^>(request);
-        CertificateConfiguration^ configuration = setCertificateConfigurationRequest->Configuration;
+        CertificateConfiguration^ configuration = setCertificateConfigurationRequest->configuration;
 
         CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/CA/System", configuration->certificateStore_CA_System->Data());
         CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/Root/System", configuration->certificateStore_Root_System->Data());
@@ -494,10 +519,6 @@ IResponse^ HandleListApps(IRequest^ request)
     return ref new ListAppsResponse(ResponseStatus::Success, jsonMap);
 }
 
-std::string GetServiceUrl(int logicalId);
-
-std::string GetSASToken(int logicalId);
-
 IResponse^ HandleTpmGetServiceUrl(IRequest^ request)
 {
     TRACE(__FUNCTION__);
@@ -530,6 +551,216 @@ IResponse^ HandleTpmGetSASToken(IRequest^ request)
     {
         TRACE(L"HandleTpmGetSASToken failed");
         return ref new StringResponse(ResponseStatus::Failure, L"", request->Tag);
+    }
+}
+
+IResponse^ HandleGetWindowsUpdatePolicy(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    unsigned int activeHoursStart = static_cast<unsigned int>(-1);
+    unsigned int activeHoursEnd = static_cast<unsigned int>(-1);
+    unsigned int allowAutoUpdate = static_cast<unsigned int>(-1);
+    unsigned int allowMUUpdateService = static_cast<unsigned int>(-1);
+    unsigned int allowNonMicrosoftSignedUpdate = static_cast<unsigned int>(-1);
+
+    unsigned int allowUpdateService = static_cast<unsigned int>(-1);
+    unsigned int branchReadinessLevel = static_cast<unsigned int>(-1);
+    unsigned int deferFeatureUpdatesPeriod = static_cast<unsigned int>(-1);    // in days
+    unsigned int deferQualityUpdatesPeriod = static_cast<unsigned int>(-1);    // in days
+    unsigned int excludeWUDrivers = static_cast<unsigned int>(-1);
+
+    unsigned int pauseFeatureUpdates = static_cast<unsigned int>(-1);
+    unsigned int pauseQualityUpdates = static_cast<unsigned int>(-1);
+    unsigned int requireUpdateApproval = static_cast<unsigned int>(-1);
+    unsigned int scheduledInstallDay = static_cast<unsigned int>(-1);
+    unsigned int scheduledInstallTime = static_cast<unsigned int>(-1);
+
+    wstring updateServiceUrl = L"<error>";
+
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ActiveHoursStart", activeHoursStart);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ActiveHoursEnd", activeHoursEnd);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowAutoUpdate", allowAutoUpdate);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowMUUpdateService", allowMUUpdateService);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowNonMicrosoftSignedUpdate", allowNonMicrosoftSignedUpdate);
+
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowUpdateService", allowUpdateService);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/BranchReadinessLevel", branchReadinessLevel);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferFeatureUpdatesPeriodInDays", deferFeatureUpdatesPeriod);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferQualityUpdatesPeriodInDays", deferQualityUpdatesPeriod);
+    // MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ExcludeWUDrivers", excludeWUDrivers);
+
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseFeatureUpdates", pauseFeatureUpdates);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseQualityUpdates", pauseQualityUpdates);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/RequireUpdateApproval", requireUpdateApproval);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallDay", scheduledInstallDay);
+    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallTime", scheduledInstallTime);
+
+    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/Policy/Result/Update/UpdateServiceUrl", updateServiceUrl);
+
+    auto configuration = ref new WindowsUpdatePolicyConfiguration();
+    configuration->activeHoursStart = activeHoursStart;
+    configuration->activeHoursEnd = activeHoursEnd;
+    configuration->allowAutoUpdate = allowAutoUpdate;
+    configuration->allowMUUpdateService = allowMUUpdateService;
+    configuration->allowNonMicrosoftSignedUpdate = allowNonMicrosoftSignedUpdate;
+
+    configuration->allowUpdateService = allowUpdateService;
+    configuration->branchReadinessLevel = branchReadinessLevel;
+    configuration->deferFeatureUpdatesPeriod = deferFeatureUpdatesPeriod;
+    configuration->deferQualityUpdatesPeriod = deferQualityUpdatesPeriod;
+    configuration->excludeWUDrivers = excludeWUDrivers;
+
+    configuration->pauseFeatureUpdates = pauseFeatureUpdates;
+    configuration->pauseQualityUpdates = pauseQualityUpdates;
+    configuration->requireUpdateApproval = requireUpdateApproval;
+    configuration->scheduledInstallDay = scheduledInstallDay;
+    configuration->scheduledInstallTime = scheduledInstallTime;
+
+    configuration->updateServiceUrl = ref new String(updateServiceUrl.c_str());
+    return ref new GetWindowsUpdatePolicyResponse(ResponseStatus::Success, configuration);
+}
+
+IResponse^ HandleSetWindowsUpdatePolicy(IRequest^ request)
+{
+    // ToDo: We need have a consistent policy on whether we:
+    // - apply all or nothing.
+    // - apply as much as we can and report and error.
+
+    try
+    {
+        auto updatePolicyRequest = dynamic_cast<SetWindowsUpdatePolicyRequest^>(request);
+        if (updatePolicyRequest->configuration != nullptr)
+        {
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", static_cast<int>(updatePolicyRequest->configuration->activeHoursStart));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", static_cast<int>(updatePolicyRequest->configuration->activeHoursEnd));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", static_cast<int>(updatePolicyRequest->configuration->allowAutoUpdate));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowMUUpdateService", static_cast<int>(updatePolicyRequest->configuration->allowMUUpdateService));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowNonMicrosoftSignedUpdate", static_cast<int>(updatePolicyRequest->configuration->allowNonMicrosoftSignedUpdate));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", static_cast<int>(updatePolicyRequest->configuration->allowUpdateService));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", static_cast<int>(updatePolicyRequest->configuration->branchReadinessLevel));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", static_cast<int>(updatePolicyRequest->configuration->deferFeatureUpdatesPeriod));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", static_cast<int>(updatePolicyRequest->configuration->deferQualityUpdatesPeriod));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ExcludeWUDrivers", static_cast<int>(updatePolicyRequest->configuration->excludeWUDrivers));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", static_cast<int>(updatePolicyRequest->configuration->pauseFeatureUpdates));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", static_cast<int>(updatePolicyRequest->configuration->pauseQualityUpdates));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/RequireUpdateApproval", static_cast<int>(updatePolicyRequest->configuration->requireUpdateApproval));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", static_cast<int>(updatePolicyRequest->configuration->scheduledInstallDay));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", static_cast<int>(updatePolicyRequest->configuration->scheduledInstallTime));
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/UpdateServiceUrl", wstring(updatePolicyRequest->configuration->updateServiceUrl->Data()));
+        }
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleSetWindowsUpdatePolicy: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
+IResponse^ HandleGetWindowsUpdateRebootPolicy(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        auto configuration = ref new WindowsUpdateRebootPolicyConfiguration();
+
+        wstring value;
+        if (Utils::TryReadRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed, value))
+        {
+            configuration->allow = value == IoTDMRegistryTrue;
+        }
+        else
+        {
+            // default is to allow rebooting.
+            configuration->allow = true;
+        }
+
+        return ref new GetWindowsUpdateRebootPolicyResponse(ResponseStatus::Success, configuration);
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleGetWindowsUpdateRebootPolicy: ", e.what());
+        return ref new GetWindowsUpdateRebootPolicyResponse(ResponseStatus::Failure, ref new WindowsUpdateRebootPolicyConfiguration());
+    }
+}
+
+IResponse^ HandleSetWindowsUpdateRebootPolicy(IRequest^ request)
+{
+    try
+    {
+        auto windowsUpdateRebootPolicy = dynamic_cast<SetWindowsUpdateRebootPolicyRequest^>(request);
+        if (windowsUpdateRebootPolicy != nullptr)
+        {
+            unsigned long returnCode;
+            string output;
+            wstring command = Utils::GetSystemRootFolder() + L"\\ApplyUpdate.exe ";
+            command += windowsUpdateRebootPolicy->configuration->allow ? L"-blockrebooton" : L"-blockrebootoff";
+            Utils::LaunchProcess(command, returnCode, output);
+            if (returnCode != 0)
+            {
+                throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
+            }
+            Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed,
+                windowsUpdateRebootPolicy->configuration->allow ? IoTDMRegistryTrue : IoTDMRegistryFalse);
+        }
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleSetWindowsUpdateRebootPolicy: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
+IResponse^ HandleGetWindowsUpdates(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    wstring installed = L"<error>";
+    wstring approved = L"<error>";
+    wstring failed = L"<error>";
+    wstring installable = L"<error>";
+    wstring pendingReboot = L"<error>";
+    wstring lastScanTime = L"<error>";
+    bool deferUpgrade;
+
+    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/Update/InstalledUpdates", installed);
+    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", approved);
+    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/Update/FailedUpdates", failed);
+    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/Update/InstallableUpdates", installable);
+    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/Update/PendingRebootUpdates", pendingReboot);
+    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/Update/LastSuccessfulScanTime", lastScanTime);
+    MdmProvision::TryGetBool(L"./Device/Vendor/MSFT/Update/DeferUpgrade", deferUpgrade);
+
+    auto configuration = ref new GetWindowsUpdatesConfiguration();
+    configuration->installed = ref new String(installed.c_str());
+    configuration->approved = ref new String(approved.c_str());
+    configuration->failed = ref new String(failed.c_str());
+    configuration->installable = ref new String(installable.c_str());
+    configuration->pendingReboot = ref new String(pendingReboot.c_str());
+    configuration->lastScanTime = ref new String(lastScanTime.c_str());
+    configuration->deferUpgrade = deferUpgrade;
+
+    return ref new GetWindowsUpdatesResponse(ResponseStatus::Success, configuration);
+}
+
+IResponse^ HandleSetWindowsUpdates(IRequest^ request)
+{
+    try
+    {
+        auto windowsUpdatesRequest = dynamic_cast<SetWindowsUpdatesRequest^>(request);
+        if (windowsUpdatesRequest != nullptr)
+        {
+            MdmProvision::RunAdd(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", windowsUpdatesRequest->configuration->approved->Data());
+        }
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleSetWindowsUpdates: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
     }
 }
 

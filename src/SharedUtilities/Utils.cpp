@@ -429,13 +429,13 @@ namespace Utils
         // GlobalFree(buffer);
     }
 
-    void WriteRegistryValue(const wstring& subkey, const wstring& propName, const wstring& propValue)
+    void WriteRegistryValue(const wstring& subKey, const wstring& propName, const wstring& propValue)
     {
         LSTATUS status;
         HKEY hKey = NULL;
         status = RegCreateKeyEx(
             HKEY_LOCAL_MACHINE,
-            subkey.c_str(),
+            subKey.c_str(),
             0,      // reserved
             NULL,   // user-defined class type of this key.
             0,      // default; non-volatile
@@ -457,27 +457,40 @@ namespace Utils
         RegCloseKey(hKey);
     }
 
-    wstring ReadRegistryValue(const wstring& subkey, const wstring& propName)
+    wstring ReadRegistryValue(const wstring& subKey, const wstring& propName)
     {
         DWORD dataSize = 0;
         LSTATUS status;
-        status = RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, NULL, &dataSize);
+        status = RegGetValue(HKEY_LOCAL_MACHINE, subKey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, NULL, &dataSize);
         if (status != ERROR_SUCCESS)
         {
-            TRACEP(L"Error: Could not read registry value size: ", (subkey + L"\\" + propName).c_str());
+            TRACEP(L"Error: Could not read registry value size: ", (subKey + L"\\" + propName).c_str());
             throw DMExceptionWithErrorCode(status);
         }
 
         vector<char> data(dataSize);
-        status = RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, data.data(), &dataSize);
+        status = RegGetValue(HKEY_LOCAL_MACHINE, subKey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, data.data(), &dataSize);
         if (status != ERROR_SUCCESS)
         {
-            TRACEP(L"Error: Could not read registry value: ", (subkey + L"\\" + propName).c_str());
+            TRACEP(L"Error: Could not read registry value: ", (subKey + L"\\" + propName).c_str());
             throw DMExceptionWithErrorCode(status);
         }
 
-        // return wstring(reinterpret_cast<const wchar_t*>(data.data()));
         return wstring(reinterpret_cast<const wchar_t*>(data.data()));
+    }
+
+    bool TryReadRegistryValue(const wstring& subKey, const wstring& propName, wstring& propValue)
+    {
+        bool result = false;
+        try
+        {
+            propValue = ReadRegistryValue(subKey, propName);
+            result = true;
+        }
+        catch (const DMException&)
+        {
+        }
+        return result;
     }
 
     wstring GetOSVersionString()
@@ -711,7 +724,7 @@ namespace Utils
             throw new DMException("Error: cannot convert binary stream to base64.");
         }
 
-        return wstring(destinationBuffer.size(), destinationSize);
+        return wstring(destinationBuffer.data(), destinationBuffer.size());
     }
 
     wstring FileToBase64(const wstring& fileName)

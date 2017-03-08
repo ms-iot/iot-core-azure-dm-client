@@ -55,6 +55,7 @@ namespace Microsoft.Devices.Management
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.reportAllDeviceProperties", deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.startAppSelfUpdate", deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.getCertificateDetails", deviceManagementClient.GetCertificateDetailsHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync("microsoft.management.factoryReset", deviceManagementClient.FactoryResetHandlerAsync);
             return deviceManagementClient;
         }
 
@@ -307,9 +308,36 @@ namespace Microsoft.Devices.Management
             return Task.FromResult(JsonConvert.SerializeObject(response));
         }
 
-        public async Task<DMMethodResult> DoFactoryResetAsync()
+        public async Task DoFactoryResetAsync(string jsonParam)
         {
-            throw new NotImplementedException();
+            var request = JsonConvert.DeserializeObject<Message.FactoryResetRequest>(jsonParam);
+            await _systemConfiguratorProxy.SendCommandAsync(request);
+        }
+
+        public async Task DoFactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
+        {
+            var request = new Message.FactoryResetRequest();
+            request.clearTPM = clearTPM;
+            request.recoveryPartitionGUID = recoveryPartitionGUID;
+            await _systemConfiguratorProxy.SendCommandAsync(request);
+        }
+
+        private Task<string> FactoryResetHandlerAsync(string jsonParam)
+        {
+            Debug.WriteLine("FactoryResetHandlerAsync");
+
+            var response = new { response = "succeeded", reason = "" };
+            try
+            {
+                // Submit the work and return immediately.
+                DoFactoryResetAsync(jsonParam);
+            }
+            catch (Exception e)
+            {
+                response = new { response = "rejected:", reason = e.Message };
+            }
+
+            return Task.FromResult(JsonConvert.SerializeObject(response));
         }
 
         private static async void ProcessDesiredCertificateConfiguration(
@@ -403,6 +431,33 @@ namespace Microsoft.Devices.Management
                                         this._systemConfiguratorProxy.SendCommandAsync(request);
                                     }
                                     break;
+                                case "windowsUpdatePolicy":
+                                    if (managementProperty.Value.Type == JTokenType.Object)
+                                    {
+                                        Debug.WriteLine("windowsUpdatePolicy = " + managementProperty.Value.ToString());
+
+                                        var request = IoTDMClient.WindowsUpdatesManagement.GetDesiredWindowsUpdatePolicyRequest(managementProperty);
+                                        this._systemConfiguratorProxy.SendCommandAsync(request);
+                                    }
+                                    break;
+                                case "windowsUpdateRebootPolicy":
+                                    if (managementProperty.Value.Type == JTokenType.Object)
+                                    {
+                                        Debug.WriteLine("windowsUpdateRebootPolicy = " + managementProperty.Value.ToString());
+
+                                        var request = IoTDMClient.WindowsUpdatesManagement.GetDesiredWindowsUpdateRebootPolicyRequest(managementProperty);
+                                        this._systemConfiguratorProxy.SendCommandAsync(request);
+                                    }
+                                    break;
+                                case "windowsUpdates":
+                                    if (managementProperty.Value.Type == JTokenType.Object)
+                                    {
+                                        Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
+
+                                        var request = IoTDMClient.WindowsUpdatesManagement.GetDesiredWindowsUpdatesRequest(managementProperty);
+                                        this._systemConfiguratorProxy.SendCommandAsync(request);
+                                    }
+                                    break;
                                 default:
                                     // Not supported
                                     break;
@@ -447,6 +502,24 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetDeviceInfoResponse);
         }
 
+        public async Task<Message.GetWindowsUpdatePolicyResponse> GetWindowsUpdatePolicyAsync()
+        {
+            var request = new Message.GetWindowsUpdatePolicyRequest();
+            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatePolicyResponse);
+        }
+
+        public async Task<Message.GetWindowsUpdateRebootPolicyResponse> GetWindowsUpdateRebootPolicyAsync()
+        {
+            var request = new Message.GetWindowsUpdateRebootPolicyRequest();
+            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdateRebootPolicyResponse);
+        }
+
+        public async Task<Message.GetWindowsUpdatesResponse> GetWindowsUpdatesAsync()
+        {
+            var request = new Message.GetWindowsUpdatesRequest();
+            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse);
+        }
+
         private async Task ReportAllDeviceProperties()
         {
             Debug.WriteLine("ReportAllDeviceProperties");
@@ -455,6 +528,9 @@ namespace Microsoft.Devices.Management
             Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await GetCertificateConfigurationAsync();
             Message.GetRebootInfoResponse rebootInfoResponse = await GetRebootInfoAsync();
             Message.GetDeviceInfoResponse deviceInfoResponse = await GetDeviceInfoAsync();
+            Message.GetWindowsUpdatePolicyResponse windowsUpdatePolicyResponse = await GetWindowsUpdatePolicyAsync();
+            Message.GetWindowsUpdateRebootPolicyResponse windowsUpdateRebootPolicyResponse = await GetWindowsUpdateRebootPolicyAsync();
+            Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
             collection["microsoft"] = new
@@ -464,7 +540,10 @@ namespace Microsoft.Devices.Management
                     timeInfo = timeInfoResponse,
                     certificates = certificateConfigurationResponse,
                     rebootInfo = rebootInfoResponse,
-                    deviceInfo = deviceInfoResponse
+                    deviceInfo = deviceInfoResponse,
+                    windowsUpdatePolicy = windowsUpdatePolicyResponse.configuration,
+                    windowsUpdateRebootPolicy = windowsUpdateRebootPolicyResponse.configuration,
+                    windowsUpdates = windowsUpdatesResponse.configuration
                 }
             };
 

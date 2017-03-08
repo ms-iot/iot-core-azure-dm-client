@@ -96,6 +96,7 @@
     <ClInclude Include="Models\CertificateDetails.h" />
     <ClInclude Include="Models\CheckForUpdates.h" />
     <ClInclude Include="Models\DeviceInfo.h" />
+    <ClInclude Include="Models\FactoryReset.h" />
     <ClInclude Include="Models\FileTransfer.h" />
     <ClInclude Include="Models\ListApps.h" />
     <ClInclude Include="Models\Reboot.h" />
@@ -104,6 +105,9 @@
     <ClInclude Include="Models\StringResponse.h" />
     <ClInclude Include="Models\TimeInfo.h" />
     <ClInclude Include="Models\TpmRequests.h" />
+    <ClInclude Include="Models\WindowsUpdatePolicy.h" />
+    <ClInclude Include="Models\WindowsUpdateRebootPolicy.h" />
+    <ClInclude Include="Models\WindowsUpdates.h" />
     <ClInclude Include="ResponseStatus.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="SerializationHelper.h" />

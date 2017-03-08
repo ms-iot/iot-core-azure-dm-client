@@ -48,16 +48,10 @@
     <ClInclude Include="CSPs\MdmProvision.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
-    <ClInclude Include="CSPs\PolicyCSP.h">
-      <Filter>Header Files\CSPs</Filter>
-    </ClInclude>
     <ClInclude Include="CSPs\RebootCSP.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\RemoteWipeCSP.h">
-      <Filter>Header Files\CSPs</Filter>
-    </ClInclude>
-    <ClInclude Include="CSPs\UpdateCSP.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="TimeCfg.h">
@@ -87,6 +81,9 @@
     <ClInclude Include="CSPs\CertificateManagement.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
+    <ClInclude Include="TpmSupport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -107,16 +104,10 @@
     <ClCompile Include="CSPs\MdmProvision.cpp">
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
-    <ClCompile Include="CSPs\PolicyCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
-    </ClCompile>
     <ClCompile Include="CSPs\RebootCSP.cpp">
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\RemoteWipeCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
-    </ClCompile>
-    <ClCompile Include="CSPs\UpdateCSP.cpp">
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="TimeCfg.cpp">

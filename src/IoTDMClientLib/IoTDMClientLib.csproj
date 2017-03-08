@@ -127,6 +127,7 @@
     <Compile Include="OnPremDeviceTwinProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TpmDevice.cs" />
+    <Compile Include="WindowsUpdatesManagement.cs" />
     <EmbeddedResource Include="Properties\IoTDMClient.rd.xml" />
   </ItemGroup>
   <ItemGroup>

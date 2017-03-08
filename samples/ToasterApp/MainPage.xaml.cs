@@ -144,7 +144,11 @@ namespace Toaster
             bool success = true;
             try
             {
-                await deviceManagementClient.DoFactoryResetAsync();
+                // The recovery partition guid is typically picked from a pre-defined set of guids
+                // by the builder of the image. For our testing purposes, we have been using the following
+                // guid.
+                string recoveryPartitionGUID = "a5935ff2-32ba-4617-bf36-5ac314b3f9bf";
+                await deviceManagementClient.DoFactoryResetAsync(false /*don't clear TPM*/, recoveryPartitionGUID);
             }
             catch (Exception)
             {

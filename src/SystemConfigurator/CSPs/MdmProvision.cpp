@@ -272,6 +272,22 @@ bool MdmProvision::RunGetBool(const wstring& sid, const wstring& path)
     return 0 == _wcsicmp(result.c_str(), L"true");
 }
 
+bool MdmProvision::TryGetBool(const wstring& path, bool& value)
+{
+    bool success = true;
+    try
+    {
+        value = RunGetBool(L"", path);
+    }
+    catch (DMException& e)
+    {
+        success = false;
+        TRACEP(L"Error: GetBool() - path     : ", path.c_str());
+        TRACEP("Error: GetBool() - exception: ", e.what());
+    }
+    return success;
+}
+
 void MdmProvision::RunSet(const wstring& sid, const wstring& path, const wstring& value)
 {
     wstring requestSyncML = LR"(

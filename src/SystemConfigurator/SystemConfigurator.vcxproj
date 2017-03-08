@@ -127,17 +127,16 @@
     <ClInclude Include="CSPs\CustomDeviceUiCsp.h" />
     <ClInclude Include="CSPs\EnterpriseModernAppManagementCSP.h" />
     <ClInclude Include="CSPs\MdmProvision.h" />
-    <ClInclude Include="CSPs\PolicyCSP.h" />
     <ClInclude Include="CSPs\PrivateAPIs\WinSDKRS2.h" />
     <ClInclude Include="CSPs\RebootCSP.h" />
     <ClInclude Include="CSPs\RemoteWipeCSP.h" />
-    <ClInclude Include="CSPs\UpdateCSP.h" />
     <ClInclude Include="CSPs\WifiCSP.h" />
     <ClInclude Include="DMService.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TimeCfg.h" />
+    <ClInclude Include="TpmSupport.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppCfg.cpp" />
@@ -149,10 +148,8 @@
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp" />
     <ClCompile Include="CSPs\EnterpriseModernAppManagementCSP.cpp" />
     <ClCompile Include="CSPs\MdmProvision.cpp" />
-    <ClCompile Include="CSPs\PolicyCSP.cpp" />
     <ClCompile Include="CSPs\RebootCSP.cpp" />
     <ClCompile Include="CSPs\RemoteWipeCSP.cpp" />
-    <ClCompile Include="CSPs\UpdateCSP.cpp" />
     <ClCompile Include="CSPs\WifiCSP.cpp" />
     <ClCompile Include="DMService.cpp" />
     <ClCompile Include="stdafx.cpp">
