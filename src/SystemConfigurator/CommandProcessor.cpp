@@ -54,7 +54,7 @@ IResponse^ HandleFactoryReset(IRequest^ request)
     }
     catch (const DMException& e)
     {
-        TRACEP("ERROR DMCommand::HandleSetTimeInfo: ", e.what());
+        TRACEP("ERROR DMCommand::HandleFactoryReset: ", e.what());
         return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
     }
 }
@@ -630,25 +630,25 @@ IResponse^ HandleSetWindowsUpdatePolicy(IRequest^ request)
     try
     {
         auto updatePolicyRequest = dynamic_cast<SetWindowsUpdatePolicyRequest^>(request);
-        if (updatePolicyRequest->configuration != nullptr)
-        {
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", static_cast<int>(updatePolicyRequest->configuration->activeHoursStart));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", static_cast<int>(updatePolicyRequest->configuration->activeHoursEnd));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", static_cast<int>(updatePolicyRequest->configuration->allowAutoUpdate));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowMUUpdateService", static_cast<int>(updatePolicyRequest->configuration->allowMUUpdateService));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowNonMicrosoftSignedUpdate", static_cast<int>(updatePolicyRequest->configuration->allowNonMicrosoftSignedUpdate));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", static_cast<int>(updatePolicyRequest->configuration->allowUpdateService));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", static_cast<int>(updatePolicyRequest->configuration->branchReadinessLevel));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", static_cast<int>(updatePolicyRequest->configuration->deferFeatureUpdatesPeriod));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", static_cast<int>(updatePolicyRequest->configuration->deferQualityUpdatesPeriod));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ExcludeWUDrivers", static_cast<int>(updatePolicyRequest->configuration->excludeWUDrivers));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", static_cast<int>(updatePolicyRequest->configuration->pauseFeatureUpdates));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", static_cast<int>(updatePolicyRequest->configuration->pauseQualityUpdates));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/RequireUpdateApproval", static_cast<int>(updatePolicyRequest->configuration->requireUpdateApproval));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", static_cast<int>(updatePolicyRequest->configuration->scheduledInstallDay));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", static_cast<int>(updatePolicyRequest->configuration->scheduledInstallTime));
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/UpdateServiceUrl", wstring(updatePolicyRequest->configuration->updateServiceUrl->Data()));
-        }
+        assert(updatePolicyRequest->configuration != nullptr);
+
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", static_cast<int>(updatePolicyRequest->configuration->activeHoursStart));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", static_cast<int>(updatePolicyRequest->configuration->activeHoursEnd));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", static_cast<int>(updatePolicyRequest->configuration->allowAutoUpdate));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowMUUpdateService", static_cast<int>(updatePolicyRequest->configuration->allowMUUpdateService));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowNonMicrosoftSignedUpdate", static_cast<int>(updatePolicyRequest->configuration->allowNonMicrosoftSignedUpdate));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", static_cast<int>(updatePolicyRequest->configuration->allowUpdateService));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", static_cast<int>(updatePolicyRequest->configuration->branchReadinessLevel));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", static_cast<int>(updatePolicyRequest->configuration->deferFeatureUpdatesPeriod));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", static_cast<int>(updatePolicyRequest->configuration->deferQualityUpdatesPeriod));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ExcludeWUDrivers", static_cast<int>(updatePolicyRequest->configuration->excludeWUDrivers));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", static_cast<int>(updatePolicyRequest->configuration->pauseFeatureUpdates));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", static_cast<int>(updatePolicyRequest->configuration->pauseQualityUpdates));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/RequireUpdateApproval", static_cast<int>(updatePolicyRequest->configuration->requireUpdateApproval));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", static_cast<int>(updatePolicyRequest->configuration->scheduledInstallDay));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", static_cast<int>(updatePolicyRequest->configuration->scheduledInstallTime));
+        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/UpdateServiceUrl", wstring(updatePolicyRequest->configuration->updateServiceUrl->Data()));
+
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (const DMException& e)
@@ -691,20 +691,20 @@ IResponse^ HandleSetWindowsUpdateRebootPolicy(IRequest^ request)
     try
     {
         auto windowsUpdateRebootPolicy = dynamic_cast<SetWindowsUpdateRebootPolicyRequest^>(request);
-        if (windowsUpdateRebootPolicy != nullptr)
+        assert(windowsUpdateRebootPolicy != nullptr);
+
+        unsigned long returnCode;
+        string output;
+        wstring command = Utils::GetSystemRootFolder() + L"\\ApplyUpdate.exe ";
+        command += windowsUpdateRebootPolicy->configuration->allow ? L"-blockrebooton" : L"-blockrebootoff";
+        Utils::LaunchProcess(command, returnCode, output);
+        if (returnCode != 0)
         {
-            unsigned long returnCode;
-            string output;
-            wstring command = Utils::GetSystemRootFolder() + L"\\ApplyUpdate.exe ";
-            command += windowsUpdateRebootPolicy->configuration->allow ? L"-blockrebooton" : L"-blockrebootoff";
-            Utils::LaunchProcess(command, returnCode, output);
-            if (returnCode != 0)
-            {
-                throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
-            }
-            Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed,
-                windowsUpdateRebootPolicy->configuration->allow ? IoTDMRegistryTrue : IoTDMRegistryFalse);
+            throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
         }
+        Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed,
+            windowsUpdateRebootPolicy->configuration->allow ? IoTDMRegistryTrue : IoTDMRegistryFalse);
+
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (const DMException& e)
@@ -751,10 +751,10 @@ IResponse^ HandleSetWindowsUpdates(IRequest^ request)
     try
     {
         auto windowsUpdatesRequest = dynamic_cast<SetWindowsUpdatesRequest^>(request);
-        if (windowsUpdatesRequest != nullptr)
-        {
-            MdmProvision::RunAdd(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", windowsUpdatesRequest->configuration->approved->Data());
-        }
+        assert(windowsUpdatesRequest != nullptr);
+
+        MdmProvision::RunAdd(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", windowsUpdatesRequest->configuration->approved->Data());
+
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (const DMException& e)

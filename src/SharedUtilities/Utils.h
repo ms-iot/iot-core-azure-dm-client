@@ -85,8 +85,8 @@ namespace Utils
 
     // Registry helpers
     void WriteRegistryValue(const std::wstring& subKey, const std::wstring& propName, const std::wstring& propValue);
+    LSTATUS TryReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, std::wstring& propValue);
     std::wstring ReadRegistryValue(const std::wstring& subKey, const std::wstring& propName);
-    bool TryReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, std::wstring& propValue);
 
     // File helpers
     bool FileExists(const std::wstring& fullFileName);

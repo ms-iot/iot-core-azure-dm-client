@@ -30,7 +30,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             String^ str = SerializationHelper::GetStringFromBlob(blob);
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto request = ref new FactoryResetRequest();
-            request->clearTPM = jsonObject->Lookup("clearTPM")->GetBoolean();
+            request->clearTPM = jsonObject->GetNamedBoolean("clearTPM");
             request->recoveryPartitionGUID = jsonObject->Lookup("recoveryPartitionGUID")->GetString();
             return request;
         }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.Devices.Shared;
+using Microsoft.Devices.Management.Message;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -6,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Services.Store;
@@ -308,18 +308,22 @@ namespace Microsoft.Devices.Management
             return Task.FromResult(JsonConvert.SerializeObject(response));
         }
 
-        public async Task DoFactoryResetAsync(string jsonParam)
+        private async Task FactoryResetAsync(Message.FactoryResetRequest request)
         {
-            var request = JsonConvert.DeserializeObject<Message.FactoryResetRequest>(jsonParam);
             await _systemConfiguratorProxy.SendCommandAsync(request);
         }
 
-        public async Task DoFactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
+        private async Task FactoryResetAsync(string jsonParam)
+        {
+            await FactoryResetAsync(JsonConvert.DeserializeObject<Message.FactoryResetRequest>(jsonParam));
+        }
+
+        public async Task FactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
         {
             var request = new Message.FactoryResetRequest();
             request.clearTPM = clearTPM;
             request.recoveryPartitionGUID = recoveryPartitionGUID;
-            await _systemConfiguratorProxy.SendCommandAsync(request);
+            await FactoryResetAsync(request);
         }
 
         private Task<string> FactoryResetHandlerAsync(string jsonParam)
@@ -330,7 +334,7 @@ namespace Microsoft.Devices.Management
             try
             {
                 // Submit the work and return immediately.
-                DoFactoryResetAsync(jsonParam);
+                FactoryResetAsync(jsonParam);
             }
             catch (Exception e)
             {
@@ -435,27 +439,24 @@ namespace Microsoft.Devices.Management
                                     if (managementProperty.Value.Type == JTokenType.Object)
                                     {
                                         Debug.WriteLine("windowsUpdatePolicy = " + managementProperty.Value.ToString());
-
-                                        var request = IoTDMClient.WindowsUpdatesManagement.GetDesiredWindowsUpdatePolicyRequest(managementProperty);
-                                        this._systemConfiguratorProxy.SendCommandAsync(request);
+                                        var configuration = JsonConvert.DeserializeObject<WindowsUpdatePolicyConfiguration>(managementProperty.Value.ToString());
+                                        this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatePolicyRequest(configuration));
                                     }
                                     break;
                                 case "windowsUpdateRebootPolicy":
                                     if (managementProperty.Value.Type == JTokenType.Object)
                                     {
                                         Debug.WriteLine("windowsUpdateRebootPolicy = " + managementProperty.Value.ToString());
-
-                                        var request = IoTDMClient.WindowsUpdatesManagement.GetDesiredWindowsUpdateRebootPolicyRequest(managementProperty);
-                                        this._systemConfiguratorProxy.SendCommandAsync(request);
+                                        var configuration = JsonConvert.DeserializeObject<WindowsUpdateRebootPolicyConfiguration>(managementProperty.Value.ToString());
+                                        this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdateRebootPolicyRequest(configuration));
                                     }
                                     break;
                                 case "windowsUpdates":
                                     if (managementProperty.Value.Type == JTokenType.Object)
                                     {
                                         Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
-
-                                        var request = IoTDMClient.WindowsUpdatesManagement.GetDesiredWindowsUpdatesRequest(managementProperty);
-                                        this._systemConfiguratorProxy.SendCommandAsync(request);
+                                        var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(managementProperty.Value.ToString());
+                                        this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
                                     }
                                     break;
                                 default:
@@ -523,6 +524,7 @@ namespace Microsoft.Devices.Management
         private async Task ReportAllDeviceProperties()
         {
             Debug.WriteLine("ReportAllDeviceProperties");
+            Debug.WriteLine("Querying start: " + DateTime.Now.ToString());
 
             Message.GetTimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
             Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await GetCertificateConfigurationAsync();
@@ -531,6 +533,8 @@ namespace Microsoft.Devices.Management
             Message.GetWindowsUpdatePolicyResponse windowsUpdatePolicyResponse = await GetWindowsUpdatePolicyAsync();
             Message.GetWindowsUpdateRebootPolicyResponse windowsUpdateRebootPolicyResponse = await GetWindowsUpdateRebootPolicyAsync();
             Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
+
+            Debug.WriteLine("Querying end: " + DateTime.Now.ToString());
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
             collection["microsoft"] = new

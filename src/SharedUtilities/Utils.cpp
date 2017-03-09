@@ -457,40 +457,38 @@ namespace Utils
         RegCloseKey(hKey);
     }
 
-    wstring ReadRegistryValue(const wstring& subKey, const wstring& propName)
+    LSTATUS TryReadRegistryValue(const wstring& subKey, const wstring& propName, wstring& propValue)
     {
         DWORD dataSize = 0;
         LSTATUS status;
         status = RegGetValue(HKEY_LOCAL_MACHINE, subKey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, NULL, &dataSize);
         if (status != ERROR_SUCCESS)
         {
-            TRACEP(L"Error: Could not read registry value size: ", (subKey + L"\\" + propName).c_str());
-            throw DMExceptionWithErrorCode(status);
+            return status;
         }
 
         vector<char> data(dataSize);
         status = RegGetValue(HKEY_LOCAL_MACHINE, subKey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, data.data(), &dataSize);
         if (status != ERROR_SUCCESS)
         {
+            return status;
+        }
+
+        propValue = reinterpret_cast<const wchar_t*>(data.data());
+
+        return ERROR_SUCCESS;
+    }
+
+    wstring ReadRegistryValue(const wstring& subKey, const wstring& propName)
+    {
+        wstring propValue;
+        LSTATUS status = TryReadRegistryValue(subKey, propName, propValue);
+        if (status != ERROR_SUCCESS)
+        {
             TRACEP(L"Error: Could not read registry value: ", (subKey + L"\\" + propName).c_str());
             throw DMExceptionWithErrorCode(status);
         }
-
-        return wstring(reinterpret_cast<const wchar_t*>(data.data()));
-    }
-
-    bool TryReadRegistryValue(const wstring& subKey, const wstring& propName, wstring& propValue)
-    {
-        bool result = false;
-        try
-        {
-            propValue = ReadRegistryValue(subKey, propName);
-            result = true;
-        }
-        catch (const DMException&)
-        {
-        }
-        return result;
+        return propValue;
     }
 
     wstring GetOSVersionString()

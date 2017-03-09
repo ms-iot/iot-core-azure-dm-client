@@ -90,23 +90,23 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             JsonObject^ jsonObject = JsonObject::Parse(str);
 
             auto configuration = ref new WindowsUpdatePolicyConfiguration();
-            configuration->activeHoursStart = static_cast<unsigned int>(jsonObject->Lookup("activeHoursStart")->GetNumber());
-            configuration->activeHoursEnd = static_cast<unsigned int>(jsonObject->Lookup("activeHoursEnd")->GetNumber());
-            configuration->allowAutoUpdate = static_cast<unsigned int>(jsonObject->Lookup("allowAutoUpdate")->GetNumber());
-            configuration->allowMUUpdateService = static_cast<unsigned int>(jsonObject->Lookup("allowMUUpdateService")->GetNumber());
-            configuration->allowNonMicrosoftSignedUpdate = static_cast<unsigned int>(jsonObject->Lookup("allowNonMicrosoftSignedUpdate")->GetNumber());
+            configuration->activeHoursStart = static_cast<unsigned int>(jsonObject->GetNamedNumber("activeHoursStart"));
+            configuration->activeHoursEnd = static_cast<unsigned int>(jsonObject->GetNamedNumber("activeHoursEnd"));
+            configuration->allowAutoUpdate = static_cast<unsigned int>(jsonObject->GetNamedNumber("allowAutoUpdate"));
+            configuration->allowMUUpdateService = static_cast<unsigned int>(jsonObject->GetNamedNumber("allowMUUpdateService"));
+            configuration->allowNonMicrosoftSignedUpdate = static_cast<unsigned int>(jsonObject->GetNamedNumber("allowNonMicrosoftSignedUpdate"));
 
-            configuration->allowUpdateService = static_cast<unsigned int>(jsonObject->Lookup("allowUpdateService")->GetNumber());
-            configuration->branchReadinessLevel = static_cast<unsigned int>(jsonObject->Lookup("branchReadinessLevel")->GetNumber());
-            configuration->deferFeatureUpdatesPeriod = static_cast<unsigned int>(jsonObject->Lookup("deferFeatureUpdatesPeriod")->GetNumber());
-            configuration->deferQualityUpdatesPeriod = static_cast<unsigned int>(jsonObject->Lookup("deferQualityUpdatesPeriod")->GetNumber());
-            configuration->excludeWUDrivers = static_cast<unsigned int>(jsonObject->Lookup("excludeWUDrivers")->GetNumber());
+            configuration->allowUpdateService = static_cast<unsigned int>(jsonObject->GetNamedNumber("allowUpdateService"));
+            configuration->branchReadinessLevel = static_cast<unsigned int>(jsonObject->GetNamedNumber("branchReadinessLevel"));
+            configuration->deferFeatureUpdatesPeriod = static_cast<unsigned int>(jsonObject->GetNamedNumber("deferFeatureUpdatesPeriod"));
+            configuration->deferQualityUpdatesPeriod = static_cast<unsigned int>(jsonObject->GetNamedNumber("deferQualityUpdatesPeriod"));
+            configuration->excludeWUDrivers = static_cast<unsigned int>(jsonObject->GetNamedNumber("excludeWUDrivers"));
 
-            configuration->pauseFeatureUpdates = static_cast<unsigned int>(jsonObject->Lookup("pauseFeatureUpdates")->GetNumber());
-            configuration->pauseQualityUpdates = static_cast<unsigned int>(jsonObject->Lookup("pauseQualityUpdates")->GetNumber());
-            configuration->requireUpdateApproval = static_cast<unsigned int>(jsonObject->Lookup("requireUpdateApproval")->GetNumber());
-            configuration->scheduledInstallDay = static_cast<unsigned int>(jsonObject->Lookup("scheduledInstallDay")->GetNumber());
-            configuration->scheduledInstallTime = static_cast<unsigned int>(jsonObject->Lookup("scheduledInstallTime")->GetNumber());
+            configuration->pauseFeatureUpdates = static_cast<unsigned int>(jsonObject->GetNamedNumber("pauseFeatureUpdates"));
+            configuration->pauseQualityUpdates = static_cast<unsigned int>(jsonObject->GetNamedNumber("pauseQualityUpdates"));
+            configuration->requireUpdateApproval = static_cast<unsigned int>(jsonObject->GetNamedNumber("requireUpdateApproval"));
+            configuration->scheduledInstallDay = static_cast<unsigned int>(jsonObject->GetNamedNumber("scheduledInstallDay"));
+            configuration->scheduledInstallTime = static_cast<unsigned int>(jsonObject->GetNamedNumber("scheduledInstallTime"));
 
             configuration->updateServiceUrl = jsonObject->Lookup("updateServiceUrl")->GetString();
 
