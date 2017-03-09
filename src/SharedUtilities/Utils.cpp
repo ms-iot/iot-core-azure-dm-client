@@ -530,7 +530,15 @@ namespace Utils
 
     wstring GetSystemRootFolder()
     {
-        return GetEnvironmentVariable(L"SystemRoot");
+        UINT size = GetSystemDirectory(0, 0);
+
+        vector<wchar_t> buffer(size);
+        if (size != GetSystemDirectory(buffer.data(), buffer.size()) + 1)
+        {
+            wprintf(L"error!");
+        }
+
+        return wstring(buffer.data());
     }
 
     wstring GetProgramDataFolder()

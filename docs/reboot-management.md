@@ -1,4 +1,4 @@
-#Reboot management
+#Reboot Management
 
 The **Reboot Management** functionality allows the operator to perform the following tasks:
 - Retrieve last reboot time.
