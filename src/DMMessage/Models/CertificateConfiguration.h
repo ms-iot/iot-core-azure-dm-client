@@ -63,19 +63,21 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public ref class SetCertificateConfigurationRequest sealed : public IRequest
     {
     public:
+        property CertificateConfiguration^ configuration;
+
+
         SetCertificateConfigurationRequest(CertificateConfiguration^ certificateConfiguration)
         {
-            Configuration = certificateConfiguration;
+            configuration = certificateConfiguration;
         }
 
-        property CertificateConfiguration^ Configuration;
-
-        virtual Blob^ Serialize() {
-            return Configuration->Serialize((uint32_t)Tag);
+        virtual Blob^ Serialize()
+        {
+            return configuration->Serialize((uint32_t)Tag);
         }
 
-        static IDataPayload^ Deserialize(Blob^ blob) {
-
+        static IDataPayload^ Deserialize(Blob^ blob)
+        {
             CertificateConfiguration^ certificateConfiguration = CertificateConfiguration::Deserialize(blob);
              return ref new SetCertificateConfigurationRequest(certificateConfiguration);
         }
@@ -108,15 +110,15 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     {
         StatusCodeResponse statusCodeResponse;
     public:
-        property CertificateConfiguration^ Configuration;
+        property CertificateConfiguration^ configuration;
 
         GetCertificateConfigurationResponse(ResponseStatus status, CertificateConfiguration^ certificateConfiguration) : statusCodeResponse(status, this->Tag)
         {
-            Configuration = certificateConfiguration;
+            configuration = certificateConfiguration;
         }
 
         virtual Blob^ Serialize() {
-            return Configuration->Serialize((uint32_t)Tag);
+            return configuration->Serialize((uint32_t)Tag);
         }
 
         static IDataPayload^ Deserialize(Blob^ blob) {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.Devices.Shared;
+using Microsoft.Devices.Management.Message;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -6,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Services.Store;
@@ -55,6 +55,7 @@ namespace Microsoft.Devices.Management
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.reportAllDeviceProperties", deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.startAppSelfUpdate", deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.getCertificateDetails", deviceManagementClient.GetCertificateDetailsHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync("microsoft.management.factoryReset", deviceManagementClient.FactoryResetHandlerAsync);
             return deviceManagementClient;
         }
 
@@ -307,9 +308,40 @@ namespace Microsoft.Devices.Management
             return Task.FromResult(JsonConvert.SerializeObject(response));
         }
 
-        public async Task<DMMethodResult> DoFactoryResetAsync()
+        private async Task FactoryResetAsync(Message.FactoryResetRequest request)
         {
-            throw new NotImplementedException();
+            await _systemConfiguratorProxy.SendCommandAsync(request);
+        }
+
+        private async Task FactoryResetAsync(string jsonParam)
+        {
+            await FactoryResetAsync(JsonConvert.DeserializeObject<Message.FactoryResetRequest>(jsonParam));
+        }
+
+        public async Task FactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
+        {
+            var request = new Message.FactoryResetRequest();
+            request.clearTPM = clearTPM;
+            request.recoveryPartitionGUID = recoveryPartitionGUID;
+            await FactoryResetAsync(request);
+        }
+
+        private Task<string> FactoryResetHandlerAsync(string jsonParam)
+        {
+            Debug.WriteLine("FactoryResetHandlerAsync");
+
+            var response = new { response = "succeeded", reason = "" };
+            try
+            {
+                // Submit the work and return immediately.
+                FactoryResetAsync(jsonParam);
+            }
+            catch (Exception e)
+            {
+                response = new { response = "rejected:", reason = e.Message };
+            }
+
+            return Task.FromResult(JsonConvert.SerializeObject(response));
         }
 
         private static async void ProcessDesiredCertificateConfiguration(
@@ -403,6 +435,30 @@ namespace Microsoft.Devices.Management
                                         this._systemConfiguratorProxy.SendCommandAsync(request);
                                     }
                                     break;
+                                case "windowsUpdatePolicy":
+                                    if (managementProperty.Value.Type == JTokenType.Object)
+                                    {
+                                        Debug.WriteLine("windowsUpdatePolicy = " + managementProperty.Value.ToString());
+                                        var configuration = JsonConvert.DeserializeObject<WindowsUpdatePolicyConfiguration>(managementProperty.Value.ToString());
+                                        this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatePolicyRequest(configuration));
+                                    }
+                                    break;
+                                case "windowsUpdateRebootPolicy":
+                                    if (managementProperty.Value.Type == JTokenType.Object)
+                                    {
+                                        Debug.WriteLine("windowsUpdateRebootPolicy = " + managementProperty.Value.ToString());
+                                        var configuration = JsonConvert.DeserializeObject<WindowsUpdateRebootPolicyConfiguration>(managementProperty.Value.ToString());
+                                        this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdateRebootPolicyRequest(configuration));
+                                    }
+                                    break;
+                                case "windowsUpdates":
+                                    if (managementProperty.Value.Type == JTokenType.Object)
+                                    {
+                                        Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
+                                        var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(managementProperty.Value.ToString());
+                                        this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
+                                    }
+                                    break;
                                 default:
                                     // Not supported
                                     break;
@@ -447,14 +503,38 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetDeviceInfoResponse);
         }
 
+        public async Task<Message.GetWindowsUpdatePolicyResponse> GetWindowsUpdatePolicyAsync()
+        {
+            var request = new Message.GetWindowsUpdatePolicyRequest();
+            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatePolicyResponse);
+        }
+
+        public async Task<Message.GetWindowsUpdateRebootPolicyResponse> GetWindowsUpdateRebootPolicyAsync()
+        {
+            var request = new Message.GetWindowsUpdateRebootPolicyRequest();
+            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdateRebootPolicyResponse);
+        }
+
+        public async Task<Message.GetWindowsUpdatesResponse> GetWindowsUpdatesAsync()
+        {
+            var request = new Message.GetWindowsUpdatesRequest();
+            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse);
+        }
+
         private async Task ReportAllDeviceProperties()
         {
             Debug.WriteLine("ReportAllDeviceProperties");
+            Debug.WriteLine("Querying start: " + DateTime.Now.ToString());
 
             Message.GetTimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
             Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await GetCertificateConfigurationAsync();
             Message.GetRebootInfoResponse rebootInfoResponse = await GetRebootInfoAsync();
             Message.GetDeviceInfoResponse deviceInfoResponse = await GetDeviceInfoAsync();
+            Message.GetWindowsUpdatePolicyResponse windowsUpdatePolicyResponse = await GetWindowsUpdatePolicyAsync();
+            Message.GetWindowsUpdateRebootPolicyResponse windowsUpdateRebootPolicyResponse = await GetWindowsUpdateRebootPolicyAsync();
+            Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
+
+            Debug.WriteLine("Querying end: " + DateTime.Now.ToString());
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
             collection["microsoft"] = new
@@ -464,7 +544,10 @@ namespace Microsoft.Devices.Management
                     timeInfo = timeInfoResponse,
                     certificates = certificateConfigurationResponse,
                     rebootInfo = rebootInfoResponse,
-                    deviceInfo = deviceInfoResponse
+                    deviceInfo = deviceInfoResponse,
+                    windowsUpdatePolicy = windowsUpdatePolicyResponse.configuration,
+                    windowsUpdateRebootPolicy = windowsUpdateRebootPolicyResponse.configuration,
+                    windowsUpdates = windowsUpdatesResponse.configuration
                 }
             };
 

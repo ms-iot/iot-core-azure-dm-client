@@ -92,6 +92,74 @@ namespace Microsoft.Devices.Management
         public string batteryRuntime;
     }
 
+    public struct WindowsUpdatePolicyConfiguration
+    {
+        public uint activeHoursStart;
+        public uint activeHoursEnd;
+        public uint allowAutoUpdate;
+        public uint allowMUUpdateService;
+        public uint allowNonMicrosoftSignedUpdate;
+
+        public uint allowUpdateService;
+        public uint branchReadinessLevel;
+        public uint deferFeatureUpdatesPeriod;    // in days
+        public uint deferQualityUpdatesPeriod;    // in days
+        public uint excludeWUDrivers;
+
+        public uint pauseFeatureUpdates;
+        public uint pauseQualityUpdates;
+        public uint requireUpdateApproval;
+        public uint scheduledInstallDay;
+        public uint scheduledInstallTime;
+
+        public string updateServiceUrl;
+
+        public string ToJson()
+        {
+            return "\"windowsUpdatePolicy\" : " + JsonConvert.SerializeObject(this);
+        }
+    }
+
+    public struct WindowsUpdateRebootPolicyConfiguration
+    {
+        public bool allow;
+
+        public string ToJson()
+        {
+            return "\"windowsUpdateRebootPolicy\" : " + JsonConvert.SerializeObject(this);
+        }
+    }
+
+    namespace WindowsUpdates
+    {
+        public class GetResponse
+        {
+            public string installed;
+            public string approved;
+            public string failed;
+            public string installable;
+            public string pendingReboot;
+            public string lastScanTime;
+            public bool deferUpgrade;
+        }
+
+        public class SetParams
+        {
+            public string approved;
+
+            public string ToJson()
+            {
+                return "\"windowsUpdates\" : " + JsonConvert.SerializeObject(this);
+            }
+        }
+    }
+
+    public class FactorResetParams
+    {
+        public bool clearTPM;
+        public string recoveryPartitionGUID;
+    }
+
     class ExternalStorage
     {
         public string connectionString;

@@ -13,9 +13,6 @@ using namespace std;
 // https://msdn.microsoft.com/en-us/library/windows/hardware/mt720802(v=vs.85).aspx
 //
 
-const wchar_t* IoTDMRegistryRoot = L"Software\\Microsoft\\IoTDM";
-const wchar_t* IoTDMRegistryLastRebootCmd = L"LastRebootCmd";
-
 wstring RebootCSP::_lastRebootTime;
 
 RebootCSP gRebootCSP;

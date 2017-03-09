@@ -62,7 +62,25 @@ public:
         return success;
     }
 
+    template<class T>
+    static bool TryGetNumber(const std::wstring& path, T& value)
+    {
+        bool success = true;
+        try
+        {
+            value = static_cast<T>(RunGetUInt(path));
+        }
+        catch (DMException& e)
+        {
+            success = false;
+            TRACEP(L"Error: GetString() - path     : ", path.c_str());
+            TRACEP("Error: GetString() - exception: ", e.what());
+        }
+        return success;
+    }
+
     static bool RunGetBool(const std::wstring& path);
+    static bool TryGetBool(const std::wstring& path, bool& value);
 
     static void RunSet(const std::wstring& path, const std::wstring& value);
     static void RunSet(const std::wstring& path, int value);

@@ -9,6 +9,12 @@
 #include <sstream>
 #include <windows.h>
 
+#define IoTDMRegistryRoot L"Software\\Microsoft\\IoTDM"
+#define IoTDMRegistryLastRebootCmd L"LastRebootCmd"
+#define IoTDMRegistryWindowsUpdateRebootAllowed L"WindowsUpdateRebootAllowed"
+#define IoTDMRegistryTrue L"True"
+#define IoTDMRegistryFalse L"False"
+
 namespace Utils
 {
     typedef std::function<void(std::vector<std::wstring>&, std::wstring&)>& ELEMENT_HANDLER;
@@ -78,8 +84,9 @@ namespace Utils
     void ReadXmlStructData(const std::wstring& resultSyncML, ELEMENT_HANDLER handler);
 
     // Registry helpers
-    void WriteRegistryValue(const std::wstring& subkey, const std::wstring& propName, const std::wstring& propValue);
-    std::wstring ReadRegistryValue(const std::wstring& subkey, const std::wstring& propName);
+    void WriteRegistryValue(const std::wstring& subKey, const std::wstring& propName, const std::wstring& propValue);
+    LSTATUS TryReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, std::wstring& propValue);
+    std::wstring ReadRegistryValue(const std::wstring& subKey, const std::wstring& propName);
 
     // File helpers
     bool FileExists(const std::wstring& fullFileName);

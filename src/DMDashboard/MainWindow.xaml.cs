@@ -93,6 +93,21 @@ namespace DMDashboard
             ToggleUIElementVisibility(AzureStorageGrid);
         }
 
+        private void OnExpandWindowsUpdatePolicy(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(WindowsUpdatePolicyGrid);
+        }
+
+        private void OnExpandWindowsUpdateRebootPolicy(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(WindowsUpdateRebootPolicyGrid);
+        }
+
+        private void OnExpandWindowsUpdates(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(WindowsUpdatesGrid);
+        }
+
         private void OnExpandCertificates(object sender, RoutedEventArgs e)
         {
             ToggleUIElementVisibility(CertificateStackPanel);
@@ -298,6 +313,25 @@ namespace DMDashboard
                     var rebootInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.RebootInfo.GetResponse>(jsonProp.Value.ToString());
                     RebootInfoModelToUI(rebootInfo);
                 }
+                else if (jsonProp.Name == "windowsUpdatePolicy")
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    var info = JsonConvert.DeserializeObject<Microsoft.Devices.Management.WindowsUpdatePolicyConfiguration>(jsonProp.Value.ToString());
+                    WindowsUpdatePolicyConfigurationToUI(info);
+                }
+                else if (jsonProp.Name == "windowsUpdateRebootPolicy")
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    var info = JsonConvert.DeserializeObject<Microsoft.Devices.Management.WindowsUpdateRebootPolicyConfiguration>(jsonProp.Value.ToString());
+                    WindowsUpdateRebootPolicyConfigurationToUI(info);
+                }
+                else if (jsonProp.Name == "windowsUpdates")
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    var info = JsonConvert.DeserializeObject<Microsoft.Devices.Management.WindowsUpdates.GetResponse>(jsonProp.Value.ToString());
+                    WindowsUpdatesConfigurationToUI(info);
+                }
+
             }
         }
 
@@ -311,12 +345,10 @@ namespace DMDashboard
             ToggleUIElementVisibility(RebootGrid);
         }
 
-        /*
         private void OnExpandFactoryReset(object sender, RoutedEventArgs e)
         {
             ToggleUIElementVisibility(FactoryResetGrid);
         }
-        */
 
         private void OnExpandApplication(object sender, RoutedEventArgs e)
         {
@@ -370,8 +402,15 @@ namespace DMDashboard
 
         private async void FactoryResetAsync()
         {
+            var resetParams = new FactorResetParams();
+            resetParams.clearTPM = DesiredClearTPM.IsChecked == true;
+            resetParams.recoveryPartitionGUID = DesiredRecoveryPartitionGUID.Text;
+            string resetParamsString = JsonConvert.SerializeObject(resetParams);
+
+            Debug.WriteLine("Reset params : " + resetParamsString);
+
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("DoFactoryResetAsync", "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.factoryReset", resetParamsString, new TimeSpan(0, 0, 30), cancellationToken);
             // ToDo: it'd be nice to show the result in the UI.
         }
 
@@ -466,6 +505,105 @@ namespace DMDashboard
             SetDesired(UIToExternalStorageModel().ToJson());
         }
 
+        private WindowsUpdatePolicyConfiguration UIToWindowsUpdatePolicyConfiguration()
+        {
+            var configuration = new WindowsUpdatePolicyConfiguration();
+
+            configuration.activeHoursStart = UInt32.Parse(DesiredActiveHoursStart.Text);
+            configuration.activeHoursEnd = UInt32.Parse(DesiredActiveHoursEnd.Text);
+            configuration.allowAutoUpdate = UInt32.Parse(DesiredAllowAutoUpdate.Text);
+            configuration.allowMUUpdateService = UInt32.Parse(DesiredAllowMUUpdateService.Text);
+            configuration.allowNonMicrosoftSignedUpdate = UInt32.Parse(DesiredAllowNonMicrosoftSignedUpdate.Text);
+
+            configuration.allowUpdateService = UInt32.Parse(DesiredAllowUpdateService.Text);
+            configuration.branchReadinessLevel = UInt32.Parse(DesiredBranchReadinessLevel.Text);
+            configuration.deferFeatureUpdatesPeriod = UInt32.Parse(DesiredDeferFeatureUpdatesPeriod.Text);
+            configuration.deferQualityUpdatesPeriod = UInt32.Parse(DesiredDeferQualityUpdatesPeriod.Text);
+            configuration.excludeWUDrivers = UInt32.Parse(DesiredExcludeWUDrivers.Text);
+
+            configuration.pauseFeatureUpdates = UInt32.Parse(DesiredPauseFeatureUpdates.Text);
+            configuration.pauseQualityUpdates = UInt32.Parse(DesiredPauseQualityUpdates.Text);
+            configuration.requireUpdateApproval = UInt32.Parse(DesiredRequireUpdateApproval.Text);
+            configuration.scheduledInstallDay = UInt32.Parse(DesiredScheduledInstallDay.Text);
+            configuration.scheduledInstallTime = UInt32.Parse(DesiredScheduledInstallTime.Text);
+
+            configuration.updateServiceUrl = DesiredUpdateServiceUrl.Text;
+
+            return configuration;
+        }
+
+        private void WindowsUpdatePolicyConfigurationToUI(WindowsUpdatePolicyConfiguration configuration)
+        {
+            ReportedActiveHoursStart.Text = configuration.activeHoursStart.ToString();
+            ReportedActiveHoursEnd.Text = configuration.activeHoursEnd.ToString();
+            ReportedAllowAutoUpdate.Text = configuration.allowAutoUpdate.ToString();
+            ReportedAllowMUUpdateService.Text = configuration.allowMUUpdateService.ToString();
+            ReportedAllowNonMicrosoftSignedUpdate.Text = configuration.allowNonMicrosoftSignedUpdate.ToString();
+
+            ReportedAllowUpdateService.Text = configuration.allowUpdateService.ToString();
+            ReportedBranchReadinessLevel.Text = configuration.branchReadinessLevel.ToString();
+            ReportedDeferFeatureUpdatesPeriod.Text = configuration.deferFeatureUpdatesPeriod.ToString();
+            ReportedDeferQualityUpdatesPeriod.Text = configuration.deferQualityUpdatesPeriod.ToString();
+            ReportedExcludeWUDrivers.Text = configuration.excludeWUDrivers.ToString();
+
+            ReportedPauseFeatureUpdates.Text = configuration.pauseFeatureUpdates.ToString();
+            ReportedPauseQualityUpdates.Text = configuration.pauseQualityUpdates.ToString();
+            ReportedRequireUpdateApproval.Text = configuration.requireUpdateApproval.ToString();
+            ReportedScheduledInstallDay.Text = configuration.scheduledInstallDay.ToString();
+            ReportedScheduledInstallTime.Text = configuration.scheduledInstallTime.ToString();
+
+            ReportedUpdateServiceUrl.Text = configuration.updateServiceUrl;
+        }
+
+        private void OnSetWindowsUpdatePolicyInfo(object sender, RoutedEventArgs e)
+        {
+            SetDesired(UIToWindowsUpdatePolicyConfiguration().ToJson());
+        }
+
+        private WindowsUpdateRebootPolicyConfiguration UIToWindowsUpdateRebootPolicyConfiguration()
+        {
+            var configuration = new WindowsUpdateRebootPolicyConfiguration();
+
+            configuration.allow = DesiredWindowsUpdateRebootPolicyAllowed.IsChecked == true;
+
+            return configuration;
+        }
+
+        private void WindowsUpdateRebootPolicyConfigurationToUI(WindowsUpdateRebootPolicyConfiguration configuration)
+        {
+            ReportedWindowsUpdateRebootPolicyAllowed.IsChecked = configuration.allow;
+        }
+
+        private void OnSetWindowsUpdateRebootPolicyInfo(object sender, RoutedEventArgs e)
+        {
+            SetDesired(UIToWindowsUpdateRebootPolicyConfiguration().ToJson());
+        }
+
+        private Microsoft.Devices.Management.WindowsUpdates.SetParams UIToWindowsUpdatesConfiguration()
+        {
+            var configuration = new Microsoft.Devices.Management.WindowsUpdates.SetParams();
+
+            configuration.approved = DesiredApproved.Text;
+            
+            return configuration;
+        }
+
+        private void WindowsUpdatesConfigurationToUI(Microsoft.Devices.Management.WindowsUpdates.GetResponse configuration)
+        {
+            ReportedInstalled.Text = configuration.installed;
+            ReportedApproved.Text = configuration.approved;
+            ReportedFailed.Text = configuration.failed;
+            ReportedInstallable.Text = configuration.installable;
+            ReportedPendingReboot.Text = configuration.pendingReboot;
+            ReportedLastScanTime.Text = configuration.lastScanTime;
+            ReportedDeferUpgrade.IsChecked = configuration.deferUpgrade;
+        }
+
+        private void OnSetWindowsUpdatesInfo(object sender, RoutedEventArgs e)
+        {
+            SetDesired(UIToWindowsUpdatesConfiguration().ToJson());
+        }
+
         private Certificates.CertificateConfiguration UIToCertificateConfiguration()
         {
             Certificates.CertificateConfiguration certificateConfiguration = new Certificates.CertificateConfiguration();
@@ -501,6 +639,12 @@ namespace DMDashboard
             json.Append(UIToCertificateConfiguration().ToJson());
             json.Append(",");
             json.Append(UIToRebootInfoModel().ToJson());
+            json.Append(",");
+            json.Append(UIToWindowsUpdatePolicyConfiguration().ToJson());
+            json.Append(",");
+            json.Append(UIToWindowsUpdateRebootPolicyConfiguration().ToJson());
+            json.Append(",");
+            json.Append(UIToWindowsUpdatesConfiguration().ToJson());
 
             SetDesired(json.ToString());
         }

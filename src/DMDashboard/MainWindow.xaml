@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DMDashboard"
         mc:Ignorable="d"
-        Title="MainWindow" Height="700" Width="1260">
+        Title="MainWindow" Height="700" Width="1400">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -34,7 +34,7 @@
         <Grid Grid.Row="1" Grid.Column="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="210"/>
-                <ColumnDefinition Width="1060"/>
+                <ColumnDefinition Width="1160"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Row="0" Grid.Column="0">
                 <Grid.RowDefinitions>
@@ -66,7 +66,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="300"/>
                             <ColumnDefinition Width="400"/>
                             <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
@@ -94,6 +94,279 @@
                             <ColumnDefinition Width="40"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Click="OnExpandWindowsUpdatePolicy" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Windows Update Policy" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                    </Grid>
+                    <Grid x:Name="WindowsUpdatePolicyGrid" Visibility="Visible">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="400"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Active Hours Start (0-23)"/>
+                        <Border Grid.Row="1" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredActiveHoursStart" Text="2"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedActiveHoursStart"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Active Hours End (0-23)"/>
+                        <Border Grid.Row="2" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredActiveHoursEnd" Text="3"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedActiveHoursEnd"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Allow Auto Update (0-5)"/>
+                        <Border Grid.Row="3" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredAllowAutoUpdate" Text="1"/>
+                        </Border>
+                        <Border Grid.Row="3" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedAllowAutoUpdate"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Allow MU Update Service (0-1)"/>
+                        <Border Grid.Row="4" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredAllowMUUpdateService" Text="0"/>
+                        </Border>
+                        <Border Grid.Row="4" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedAllowMUUpdateService"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Allow Non-Microsoft Signed Update (0-1)"/>
+                        <Border Grid.Row="5" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredAllowNonMicrosoftSignedUpdate" Text="0"/>
+                        </Border>
+                        <Border Grid.Row="5" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedAllowNonMicrosoftSignedUpdate"/>
+                        </Border>
+
+
+                        <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Allow Update Service (0-1)"/>
+                        <Border Grid.Row="6" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredAllowUpdateService" Text="0"/>
+                        </Border>
+                        <Border Grid.Row="6" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedAllowUpdateService"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Branch Readiness Level (0-1)"/>
+                        <Border Grid.Row="7" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredBranchReadinessLevel" Text="0"/>
+                        </Border>
+                        <Border Grid.Row="7" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedBranchReadinessLevel"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Defer Feature Updates Period (0-180 days)"/>
+                        <Border Grid.Row="8" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredDeferFeatureUpdatesPeriod" Text="30"/>
+                        </Border>
+                        <Border Grid.Row="8" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedDeferFeatureUpdatesPeriod"/>
+                        </Border>
+        
+                        <TextBlock Grid.Row="9" Grid.Column="0" Margin="3" Text="Defer Quality Updates Period (0-30 days)"/>
+                        <Border Grid.Row="9" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredDeferQualityUpdatesPeriod" Text="15"/>
+                        </Border>
+                        <Border Grid.Row="9" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedDeferQualityUpdatesPeriod"/>
+                        </Border>
+        
+                        <TextBlock Grid.Row="10" Grid.Column="0" Margin="3" Text="Exclude WU Drivers (0-1)"/>
+                        <Border Grid.Row="10" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredExcludeWUDrivers" Text="0"/>
+                        </Border>
+                        <Border Grid.Row="10" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedExcludeWUDrivers"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="11" Grid.Column="0" Margin="3" Text="Pause Feature Updates (0-1)"/>
+                        <Border Grid.Row="11" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredPauseFeatureUpdates" Text="0"/>
+                        </Border>
+                        <Border Grid.Row="11" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedPauseFeatureUpdates"/>
+                        </Border>
+        
+                        <TextBlock Grid.Row="12" Grid.Column="0" Margin="3" Text="Pause Quality Updates (0-1)"/>
+                        <Border Grid.Row="12" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredPauseQualityUpdates" Text="0"/>
+                        </Border>
+                        <Border Grid.Row="12" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedPauseQualityUpdates"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="13" Grid.Column="0" Margin="3" Text="Require Update Approval (0-1)"/>
+                        <Border Grid.Row="13" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredRequireUpdateApproval" Text="0"/>
+                        </Border>
+                        <Border Grid.Row="13" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedRequireUpdateApproval"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="14" Grid.Column="0" Margin="3" Text="Scheduled Install Day (0-7)"/>
+                        <Border Grid.Row="14" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredScheduledInstallDay" Text="3"/>
+                        </Border>
+                        <Border Grid.Row="14" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedScheduledInstallDay"/>
+                        </Border>
+        
+                        <TextBlock Grid.Row="15" Grid.Column="0" Margin="3" Text="Scheduled Install Time (0-23)"/>
+                        <Border Grid.Row="15" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredScheduledInstallTime" Text="2"/>
+                        </Border>
+                        <Border Grid.Row="15" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedScheduledInstallTime"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="16" Grid.Column="0" Margin="3" Text="Update Service Url"/>
+                        <Border Grid.Row="16" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredUpdateServiceUrl"/>
+                        </Border>
+                        <Border Grid.Row="16" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedUpdateServiceUrl"/>
+                        </Border>
+
+                        <Button Grid.Row="17" Grid.Column="1" Margin="3" Content="Set Windows Update Policy" Click="OnSetWindowsUpdatePolicyInfo" />
+                    </Grid>
+
+
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Click="OnExpandWindowsUpdateRebootPolicy" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Windows Update Reboot Policy" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                    </Grid>
+                    <Grid x:Name="WindowsUpdateRebootPolicyGrid" Visibility="Visible">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="400"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Allow Reboot"/>
+                        <CheckBox Grid.Row="1" Grid.Column="1" Margin="3" x:Name="DesiredWindowsUpdateRebootPolicyAllowed"/>
+                        <CheckBox Grid.Row="1" Grid.Column="2" Margin="3" x:Name="ReportedWindowsUpdateRebootPolicyAllowed"/>
+
+                        <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Set Windows Update Reboot Policy" Click="OnSetWindowsUpdateRebootPolicyInfo" />
+                    </Grid>
+
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Windows Updates" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandWindowsUpdates" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid x:Name="WindowsUpdatesGrid" Visibility="Visible">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="400"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Installed"/>
+                        <Border Grid.Row="1" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedInstalled"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Approved"/>
+                        <Border Grid.Row="2" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                            <TextBox x:Name="DesiredApproved"/>
+                        </Border>
+                        <Border Grid.Row="2" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedApproved"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Failed"/>
+                        <Border Grid.Row="3" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedFailed"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Installable"/>
+                        <Border Grid.Row="4" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedInstallable"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Pending Reboot"/>
+                        <Border Grid.Row="5" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedPendingReboot"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Last Scan Time"/>
+                        <Border Grid.Row="6" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                            <TextBlock x:Name="ReportedLastScanTime"/>
+                        </Border>
+
+                        <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Defer Upgrade"/>
+                        <CheckBox Grid.Row="7" Grid.Column="2" Margin="3" x:Name="ReportedDeferUpgrade"/>
+
+                        <Button Grid.Row="8" Grid.Column="1" Margin="3" Content="Set Windows Updates" Click="OnSetWindowsUpdatesInfo" />
+                    </Grid>
+
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="1" Margin="3" Text="Certificates" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                         <Button Grid.Column="0" Click="OnExpandCertificates" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
@@ -110,7 +383,7 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="300"/>
                                 <ColumnDefinition Width="400"/>
                                 <ColumnDefinition Width="400"/>
                             </Grid.ColumnDefinitions>
@@ -198,7 +471,7 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="300"/>
                                 <ColumnDefinition Width="400"/>
                                 <ColumnDefinition Width="400"/>
                             </Grid.ColumnDefinitions>
@@ -286,7 +559,7 @@
                             <ColumnDefinition Width="40"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="1" Margin="3" Text="Reboot" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Reboot" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                         <Button Grid.Column="0" Click="OnExpandReboot" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <Grid x:Name="RebootGrid" Visibility="Collapsed">
@@ -300,7 +573,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="300"/>
                             <ColumnDefinition Width="400"/>
                             <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
@@ -354,7 +627,7 @@
                             <ColumnDefinition Width="40"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="1" Margin="3" Text="Time Info" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Time Info" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                         <Button Grid.Column="0" Click="OnExpandTimeInfo" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <Grid x:Name="TimeInfoGrid" Visibility="Collapsed">
@@ -373,7 +646,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="300"/>
                             <ColumnDefinition Width="400"/>
                             <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
@@ -456,40 +729,47 @@
 
                         <Button Grid.Row="10" Grid.Column="1" Margin="3" Content="Set Time Info" Click="OnSetTimeInfo" />
                     </Grid>
-<!-- Commenting out FactoryReset until it is re-implemented to be 'Recovery' and 'TPM clear'.
+
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="40"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="1" Margin="3" Text="Factory Reset" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Factory Reset" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                         <Button Grid.Column="0" Click="OnExpandFactoryReset" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
-                    <Grid x:Name="FactoryResetGrid" Visibility="Collapsed">
+                    <Grid x:Name="FactoryResetGrid" Visibility="Visible">
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="300"/>
                             <ColumnDefinition Width="400"/>
                             <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Factory Reset"/>
-                        <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Reset" Click="OnFactoryReset" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Clear TPM"/>
+                        <CheckBox Grid.Row="1" Grid.Column="1" Margin="3" x:Name="DesiredClearTPM"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Recovery Partition GUID"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="3" x:Name="DesiredRecoveryPartitionGUID" Text="a5935ff2-32ba-4617-bf36-5ac314b3f9bf"/>
+
+                        <Button Grid.Row="3" Grid.Column="1" Margin="3" Content="Reset" Click="OnFactoryReset" />
                     </Grid>
--->
+
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="40"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="1" Margin="3" Text="Application" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Application" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                         <Button Grid.Column="0" Click="OnExpandApplication" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <Grid x:Name="ApplicationGrid" Visibility="Collapsed">
@@ -498,7 +778,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="300"/>
                             <ColumnDefinition Width="400"/>
                             <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
@@ -518,7 +798,7 @@
                             <ColumnDefinition Width="40"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="1" Margin="3" Text="Device Info" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Device Info" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                         <Button Grid.Column="0" Click="OnExpandDeviceInfo" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <Grid x:Name="DeviceInfoGrid" Visibility="Collapsed">
@@ -555,7 +835,7 @@
 
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="300"/>
                             <ColumnDefinition Width="400"/>
                             <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
@@ -753,7 +1033,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="300"/>
                             <ColumnDefinition Width="490"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
@@ -796,7 +1076,7 @@
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="300"/>
                             <ColumnDefinition Width="400"/>
                             <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
