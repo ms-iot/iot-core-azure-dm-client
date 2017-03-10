@@ -535,7 +535,7 @@ namespace Utils
         vector<wchar_t> buffer(size);
         if (size != GetSystemDirectory(buffer.data(), buffer.size()) + 1)
         {
-            wprintf(L"error!");
+            throw DMException("Error: failed to retrieve system folder.");
         }
 
         return wstring(buffer.data());
