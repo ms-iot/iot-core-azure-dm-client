@@ -98,17 +98,17 @@ the following .Net APIs.
 **Example**
 
 <pre>
-    async Task OnStartCriticalTask(DeviceManagementClient dmClient)
+    async Task OnCriticalTaskStart(DeviceManagementClient dmClient)
     {
         ResponseStatus status = await dmClient.SetWindowsUpdateRebootPolicyAsync(false);
         if (status == ResponseStatus.Failure)
         {
             throw new Exception("Failed to disable update reboots!");
         }
-        return StartCriticalTask();
+        return CriticalTaskStart();
     }
 
-    void OnCriticalTaskDone(DeviceManagementClient dmClient)
+    void OnCriticalTaskFinished(DeviceManagementClient dmClient)
     {
         dmClient.SetWindowsUpdateRebootPolicyAsync(true);
     }
