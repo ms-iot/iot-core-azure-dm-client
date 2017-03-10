@@ -98,11 +98,6 @@ namespace DMDashboard
             ToggleUIElementVisibility(WindowsUpdatePolicyGrid);
         }
 
-        private void OnExpandWindowsUpdateRebootPolicy(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(WindowsUpdateRebootPolicyGrid);
-        }
-
         private void OnExpandWindowsUpdates(object sender, RoutedEventArgs e)
         {
             ToggleUIElementVisibility(WindowsUpdatesGrid);
@@ -318,12 +313,6 @@ namespace DMDashboard
                     Debug.WriteLine(jsonProp.Value.ToString());
                     var info = JsonConvert.DeserializeObject<Microsoft.Devices.Management.WindowsUpdatePolicyConfiguration>(jsonProp.Value.ToString());
                     WindowsUpdatePolicyConfigurationToUI(info);
-                }
-                else if (jsonProp.Name == "windowsUpdateRebootPolicy")
-                {
-                    Debug.WriteLine(jsonProp.Value.ToString());
-                    var info = JsonConvert.DeserializeObject<Microsoft.Devices.Management.WindowsUpdateRebootPolicyConfiguration>(jsonProp.Value.ToString());
-                    WindowsUpdateRebootPolicyConfigurationToUI(info);
                 }
                 else if (jsonProp.Name == "windowsUpdates")
                 {
@@ -560,25 +549,6 @@ namespace DMDashboard
             SetDesired(UIToWindowsUpdatePolicyConfiguration().ToJson());
         }
 
-        private WindowsUpdateRebootPolicyConfiguration UIToWindowsUpdateRebootPolicyConfiguration()
-        {
-            var configuration = new WindowsUpdateRebootPolicyConfiguration();
-
-            configuration.allow = DesiredWindowsUpdateRebootPolicyAllowed.IsChecked == true;
-
-            return configuration;
-        }
-
-        private void WindowsUpdateRebootPolicyConfigurationToUI(WindowsUpdateRebootPolicyConfiguration configuration)
-        {
-            ReportedWindowsUpdateRebootPolicyAllowed.IsChecked = configuration.allow;
-        }
-
-        private void OnSetWindowsUpdateRebootPolicyInfo(object sender, RoutedEventArgs e)
-        {
-            SetDesired(UIToWindowsUpdateRebootPolicyConfiguration().ToJson());
-        }
-
         private Microsoft.Devices.Management.WindowsUpdates.SetParams UIToWindowsUpdatesConfiguration()
         {
             var configuration = new Microsoft.Devices.Management.WindowsUpdates.SetParams();
@@ -641,8 +611,6 @@ namespace DMDashboard
             json.Append(UIToRebootInfoModel().ToJson());
             json.Append(",");
             json.Append(UIToWindowsUpdatePolicyConfiguration().ToJson());
-            json.Append(",");
-            json.Append(UIToWindowsUpdateRebootPolicyConfiguration().ToJson());
             json.Append(",");
             json.Append(UIToWindowsUpdatesConfiguration().ToJson());
 

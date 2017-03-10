@@ -28,7 +28,7 @@ A **Device Factory Reset** re-applies a pre-stored Windows image (from the recov
 </pre>
 
 - ```"response"``` : This can either be set to ```"accepted"``` or ```"rejected"```. In case it is set to ```"rejected"```, the ```"reason"``` field will contain more details on why the method has been rejected..
-- ```"reason"``` : If the ```"response"``` is ```"accepted"```, this will be empty - otherwise, it will field will contain more details on why the method has been rejected.
+- ```"reason"``` : If the ```"response"``` is ```"accepted"```, this will be empty - otherwise, this field will contain more details on why the method has been rejected.
 
 ## Example
 

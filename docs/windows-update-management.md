@@ -78,46 +78,41 @@ For a full documentation on what each field does, see the [Policy CSP](https://m
 
 ## Windows Update Reboot Policy
 
-This policy can be used in cases where the operator or the application need to inform the system that the device should not reboot to complete a Windows Update installation. This can be useful if the device is in the middle of performing a critical task, for example.
-
-### Configuration
-
-The **Windows Update Reboot Policy** can be configured through the ```"windowsUpdateRebootPolicy"``` node in the desired properties section as follows:
+This policy can be used in cases where the application is busy and need to disable system update reboots until it is no longer busy. The application developer can invoke that functionality using
+the following .Net APIs.
 
 <pre>
-"desired" : {
-    "microsoft" : {
-        "management" : {
-          "windowsUpdateRebootPolicy": {
-              "allow": false|true
-            },
-        }
-    }
-}
+    <b>Namespace</b>: Microsoft.Devices.Management
 </pre>
-
-- ```"allow"```:
-  - When this is set to ```"true"```, the Windows Update subsystem will proceed with rebooting to complete the installation of newly downloaded updates.
-  - When this is set to ```"false"```, the Windows Update subsystem will not proceed with rebooting until this is set to true or until the maximum amount of update deferral is reached.
-
-### Reporting
-
-The device current state of the **Windows Update Reboot Policy** can be inspected through the ```"windowsUpdateRebootPolicy"``` node in the reported properties section as follows:
 
 <pre>
-"reported" : {
-    "microsoft" : {
-        "management" : {
-          "windowsUpdateRebootPolicy": {
-              "allow": false|true
-            },
-        }
-    }
-}
+    <b>Class</b>: DeviceManagementClient
 </pre>
 
-- ```"allow"```:
-  - The meaning is the same as defined under the **configuration** section.
+<pre>
+    <b>Methods</b>:
+    public async Task&lt;ResponseStatus&gt; SetWindowsUpdateRebootPolicyAsync(bool allowReboots)
+    public async Task&lt;bool&gt; GetWindowsUpdateRebootPolicy()
+</pre>
+
+**Example**
+
+<pre>
+    async Task OnStartCriticalTask(DeviceManagementClient dmClient)
+    {
+        ResponseStatus status = await dmClient.SetWindowsUpdateRebootPolicyAsync(false);
+        if (status == ResponseStatus.Failure)
+        {
+            throw new Exception("Failed to disable update reboots!");
+        }
+        return StartCriticalTask();
+    }
+
+    void OnCriticalTaskDone(DeviceManagementClient dmClient)
+    {
+        dmClient.SetWindowsUpdateRebootPolicyAsync(true);
+    }
+</pre>
 
 ## Windows Updates
 

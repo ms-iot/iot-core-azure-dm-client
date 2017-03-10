@@ -120,16 +120,6 @@ namespace Microsoft.Devices.Management
         }
     }
 
-    public struct WindowsUpdateRebootPolicyConfiguration
-    {
-        public bool allow;
-
-        public string ToJson()
-        {
-            return "\"windowsUpdateRebootPolicy\" : " + JsonConvert.SerializeObject(this);
-        }
-    }
-
     namespace WindowsUpdates
     {
         public class GetResponse
