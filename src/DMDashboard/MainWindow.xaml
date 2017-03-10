@@ -261,37 +261,6 @@
                         <Button Grid.Row="17" Grid.Column="1" Margin="3" Content="Set Windows Update Policy" Click="OnSetWindowsUpdatePolicyInfo" />
                     </Grid>
 
-
-                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Click="OnExpandWindowsUpdateRebootPolicy" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="1" Margin="3" Text="Windows Update Reboot Policy" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                    </Grid>
-                    <Grid x:Name="WindowsUpdateRebootPolicyGrid" Visibility="Visible">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/>
-                            <ColumnDefinition Width="400"/>
-                            <ColumnDefinition Width="400"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-
-                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Allow Reboot"/>
-                        <CheckBox Grid.Row="1" Grid.Column="1" Margin="3" x:Name="DesiredWindowsUpdateRebootPolicyAllowed"/>
-                        <CheckBox Grid.Row="1" Grid.Column="2" Margin="3" x:Name="ReportedWindowsUpdateRebootPolicyAllowed"/>
-
-                        <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Set Windows Update Reboot Policy" Click="OnSetWindowsUpdateRebootPolicyInfo" />
-                    </Grid>
-
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                     <Grid>
                         <Grid.ColumnDefinitions>

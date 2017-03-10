@@ -41,10 +41,11 @@ Certain device management operations are initiated by desired properties set fro
 
 The specification for each operation is provided below.
 
-- [Report All Device Properties](report-all-device-properties.md)
-- [Device Information](device-info.md)
-- [Reboot Management](reboot-management.md)
-- [Install App](install-app.md)
-- [Start DM Application Self-Update](app-self-update.md)
+- [Application Management](application-management.md)
 - [Certificates Management](certificate-management.md)
+- [Device Information](device-info.md)
+- [Device Factory Reset](device-factory-reset.md)
+- [Reboot Management](reboot-management.md)
 - [Time Management](time-management.md)
+- [Windows Update Management](windows-update-management.md)
+- [Report All Device Properties](report-all-device-properties.md)

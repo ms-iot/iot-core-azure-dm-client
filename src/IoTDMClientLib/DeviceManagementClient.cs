@@ -248,7 +248,6 @@ namespace Microsoft.Devices.Management
             return;
         }
 
-
         private Task<string> StartAppSelfUpdateMethodHandlerAsync(string jsonParam)
         {
             Debug.WriteLine("StartAppSelfUpdateMethodHandlerAsync");
@@ -356,6 +355,21 @@ namespace Microsoft.Devices.Management
             client._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
+        public async Task<ResponseStatus> SetWindowsUpdateRebootPolicyAsync(bool allowReboots)
+        {
+            var configuration = new WindowsUpdateRebootPolicyConfiguration();
+            configuration.allow = allowReboots;
+            IResponse response = await this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdateRebootPolicyRequest(configuration));
+            return response.Status;
+        }
+
+        public async Task<bool> GetWindowsUpdateRebootPolicy()
+        {
+            var request = new Message.GetWindowsUpdateRebootPolicyRequest();
+            var response = await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdateRebootPolicyResponse;
+            return response.configuration.allow;
+        }
+
         public void ProcessDeviceManagementProperties(TwinCollection desiredProperties)
         {
             // ToDo: We should not throw here. All problems need to be logged.
@@ -443,14 +457,6 @@ namespace Microsoft.Devices.Management
                                         this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatePolicyRequest(configuration));
                                     }
                                     break;
-                                case "windowsUpdateRebootPolicy":
-                                    if (managementProperty.Value.Type == JTokenType.Object)
-                                    {
-                                        Debug.WriteLine("windowsUpdateRebootPolicy = " + managementProperty.Value.ToString());
-                                        var configuration = JsonConvert.DeserializeObject<WindowsUpdateRebootPolicyConfiguration>(managementProperty.Value.ToString());
-                                        this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdateRebootPolicyRequest(configuration));
-                                    }
-                                    break;
                                 case "windowsUpdates":
                                     if (managementProperty.Value.Type == JTokenType.Object)
                                     {
@@ -479,7 +485,7 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public async Task<Message.GetTimeInfoResponse> GetTimeInfoAsync()
+        private async Task<Message.GetTimeInfoResponse> GetTimeInfoAsync()
         {
             var request = new Message.GetTimeInfoRequest();
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetTimeInfoResponse);
@@ -497,25 +503,19 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetRebootInfoResponse);
         }
 
-        public async Task<Message.GetDeviceInfoResponse> GetDeviceInfoAsync()
+        private async Task<Message.GetDeviceInfoResponse> GetDeviceInfoAsync()
         {
             var request = new Message.GetDeviceInfoRequest();
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetDeviceInfoResponse);
         }
 
-        public async Task<Message.GetWindowsUpdatePolicyResponse> GetWindowsUpdatePolicyAsync()
+        private async Task<Message.GetWindowsUpdatePolicyResponse> GetWindowsUpdatePolicyAsync()
         {
             var request = new Message.GetWindowsUpdatePolicyRequest();
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatePolicyResponse);
         }
 
-        public async Task<Message.GetWindowsUpdateRebootPolicyResponse> GetWindowsUpdateRebootPolicyAsync()
-        {
-            var request = new Message.GetWindowsUpdateRebootPolicyRequest();
-            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdateRebootPolicyResponse);
-        }
-
-        public async Task<Message.GetWindowsUpdatesResponse> GetWindowsUpdatesAsync()
+        private async Task<Message.GetWindowsUpdatesResponse> GetWindowsUpdatesAsync()
         {
             var request = new Message.GetWindowsUpdatesRequest();
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse);
@@ -531,7 +531,6 @@ namespace Microsoft.Devices.Management
             Message.GetRebootInfoResponse rebootInfoResponse = await GetRebootInfoAsync();
             Message.GetDeviceInfoResponse deviceInfoResponse = await GetDeviceInfoAsync();
             Message.GetWindowsUpdatePolicyResponse windowsUpdatePolicyResponse = await GetWindowsUpdatePolicyAsync();
-            Message.GetWindowsUpdateRebootPolicyResponse windowsUpdateRebootPolicyResponse = await GetWindowsUpdateRebootPolicyAsync();
             Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
 
             Debug.WriteLine("Querying end: " + DateTime.Now.ToString());
@@ -546,7 +545,6 @@ namespace Microsoft.Devices.Management
                     rebootInfo = rebootInfoResponse,
                     deviceInfo = deviceInfoResponse,
                     windowsUpdatePolicy = windowsUpdatePolicyResponse.configuration,
-                    windowsUpdateRebootPolicy = windowsUpdateRebootPolicyResponse.configuration,
                     windowsUpdates = windowsUpdatesResponse.configuration
                 }
             };

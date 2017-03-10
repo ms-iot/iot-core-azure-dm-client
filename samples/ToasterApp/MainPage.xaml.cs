@@ -20,7 +20,7 @@ namespace Toaster
         {
             this.buttonRestart.IsEnabled = enable;
             this.buttonReset.IsEnabled = enable;
-            this.buttonCheckUpdates.IsEnabled = enable;
+            this.checkBoxAllowUpdateReboots.IsEnabled = enable;
         }
 
         public MainPage()
@@ -161,6 +161,16 @@ namespace Toaster
         private void OnFactoryReset(object sender, RoutedEventArgs e)
         {
             FactoryReset();
+        }
+
+        private void OnAllowUpdateRebootsChecked(object sender, RoutedEventArgs e)
+        {
+            deviceManagementClient.SetWindowsUpdateRebootPolicy(true);
+        }
+
+        private void OnAllowUpdateRebootsUnchecked(object sender, RoutedEventArgs e)
+        {
+            deviceManagementClient.SetWindowsUpdateRebootPolicy(false);
         }
     }
 }
