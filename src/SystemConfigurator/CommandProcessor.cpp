@@ -667,7 +667,7 @@ IResponse^ HandleGetWindowsUpdateRebootPolicy(IRequest^ request)
         auto configuration = ref new WindowsUpdateRebootPolicyConfiguration();
 
         wstring value;
-        if (Utils::TryReadRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed, value))
+        if (ERROR_SUCCESS == Utils::TryReadRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed, value))
         {
             configuration->allow = value == IoTDMRegistryTrue;
         }
@@ -688,6 +688,8 @@ IResponse^ HandleGetWindowsUpdateRebootPolicy(IRequest^ request)
 
 IResponse^ HandleSetWindowsUpdateRebootPolicy(IRequest^ request)
 {
+    TRACE(__FUNCTION__);
+
     try
     {
         auto windowsUpdateRebootPolicy = dynamic_cast<SetWindowsUpdateRebootPolicyRequest^>(request);
@@ -696,7 +698,7 @@ IResponse^ HandleSetWindowsUpdateRebootPolicy(IRequest^ request)
         unsigned long returnCode;
         string output;
         wstring command = Utils::GetSystemRootFolder() + L"\\ApplyUpdate.exe ";
-        command += windowsUpdateRebootPolicy->configuration->allow ? L"-blockrebooton" : L"-blockrebootoff";
+        command += windowsUpdateRebootPolicy->configuration->allow ? L"-blockrebootoff" : L"-blockrebooton";
         Utils::LaunchProcess(command, returnCode, output);
         if (returnCode != 0)
         {

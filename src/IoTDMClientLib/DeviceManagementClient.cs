@@ -155,7 +155,27 @@ namespace Microsoft.Devices.Management
             await this._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
-        private void ReportImmediateRebootStatus(bool rebootAllowed, string rebootCmdTime)
+        public enum RebootRequestStatus
+        {
+            Allowed,
+            Disabled,
+            InActiveHours,
+            RejectedByApp
+        }
+
+        private static string RebootRequestStatusString(RebootRequestStatus status)
+        {
+            switch (status)
+            {
+                case RebootRequestStatus.Allowed: return "allowed";
+                case RebootRequestStatus.Disabled: return "disabled";
+                case RebootRequestStatus.InActiveHours: return "inActiveHours";
+                case RebootRequestStatus.RejectedByApp: return "rejectedByApp";
+            }
+            return status.ToString();
+        }
+
+        private void ReportImmediateRebootStatus(RebootRequestStatus rebootRequestStatus, string rebootCmdTime)
         {
             Dictionary<string, object> collection = new Dictionary<string, object>();
             collection["microsoft"] = new
@@ -165,7 +185,7 @@ namespace Microsoft.Devices.Management
                     rebootInfo = new
                     {
                         lastRebootCmdTime = rebootCmdTime,
-                        lastRebootCmdStatus = (rebootAllowed ? "accepted" : "rejected" )
+                        lastRebootCmdStatus = (rebootRequestStatus == RebootRequestStatus.Allowed ? "accepted" : RebootRequestStatusString(rebootRequestStatus))
                     }
                 }
             };
@@ -173,31 +193,76 @@ namespace Microsoft.Devices.Management
             _deviceTwin.ReportProperties(collection);
         }
 
-        private Task<string> ImmediateRebootMethodHandlerAsync(string jsonParam)
+        public async Task<RebootRequestStatus> IsRebootAllowedBySystem()
         {
+            var request = new Message.GetWindowsUpdateRebootPolicyRequest();
+            var response = await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdateRebootPolicyResponse;
+            if (!response.configuration.allow)
+            {
+                return RebootRequestStatus.Disabled;
+            }
+
+            Message.GetWindowsUpdatePolicyResponse updatePolicy = await this.GetWindowsUpdatePolicyAsync();
+            uint nowHour = (uint)DateTime.Now.Hour;
+            if (updatePolicy.configuration.activeHoursStart <= nowHour && nowHour < updatePolicy.configuration.activeHoursEnd)
+            {
+                return RebootRequestStatus.InActiveHours;
+            }
+
+            return RebootRequestStatus.Allowed;
+        }
+
+        private async Task<RebootRequestStatus> IsRebootAllowedByApp()
+        {
+            bool allowed = await this._requestHandler.IsSystemRebootAllowed();
+            if (!allowed)
+            {
+                return RebootRequestStatus.RejectedByApp;
+            }
+
+            return RebootRequestStatus.Allowed;
+        }
+
+        private async Task<string> ImmediateRebootMethodHandlerAsync(string jsonParam)
+        {
+            string rebootCmdTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+            RebootRequestStatus rebootRequestStatus = await IsRebootAllowedBySystem();
+            if (rebootRequestStatus != RebootRequestStatus.Allowed)
+            {
+                // Report to the device twin
+                ReportImmediateRebootStatus(rebootRequestStatus, rebootCmdTime);
+
+                // Return details in the method return payload
+                return JsonConvert.SerializeObject(new { response = RebootRequestStatusString(rebootRequestStatus) });
+            }
+
             // Start the reboot operation asynchrnously, which may or may not succeed
-            var rebootOp = this.ImmediateRebootAsync();
-
-            // TODO: consult the active hours schedule to make sure reboot is allowed
-            var rebootAllowed = true;
-
-            var response = JsonConvert.SerializeObject(new { response = rebootAllowed ? "accepted" : "rejected" });
-
-            return Task.FromResult(response);
+            this.ImmediateRebootAsync(rebootCmdTime);
+            return JsonConvert.SerializeObject(new { response = "accepted" });
         }
 
         public async Task ImmediateRebootAsync()
         {
-            bool rebootAllowed = (await this._requestHandler.IsSystemRebootAllowed() == SystemRebootRequestResponse.Accept);
-            // Report status before actually initiating reboot, to avoid the race condition
-            string rebootCmdTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ");
-            ReportImmediateRebootStatus(rebootAllowed, rebootCmdTime);
-            if (rebootAllowed)
+            await ImmediateRebootAsync(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+        }
+
+        public async Task ImmediateRebootAsync(string rebootCmdTime)
+        {
+            RebootRequestStatus rebootRequestStatus = await IsRebootAllowedByApp();
+
+            // Report to the device twin
+            ReportImmediateRebootStatus(rebootRequestStatus, rebootCmdTime);
+
+            if (rebootRequestStatus != RebootRequestStatus.Allowed)
             {
-                var request = new Message.ImmediateRebootRequest();
-                request.lastRebootCmdTime = rebootCmdTime;
-                await this._systemConfiguratorProxy.SendCommandAsync(request);
+                return;
             }
+
+            var request = new Message.ImmediateRebootRequest();
+            request.lastRebootCmdTime = rebootCmdTime;
+            // await this._systemConfiguratorProxy.SendCommandAsync(request);
+            Debug.WriteLine("Rebooting...");
         }
 
         private void ReportSelfUpdateStatus(string lastCheckValue, string statusValue)
@@ -355,19 +420,15 @@ namespace Microsoft.Devices.Management
             client._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
-        public async Task<ResponseStatus> SetWindowsUpdateRebootPolicyAsync(bool allowReboots)
+        public async Task AllowReboots(bool allowReboots)
         {
             var configuration = new WindowsUpdateRebootPolicyConfiguration();
             configuration.allow = allowReboots;
             IResponse response = await this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdateRebootPolicyRequest(configuration));
-            return response.Status;
-        }
-
-        public async Task<bool> GetWindowsUpdateRebootPolicy()
-        {
-            var request = new Message.GetWindowsUpdateRebootPolicyRequest();
-            var response = await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdateRebootPolicyResponse;
-            return response.configuration.allow;
+            if (response.Status != ResponseStatus.Success)
+            {
+                throw new Exception("Error: failed to set update reboot policy.");
+            }
         }
 
         public void ProcessDeviceManagementProperties(TwinCollection desiredProperties)
@@ -420,7 +481,8 @@ namespace Microsoft.Devices.Management
                                     {
                                         // Capture the configuration here.
                                         // To apply the configuration we need to wait until externalStorage has been configured too.
-                                        certificateConfiguration = IoTDMClient.CertificateManagement.GetDesiredCertificateConfiguration(managementProperty);
+                                        Debug.WriteLine("CertificateConfiguration = " + managementProperty.Value.ToString());
+                                        certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(managementProperty.Value.ToString());
                                     }
                                     break;
                                 case "timeInfo":

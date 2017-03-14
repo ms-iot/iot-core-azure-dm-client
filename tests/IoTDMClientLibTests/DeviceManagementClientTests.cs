@@ -28,9 +28,9 @@ namespace IoTDMClientLibTests
 
     class HandlerMockupForReboot : IDeviceManagementRequestHandler
     {
-        SystemRebootRequestResponse rebootResponse;
+        bool rebootResponse;
 
-        public HandlerMockupForReboot(SystemRebootRequestResponse rebootResponse)
+        public HandlerMockupForReboot(bool rebootResponse)
         {
             this.rebootResponse = rebootResponse;
         }
@@ -40,9 +40,9 @@ namespace IoTDMClientLibTests
             throw new NotImplementedException();
         }
 
-        Task<SystemRebootRequestResponse> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
+        Task<bool> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
         {
-            return Task.FromResult<SystemRebootRequestResponse>(rebootResponse);
+            return Task.FromResult<bool>(rebootResponse);
         }
     }
 
@@ -56,7 +56,7 @@ namespace IoTDMClientLibTests
             throw new NotImplementedException();
         }
 
-        Task<SystemRebootRequestResponse> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
+        Task<bool> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
         {
             throw new NotImplementedException();
         }
@@ -97,7 +97,7 @@ namespace IoTDMClientLibTests
         public void MockupProxyImmediateRebootTest()
         {
             var twin = new TwinMockup();
-            var requestHandler = new HandlerMockupForReboot(SystemRebootRequestResponse.Accept);
+            var requestHandler = new HandlerMockupForReboot(true);
             var proxy = new ConfigurationProxyMockup();
             var dmClient = DeviceManagementClient.Create(twin, requestHandler, proxy);
             dmClient.ImmediateRebootAsync().Wait();
@@ -111,7 +111,7 @@ namespace IoTDMClientLibTests
         public void MockupProxyPostponedRebootTest()
         {
             var twin = new TwinMockup();
-            var requestHandler = new HandlerMockupForReboot(SystemRebootRequestResponse.Reject);
+            var requestHandler = new HandlerMockupForReboot(false);
             var proxy = new ConfigurationProxyMockup();
             var dmClient = DeviceManagementClient.Create(twin, requestHandler, proxy);
             dmClient.ImmediateRebootAsync().Wait();

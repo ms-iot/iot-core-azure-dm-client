@@ -10,29 +10,6 @@ namespace IoTDMClient
 {
     class CertificateManagement
     {
-        public static CertificateConfiguration GetDesiredCertificateConfiguration(JProperty certificateConfigurationJson)
-        {
-            if (certificateConfigurationJson.Value.Type != JTokenType.Object)
-            {
-                throw new Exception("Invalid json object for certificate configuration.");
-            }
-
-            Debug.WriteLine("certificates = " + certificateConfigurationJson.Value.ToString());
-            JObject subProperties = (JObject)certificateConfigurationJson.Value;
-
-            CertificateConfiguration certificateConfiguration = new CertificateConfiguration();
-            certificateConfiguration.rootCATrustedCertificates_Root = (string)subProperties.Property("rootCATrustedCertificates_Root").Value;
-            certificateConfiguration.rootCATrustedCertificates_CA = (string)subProperties.Property("rootCATrustedCertificates_CA").Value;
-            certificateConfiguration.rootCATrustedCertificates_TrustedPublisher = (string)subProperties.Property("rootCATrustedCertificates_TrustedPublisher").Value;
-            certificateConfiguration.rootCATrustedCertificates_TrustedPeople = (string)subProperties.Property("rootCATrustedCertificates_TrustedPeople").Value;
-            certificateConfiguration.certificateStore_CA_System = (string)subProperties.Property("certificateStore_CA_System").Value;
-            certificateConfiguration.certificateStore_Root_System = (string)subProperties.Property("certificateStore_Root_System").Value;
-            certificateConfiguration.certificateStore_My_User = (string)subProperties.Property("certificateStore_My_User").Value;
-            certificateConfiguration.certificateStore_My_System = (string)subProperties.Property("certificateStore_My_System").Value;
-
-            return certificateConfiguration;
-        }
-
         private static async Task DownloadCertificates(DeviceManagementClient client, string connectionString, string containerName, HashSet<string> certificateFilesSet)
         {
             // ToDo: since our cache is temporary, we might have to download those files everytime to verify the hashes.
