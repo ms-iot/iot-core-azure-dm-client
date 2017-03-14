@@ -40,10 +40,6 @@
             <StackPanel Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Vertical">
                 <Button x:Name ="buttonRestart" Width="150" Margin="3" Content="Reboot" Click="OnSystemRestart"/>
                 <Button x:Name ="buttonReset" Width="150" Margin="3" Content="Factory Reset" Click="OnFactoryReset" />
-                <StackPanel Orientation="Horizontal">
-                    <CheckBox Margin="3" x:Name="checkBoxAllowUpdateReboots" IsChecked="True" Checked="OnAllowUpdateRebootsChecked" Unchecked="OnAllowUpdateRebootsUnchecked"/>
-                    <TextBox Margin="3" Text="Allow Windows Updates Reboots" />
-                </StackPanel>
 
                 <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                 <Grid x:Name="StatusGrid">

@@ -1,7 +1,9 @@
 #Reboot Management
 
 The **Reboot Management** functionality allows the operator to perform the following tasks:
+
 - Retrieve last reboot time.
+- Allow/Disallow system reboots.
 - Initiate immediate reboots
   - Issue command and inspect its status in the device twin.
 - Schedule reboots
@@ -41,6 +43,72 @@ Device boots and sets `"lastBootTime"` property:
 
 Note that this property is set after every boot, regardless of how the reboot was initiated.
 
+## Allow/Disallow System Reboots
+
+The device might not be in a state that allows reboot. For example, it might be in the middle of an important operation that cannot be disrupted.
+In such cases, the application can disallow system reboots until the important operation is done.
+
+This policy applies to:
+
+- Device Management immediate reboot commands.
+- Windows update reboots.
+
+This policy does not apply to:
+
+- Scheduled reboots. (ToDo)
+
+To allow/disallow reboots, the application developer can invoke the following .Net APIs.
+
+<pre>
+    <b>Namespace</b>: Microsoft.Devices.Management
+</pre>
+
+<pre>
+    <b>Class</b>: DeviceManagementClient
+</pre>
+
+<pre>
+    <b>Methods</b>:
+    public async Task AllowReboots(bool allowReboots)
+    public async Task&lt;RebootRequestStatus&gt; IsRebootAllowedBySystem()
+</pre>
+
+<pre>
+    <b>Types</b>:
+    public struct RebootRequestStatus
+    {
+        public enum RejectionReason
+        {
+            NA,
+            Disabled,
+            InActiveHours,
+            RejectedByApp
+        }
+
+        // Constructor
+        public RebootRequestStatus(bool allowed, RejectionReason rejectionReason);
+
+        // Proeprties
+        public bool allowed { get; set; }
+        public RejectionReason rejectionReason { get; set; }
+    }
+</pre>
+
+**Example**
+
+<pre>
+    async Task OnCriticalTaskStart(DeviceManagementClient dmClient)
+    {
+        await dmClient.AllowReboots(false);
+        return CriticalTaskStart();
+    }
+
+    void OnCriticalTaskFinished(DeviceManagementClient dmClient)
+    {
+        dmClient.AllowReboots(true);
+    }
+</pre>
+
 ## Initiate Immediate Reboot
 
 The **Immediate Reboot** operation is initiated by the device receiving the `microsoft.management.immediateReboot` method.
@@ -52,24 +120,29 @@ Input payload is empty
 The device responds immediately with the following JSON payload:
 
 <pre>
-"response" : value (<i>See below</i>)
+"response" : "<i>see below</i>"
+"rejectionReason" : "<i>see below</i>"
 </pre>
 
 Possible `"response"` values are: 
+
 - `"accepted"` - The reboot request was accepted. The device will attempt to reboot momentarily (note: the attempt might fail, see below)
-- `"rejected"` - The device rejected the reboot request. The device will not reboot.
+- `"rejected"` - The device rejected the reboot request. The device will not reboot. To get more details, see the `"rejectionReason"` field.
 
-The device might not be in a state that allows reboot. For example, it might be
-in a middle of an important operation that cannot be disrupted. If no such
-condition is detected, the device responds by accepting the request and
-attempting to reboot.
+Possible `"rejectionReason"` values are:
 
-Further, the device management client needs to consult the primary app running
-on the device whether it is acceptable to reboot. The app responds based on its
-business logic which, for interactive apps, might require user consent.
+- `"disabled"` - is returned when the application flags its busy state by calling `"AllowReboots(false)"`.
+- `"inActiveHours"` - is returned when the immediate reboot command is received between the active hours as 
+   specified by `windowsUpdatePolicy` (see [Windows Update Management](windows-update-management.md) 
+   `desired.microsoft.management.windowsUpdatePolicy.activeHoursStart` and `desired.microsoft.management.windowsUpdatePolicy.activeHoursEnd`).
 
 The state of the latest reboot request is communicated to the back-end via
 reported properties as described in [Device Twin Communication](#device-twin-communication) below.
+
+Note that an immediate roboot request will be 'accepted' initially if it meets the current policy set on the device 
+(namely; outside active hours, and reboot are not disallowed by the application) - however, the request might still
+be rejected later when the application is intorregated (where it may prompt the application user for a response; for example).
+Such rejection will be expressed in the Device Twin.
 
 After the device reboots, `"reported.microsoft.management.rebootInfo.lastBootTime"` will be set to a new value.
 This can be used to confirm the reboot took place.
@@ -103,9 +176,14 @@ is JSON object with two key/value pairs defined as follows:
 
 `"lastRebootCmdTime"` is persisted on the device. It reflects the last time the device received an immediate reboot command. 
 
-`"lastRebootCmdStatus"` possible values are: 
+`"lastRebootCmdStatus"` possible values are:
+
 - `"accepted"` - The reboot request was accepted. The device will attempt to reboot momentarily.
-- `"rejected"` - The device rejected the reboot request. The device will not reboot.
+- `"disabled"` - <i>See above</i>.
+- `"inActiveHours"` - <i>See above</i>.
+- `"rejectedByApp"` - is returned when the application is interrogated at the time the request is received, 
+   and rejects the reboot command. The application can be interrogated by implementing `IDeviceManagementRequestHandler.IsSystemRebootAllowed`.
+   The applications's response here is based on its own business logic and might require user consent.
 
 **Examples:**
 
@@ -123,7 +201,6 @@ Successful response:
     }
 }
 ```
-
 
 
 ## Schedule Reboots

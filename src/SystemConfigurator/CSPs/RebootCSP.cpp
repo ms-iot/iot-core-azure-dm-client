@@ -61,7 +61,10 @@ wstring RebootCSP::GetSingleScheduleTime()
 {
     TRACE(L"\n---- Get Single Schedule Time\n");
     wstring time = MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Reboot/Schedule/Single");
-    time = Utils::CanonicalizeDateTime(time);   // CSP sometimes returns 2016-10-10T09:00:01-008:00, the 008 breaks .net parsing.
+    if (time.size())
+    {
+        time = Utils::CanonicalizeDateTime(time);   // CSP sometimes returns 2016-10-10T09:00:01-008:00, the 008 breaks .net parsing.
+    }
     TRACEP(L"    :", time.c_str());
     return time;
 }
@@ -77,7 +80,10 @@ wstring RebootCSP::GetDailyScheduleTime()
 {
     TRACE(L"\n---- Get Daily Schedule Time\n");
     wstring time = MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Reboot/Schedule/DailyRecurrent");
-    time = Utils::CanonicalizeDateTime(time);   // CSP sometimes returns 2016-10-10T09:00:01-008:00, the 008 breaks .net parsing.
+    if (time.size())
+    {
+        time = Utils::CanonicalizeDateTime(time);   // CSP sometimes returns 2016-10-10T09:00:01-008:00, the 008 breaks .net parsing.
+    }
     TRACEP(L"    :", time.c_str());
     return time;
 }

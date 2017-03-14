@@ -76,44 +76,6 @@ The device current state of the **Windows Update Policy** can be inspected throu
 
 For a full documentation on what each field does, see the [Policy CSP](https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/policy-configuration-service-provider) MSDN page.
 
-## Windows Update Reboot Policy
-
-This policy can be used in cases where the application is busy and need to disable system update reboots until it is no longer busy. The application developer can invoke that functionality using
-the following .Net APIs.
-
-<pre>
-    <b>Namespace</b>: Microsoft.Devices.Management
-</pre>
-
-<pre>
-    <b>Class</b>: DeviceManagementClient
-</pre>
-
-<pre>
-    <b>Methods</b>:
-    public async Task&lt;ResponseStatus&gt; SetWindowsUpdateRebootPolicyAsync(bool allowReboots)
-    public async Task&lt;bool&gt; GetWindowsUpdateRebootPolicy()
-</pre>
-
-**Example**
-
-<pre>
-    async Task OnCriticalTaskStart(DeviceManagementClient dmClient)
-    {
-        ResponseStatus status = await dmClient.SetWindowsUpdateRebootPolicyAsync(false);
-        if (status == ResponseStatus.Failure)
-        {
-            throw new Exception("Failed to disable update reboots!");
-        }
-        return CriticalTaskStart();
-    }
-
-    void OnCriticalTaskFinished(DeviceManagementClient dmClient)
-    {
-        dmClient.SetWindowsUpdateRebootPolicyAsync(true);
-    }
-</pre>
-
 ## Windows Updates
 
 ### Configuration
@@ -139,7 +101,7 @@ For a full documentation on what each field does, see the [Update CSP](https://m
 The device current state of the **Windows Updates** can be inspected through the ```"windowsUpdates"``` node in the reported properties section as follows:
 
 <pre>
-"desired" : {
+"reported" : {
     "microsoft" : {
         "management" : {
             "windowsUpdates": {

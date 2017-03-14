@@ -20,7 +20,6 @@ namespace Toaster
         {
             this.buttonRestart.IsEnabled = enable;
             this.buttonReset.IsEnabled = enable;
-            this.checkBoxAllowUpdateReboots.IsEnabled = enable;
         }
 
         public MainPage()
@@ -85,8 +84,7 @@ namespace Toaster
                 tcs.SetResult(dlg.Result);
             });
 
-            bool yesNo = await tcs.Task;
-            return yesNo;
+            return tcs.Task.Result;
         }
 
         private void OnStartToasting(object sender, RoutedEventArgs e)
@@ -96,10 +94,20 @@ namespace Toaster
             this.slider.IsEnabled = false;
             this.textBlock.Text = string.Format("Toasting at {0}%", this.slider.Value);
             this.imageHot.Visibility = Visibility.Visible;
+
+            if (deviceManagementClient != null)
+            {
+                deviceManagementClient.AllowReboots(false);
+            }
         }
 
         private void OnStopToasting(object sender, RoutedEventArgs e)
         {
+            if (deviceManagementClient != null)
+            {
+                deviceManagementClient.AllowReboots(true);
+            }
+
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
             this.slider.IsEnabled = true;
@@ -161,16 +169,6 @@ namespace Toaster
         private void OnFactoryReset(object sender, RoutedEventArgs e)
         {
             FactoryReset();
-        }
-
-        private void OnAllowUpdateRebootsChecked(object sender, RoutedEventArgs e)
-        {
-            deviceManagementClient.SetWindowsUpdateRebootPolicy(true);
-        }
-
-        private void OnAllowUpdateRebootsUnchecked(object sender, RoutedEventArgs e)
-        {
-            deviceManagementClient.SetWindowsUpdateRebootPolicy(false);
         }
     }
 }

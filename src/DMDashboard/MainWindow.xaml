@@ -97,7 +97,7 @@
                         <Button Grid.Column="0" Click="OnExpandWindowsUpdatePolicy" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         <TextBlock Grid.Column="1" Margin="3" Text="Windows Update Policy" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                     </Grid>
-                    <Grid x:Name="WindowsUpdatePolicyGrid" Visibility="Visible">
+                    <Grid x:Name="WindowsUpdatePolicyGrid" Visibility="Collapsed">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -270,7 +270,7 @@
                         <TextBlock Grid.Column="1" Margin="3" Text="Windows Updates" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                         <Button Grid.Column="0" Click="OnExpandWindowsUpdates" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
-                    <Grid x:Name="WindowsUpdatesGrid" Visibility="Visible">
+                    <Grid x:Name="WindowsUpdatesGrid" Visibility="Collapsed">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -708,7 +708,7 @@
                         <TextBlock Grid.Column="1" Margin="3" Text="Factory Reset" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                         <Button Grid.Column="0" Click="OnExpandFactoryReset" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
-                    <Grid x:Name="FactoryResetGrid" Visibility="Visible">
+                    <Grid x:Name="FactoryResetGrid" Visibility="Collapsed">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>

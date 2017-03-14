@@ -381,7 +381,7 @@ namespace DMDashboard
         {
             CancellationToken cancellationToken = new CancellationToken();
             DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.immediateReboot", "{}", new TimeSpan(0, 0, 30), cancellationToken);
-            // ToDo: it'd be nice to show the result in the UI.
+            MessageBox.Show("Reboot Command Result:\nStatus: " + result.Status + "\nReasons: " + result.Payload);
         }
 
         private void OnRebootSystem(object sender, RoutedEventArgs e)
