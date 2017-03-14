@@ -27,10 +27,10 @@ namespace Toaster
         }
 
         // Answer the question "is it OK to reboot the toaster"
-        async Task<SystemRebootRequestResponse> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
+        async Task<bool> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
         {
             bool answer = await this.mainPage.YesNo("Allow reboot?");
-            return answer ? SystemRebootRequestResponse.Accept : SystemRebootRequestResponse.Reject;
+            return answer;
         }
     }
 }

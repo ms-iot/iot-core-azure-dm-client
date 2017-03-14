@@ -15,13 +15,13 @@ Input payload contains Json according to this format:
 {
   "PackageFamilyName" : "MyCoolApp_1abcde2f3ghij",
   "Appx": {
-    "ConnectionString" : "DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=blah",
+    "ConnectionString" : "DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=abcdef",
     "ContainerName" : "MyAppContainer",
     "BlobName" : "MyCoolApp.appx"
   },
   "Dependencies": [
     {
-      "ConnectionString" : "DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=blah",
+      "ConnectionString" : "DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=abcdef",
       "ContainerName" : "MyDependencyContainer",
       "BlobName" : "MyCoolAppDependency.appx"
     }

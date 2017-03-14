@@ -1,11 +1,10 @@
-﻿using Windows.ApplicationModel.Background;
-using Microsoft.Azure.Devices.Client;
+﻿using Microsoft.Azure.Devices.Client;
+using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
-using Microsoft.Azure.Devices.Shared;
-using Windows.ApplicationModel.Core;
-using System.Diagnostics;
+using Windows.ApplicationModel.Background;
 using Windows.Foundation.Diagnostics;
 
 // The Background Application template is documented at http://go.microsoft.com/fwlink/?LinkID=533884&clcid=0x409
@@ -30,9 +29,9 @@ namespace IoTDMBackground
         }
 
         // It is always ok to reboot
-        Task<SystemRebootRequestResponse> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
+        Task<bool> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
         {
-            return Task.FromResult(SystemRebootRequestResponse.Accept);
+            return Task.FromResult(true);
         }
     }
 

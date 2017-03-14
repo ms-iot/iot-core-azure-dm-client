@@ -60,11 +60,24 @@ This policy does not apply to:
 To allow/disallow reboots, the application developer can invoke the following .Net APIs.
 
 <pre>
-    <b>Namespace</b>: Microsoft.Devices.Management
+    <b>Namespace</b>:
+	Microsoft.Devices.Management
 </pre>
 
 <pre>
-    <b>Class</b>: DeviceManagementClient
+    <b>Enums</b>:
+    public enum RebootRequestStatus
+    {
+        Allowed,
+        Disabled,
+        InActiveHours,
+        RejectedByApp
+    }
+</pre>
+
+<pre>
+    <b>Class</b>:
+	DeviceManagementClient
 </pre>
 
 <pre>
@@ -73,26 +86,7 @@ To allow/disallow reboots, the application developer can invoke the following .N
     public async Task&lt;RebootRequestStatus&gt; IsRebootAllowedBySystem()
 </pre>
 
-<pre>
-    <b>Types</b>:
-    public struct RebootRequestStatus
-    {
-        public enum RejectionReason
-        {
-            NA,
-            Disabled,
-            InActiveHours,
-            RejectedByApp
-        }
-
-        // Constructor
-        public RebootRequestStatus(bool allowed, RejectionReason rejectionReason);
-
-        // Proeprties
-        public bool allowed { get; set; }
-        public RejectionReason rejectionReason { get; set; }
-    }
-</pre>
+Note that IsRebootAllowedBySystem() can return only one of the following values `"Allowed"`, `"Disabled"`, or `"InActiveHours"`.
 
 **Example**
 
@@ -121,16 +115,11 @@ The device responds immediately with the following JSON payload:
 
 <pre>
 "response" : "<i>see below</i>"
-"rejectionReason" : "<i>see below</i>"
 </pre>
 
 Possible `"response"` values are: 
 
 - `"accepted"` - The reboot request was accepted. The device will attempt to reboot momentarily (note: the attempt might fail, see below)
-- `"rejected"` - The device rejected the reboot request. The device will not reboot. To get more details, see the `"rejectionReason"` field.
-
-Possible `"rejectionReason"` values are:
-
 - `"disabled"` - is returned when the application flags its busy state by calling `"AllowReboots(false)"`.
 - `"inActiveHours"` - is returned when the immediate reboot command is received between the active hours as 
    specified by `windowsUpdatePolicy` (see [Windows Update Management](windows-update-management.md) 
@@ -201,7 +190,6 @@ Successful response:
     }
 }
 ```
-
 
 ## Schedule Reboots
 
