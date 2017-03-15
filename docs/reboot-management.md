@@ -1,4 +1,4 @@
-#Reboot Management
+# Reboot Management
 
 The **Reboot Management** functionality allows the operator to perform the following tasks:
 
