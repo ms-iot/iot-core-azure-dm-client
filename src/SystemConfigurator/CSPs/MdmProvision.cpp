@@ -34,7 +34,7 @@ void MdmProvision::SetErrorVerbosity(bool verbosity) noexcept
     s_errorVerbosity = verbosity;
 }
 
-void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, wstring& outputSyncML)
+void MdmProvision::RunSyncML(const wstring&, const wstring& requestSyncML, wstring& outputSyncML)
 {
     PWSTR output = nullptr;
     HRESULT hr = RegisterDeviceWithLocalManagement(NULL);
