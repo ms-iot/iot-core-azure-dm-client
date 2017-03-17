@@ -22,7 +22,7 @@
   <files>
     <!-- Build-time -->
     <!-- Make sure the types exported by IoTDMClinet.dll is visible to the build system -->
-    <file src="..\src\IoTDMClientLib\bin\Release\IoTDMClient.dll" target="lib\uap10.0" />
+    <file src="..\src\IoTDMClientLib\bin\x86\Release\IoTDMClient.dll" target="lib\uap10.0" />
 
     <!-- Run-time -->
       
