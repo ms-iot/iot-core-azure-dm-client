@@ -1,27 +1,23 @@
+# Managing Windows IoT Devices through Azure IoT Hub
 
-# dm-proto-private
+## Overview
 
-To build:
+Windows IoT Core devices can be managed via Azure IoT Hub. Azure IoT Hub can notify an application running on the device of configuration changes, commands issued, or simply hold status reported back from the device.
 
-### (1) Create a new folder and make it the current folder:
-    * md d:\Projects\AzureDM
-    * cd d:\Projects\AzureDM
+This library exposes many Windows functionalities by defining and implementing an interface which can be used by a management application talking to Azure IoT Hub.
 
-### (2) Enlist in the project
-    * git clone --recursive --branch develop https://github.com/ms-iot/dm-proto-private.git
+The library is linked to a UWP application to allow both the library and the UWP application to share the connection to the Azure IoT Hub.
 
-### (3) Build the solution
-    * cd src
-    * nuget restore
-    * msbuild IoTDM.sln
+The application can be a foreground application or a background application. You can find a [samples](samples.md) for both and a [walk-through](walk-through.md) to build a foreground application.
 
-To run the Toaster sample:
 
-### (1) Start SystemConfigurator:
-   * TBD
-   
-### (2) Run Toaster sample from VS:
-   * Right-click on the Toaster project and select Deploy
-   * Copy src\Debug\CommProxy.exe into the Appx directory of the Toaster app
-   * Right-click on the Toaster project and select Debug
-   (the first two steps are one-time-only)
+
+All device management operation are implemented via the Azure IoT Hub [direct methods](<https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-direct-methods>) and the [device twin](<https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-device-twins>).
+
+## Quick Links
+
+- [Building the Library](docs/building-the-library.md)
+- [Walkthrough: DM Hello World Application](docs/dm-hello-world-overview.md)
+- [Samples](docs/samples.md)
+- [OEM Device Setup](docs/oem-device-setup.md)
+- [Library Reference](docs/library-reference.md)
