@@ -261,8 +261,7 @@ namespace Microsoft.Devices.Management
 
             var request = new Message.ImmediateRebootRequest();
             request.lastRebootCmdTime = rebootCmdTime;
-            // await this._systemConfiguratorProxy.SendCommandAsync(request);
-            Debug.WriteLine("Rebooting...");
+            await this._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         private void ReportSelfUpdateStatus(string lastCheckValue, string statusValue)

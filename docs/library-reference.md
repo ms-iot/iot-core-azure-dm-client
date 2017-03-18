@@ -1,4 +1,12 @@
-#Library Reference
+# Library Reference
+
+The capabilities exposed by the **Windows IoT Azure DM Client Library** can be accessed through to main types of interfaces:
+1. Through a direct .Net API.
+2. Through Device Twin/Azure IoT Hub direct methods (with json as the underlying data format).
+
+Here's a diagram of what this looks like:
+
+<img src="dm-architecture-application-library.png"/>
 
 ## Direct Method Format
 
