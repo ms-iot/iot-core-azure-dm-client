@@ -31,7 +31,7 @@ namespace Microsoft.Devices.Management
 
             standardInput.Dispose();
 
-            var processLauncherResult = await ProcessLauncher.RunToCompletionAsync(@"CommProxy.exe", "", processLauncherOptions);
+            var processLauncherResult = await ProcessLauncher.RunToCompletionAsync(@"C:\Windows\System32\CommProxy.exe", "", processLauncherOptions);
             if (processLauncherResult.ExitCode == 0)
             {
                 using (var outStreamRedirect = standardOutput.GetInputStreamAt(0))

@@ -1,7 +1,12 @@
-# Device management interfaces
+# Library Reference
 
-Windows IoT Core devices can be managed via Azure IoT Hub. All device management operation are implemented via the Azure IoT Hub [direct methods](<https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-direct-methods>) and the [device twin](<https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-device-twins>).
+The capabilities exposed by the **Windows IoT Azure DM Client Library** can be accessed through to main types of interfaces:
+1. Through a direct .Net API.
+2. Through Device Twin/Azure IoT Hub direct methods (with json as the underlying data format).
 
+Here's a diagram of what this looks like:
+
+<img src="dm-architecture-application-library.png"/>
 
 ## Direct Method Format
 

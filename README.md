@@ -1,27 +1,23 @@
+# Managing Windows IoT Devices through Azure IoT Hub
 
-# dm-proto-private
+## Overview
 
-To build:
+**Windows IoT Azure DM Client Library** is an SDK that allows developers to build cloud solutions for managing Windows IoT Core devices with Azure IoT Hub.
 
-### (1) Create a new folder and make it the current folder:
-    * md d:\Projects\AzureDM
-    * cd d:\Projects\AzureDM
+The library is to be linked to a UWP application to allow both the Device Management components and the UWP application to share the connection to the Azure IoT Hub.
 
-### (2) Enlist in the project
-    * git clone --recursive --branch develop https://github.com/ms-iot/dm-proto-private.git
+The application can be a foreground application or a background application. You can find [samples](samples.md) for both and a [walk-through](walk-through.md) to build a foreground application.
 
-### (3) Build the solution
-    * cd src
-    * nuget restore
-    * msbuild IoTDM.sln
+Here's a diagram of where the library fits:
 
-To run the Toaster sample:
+<img src="docs/dm-architecture-all.png"/>
 
-### (1) Start SystemConfigurator:
-   * TBD
-   
-### (2) Run Toaster sample from VS:
-   * Right-click on the Toaster project and select Deploy
-   * Copy src\Debug\CommProxy.exe into the Appx directory of the Toaster app
-   * Right-click on the Toaster project and select Debug
-   (the first two steps are one-time-only)
+All device management operations are implemented via the Azure IoT Hub [direct methods](<https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-direct-methods>) and the [device twin](<https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-device-twins>).
+
+## Quick Links
+
+- [Building the Library](docs/building-the-library.md)
+- [Walkthrough: DM Hello World Application](docs/dm-hello-world-overview.md)
+- [Samples](docs/samples.md)
+- [OEM Device Setup](docs/oem-device-setup.md)
+- [Library Reference](docs/library-reference.md)

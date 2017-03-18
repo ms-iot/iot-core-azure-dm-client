@@ -84,7 +84,8 @@ namespace Toaster
                 tcs.SetResult(dlg.Result);
             });
 
-            return tcs.Task.Result;
+            var result = await tcs.Task;
+            return result;
         }
 
         private void OnStartToasting(object sender, RoutedEventArgs e)
