@@ -31,7 +31,7 @@ namespace Microsoft.Devices.Management
 
             standardInput.Dispose();
 
-            var processLauncherResult = await ProcessLauncher.RunToCompletionAsync(@"CommProxy.exe", "", processLauncherOptions);
+            var processLauncherResult = await ProcessLauncher.RunToCompletionAsync(@"C:\Windows\System32\CommProxy.exe", "", processLauncherOptions);
             if (processLauncherResult.ExitCode == 0)
             {
                 using (var outStreamRedirect = standardOutput.GetInputStreamAt(0))
@@ -39,7 +39,8 @@ namespace Microsoft.Devices.Management
                     var response = (await Blob.ReadFromIInputStreamAsync(outStreamRedirect)).MakeIResponse();
                     if (response.Status != ResponseStatus.Success)
                     {
-                        // TODO: throw a proper exception
+                        var stringResponse = response as StringResponse;
+                        if (stringResponse != null) throw new Exception(stringResponse.Response);
                         throw new Exception("Operation failed");
                     }
                     return response;
@@ -47,8 +48,7 @@ namespace Microsoft.Devices.Management
             }
             else
             {
-                // TODO: throw a proper exception
-                throw new Exception("TBD");
+                throw new Exception("CommProxy cannot read data from the input pipe");
             }
         }
     }

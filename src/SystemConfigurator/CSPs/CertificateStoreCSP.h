@@ -6,14 +6,6 @@
 class CertificateStoreCSP
 {
 public:
-    // subPath: CA, Root, My
-    static std::wstring GetSystemCertHashes(const std::wstring& subPath);
-
-    static void AddSystemCertificate(const std::wstring& subPath, const std::wstring& certHash, const std::wstring& certificateInBase64);
-    static void DeleteSystemCertificate(const std::wstring& subPath, const std::wstring& certHash);
-
-    static CertificateInfo GetSystemCertificateInfo(const std::wstring& subPath, const std::wstring& certHash);
-
     class My
     {
     public:

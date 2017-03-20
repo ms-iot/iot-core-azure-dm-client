@@ -25,7 +25,7 @@ namespace Utils
 {
     wstring GetSidForAccount(const wchar_t* userAccount)
     {
-        std::wstring sidString = L"";
+        wstring sidString = L"";
 
         BYTE userSidBytes[SECURITY_MAX_SID_SIZE] = {};
         PSID userSid = reinterpret_cast<PSID>(userSidBytes);
@@ -391,7 +391,7 @@ namespace Utils
         }
     }
 
-    void ReadXmlStructData(const std::wstring& resultSyncML, Utils::ELEMENT_HANDLER handler)
+    void ReadXmlStructData(const wstring& resultSyncML, Utils::ELEMENT_HANDLER handler)
     {
         DWORD bufferSize = static_cast<DWORD>(resultSyncML.size() * sizeof(resultSyncML[0]));
         char* buffer = (char*)GlobalAlloc(GMEM_FIXED, bufferSize);
@@ -429,13 +429,13 @@ namespace Utils
         // GlobalFree(buffer);
     }
 
-    void WriteRegistryValue(const wstring& subkey, const wstring& propName, const wstring& propValue)
+    void WriteRegistryValue(const wstring& subKey, const wstring& propName, const wstring& propValue)
     {
         LSTATUS status;
         HKEY hKey = NULL;
         status = RegCreateKeyEx(
             HKEY_LOCAL_MACHINE,
-            subkey.c_str(),
+            subKey.c_str(),
             0,      // reserved
             NULL,   // user-defined class type of this key.
             0,      // default; non-volatile
@@ -457,27 +457,38 @@ namespace Utils
         RegCloseKey(hKey);
     }
 
-    wstring ReadRegistryValue(const wstring& subkey, const wstring& propName)
+    LSTATUS TryReadRegistryValue(const wstring& subKey, const wstring& propName, wstring& propValue)
     {
         DWORD dataSize = 0;
         LSTATUS status;
-        status = RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, NULL, &dataSize);
+        status = RegGetValue(HKEY_LOCAL_MACHINE, subKey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, NULL, &dataSize);
         if (status != ERROR_SUCCESS)
         {
-            TRACEP(L"Error: Could not read registry value size: ", (subkey + L"\\" + propName).c_str());
-            throw DMExceptionWithErrorCode(status);
+            return status;
         }
 
         vector<char> data(dataSize);
-        status = RegGetValue(HKEY_LOCAL_MACHINE, subkey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, data.data(), &dataSize);
+        status = RegGetValue(HKEY_LOCAL_MACHINE, subKey.c_str(), propName.c_str(), RRF_RT_REG_SZ, NULL, data.data(), &dataSize);
         if (status != ERROR_SUCCESS)
         {
-            TRACEP(L"Error: Could not read registry value: ", (subkey + L"\\" + propName).c_str());
-            throw DMExceptionWithErrorCode(status);
+            return status;
         }
 
-        // return wstring(reinterpret_cast<const wchar_t*>(data.data()));
-        return wstring(reinterpret_cast<const wchar_t*>(data.data()));
+        propValue = reinterpret_cast<const wchar_t*>(data.data());
+
+        return ERROR_SUCCESS;
+    }
+
+    wstring ReadRegistryValue(const wstring& subKey, const wstring& propName)
+    {
+        wstring propValue;
+        LSTATUS status = TryReadRegistryValue(subKey, propName, propValue);
+        if (status != ERROR_SUCCESS)
+        {
+            TRACEP(L"Error: Could not read registry value: ", (subKey + L"\\" + propName).c_str());
+            throw DMExceptionWithErrorCode(status);
+        }
+        return propValue;
     }
 
     wstring GetOSVersionString()
@@ -519,10 +530,18 @@ namespace Utils
 
     wstring GetSystemRootFolder()
     {
-        return GetEnvironmentVariable(L"SystemRoot");
+        UINT size = GetSystemDirectory(0, 0);
+
+        vector<wchar_t> buffer(size);
+        if (size != GetSystemDirectory(buffer.data(), buffer.size()) + 1)
+        {
+            throw DMException("Error: failed to retrieve system folder.");
+        }
+
+        return wstring(buffer.data());
     }
 
-    std::wstring GetProgramDataFolder()
+    wstring GetProgramDataFolder()
     {
         return GetEnvironmentVariable(L"ProgramData");
     }
@@ -671,6 +690,57 @@ namespace Utils
 
         TRACEP("Command return Code: ", returnCode);
         TRACEP("Command output : ", output.c_str());
+    }
+
+    void LoadFile(const wstring& fileName, vector<char>& buffer)
+    {
+        TRACE(__FUNCTION__);
+        TRACEP(L"fileName = ", fileName.c_str());
+
+        ifstream file(fileName, ios::in | ios::binary | ios::ate);
+
+        string line;
+        if (!file.is_open())
+        {
+            throw new DMException("Error: failed to open binary file!");
+        }
+
+        buffer.resize(static_cast<unsigned int>(file.tellg()));
+        file.seekg(0, ios::beg);
+        if (!file.read(buffer.data(), buffer.size()))
+        {
+            throw new DMException("Error: failed to read file!");
+        }
+        file.close();
+    }
+
+    wstring ToBase64(std::vector<char>& buffer)
+    {
+        TRACE(__FUNCTION__);
+
+        DWORD destinationSize = 0;
+        if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size(), CRYPT_STRING_BASE64, nullptr, &destinationSize))
+        {
+            throw new DMException("Error: cannot obtain the required size to encode buffer into base64.");
+        }
+
+        vector<wchar_t> destinationBuffer(destinationSize);
+        if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size(), CRYPT_STRING_BASE64, destinationBuffer.data(), &destinationSize))
+        {
+            throw new DMException("Error: cannot convert binary stream to base64.");
+        }
+
+        return wstring(destinationBuffer.data(), destinationBuffer.size());
+    }
+
+    wstring FileToBase64(const wstring& fileName)
+    {
+        TRACE(__FUNCTION__);
+        TRACEP(L"fileName = ", fileName.c_str());
+
+        vector<char> buffer;
+        LoadFile(fileName, buffer);
+        return ToBase64(buffer);
     }
 
 }

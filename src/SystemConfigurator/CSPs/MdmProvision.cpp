@@ -12,7 +12,6 @@
 #define RESULTS_XML_PATH ROOT_XML L"\\Results\\Item\\Data\\"
 
 using namespace std;
-using namespace Windows::Data::Json;
 
 bool MdmProvision::s_errorVerbosity = false;
 
@@ -35,7 +34,7 @@ void MdmProvision::SetErrorVerbosity(bool verbosity) noexcept
     s_errorVerbosity = verbosity;
 }
 
-void MdmProvision::RunSyncML(const wstring& sid, const wstring& requestSyncML, wstring& outputSyncML)
+void MdmProvision::RunSyncML(const wstring&, const wstring& requestSyncML, wstring& outputSyncML)
 {
     PWSTR output = nullptr;
     HRESULT hr = RegisterDeviceWithLocalManagement(NULL);
@@ -273,6 +272,22 @@ bool MdmProvision::RunGetBool(const wstring& sid, const wstring& path)
     return 0 == _wcsicmp(result.c_str(), L"true");
 }
 
+bool MdmProvision::TryGetBool(const wstring& path, bool& value)
+{
+    bool success = true;
+    try
+    {
+        value = RunGetBool(L"", path);
+    }
+    catch (DMException& e)
+    {
+        success = false;
+        TRACEP(L"Error: GetBool() - path     : ", path.c_str());
+        TRACEP("Error: GetBool() - exception: ", e.what());
+    }
+    return success;
+}
+
 void MdmProvision::RunSet(const wstring& sid, const wstring& path, const wstring& value)
 {
     wstring requestSyncML = LR"(
@@ -441,6 +456,22 @@ wstring MdmProvision::RunGetString(const wstring& path)
 {
     // empty sid is okay for device-wide CSPs.
     return RunGetString(L"", path);
+}
+
+bool MdmProvision::TryGetString(const wstring& path, wstring& value)
+{
+    bool success = true;
+    try
+    {
+        value = RunGetString(path);
+    }
+    catch (DMException& e)
+    {
+        success = false;
+        TRACEP(L"Error: GetString() - path     : ", path.c_str());
+        TRACEP("Error: GetString() - exception: ", e.what());
+    }
+    return success;
 }
 
 wstring MdmProvision::RunGetBase64(const wstring& path)

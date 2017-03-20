@@ -16,7 +16,7 @@ using namespace std;
 //</ServiceURI>
 
 
-static std::string RunLimpet(int logicalId, const std::wstring& param)
+static std::string RunLimpet(const std::wstring& params)
 {
     TRACE(__FUNCTION__);
 
@@ -27,7 +27,7 @@ static std::string RunLimpet(int logicalId, const std::wstring& param)
     GetSystemDirectoryW(sys32dir, _countof(sys32dir));
 
     wchar_t fullCommand[MAX_PATH];
-    swprintf_s(fullCommand, _countof(fullCommand), L"%s\\%s %u %s", sys32dir, L"limpet.exe", logicalId, param.c_str());
+    swprintf_s(fullCommand, _countof(fullCommand), L"%s\\%s %s", sys32dir, L"limpet.exe", params.c_str());
 
     unsigned long returnCode;
 
@@ -38,7 +38,9 @@ static std::string RunLimpet(int logicalId, const std::wstring& param)
 
 std::string GetServiceUrl(int logicalId)
 {
-    const std::string response = RunLimpet(logicalId, L"-rur");
+    TRACE(__FUNCTION__);
+
+    const std::string response = RunLimpet(to_wstring(logicalId) + L" -rur");
 
     std::regex rgx(".*<ServiceURI>\\s*(\\S+)\\s*</ServiceURI>.*");
     std::smatch match;
@@ -55,6 +57,47 @@ std::string GetServiceUrl(int logicalId)
 
 std::string GetSASToken(int logicalId)
 {
-    const std::string response = RunLimpet(logicalId, L"-ast");
-    return response;
+    TRACE(__FUNCTION__);
+
+    const std::string response = RunLimpet(to_wstring(logicalId) + L" -ast");
+
+    // There is a bug in Limpet that produces the entire connection string and not only the SAS token
+    // Work around by extracting the actual connection string
+    // The workaround will continue to work (but will be unnecessary) once the bug in Limpet is fixed
+
+    std::regex rgx(".*(SharedAccessSignature sr.*)");
+    std::smatch match;
+
+    if (std::regex_search(response.begin(), response.end(), match, rgx))
+    {
+        auto m = match[1];
+        return m.str();
+    }
+    auto responseW = Utils::MultibyteToWide(response.c_str());
+    TRACEP(L"Unexpected response from Limpet:", responseW.c_str());
+    throw DMException("cannot parse Limpet response. Is TPM supported?");
+}
+
+void ClearTPM()
+{
+    TRACE(__FUNCTION__);
+
+    const std::string response = RunLimpet(L"-fct");
+
+    std::regex rgx(".*<TpmClear>\\s*(\\S+)\\s*</TpmClear>.*");
+    std::smatch match;
+
+    if (std::regex_search(response.begin(), response.end(), match, rgx))
+    {
+        auto m = match[1].str();
+        string result = Utils::TrimString(m, string(" \t\n\r"));
+        if (0 == _stricmp(result.c_str(), "ok"))
+        {
+            TRACE(L"ClearTPM completed successfully.");
+            return;
+        }
+    }
+    auto responseW = Utils::MultibyteToWide(response.c_str());
+    TRACEP(L"Unexpected response from Limpet:", responseW.c_str());
+    throw DMException("cannot parse Limpet response. Is TPM supported?");
 }

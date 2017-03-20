@@ -9,6 +9,12 @@
 #include <sstream>
 #include <windows.h>
 
+#define IoTDMRegistryRoot L"Software\\Microsoft\\IoTDM"
+#define IoTDMRegistryLastRebootCmd L"LastRebootCmd"
+#define IoTDMRegistryWindowsUpdateRebootAllowed L"WindowsUpdateRebootAllowed"
+#define IoTDMRegistryTrue L"True"
+#define IoTDMRegistryFalse L"False"
+
 namespace Utils
 {
     typedef std::function<void(std::vector<std::wstring>&, std::wstring&)>& ELEMENT_HANDLER;
@@ -78,8 +84,9 @@ namespace Utils
     void ReadXmlStructData(const std::wstring& resultSyncML, ELEMENT_HANDLER handler);
 
     // Registry helpers
-    void WriteRegistryValue(const std::wstring& subkey, const std::wstring& propName, const std::wstring& propValue);
-    std::wstring ReadRegistryValue(const std::wstring& subkey, const std::wstring& propName);
+    void WriteRegistryValue(const std::wstring& subKey, const std::wstring& propName, const std::wstring& propValue);
+    LSTATUS TryReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, std::wstring& propValue);
+    std::wstring ReadRegistryValue(const std::wstring& subKey, const std::wstring& propName);
 
     // File helpers
     bool FileExists(const std::wstring& fullFileName);
@@ -135,6 +142,7 @@ namespace Utils
         }
 
         HANDLE Get() { return _handle; }
+        uint64_t Get64() { return reinterpret_cast<uint64_t>(_handle); }
         HANDLE* GetAddress() { return &_handle; }
 
         BOOL Close()
@@ -159,4 +167,8 @@ namespace Utils
 
         HANDLE _handle;
     };
+
+    void LoadFile(const std::wstring& fileName, std::vector<char>& buffer);
+    std::wstring ToBase64(std::vector<char>& buffer);
+    std::wstring FileToBase64(const std::wstring& fileName);
 }

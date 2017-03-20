@@ -7,10 +7,7 @@ class RebootCSP
 public:
     RebootCSP();
 
-    static void ExecRebootNow();
-
-    static void SetRebootInfo(const std::wstring& jsonString);
-    static std::wstring GetRebootInfoJson();
+    static void ExecRebootNow(const std::wstring& lastRebootCmdTime);
 
     static std::wstring GetSingleScheduleTime();
     static void SetSingleScheduleTime(const std::wstring& dailyScheduleTime);

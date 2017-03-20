@@ -16,11 +16,20 @@ namespace Toaster
 
         private readonly string DeviceConnectionString = ConnectionStringProvider.Value;
 
+        private void EnableDeviceManagementUI(bool enable)
+        {
+            this.buttonRestart.IsEnabled = enable;
+            this.buttonReset.IsEnabled = enable;
+        }
+
         public MainPage()
         {
             this.InitializeComponent();
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
+
+            // DM buttons will be enabled when we have created the DM client
+            EnableDeviceManagementUI(false);
             this.imageHot.Visibility = Visibility.Collapsed;
 
 #pragma warning disable 4014
@@ -28,6 +37,7 @@ namespace Toaster
 #pragma warning restore 4014
 
         }
+
         private async Task InitializeDeviceClientAsync()
         {
             // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
@@ -45,6 +55,8 @@ namespace Toaster
 
             // Create the DeviceManagementClient, the main entry point into device management
             this.deviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwinProxy, appRequestHandler);
+
+            EnableDeviceManagementUI(true);
 
             // Set the callback for desired properties update. The callback will be invoked
             // for all desired properties -- including those specific to device management
@@ -72,8 +84,8 @@ namespace Toaster
                 tcs.SetResult(dlg.Result);
             });
 
-            bool yesNo = await tcs.Task;
-            return yesNo;
+            var result = await tcs.Task;
+            return result;
         }
 
         private void OnStartToasting(object sender, RoutedEventArgs e)
@@ -83,10 +95,20 @@ namespace Toaster
             this.slider.IsEnabled = false;
             this.textBlock.Text = string.Format("Toasting at {0}%", this.slider.Value);
             this.imageHot.Visibility = Visibility.Visible;
+
+            if (deviceManagementClient != null)
+            {
+                deviceManagementClient.AllowReboots(false);
+            }
         }
 
         private void OnStopToasting(object sender, RoutedEventArgs e)
         {
+            if (deviceManagementClient != null)
+            {
+                deviceManagementClient.AllowReboots(true);
+            }
+
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
             this.slider.IsEnabled = true;
@@ -131,7 +153,11 @@ namespace Toaster
             bool success = true;
             try
             {
-                await deviceManagementClient.DoFactoryResetAsync();
+                // The recovery partition guid is typically picked from a pre-defined set of guids
+                // by the builder of the image. For our testing purposes, we have been using the following
+                // guid.
+                string recoveryPartitionGUID = "a5935ff2-32ba-4617-bf36-5ac314b3f9bf";
+                await deviceManagementClient.FactoryResetAsync(false /*don't clear TPM*/, recoveryPartitionGUID);
             }
             catch (Exception)
             {

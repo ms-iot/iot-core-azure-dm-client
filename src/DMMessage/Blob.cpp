@@ -33,7 +33,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         return ref new Blob(bytes);
     }
 
-    Blob^ Blob::ReadFromNativeHandle(IntPtr handle)
+    Blob^ Blob::ReadFromNativeHandle(uint64_t handle)
     {
         HANDLE pipeHandle = (HANDLE)handle;
 
@@ -84,7 +84,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         });
     }
 
-    void Blob::WriteToNativeHandle(IntPtr handle)
+    void Blob::WriteToNativeHandle(uint64_t handle)
     {
         HANDLE pipeHandle = (HANDLE)handle;
 

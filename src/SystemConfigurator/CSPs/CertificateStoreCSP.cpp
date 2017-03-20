@@ -11,61 +11,6 @@ const wchar_t* CertificateStoreMyWSTEPRenew = L"./Vendor/MSFT/CertificateStore/M
 // CertificateStore CSP docs
 // https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/certificatestore-csp
 //
-
-wstring CertificateStoreCSP::GetSystemCertHashes(const wstring& subPath)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = CertificateStorePath;
-    path += L"/";
-    path += subPath;
-    path += L"/System";
-
-    wstring hashes = MdmProvision::RunGetString(CertificateStorePath);
-    TRACEP(L" ca system hashes = ", hashes.c_str());
-    return hashes;
-}
-
-void CertificateStoreCSP::AddSystemCertificate(const wstring& subPath, const wstring& hash, const wstring& certificateInBase64)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = CertificateStorePath;
-    path += L"/";
-    path += subPath;
-    path += L"/System/";
-    path += hash;
-    path += L"/EncodedCertificate";
-
-    MdmProvision::RunAddData(path, certificateInBase64);
-}
-
-void CertificateStoreCSP::DeleteSystemCertificate(const wstring& subPath, const wstring& hash)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = CertificateStorePath;
-    path += L"/";
-    path += subPath;
-    path += L"/System/";
-    path += hash;
-
-    MdmProvision::RunDelete(path);
-}
-
-CertificateInfo CertificateStoreCSP::GetSystemCertificateInfo(const wstring& subPath, const wstring& hash)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = CertificateStorePath;
-    path += L"/";
-    path += subPath;
-    path += L"/System/";
-    path += hash;
-
-    return CertificateInfo(path);
-}
-
 int CertificateStoreCSP::My::WSTEP::Renew::GetPeriod()
 {
     TRACE(__FUNCTION__);

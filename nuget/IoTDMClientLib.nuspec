@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>IoTDMClientLib</id>
+    <version>$Version$</version>
+    <title>IoTDMClientLib</title>
+    <authors>Microsoft Corporation</authors>
+    <description>The library allows Windows IoT Core device to be managed remotely through Azure IoT Hub Device Management.</description>
+    <releaseNotes>This is preview.</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags>UWP Device Management Azure IoTHub IoT Device Twin Windows Store Applications</tags>
+    <language>en-US</language>
+
+    <dependencies>
+      <dependency id="Microsoft.Azure.Devices.Client" version="1.2.3" />
+      <dependency id="Microsoft.NETCore.UniversalWindowsPlatform" version="5.2.2" />
+      <dependency id="Newtonsoft.Json" version="9.0.1" />
+      <dependency id="WindowsAzure.Storage" version="8.0.1" />
+    </dependencies>
+
+  </metadata>
+  <files>
+    <!-- Build-time -->
+    <!-- Make sure the types exported by IoTDMClinet.dll is visible to the build system -->
+    <file src="..\src\IoTDMClientLib\bin\x86\Release\IoTDMClient.dll" target="lib\uap10.0" />
+
+    <!-- Run-time -->
+      
+    <!-- ARM -->
+    <file src="..\src\IoTDMClientLib\bin\ARM\Release\IoTDMClient.dll" target="runtimes\win10-arm\lib\uap10.0" />
+    <file src="..\src\IoTDMClientLib\bin\ARM\Release\Microsoft.Devices.Management.Message.winmd" target="runtimes\win10-arm\lib\uap10.0" />
+    <file src="..\src\ARM\Release\DMMessage\Microsoft.Devices.Management.Message.dll" target="runtimes\win10-arm\native" />
+
+    <!-- x64 -->
+    <file src="..\src\IoTDMClientLib\bin\x64\Release\IoTDMClient.dll" target="runtimes\win10-x64\lib\uap10.0" />
+    <file src="..\src\IoTDMClientLib\bin\x64\Release\Microsoft.Devices.Management.Message.winmd" target="runtimes\win10-x64\lib\uap10.0" />
+    <file src="..\src\x64\Release\DMMessage\Microsoft.Devices.Management.Message.dll" target="runtimes\win10-x64\native" />
+
+    <!-- x86 -->
+    <file src="..\src\IoTDMClientLib\bin\x86\Release\IoTDMClient.dll" target="runtimes\win10-x86\lib\uap10.0" />
+    <file src="..\src\IoTDMClientLib\bin\x86\Release\Microsoft.Devices.Management.Message.winmd" target="runtimes\win10-x86\lib\uap10.0" />
+    <file src="..\src\Release\DMMessage\Microsoft.Devices.Management.Message.dll" target="runtimes\win10-x86\native" />
+
+  </files>
+</package>

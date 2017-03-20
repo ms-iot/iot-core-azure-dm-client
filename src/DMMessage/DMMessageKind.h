@@ -13,9 +13,11 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 #define MODEL_NODEF(A, B, C, D) A = B,
 #define MODEL_REQDEF(A, B, C, D) MODEL_NODEF(A, B, C, D)
 #define MODEL_ALLDEF(A, B, C, D) MODEL_NODEF(A, B, C, D)
+#define MODEL_TAGONLY(A, B, C, D) MODEL_NODEF(A, B, C, D)
 #include "Models\ModelsInfo.dat"
 #undef MODEL_NODEF
 #undef MODEL_REQDEF
 #undef MODEL_ALLDEF
+#undef MODEL_TAGONLY
     };
 }}}}

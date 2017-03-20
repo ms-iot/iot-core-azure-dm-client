@@ -48,23 +48,14 @@
     <ClInclude Include="CSPs\MdmProvision.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
-    <ClInclude Include="CSPs\PolicyCSP.h">
-      <Filter>Header Files\CSPs</Filter>
-    </ClInclude>
     <ClInclude Include="CSPs\RebootCSP.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\RemoteWipeCSP.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
-    <ClInclude Include="CSPs\UpdateCSP.h">
-      <Filter>Header Files\CSPs</Filter>
-    </ClInclude>
     <ClInclude Include="TimeCfg.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CSPs\DeviceStatusCSP.h">
-      <Filter>Header Files\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\CustomDeviceUiCsp.h">
       <Filter>Source Files\CSPs</Filter>
@@ -78,9 +69,6 @@
     <ClInclude Include="CSPs\CertificateStoreCSP.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
-    <ClInclude Include="CSPs\RootCATrustedCertificatesCSP.h">
-      <Filter>Header Files\CSPs</Filter>
-    </ClInclude>
     <ClInclude Include="CSPs\CertificateInfo.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
@@ -89,6 +77,12 @@
     </ClInclude>
     <ClInclude Include="CSPs\PrivateAPIs\WinSDKRS2.h">
       <Filter>Header Files\CSPs\PrivateAPIs</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\CertificateManagement.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="TpmSupport.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -110,23 +104,14 @@
     <ClCompile Include="CSPs\MdmProvision.cpp">
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
-    <ClCompile Include="CSPs\PolicyCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
-    </ClCompile>
     <ClCompile Include="CSPs\RebootCSP.cpp">
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\RemoteWipeCSP.cpp">
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
-    <ClCompile Include="CSPs\UpdateCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
-    </ClCompile>
     <ClCompile Include="TimeCfg.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CSPs\DeviceStatusCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp">
       <Filter>Source Files\CSPs</Filter>
@@ -140,9 +125,6 @@
     <ClCompile Include="CSPs\CertificateStoreCSP.cpp">
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
-    <ClCompile Include="CSPs\RootCATrustedCertificates.cpp">
-      <Filter>Source Files\CSPs</Filter>
-    </ClCompile>
     <ClCompile Include="CSPs\CertificateInfo.cpp">
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
@@ -151,6 +133,9 @@
     </ClCompile>
     <ClCompile Include="TpmSupport.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\CertificateManagement.cpp">
+      <Filter>Source Files\CSPs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
