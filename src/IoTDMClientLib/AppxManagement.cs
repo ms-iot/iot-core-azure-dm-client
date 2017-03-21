@@ -1,4 +1,4 @@
-﻿using Microsoft.Devices.Management;
+using Microsoft.Devices.Management;
 using Microsoft.Devices.Management.Message;
 using Newtonsoft.Json;
 using System;
@@ -18,10 +18,13 @@ namespace IoTDMClient
             try
             {
                 var appInstallInfo = new AppInstallInfo();
-                foreach (var dependencyBlobInfo in Dependencies)
-                {
-                    var depPath = await dependencyBlobInfo.DownloadToTempAsync(client);
-                    appInstallInfo.Dependencies.Add(depPath);
+                if (null != Dependencies)
+                {                    
+                    foreach (var dependencyBlobInfo in Dependencies)
+                    {
+                        var depPath = await dependencyBlobInfo.DownloadToTempAsync(client);
+                        appInstallInfo.Dependencies.Add(depPath);
+                    }
                 }
 
                 var path = await Appx.DownloadToTempAsync(client);
