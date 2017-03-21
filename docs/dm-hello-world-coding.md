@@ -56,7 +56,7 @@ using Microsoft.Devices.Management;
             this.mainPage = mainPage;
         }
 
-        Task<ApplicationInfo> IDeviceManagementRequestHandler.GetApplicationInfo()
+        Task&lt;ApplicationInfo&gt; IDeviceManagementRequestHandler.GetApplicationInfo()
         {
             var appInfo = new ApplicationInfo
             {
@@ -68,7 +68,7 @@ using Microsoft.Devices.Management;
         }
 
         // Answer the question "is it OK to reboot the device"
-        async Task<bool> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
+        async Task&lt;bool&gt; IDeviceManagementRequestHandler.IsSystemRebootAllowed()
         {
             bool answer = await this.mainPage.IsSystemRebootAllowed();
             return answer;
@@ -79,7 +79,7 @@ using Microsoft.Devices.Management;
 - And let's not forget to add an implementation for the callback (`IsSystemRebootAllowed`) in the MainPage:
 
 <pre>
-    public async Task<bool> IsSystemRebootAllowed()
+    public async Task&lt;bool&gt; IsSystemRebootAllowed()
     {
         return true;
     }
