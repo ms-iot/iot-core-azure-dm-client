@@ -76,7 +76,7 @@
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Margin="3">Connection String</TextBlock>
                         <Border Grid.Row="1" Grid.Column="1" Margin="3" Background="#F8F8F8">
-                            <TextBox x:Name="AzureStorageConnectionString" HorizontalAlignment="Stretch" Text="DefaultEndpointsProtocol=https;AccountName=gmilekastore00;AccountKey=J3Gr0Hz2HZR/OMxCur2oXkIp/V8+N5k5JNgRwlrZcSGtw7u6TFqJ2IkMbA6VOwnji02PnW4mKDWU96nFGVeAmQ==;" />
+                            <TextBox x:Name="AzureStorageConnectionString" HorizontalAlignment="Stretch" Text="&lt;Azure Storage connection string&gt;" />
                         </Border>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" >Container Name</TextBlock>
