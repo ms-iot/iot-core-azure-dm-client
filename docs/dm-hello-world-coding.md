@@ -11,7 +11,7 @@
 
 #### Add the systemManagement Capability
 - Expand the project node in the Solution Explorer.
-- Right-click the Package.appxmanifest and select `Open With`.
+- Right-click the `Package.appxmanifest` and select `Open With`.
 - Select `XML (Text) Editor` and hit `Ok`.
 - Add the following namespace to the `Package` tag:
   - `xmlns:iot="http://schemas.microsoft.com/appx/manifest/iot/windows10"`
