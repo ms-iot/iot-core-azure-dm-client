@@ -45,7 +45,7 @@ namespace Microsoft.Devices.Management
             return (result as Message.StringResponse).Response;
         }
 
-        public async Task<string> GetConnectionString(uint validity = 3600)
+        public async Task<string> GetConnectionStringAsync(uint validity = 3600)
         {
             string deviceId = await GetDeviceIdAsync();
             string hostName = await GetHostNameAsync();
