@@ -17,17 +17,6 @@ namespace IoTDMBackground
         {
         }
 
-        Task<ApplicationInfo> IDeviceManagementRequestHandler.GetApplicationInfo()
-        {
-            var appInfo = new ApplicationInfo
-            {
-                ApplicationName = Package.Current.DisplayName,
-                PackageFamilyName = Package.Current.Id.FamilyName
-            };
-
-            return Task<ApplicationInfo>.FromResult(appInfo);
-        }
-
         // It is always ok to reboot
         Task<bool> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
         {

@@ -35,11 +35,6 @@ namespace IoTDMClientLibTests
             this.rebootResponse = rebootResponse;
         }
 
-        Task<ApplicationInfo> IDeviceManagementRequestHandler.GetApplicationInfo()
-        {
-            throw new NotImplementedException();
-        }
-
         Task<bool> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
         {
             return Task.FromResult<bool>(rebootResponse);
@@ -50,11 +45,6 @@ namespace IoTDMClientLibTests
     {
         public string AppName;
         public HandlerMockupForAppInstall(string appName){ AppName = appName; }
-
-        Task<ApplicationInfo> IDeviceManagementRequestHandler.GetApplicationInfo()
-        {
-            throw new NotImplementedException();
-        }
 
         Task<bool> IDeviceManagementRequestHandler.IsSystemRebootAllowed()
         {
