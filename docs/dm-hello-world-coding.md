@@ -22,7 +22,7 @@
 - Make sure it builds successfully.
 
 #### Add References to the DM Libraries
-- From Solution Explorer, open `project.json`.
+- If using VS 2015, from Solution Explorer, open `project.json`.
   - Update the version number of `Microsoft.NETCore.UniversalWindowsPlatform` to `"5.2.2"`.
 - In Visual Studio, open `Tools | NuGet Package Manager | Package Manager Console`. In the NuGet console:
   - Run `Install-Package Microsoft.Azure.Devices.Client`
@@ -35,7 +35,6 @@
 - In MainPage.xaml.cs, add the following namespaces:
 <pre>
 using System.Threading.Tasks;
-using Windows.ApplicationModel;
 
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
@@ -54,17 +53,6 @@ using Microsoft.Devices.Management;
         public DMRequestHandler(MainPage mainPage)
         {
             this.mainPage = mainPage;
-        }
-
-        Task&lt;ApplicationInfo&gt; IDeviceManagementRequestHandler.GetApplicationInfo()
-        {
-            var appInfo = new ApplicationInfo
-            {
-                ApplicationName = "DMHelloWorld",
-                PackageFamilyName = Package.Current.Id.FamilyName
-            };
-
-            return Task<ApplicationInfo>.FromResult(appInfo);
         }
 
         // Answer the question "is it OK to reboot the device"
@@ -148,7 +136,7 @@ using Microsoft.Devices.Management;
     }
 </pre>
 
-Now you have a fully functional DM!
+Now you have a fully functional DM client integrated into the application!
 
 **Next Step**:
 
