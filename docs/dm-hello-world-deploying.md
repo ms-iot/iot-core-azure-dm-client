@@ -11,10 +11,10 @@ In a production scenario, they will be part of the OS image (see [Production Dev
   - Whilelist CommProxy.exe:
       - `reg.exe ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\EmbeddedMode\ProcessLauncher" /v AllowedExecutableFilesList /t REG_MULTI_SZ /d "c:\windows\system32\commproxy.exe\0"`
 
-- **SystemConfigrator.exe**
-  - Copy SystemConfigrator.exe to the device system folder `c:\windows\system32`.
+- **SystemConfigurator.exe**
+  - Copy SystemConfigurator.exe to the device system folder `c:\windows\system32`.
   - Register the service by running:
-      - `c:\windows\system32\SystemConfigrator.exe -install`
+      - `c:\windows\system32\SystemConfigurator.exe -install`
   - Start the service:
       - `net start SystemConfigurator`
 
