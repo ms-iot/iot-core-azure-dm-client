@@ -14,6 +14,14 @@ Here's a diagram of where the library fits:
 
 All device management operations are implemented via the Azure IoT Hub [direct methods](<https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-direct-methods>) and the [device twin](<https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-device-twins>).
 
+## System Requirements
+
+### Developer's Box
+Visual Studio 2017
+
+### Device
+Windows IoT Core build 15063 (March 2017) or later.
+
 ## Quick Links
 
 - [Building the Library](docs/building-the-library.md)
