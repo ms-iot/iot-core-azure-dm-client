@@ -50,18 +50,19 @@ void MdmProvision::SetErrorVerbosity(bool verbosity) noexcept
 
 void MdmProvision::RunSyncML(const wstring&, const wstring& requestSyncML, wstring& outputSyncML)
 {
+    TRACEP(L"Request : ", requestSyncML.c_str());
+
     PWSTR output = nullptr;
     HRESULT hr = RegisterDeviceWithLocalManagement(NULL);
     if (FAILED(hr))
     {
-        throw DMException("RegisterDeviceWithLocalManagement", hr);
+        throw DMExceptionWithErrorCode("RegisterDeviceWithLocalManagement", hr);
     }
 
     hr = ApplyLocalManagementSyncML(requestSyncML.c_str(), &output);
     if (FAILED(hr))
     {
-        TRACEP(L"Error: MdmProvisionSyncBodyWithAttributes failed. Error code = ", hr);
-        throw DMException("MdmProvisionSyncBodyWithAttributes");
+        throw DMExceptionWithErrorCode("ApplyLocalManagementSyncML", hr);
     }
 
     if (output)
@@ -70,7 +71,6 @@ void MdmProvision::RunSyncML(const wstring&, const wstring& requestSyncML, wstri
     }
     LocalFree(output);
 
-    TRACEP(L"Request : ", requestSyncML.c_str());
     TRACEP(L"Response: ", outputSyncML.c_str());
 
     wstring returnCodeString;

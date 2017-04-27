@@ -1,0 +1,104 @@
+﻿<UserControl x:Class="DMDashboard.AppDesiredStateControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DMDashboard"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <local:NullableBooleanToBoolean x:Key="nullableBooleanToBoolean"/>
+            <local:DesiredStateToInt x:Key="desiredStateToInt"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <StackPanel Orientation="Vertical">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="30" />
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="270" />
+            </Grid.ColumnDefinitions>
+            <CheckBox Grid.Row="0" Grid.Column="0" Margin="3" x:Name="SlotUsed"/>
+
+            <TextBlock Grid.Row="0" Grid.Column="1" Margin="3" Text="Pkg Family Name" />
+            <TextBox Grid.Row="0" Grid.Column="2" Margin="3" x:Name="PkgFamilyName"
+                        Text="{Binding Path=PackageFamilyName}"
+                        IsEnabled="{Binding ElementName=SlotUsed,
+                                    Path=IsChecked,
+                                    Converter={StaticResource nullableBooleanToBoolean},
+                                    Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" Text="Action" />
+            <ComboBox Grid.Row="1" Grid.Column="2" Margin="3" x:Name="DesiredAction"
+                    SelectedIndex="{Binding Path=State, Converter={StaticResource desiredStateToInt}}"
+                    IsEnabled="{Binding ElementName=SlotUsed,
+                                Path=IsChecked,
+                                Converter={StaticResource nullableBooleanToBoolean}}">
+                <ComboBoxItem>Installed</ComboBoxItem>
+                <ComboBoxItem>Uninstalled</ComboBoxItem>
+                <ComboBoxItem>Reported</ComboBoxItem>
+                <ComboBoxItem>Not Reported</ComboBoxItem>
+            </ComboBox>
+
+            <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="Version" />
+            <TextBox Grid.Row="2" Grid.Column="2" Margin="3" x:Name="DesiredVersion"
+                    Text="{Binding Path=Version}"
+                    IsEnabled="{Binding ElementName=SlotUsed,
+                                Path=IsChecked,
+                                Converter={StaticResource nullableBooleanToBoolean},
+                                Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" Text="Appx" />
+            <TextBox Grid.Row="3" Grid.Column="2" Margin="3" x:Name="DesiredAppxSource"
+                    Text="{Binding Path=AppxSource}"
+                    IsEnabled="{Binding ElementName=SlotUsed,
+                                Path=IsChecked,
+                                Converter={StaticResource nullableBooleanToBoolean},
+                                Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="4" Grid.Column="1" Margin="3" Text="Dep 0" />
+            <TextBox Grid.Row="4" Grid.Column="2" Margin="3" x:Name="DesiredDep0Source"
+                    Text="{Binding Path=Dep0Source}"
+                    IsEnabled="{Binding ElementName=SlotUsed,
+                                Path=IsChecked,
+                                Converter={StaticResource nullableBooleanToBoolean},
+                                Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="5" Grid.Column="1" Margin="3" Text="Dep 1" />
+            <TextBox Grid.Row="5" Grid.Column="2" Margin="3" x:Name="DesiredDep1Source"
+                    Text="{Binding Path=Dep1Source}"
+                    IsEnabled="{Binding ElementName=SlotUsed,
+                                Path=IsChecked,
+                                Converter={StaticResource nullableBooleanToBoolean},
+                                Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="6" Grid.Column="1" Margin="3" Text="Certificate Source" />
+            <TextBox Grid.Row="6" Grid.Column="2" Margin="3" x:Name="DesiredCertificateSource"
+                    Text="{Binding Path=CertificateSource}"
+                    IsEnabled="{Binding ElementName=SlotUsed,
+                                Path=IsChecked,
+                                Converter={StaticResource nullableBooleanToBoolean},
+                                Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="7" Grid.Column="1" Margin="3" Text="Certificate Target" />
+            <TextBox Grid.Row="7" Grid.Column="2" Margin="3" x:Name="DesiredCertificateTarget"
+                    Text="{Binding Path=CertificateTarget}"
+                    IsEnabled="{Binding ElementName=SlotUsed,
+                                Path=IsChecked,
+                                Converter={StaticResource nullableBooleanToBoolean},
+                                Mode=TwoWay}"/>
+
+        </Grid>
+        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="300" Height="1" />
+    </StackPanel>
+</UserControl>

@@ -88,6 +88,19 @@ namespace DMDashboard
             Reported_CertificateStore_Root_System.ShowCertificateDetails += ShowCertificateDetails;
             Reported_CertificateStore_My_User.ShowCertificateDetails += ShowCertificateDetails;
             Reported_CertificateStore_My_System.ShowCertificateDetails += ShowCertificateDetails;
+
+            AppDesiredState[] appsConfigurations = {
+                new AppDesiredState("samplePackageFamilyName",
+                                    AppDesiredState.DesiredState.Installed,
+                                    "1.0.0.0",
+                                    "container\\sample.appx",
+                                    "container\\sampleDep0.appx",
+                                    "container\\sampleDep1.appx",
+                                    "container\\sampleCertificate.cer",
+                                    "./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople")
+            };
+
+            TheAppsConfigurator.AppsConfigurations = appsConfigurations;
         }
 
         private void ToggleUIElementVisibility(UIElement element)
@@ -334,6 +347,11 @@ namespace DMDashboard
                     var info = JsonConvert.DeserializeObject<Microsoft.Devices.Management.WindowsUpdates.GetResponse>(jsonProp.Value.ToString());
                     WindowsUpdatesConfigurationToUI(info);
                 }
+                else if (jsonProp.Name == "apps")
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    TheAppsStatus.AppsStatusJsonToUI(jsonProp.Value);
+                }
 
             }
         }
@@ -351,11 +369,6 @@ namespace DMDashboard
         private void OnExpandFactoryReset(object sender, RoutedEventArgs e)
         {
             ToggleUIElementVisibility(FactoryResetGrid);
-        }
-
-        private void OnExpandApplication(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(ApplicationGrid);
         }
 
         private void OnExpandDeviceInfo(object sender, RoutedEventArgs e)
@@ -612,6 +625,11 @@ namespace DMDashboard
             SetDesired(UIToRebootInfoModel().ToJson());
         }
 
+        private void OnSetAppsConfiguration(object sender, RoutedEventArgs e)
+        {
+            SetDesired(TheAppsConfigurator.GetJSon());
+        }
+
         private void OnSetAllDesiredProperties(object sender, RoutedEventArgs e)
         {
             StringBuilder json = new StringBuilder();
@@ -631,127 +649,51 @@ namespace DMDashboard
             SetDesired(json.ToString());
         }
 
-        private void OnExpandAppInstall(object sender, RoutedEventArgs e)
+        private void OnExpandApps(object sender, RoutedEventArgs e)
         {
-            ToggleUIElementVisibility(AppInstallGrid);
+            ToggleUIElementVisibility(AppsGrid);
         }
 
-        private string Browse()
+        private async void UploadAppx(string connectionString, string container, string appxLocalPath, string dep0LocalPath, string dep1LocalPath, string certLocalPath)
         {
-            var fileDialog = new OpenFileDialog();
-            fileDialog.Filter = "appx files (*.appx)|*.appx|appxbundle files (*.appxbundle)|*.appxbundle";
-            fileDialog.RestoreDirectory = true;
+            // Retrieve storage account from connection string.
+            var storageAccount = CloudStorageAccount.Parse(connectionString);
 
-            var result = fileDialog.ShowDialog();
-            if (result != null && result.Value)
+            // Create the blob client.
+            var blobClient = storageAccount.CreateCloudBlobClient();
+
+            // Retrieve a reference to a container.
+            var containerRef = blobClient.GetContainerReference(container);
+
+            // Create the container if it doesn't already exist.
+            await containerRef.CreateIfNotExistsAsync();
+
+            // Appx
             {
-                return fileDialog.FileName;
+                var blob = containerRef.GetBlockBlobReference(new FileInfo(appxLocalPath).Name);
+                await blob.UploadFromFileAsync(appxLocalPath);
             }
 
-            return null;
-        }
-
-        private void OnAppxBrowse(object sender, RoutedEventArgs e)
-        {
-            var appxPath = Browse();
-            if (appxPath != null)
+            // Dep1
+            if (!string.IsNullOrEmpty(dep0LocalPath))
             {
-                AppAppxPath.Text = appxPath;
-            }
-        }
-
-        private void OnDep1AppxBrowse(object sender, RoutedEventArgs e)
-        {
-            var appxPath = Browse();
-            if (appxPath != null)
-            {
-                AppDep1AppxPath.Text = appxPath;
-            }
-        }
-
-        private void OnDep2AppxBrowse(object sender, RoutedEventArgs e)
-        {
-            var appxPath = Browse();
-            if (appxPath != null)
-            {
-                AppDep2AppxPath.Text = appxPath;
-            }
-        }
-
-        private void AppInstallButtonActivation(object sender, TextChangedEventArgs e)
-        {
-            bool isAppxPathProvided = (!string.IsNullOrEmpty(AppAppxPath.Text) && File.Exists(AppAppxPath.Text));
-            bool isConnectionStringProvided = (!string.IsNullOrEmpty(AppConnectionString.Text));
-            bool isContainerProvided = (!string.IsNullOrEmpty(AppContainerName.Text));
-            AppInstallButton.IsEnabled = (isAppxPathProvided && isConnectionStringProvided && isContainerProvided);
-        }
-
-        private async void AppInstallAsync(object sender, RoutedEventArgs e)
-        {
-            var cxnstr = AppConnectionString.Text;
-            var container = AppContainerName.Text;
-            var pfn = AppPackageFamilyName.Text;
-            var appx = AppAppxPath.Text;
-            var dep1 = AppDep1AppxPath.Text;
-            var dep2 = AppDep2AppxPath.Text;
-
-            // copy local file to Azure
-            {
-                // Retrieve storage account from connection string.
-                var storageAccount = CloudStorageAccount.Parse(cxnstr);
-
-                // Create the blob client.
-                var blobClient = storageAccount.CreateCloudBlobClient();
-
-                // Retrieve a reference to a container.
-                var containerRef = blobClient.GetContainerReference(container);
-
-                // Create the container if it doesn't already exist.
-                await containerRef.CreateIfNotExistsAsync();
-
-                // Appx
-                {
-                    var blob = containerRef.GetBlockBlobReference(new FileInfo(appx).Name);
-                    await blob.UploadFromFileAsync(appx);
-                }
-
-                // Dep1
-                if (!string.IsNullOrEmpty(dep1))
-                {
-                    var blob = containerRef.GetBlockBlobReference(new FileInfo(dep1).Name);
-                    await blob.UploadFromFileAsync(dep1);
-                }
-
-                // Dep2
-                if (!string.IsNullOrEmpty(dep2))
-                {
-                    var blob = containerRef.GetBlockBlobReference(new FileInfo(dep2).Name);
-                    await blob.UploadFromFileAsync(dep2);
-                }
+                var blob = containerRef.GetBlockBlobReference(new FileInfo(dep0LocalPath).Name);
+                await blob.UploadFromFileAsync(dep0LocalPath);
             }
 
-
-            // Invoke DM App Install
-            CancellationToken cancellationToken = new CancellationToken();
-
-            var blobFormat = "{{\"ConnectionString\":\"{0}\",\"ContainerName\":\"{1}\",\"BlobName\":\"{2}\"}}";
-            var appJson = string.Format(blobFormat, cxnstr, container, new FileInfo(appx).Name);
-            var depsJson = "";
-            if (!string.IsNullOrEmpty(dep1))
+            // Dep2
+            if (!string.IsNullOrEmpty(dep1LocalPath))
             {
-                depsJson += string.Format(blobFormat, cxnstr, container, new FileInfo(dep1).Name);
-
-                if (!string.IsNullOrEmpty(dep2))
-                {
-                    depsJson += ", ";
-                    depsJson += string.Format(blobFormat, cxnstr, container, new FileInfo(dep2).Name);
-                }
+                var blob = containerRef.GetBlockBlobReference(new FileInfo(dep1LocalPath).Name);
+                await blob.UploadFromFileAsync(dep1LocalPath);
             }
 
-            var jsonFormat = "{{\"PackageFamilyName\":\"{0}\",\"Appx\":{1},\"Dependencies\":[{2}]}}";
-            var json = string.Format(jsonFormat, pfn, appJson, depsJson);
-            var jo = JsonConvert.DeserializeObject(json);
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.appInstall", json, new TimeSpan(0, 0, 30), cancellationToken);
+            // Certificate
+            if (!string.IsNullOrEmpty(certLocalPath))
+            {
+                var blob = containerRef.GetBlockBlobReference(new FileInfo(certLocalPath).Name);
+                await blob.UploadFromFileAsync(certLocalPath);
+            }
         }
 
         private void OnExpandAzureStorageExplorer(object sender, RoutedEventArgs e)

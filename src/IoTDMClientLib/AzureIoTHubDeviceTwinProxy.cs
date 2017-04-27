@@ -16,6 +16,7 @@ using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 using System;
@@ -32,14 +33,46 @@ namespace Microsoft.Devices.Management
             this.deviceClient = deviceClient;
         }
 
-        void IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
+        async Task<Dictionary<string, object>> IDeviceTwin.GetDesiredPropertiesAsync()
+        {
+            Dictionary<string, object> desiredProperties = new Dictionary<string, object>();
+            Twin twin = await this.deviceClient.GetTwinAsync();
+            foreach (KeyValuePair<string, object> p in twin.Properties.Desired)
+            {
+                desiredProperties[p.Key] = p.Value;
+            }
+            return desiredProperties;
+        }
+
+        async Task<string> IDeviceTwin.GetDeviceTwinPropertiesAsync()
+        {
+            Twin twin = await this.deviceClient.GetTwinAsync();
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("{\n");
+            sb.Append("    \"properties\" : {\n");
+            sb.Append("         \"desired\" : \n");
+            sb.Append(twin.Properties.Desired.ToJson());
+            sb.Append(",\n");
+            sb.Append("         \"reported\" : \n");
+            sb.Append(twin.Properties.Reported.ToJson());
+            sb.Append("\n");
+            sb.Append("    }\n");
+            sb.Append("}\n");
+
+            Debug.WriteLine("doc = " + sb.ToString());
+
+            return sb.ToString();
+        }
+
+        async Task IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
         {
             TwinCollection azureCollection = new TwinCollection();
             foreach (KeyValuePair<string, object> p in collection)
             {
                 azureCollection[p.Key] = p.Value;
             }
-            this.deviceClient.UpdateReportedPropertiesAsync(azureCollection);
+            await this.deviceClient.UpdateReportedPropertiesAsync(azureCollection);
         }
 
         Task IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)

@@ -97,6 +97,9 @@ namespace IoTDMBackground
                 // Set the callback for desired properties update. The callback will be invoked
                 // for all desired properties -- including those specific to device management
                 await deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, null);
+
+                // Tell the deviceManagementClient to sync the device with the current desired state.
+                await this._dmClient.ApplyDesiredStateAsync();
             }
             catch
             {
@@ -107,7 +110,7 @@ namespace IoTDMBackground
         private async Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
         {
             // Let the device management client process properties specific to device management
-            _dmClient.ProcessDeviceManagementProperties(desiredProperties);
+            _dmClient.ApplyDesiredStateAsync(desiredProperties);
         }
     }
 }

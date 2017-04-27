@@ -16,6 +16,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)DMException.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DMRequest.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Impersonator.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)JsonHelpers.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Logger.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SecurityAttributes.h" />
@@ -24,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)DMException.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Impersonator.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)JsonHelpers.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Logger.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)SecurityAttributes.cpp" />

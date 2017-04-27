@@ -30,6 +30,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)TimeHelpers.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Impersonator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)DMException.cpp">
@@ -50,5 +51,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)TimeHelpers.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Impersonator.cpp" />
   </ItemGroup>
 </Project>

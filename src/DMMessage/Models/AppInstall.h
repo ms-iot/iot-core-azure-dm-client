@@ -29,42 +29,54 @@ using namespace Windows::Foundation::Collections;
 
 namespace Microsoft { namespace Devices { namespace Management { namespace Message
 {
-    public ref class AppInstallInfo sealed
+    public ref class AppInstallRequestData sealed
     {
     public:
-        AppInstallInfo()
+        AppInstallRequestData()
         {
             PackageFamilyName = ref new Platform::String();
             AppxPath = ref new Platform::String();
             Dependencies = ref new Vector<String^>();
+            CertFile = ref new Platform::String();
+            CertStore = ref new Platform::String();
         }
-        AppInstallInfo(String^ packageFamilyName, String^ appxPath, IVector<String^>^ dependencies)
+        AppInstallRequestData(String^ packageFamilyName, String^ appxPath, IVector<String^>^ dependencies, String^ certFile, String^ certStore)
         {
             PackageFamilyName = packageFamilyName;
             AppxPath = appxPath;
             Dependencies = dependencies;
+            CertFile = certFile;
+            CertStore = certStore;
         }
         property String^ PackageFamilyName;
         property String^ AppxPath;
         property IVector<String^>^ Dependencies;
+        property String^ CertFile;
+        property String^ CertStore;
     };
 
     public ref class AppInstallRequest sealed : public IRequest
     {
-        AppInstallInfo^ appInfo;
     public:
-        AppInstallRequest(AppInstallInfo^ appInfo) : appInfo(appInfo) {}
+        property AppInstallRequestData^ data;
+
+        AppInstallRequest(AppInstallRequestData^ d)
+        {
+            data = d;
+        }
 
         virtual Blob^ Serialize() {
             JsonObject^ jsonObject = ref new JsonObject();
-            jsonObject->Insert("PackageFamilyName", JsonValue::CreateStringValue(appInfo->PackageFamilyName));
-            jsonObject->Insert("AppxPath", JsonValue::CreateStringValue(appInfo->AppxPath));
+            jsonObject->Insert("PackageFamilyName", JsonValue::CreateStringValue(data->PackageFamilyName));
+            jsonObject->Insert("AppxPath", JsonValue::CreateStringValue(data->AppxPath));
             JsonArray^ jsonArray = ref new JsonArray();
-            for each (auto dep in appInfo->Dependencies)
+            for each (auto dep in data->Dependencies)
             {
                 jsonArray->Append(JsonValue::CreateStringValue(dep));
             }
             jsonObject->Insert("Dependencies", jsonArray);
+            jsonObject->Insert("CertFile", JsonValue::CreateStringValue(data->CertFile));
+            jsonObject->Insert("CertStore", JsonValue::CreateStringValue(data->CertStore));
 
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
@@ -80,16 +92,83 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             {
                 depsVector->Append(dep->GetString());
             }
-            auto appInfo = ref new Microsoft::Devices::Management::Message::AppInstallInfo(packageFamilyName, appxPath, depsVector);
-            return ref new AppInstallRequest(appInfo);
+            auto certFile = jsonObject->Lookup("CertFile")->GetString();
+            auto certStore = jsonObject->Lookup("CertStore")->GetString();
+            auto d = ref new Microsoft::Devices::Management::Message::AppInstallRequestData(packageFamilyName, appxPath, depsVector, certFile, certStore);
+            return ref new AppInstallRequest(d);
         }
 
         virtual property DMMessageKind Tag {
             DMMessageKind get();
         }
+    };
 
-        property AppInstallInfo^ AppInstallInfo {
-            Microsoft::Devices::Management::Message::AppInstallInfo^ get() { return appInfo; }
+    public ref class AppInstallResponseData sealed
+    {
+    public:
+        property String^ pkgFamilyName;
+        property String^ name;
+        property String^ version;
+        property String^ installDate;
+        property int errorCode;
+        property String^ errorMessage;
+
+        Blob^ Serialize(uint32_t tag) {
+            JsonObject^ jsonObject = ref new JsonObject();
+
+            jsonObject->Insert("pkgFamilyName", JsonValue::CreateStringValue(pkgFamilyName));
+            jsonObject->Insert("name", JsonValue::CreateStringValue(name));
+            jsonObject->Insert("version", JsonValue::CreateStringValue(version));
+            jsonObject->Insert("installDate", JsonValue::CreateStringValue(installDate));
+            jsonObject->Insert("errorCode", JsonValue::CreateNumberValue(errorCode));
+            jsonObject->Insert("errorMessage", JsonValue::CreateStringValue(errorMessage));
+
+            return SerializationHelper::CreateBlobFromJson(tag, jsonObject);
+        }
+
+        static AppInstallResponseData^ Deserialize(Blob^ blob) {
+            String^ str = SerializationHelper::GetStringFromBlob(blob);
+            JsonObject^ jsonObject = JsonObject::Parse(str);
+            auto result = ref new AppInstallResponseData();
+
+            result->pkgFamilyName = jsonObject->Lookup("pkgFamilyName")->GetString();
+            result->name = jsonObject->Lookup("name")->GetString();
+            result->version = jsonObject->Lookup("version")->GetString();
+            result->installDate = jsonObject->Lookup("installDate")->GetString();
+            result->errorCode = static_cast<int>(jsonObject->Lookup("errorCode")->GetNumber());
+            result->errorMessage = jsonObject->Lookup("errorMessage")->GetString();
+
+            return result;
+        }
+    };
+
+    public ref class AppInstallResponse sealed : public IResponse
+    {
+        StatusCodeResponse statusCodeResponse;
+
+    public:
+        property AppInstallResponseData^ data;
+
+        AppInstallResponse(ResponseStatus status, AppInstallResponseData^ d) : statusCodeResponse(status, this->Tag)
+        {
+            data = d;
+        }
+
+        virtual Blob^ Serialize() {
+            return data->Serialize((uint32_t)Tag);
+        }
+
+        static IDataPayload^ Deserialize(Blob^ blob) {
+            AppInstallResponseData^ d = AppInstallResponseData::Deserialize(blob);
+            return ref new AppInstallResponse(ResponseStatus::Success, d);
+        }
+
+        virtual property ResponseStatus Status {
+            ResponseStatus get() { return statusCodeResponse.Status; }
+        }
+
+        virtual property DMMessageKind Tag {
+            DMMessageKind get();
         }
     };
 }}}}

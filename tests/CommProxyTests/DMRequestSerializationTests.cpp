@@ -36,11 +36,11 @@ namespace CommProxyTests
         TEST_METHOD(TestIRequestSerialization)
         {
             auto deps = ref new Vector<String^>();
-            auto appInstallInfo = ref new AppInstallInfo("abc", "def", deps);
+            auto appInstallInfo = ref new AppInstallRequestData("abc", "def", deps, "ghi", "jkl");
             auto ireg = ref new AppInstallRequest(appInstallInfo);
             auto blob = ireg->Serialize();
             auto req = dynamic_cast<AppInstallRequest^>(AppInstallRequest::Deserialize(blob));
-            Assert::AreEqual(req->AppInstallInfo->AppxPath, appInstallInfo->AppxPath);
+            Assert::AreEqual(req->data->AppxPath, appInstallInfo->AppxPath);
         }
 
         TEST_METHOD(TestIResponseSerialization)
@@ -59,12 +59,12 @@ namespace CommProxyTests
         TEST_METHOD(TestIRequestSerializationThroughBlob)
         {
             auto deps = ref new Vector<String^>();
-            auto appInstallInfo = ref new AppInstallInfo("abc", "def", deps);
+            auto appInstallInfo = ref new AppInstallRequestData("abc", "def", deps, "ghi" , "jkl");
             auto ireg = ref new AppInstallRequest(appInstallInfo);
             auto blob = ireg->Serialize();
             auto payload = blob->MakeIRequest();
             auto req = (AppInstallRequest^)payload;
-            Assert::AreEqual(req->AppInstallInfo->AppxPath, appInstallInfo->AppxPath);
+            Assert::AreEqual(req->data->AppxPath, appInstallInfo->AppxPath);
         }
 
         TEST_METHOD(TestIResponseSerializationThroughBlob)
@@ -106,11 +106,11 @@ namespace CommProxyTests
         TEST_METHOD(TestRequestRoundTripThroughNativeHandle)
         {
             auto deps = ref new Vector<String^>();
-            auto appInstallInfo = ref new AppInstallInfo("abc", "def", deps);
+            auto appInstallInfo = ref new AppInstallRequestData("abc", "def", deps, "ghi", "jkl");
             auto req = ref new AppInstallRequest(appInstallInfo);
             auto blob = RoundTripThroughNativeHandle(req->Serialize());
             auto req2 = dynamic_cast<AppInstallRequest^>(AppInstallRequest::Deserialize(blob));
-            Assert::AreEqual(req2->AppInstallInfo->AppxPath, appInstallInfo->AppxPath);
+            Assert::AreEqual(req2->data->AppxPath, appInstallInfo->AppxPath);
         }
 
         TEST_METHOD(TestResponseRoundTripThroughNativeHandle)

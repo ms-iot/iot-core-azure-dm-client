@@ -30,21 +30,21 @@ namespace IoTDMClientLibTests
         [TestMethod]
         public void TestRequestSerializeDeserialize()
         {
-            var appInstallRequest = new AppInstallRequest(new AppInstallInfo() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
+            var appInstallRequest = new AppInstallRequest(new AppInstallRequestData() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
             var blob = appInstallRequest.Serialize();
             var appInstallRequestRehydrated = AppInstallRequest.Deserialize(blob) as AppInstallRequest;
 
             Assert.AreEqual(appInstallRequestRehydrated.Tag, DMMessageKind.InstallApp);
-            Assert.AreEqual(appInstallRequestRehydrated.AppInstallInfo.AppxPath, "abc");
-            Assert.AreEqual(appInstallRequestRehydrated.AppInstallInfo.PackageFamilyName, "def");
-            Assert.AreEqual(appInstallRequestRehydrated.AppInstallInfo.Dependencies[0], "ghi");
-            Assert.AreEqual(appInstallRequestRehydrated.AppInstallInfo.Dependencies[1], "jkl");
+            Assert.AreEqual(appInstallRequestRehydrated.data.AppxPath, "abc");
+            Assert.AreEqual(appInstallRequestRehydrated.data.PackageFamilyName, "def");
+            Assert.AreEqual(appInstallRequestRehydrated.data.Dependencies[0], "ghi");
+            Assert.AreEqual(appInstallRequestRehydrated.data.Dependencies[1], "jkl");
         }
 
         [TestMethod]
         public void TestReadFromIInputStream()
         {
-            var command = new AppInstallRequest(new AppInstallInfo() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
+            var command = new AppInstallRequest(new AppInstallRequestData() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
             var dataArray = command.Serialize().GetByteArrayForSerialization();
             var dataSizeArray = BitConverter.GetBytes((UInt32)dataArray.Length);
 
@@ -59,16 +59,16 @@ namespace IoTDMClientLibTests
             var request = result.MakeIRequest() as AppInstallRequest;
 
             Assert.AreEqual(request.Tag, DMMessageKind.InstallApp);
-            Assert.AreEqual(request.AppInstallInfo.AppxPath, "abc");
-            Assert.AreEqual(request.AppInstallInfo.PackageFamilyName, "def");
-            Assert.AreEqual(request.AppInstallInfo.Dependencies[0], "ghi");
-            Assert.AreEqual(request.AppInstallInfo.Dependencies[1], "jkl");
+            Assert.AreEqual(request.data.AppxPath, "abc");
+            Assert.AreEqual(request.data.PackageFamilyName, "def");
+            Assert.AreEqual(request.data.Dependencies[0], "ghi");
+            Assert.AreEqual(request.data.Dependencies[1], "jkl");
         }
 
         [TestMethod]
         public void TestWriteToOutputStream()
         {
-            var command = new AppInstallRequest(new AppInstallInfo() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
+            var command = new AppInstallRequest(new AppInstallRequestData() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
             var blob = command.Serialize();
 
             var stream = new InMemoryRandomAccessStream();
@@ -93,17 +93,17 @@ namespace IoTDMClientLibTests
 
             var command2 = blob2.MakeIRequest() as AppInstallRequest;
             Assert.AreEqual(command2.Tag, DMMessageKind.InstallApp);
-            Assert.AreEqual(command2.AppInstallInfo.AppxPath, "abc");
-            Assert.AreEqual(command2.AppInstallInfo.PackageFamilyName, "def");
-            Assert.AreEqual(command2.AppInstallInfo.Dependencies[0], "ghi");
-            Assert.AreEqual(command2.AppInstallInfo.Dependencies[1], "jkl");
+            Assert.AreEqual(command2.data.AppxPath, "abc");
+            Assert.AreEqual(command2.data.PackageFamilyName, "def");
+            Assert.AreEqual(command2.data.Dependencies[0], "ghi");
+            Assert.AreEqual(command2.data.Dependencies[1], "jkl");
         }
 
 
         [TestMethod]
         public void TestSerializationRoundtripThroughStream()
         {
-            var command = new AppInstallRequest(new AppInstallInfo() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
+            var command = new AppInstallRequest(new AppInstallRequestData() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
             var blob = command.Serialize();
 
             var stream = new InMemoryRandomAccessStream();
@@ -117,17 +117,17 @@ namespace IoTDMClientLibTests
 
             Assert.IsNotNull(command2);
             Assert.AreEqual(command2.Tag, DMMessageKind.InstallApp);
-            Assert.AreEqual(command2.AppInstallInfo.AppxPath, "abc");
-            Assert.AreEqual(command2.AppInstallInfo.PackageFamilyName, "def");
-            Assert.AreEqual(command2.AppInstallInfo.Dependencies[0], "ghi");
-            Assert.AreEqual(command2.AppInstallInfo.Dependencies[1], "jkl");
+            Assert.AreEqual(command2.data.AppxPath, "abc");
+            Assert.AreEqual(command2.data.PackageFamilyName, "def");
+            Assert.AreEqual(command2.data.Dependencies[0], "ghi");
+            Assert.AreEqual(command2.data.Dependencies[1], "jkl");
 
         }
 
         [TestMethod]
         public void TestRequestSendToProxy()
         {
-            var appInstallRequest = new AppInstallRequest(new AppInstallInfo() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
+            var appInstallRequest = new AppInstallRequest(new AppInstallRequestData() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
             var proxy = new ConfigurationProxyMockup();
 
             IResponse response = proxy.SendCommandAsync(appInstallRequest).Result;

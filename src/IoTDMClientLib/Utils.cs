@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017 Microsoft
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
 and associated documentation files (the "Software"), to deal in the Software without restriction, 
@@ -13,41 +13,36 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
-    public class OnPremDeviceTwinProxy : IDeviceTwin
+    static class ErrorCodes
     {
-        public OnPremDeviceTwinProxy(/* something */)
-        {
-        }
+        // OS Errors
+        public static int E_NOTIMPL = unchecked((int)0x80000001);
 
-        async Task<Dictionary<string, object>> IDeviceTwin.GetDesiredPropertiesAsync()
-        {
-            return null;
-        }
+        // App management error codes 0000-0080
+        public static int INVALID_DESIRED_VERSION = unchecked((int)0xA0000000);
+        public static int INVALID_DESIRED_PKG_FAMILY_ID = unchecked((int)0xA0000001);
+        public static int INVALID_DESIRED_APPX_SRC = unchecked((int)0xA0000002);
+        public static int INVALID_DESIRED_APPX_OPERATION = unchecked((int)0xA0000003);
+        public static int INVALID_INSTALLED_APP_VERSION_UNCHANGED = unchecked((int)0xA0000004);
+        public static int INVALID_INSTALLED_APP_VERSION_UNEXPECTED = unchecked((int)0xA0000005);
+    }
 
-        async Task<string> IDeviceTwin.GetDeviceTwinPropertiesAsync()
-        {
-            return "{}";
-        }
+    class Error : Exception
+    {
+        public Error() { }
 
-        async Task IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
+        public Error(int code, string message) : base(message)
         {
-            // Somehow send the property to the DT
-            await new Task(() => { return; });
+            this.HResult = code;
         }
+    }
 
-        void IDeviceTwin.RefreshConnection()
-        {
-            // Reconnect if needed
-        }
-
-        Task IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)
-        {
-            throw new NotImplementedException();
-        }
+    enum JsonReport
+    {
+        Report,
+        Unreport
     }
 }

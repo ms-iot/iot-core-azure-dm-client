@@ -31,6 +31,8 @@ namespace Microsoft.Devices.Management
     // This is the main entry point into DM
     public class DeviceManagementClient
     {
+        public IDeviceTwin DeviceTwin { get { return _deviceTwin; } }
+
         // Types
         public struct DMMethodResult
         {
@@ -65,7 +67,6 @@ namespace Microsoft.Devices.Management
         {
             DeviceManagementClient deviceManagementClient = Create(deviceTwin, requestHandler, new SystemConfiguratorProxy());
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.immediateReboot", deviceManagementClient.ImmediateRebootMethodHandlerAsync);
-            await deviceTwin.SetMethodHandlerAsync("microsoft.management.appInstall", deviceManagementClient.AppInstallMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.reportAllDeviceProperties", deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.startAppSelfUpdate", deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.getCertificateDetails", deviceManagementClient.GetCertificateDetailsHandlerAsync);
@@ -78,10 +79,42 @@ namespace Microsoft.Devices.Management
             return new DeviceManagementClient(deviceTwin, requestHandler, systemConfiguratorProxy);
         }
 
+        public async Task ApplyDesiredStateAsync()
+        {
+            Debug.WriteLine("Applying desired state...");
+
+            Dictionary<string, object> desiredProperties = await this._deviceTwin.GetDesiredPropertiesAsync();
+            object node = null;
+            if (desiredProperties.TryGetValue("microsoft", out node) && node != null && node is JObject)
+            {
+                JObject microsoftNode = (JObject)node;
+                JToken token = microsoftNode.GetValue("management");
+                if (token != null && token is JObject)
+                {
+                    // We won't await on this call to let it happen in the background...
+                    ApplyDesiredStateAsync((JObject)token);
+                }
+            }
+        }
+
+        public void ApplyDesiredStateAsync(TwinCollection desiredProperties)
+        {
+            Debug.WriteLine("Applying desired state...");
+
+            try
+            {
+                JObject dmNode = (JObject)desiredProperties["microsoft"]["management"];
+                ApplyDesiredStateAsync(dmNode);
+            }
+            catch (Exception)
+            {
+                Debug.WriteLine("No properties.desired.microsoft.management is found.");
+            }
+        }
+
         //
         // Commands:
         //
-
         // This command checks if updates are available. 
         // TODO: work out complete protocol (find updates, apply updates etc.)
         public async Task<bool> CheckForUpdatesAsync()
@@ -105,36 +138,20 @@ namespace Microsoft.Devices.Management
             return (result as Message.ListAppsResponse).Apps;
         }
 
-        internal Task<string> AppInstallMethodHandlerAsync(string jsonParam)
+        internal async Task<Message.AppInstallResponse> InstallAppAsync(Message.AppInstallRequestData requestData)
         {
-            try
-            {
-                // method should return immediately .. only validate the json param
-                var appBlobInfo = JsonConvert.DeserializeObject<IoTDMClient.AppBlobInfo>(jsonParam);
-                // task should run without blocking so resonse can be generated right away
-                var appInstallTask = appBlobInfo.AppInstallAsync(this);
-                // response with success
-                var response = JsonConvert.SerializeObject(new { response = "accepted" });
-                return Task.FromResult(response);
-            }
-            catch (Exception e)
-            {
-                // response with failure
-                var response = JsonConvert.SerializeObject(new { response = "rejected", reason = e.Message });
-                return Task.FromResult(response);
-            }
+            Debug.WriteLine("Installing: " + requestData.PackageFamilyName);
+
+            var request = new Message.AppInstallRequest(requestData);
+            return await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.AppInstallResponse;
         }
 
-        internal async Task InstallAppAsync(Message.AppInstallInfo appInstallInfo)
+        internal async Task<Message.AppUninstallResponse> UninstallAppAsync(Message.AppUninstallRequestData requestData)
         {
-            var request = new Message.AppInstallRequest(appInstallInfo);
-            await this._systemConfiguratorProxy.SendCommandAsync(request);
-        }
+            Debug.WriteLine("Uninstalling: " + requestData.PackageFamilyName);
 
-        internal async Task UninstallAppAsync(Message.AppUninstallInfo appUninstallInfo)
-        {
-            var request = new Message.AppUninstallRequest(appUninstallInfo);
-            await this._systemConfiguratorProxy.SendCommandAsync(request);
+            var request = new Message.AppUninstallRequest(requestData);
+            return await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.AppUninstallResponse;
         }
 
         internal async Task<string> GetStartupForegroundAppAsync()
@@ -444,119 +461,124 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public void ProcessDeviceManagementProperties(TwinCollection desiredProperties)
+        public void ApplyDesiredStateAsync(JObject dmNode)
         {
             // ToDo: We should not throw here. All problems need to be logged.
             Message.CertificateConfiguration certificateConfiguration = null;
+            JObject appsConfiguration = null;
 
-            foreach (KeyValuePair<string, object> dp in desiredProperties)
+            foreach (var managementProperty in dmNode.Children().OfType<JProperty>())
             {
-                if (dp.Key == "microsoft" && dp.Value is JObject)
+                if (managementProperty.Value.Type != JTokenType.Object)
                 {
-                    JToken managementNode;
-                    if ((dp.Value as JObject).TryGetValue("management", out managementNode))
-                    {
-                        foreach (var managementProperty in managementNode.Children().OfType<JProperty>())
+                    continue;
+                }
+                switch (managementProperty.Name)
+                {
+                    case "scheduledReboot":
                         {
-                            switch (managementProperty.Name)
-                            {
-                                case "scheduledReboot":
-                                    if (managementProperty.Value.Type == JTokenType.Object)
-                                    {
-                                        Debug.WriteLine("scheduledReboot = " + managementProperty.Value.ToString());
+                            Debug.WriteLine("scheduledReboot = " + managementProperty.Value.ToString());
 
-                                        JObject subProperties = (JObject)managementProperty.Value;
+                            JObject subProperties = (JObject)managementProperty.Value;
 
-                                        var request = new Message.SetRebootInfoRequest();
+                            var request = new Message.SetRebootInfoRequest();
 
-                                        DateTime singleRebootTime = DateTime.Parse(subProperties.Property("singleRebootTime").Value.ToString());
-                                        request.singleRebootTime = singleRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                            DateTime singleRebootTime = DateTime.Parse(subProperties.Property("singleRebootTime").Value.ToString());
+                            request.singleRebootTime = singleRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
 
-                                        DateTime dailyRebootTime = DateTime.Parse(subProperties.Property("dailyRebootTime").Value.ToString());
-                                        request.dailyRebootTime = dailyRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                            DateTime dailyRebootTime = DateTime.Parse(subProperties.Property("dailyRebootTime").Value.ToString());
+                            request.dailyRebootTime = dailyRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
 
-                                        this._systemConfiguratorProxy.SendCommandAsync(request);
-                                    }
-                                    break;
-                                case "externalStorage":
-                                    if (managementProperty.Value.Type == JTokenType.Object)
-                                    {
-                                        Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
-
-                                        JObject subProperties = (JObject)managementProperty.Value;
-
-                                        _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
-                                        _externalStorage.containerName = (string)subProperties.Property("container").Value;
-                                    }
-                                    break;
-                                case "certificates":
-                                    if (managementProperty.Value.Type == JTokenType.Object)
-                                    {
-                                        // Capture the configuration here.
-                                        // To apply the configuration we need to wait until externalStorage has been configured too.
-                                        Debug.WriteLine("CertificateConfiguration = " + managementProperty.Value.ToString());
-                                        certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(managementProperty.Value.ToString());
-                                    }
-                                    break;
-                                case "timeInfo":
-                                    if (managementProperty.Value.Type == JTokenType.Object)
-                                    {
-                                        Debug.WriteLine("timeInfo = " + managementProperty.Value.ToString());
-
-                                        // Default JsonConvert Deserializing changes ISO8601 date fields to "mm/dd/yyyy hh:mm:ss".
-                                        // We need to preserve the ISO8601 since that's the format SystemConfigurator understands.
-                                        // Because of that, we are not using:
-                                        // Message.SetTimeInfo requestInfo = JsonConvert.DeserializeObject<Message.SetTimeInfo>(fieldsJson);
-
-                                        Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest();
-                                        JObject subProperties = (JObject)managementProperty.Value;
-                                        request.ntpServer = (string)subProperties.Property("ntpServer").Value;
-                                        request.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
-                                        request.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
-                                        DateTime daylightDate = DateTime.Parse(subProperties.Property("timeZoneDaylightDate").Value.ToString());
-                                        request.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                                        request.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
-                                        request.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
-                                        DateTime standardDate = DateTime.Parse(subProperties.Property("timeZoneStandardDate").Value.ToString());
-                                        request.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                                        request.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
-
-                                        this._systemConfiguratorProxy.SendCommandAsync(request);
-                                    }
-                                    break;
-                                case "windowsUpdatePolicy":
-                                    if (managementProperty.Value.Type == JTokenType.Object)
-                                    {
-                                        Debug.WriteLine("windowsUpdatePolicy = " + managementProperty.Value.ToString());
-                                        var configuration = JsonConvert.DeserializeObject<WindowsUpdatePolicyConfiguration>(managementProperty.Value.ToString());
-                                        this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatePolicyRequest(configuration));
-                                    }
-                                    break;
-                                case "windowsUpdates":
-                                    if (managementProperty.Value.Type == JTokenType.Object)
-                                    {
-                                        Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
-                                        var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(managementProperty.Value.ToString());
-                                        this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
-                                    }
-                                    break;
-                                default:
-                                    // Not supported
-                                    break;
-                            }
+                            this._systemConfiguratorProxy.SendCommandAsync(request);
                         }
+                        break;
+                    case "externalStorage":
+                        {
+                            Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
+
+                            JObject subProperties = (JObject)managementProperty.Value;
+
+                            _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
+                            _externalStorage.containerName = (string)subProperties.Property("container").Value;
+                        }
+                        break;
+                    case "certificates":
+                        {
+                            // Capture the configuration here.
+                            // To apply the configuration we need to wait until externalStorage has been configured too.
+                            Debug.WriteLine("CertificateConfiguration = " + managementProperty.Value.ToString());
+                            certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(managementProperty.Value.ToString());
+                        }
+                        break;
+                    case "timeInfo":
+                        {
+                            Debug.WriteLine("timeInfo = " + managementProperty.Value.ToString());
+
+                            // Default JsonConvert Deserializing changes ISO8601 date fields to "mm/dd/yyyy hh:mm:ss".
+                            // We need to preserve the ISO8601 since that's the format SystemConfigurator understands.
+                            // Because of that, we are not using:
+                            // Message.SetTimeInfo requestInfo = JsonConvert.DeserializeObject<Message.SetTimeInfo>(fieldsJson);
+
+                            Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest();
+                            JObject subProperties = (JObject)managementProperty.Value;
+                            request.ntpServer = (string)subProperties.Property("ntpServer").Value;
+                            request.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
+                            request.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
+                            DateTime daylightDate = DateTime.Parse(subProperties.Property("timeZoneDaylightDate").Value.ToString());
+                            request.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                            request.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
+                            request.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
+                            DateTime standardDate = DateTime.Parse(subProperties.Property("timeZoneStandardDate").Value.ToString());
+                            request.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                            request.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
+
+                            this._systemConfiguratorProxy.SendCommandAsync(request);
+                        }
+                        break;
+                    case "windowsUpdatePolicy":
+                        {
+                            Debug.WriteLine("windowsUpdatePolicy = " + managementProperty.Value.ToString());
+                            var configuration = JsonConvert.DeserializeObject<WindowsUpdatePolicyConfiguration>(managementProperty.Value.ToString());
+                            this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatePolicyRequest(configuration));
+                        }
+                        break;
+                    case "windowsUpdates":
+                        {
+                            Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
+                            var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(managementProperty.Value.ToString());
+                            this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
+                        }
+                        break;
+                    case "apps":
+                        {
+                            Debug.WriteLine("apps = " + managementProperty.Value.ToString());
+                            appsConfiguration = (JObject)managementProperty.Value;
+                        }
+                        break;
+                    default:
+                        // Not supported
+                        break;
+                }
+            }
+
+            // Now, handle the operations that depend on others in the necessary order.
+            // By now, Azure storage information should have been captured.
+
+            if (!String.IsNullOrEmpty(_externalStorage.connectionString))
+            {
+                if (appsConfiguration != null)
+                {
+                    AppxManagement.ApplyDesiredAppsConfiguration(this, _externalStorage.connectionString, appsConfiguration);
+                }
+
+                // Some operations require the default container to be specified...
+                if (!String.IsNullOrEmpty(_externalStorage.containerName))
+                {
+                    if (certificateConfiguration != null)
+                    {
+                        ProcessDesiredCertificateConfiguration(this, _externalStorage.connectionString, _externalStorage.containerName, certificateConfiguration);
                     }
                 }
-             }
-
-            // Need to keep this until externalStorage is processed.
-            // ToDo: The client does not get a full copy of the device twin when it first connects! (regression?)
-            //       This means that the externalStorage might not get set when the machine connects.
-            if (!String.IsNullOrEmpty(_externalStorage.connectionString) &&
-                !String.IsNullOrEmpty(_externalStorage.containerName) &&
-                certificateConfiguration != null)
-            {
-                ProcessDesiredCertificateConfiguration(this, _externalStorage.connectionString, _externalStorage.containerName, certificateConfiguration);
             }
         }
 

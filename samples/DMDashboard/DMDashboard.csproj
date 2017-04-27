@@ -145,10 +145,38 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AppDesiredStateControl.xaml.cs">
+      <DependentUpon>AppDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="AppsDesiredStateControl.xaml.cs">
+      <DependentUpon>AppsDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="AppsReportedStateControl.xaml.cs">
+      <DependentUpon>AppsReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="AppReportedStateControl.xaml.cs">
+      <DependentUpon>AppReportedStateControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CertificateExportDetails.xaml.cs">
       <DependentUpon>CertificateExportDetails.xaml</DependentUpon>
     </Compile>
     <Compile Include="WPFUtils.cs" />
+    <Page Include="AppDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="AppsDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="AppsReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="AppReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="AzureBlobSelector.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
