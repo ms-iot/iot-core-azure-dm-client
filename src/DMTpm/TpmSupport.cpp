@@ -173,3 +173,10 @@ void CreateHmacKey(int logicalId, const std::string& key)
 	RunLimpet(to_wstring(logicalId) + L" -chk " + Utils::MultibyteToWide(key.c_str()));
 }
 
+void EvictHmacKey(int logicalId)
+{
+	TRACE(__FUNCTION__);
+
+	RunLimpet(to_wstring(logicalId) + L" -ehk");
+}
+
