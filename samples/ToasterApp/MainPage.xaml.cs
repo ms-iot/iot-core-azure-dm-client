@@ -75,12 +75,15 @@ namespace Toaster
             // Set the callback for desired properties update. The callback will be invoked
             // for all desired properties -- including those specific to device management
             await deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, null);
+
+            // Tell the deviceManagementClient to sync the device with the current desired state.
+            await this.deviceManagementClient.ApplyDesiredStateAsync();
         }
 
         public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
         {
             // Let the device management client process properties specific to device management
-            this.deviceManagementClient.ProcessDeviceManagementProperties(desiredProperties);
+            this.deviceManagementClient.ApplyDesiredStateAsync(desiredProperties);
 
             // Application developer can process all the top-level nodes here
             return Task.CompletedTask;

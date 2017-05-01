@@ -25,18 +25,18 @@ using namespace Windows::Data::Json;
 
 namespace Microsoft { namespace Devices { namespace Management { namespace Message
 {
-    public ref class AppUninstallInfo sealed
+    public ref class AppUninstallRequestData sealed
     {
     public:
-        AppUninstallInfo()
+        AppUninstallRequestData()
         {
             PackageFamilyName = ref new Platform::String();
             StoreApp = true;
         }
-        AppUninstallInfo(String^ packageFamilyName, bool start)
+        AppUninstallRequestData(String^ packageFamilyName, bool storeApp)
         {
             PackageFamilyName = packageFamilyName;
-            StoreApp = start;
+            StoreApp = storeApp;
         }
         property String^ PackageFamilyName;
         property bool StoreApp;
@@ -44,14 +44,18 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     public ref class AppUninstallRequest sealed : public IRequest
     {
-        AppUninstallInfo^ appInfo;
     public:
-        AppUninstallRequest(AppUninstallInfo^ appInfo) : appInfo(appInfo) {}
+        property AppUninstallRequestData^ data;
+
+        AppUninstallRequest(AppUninstallRequestData^ d) 
+        {
+            data = d;
+        }
 
         virtual Blob^ Serialize() {
             JsonObject^ jsonObject = ref new JsonObject();
-            jsonObject->Insert("PackageFamilyName", JsonValue::CreateStringValue(appInfo->PackageFamilyName));
-            jsonObject->Insert("StoreApp", JsonValue::CreateBooleanValue(appInfo->StoreApp));
+            jsonObject->Insert("PackageFamilyName", JsonValue::CreateStringValue(data->PackageFamilyName));
+            jsonObject->Insert("StoreApp", JsonValue::CreateBooleanValue(data->StoreApp));
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
 
@@ -60,16 +64,69 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto appId = jsonObject->Lookup("PackageFamilyName")->GetString();
             auto start = jsonObject->Lookup("StoreApp")->GetBoolean();
-            auto appInfo = ref new Microsoft::Devices::Management::Message::AppUninstallInfo(appId, start);
-            return ref new AppUninstallRequest(appInfo);
+            auto d = ref new Microsoft::Devices::Management::Message::AppUninstallRequestData(appId, start);
+            return ref new AppUninstallRequest(d);
         }
 
         virtual property DMMessageKind Tag {
             DMMessageKind get();
         }
+    };
 
-        property AppUninstallInfo^ AppUninstallInfo {
-            Microsoft::Devices::Management::Message::AppUninstallInfo^ get() { return appInfo; }
+    public ref class AppUninstallResponseData sealed
+    {
+    public:
+        property int errorCode;
+        property String^ errorMessage;
+
+        Blob^ Serialize(uint32_t tag) {
+            JsonObject^ jsonObject = ref new JsonObject();
+
+            jsonObject->Insert("errorCode", JsonValue::CreateNumberValue(errorCode));
+            jsonObject->Insert("errorMessage", JsonValue::CreateStringValue(errorMessage));
+
+            return SerializationHelper::CreateBlobFromJson(tag, jsonObject);
+        }
+
+        static AppUninstallResponseData^ Deserialize(Blob^ blob) {
+            String^ str = SerializationHelper::GetStringFromBlob(blob);
+            JsonObject^ jsonObject = JsonObject::Parse(str);
+            auto result = ref new AppUninstallResponseData();
+
+            result->errorCode = static_cast<int>(jsonObject->Lookup("errorCode")->GetNumber());
+            result->errorMessage = jsonObject->Lookup("errorMessage")->GetString();
+
+            return result;
+        }
+    };
+
+    public ref class AppUninstallResponse sealed : public IResponse
+    {
+        StatusCodeResponse statusCodeResponse;
+    public:
+        property AppUninstallResponseData^ data;
+
+        AppUninstallResponse(ResponseStatus status, AppUninstallResponseData^ d) :
+            statusCodeResponse(status, this->Tag)
+        {
+            data = d;
+        }
+
+        virtual Blob^ Serialize() {
+            return data->Serialize((uint32_t)Tag);
+        }
+
+        static IDataPayload^ Deserialize(Blob^ blob) {
+            AppUninstallResponseData^ d = AppUninstallResponseData::Deserialize(blob);
+            return ref new AppUninstallResponse(ResponseStatus::Success, d);
+        }
+
+        virtual property ResponseStatus Status {
+            ResponseStatus get() { return statusCodeResponse.Status; }
+        }
+
+        virtual property DMMessageKind Tag {
+            DMMessageKind get();
         }
     };
 }}}}

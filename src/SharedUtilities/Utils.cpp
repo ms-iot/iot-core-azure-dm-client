@@ -124,9 +124,9 @@ namespace Utils
 
     void ReadXmlStructData(IStream* resultSyncML, ELEMENT_HANDLER handler)
     {
-        wstring uriPath = L"Root\\Results\\Item\\Source\\LocURI\\";
-        wstring dataPath = L"Root\\Results\\Item\\Data\\";
-        wstring itemPath = L"Root\\Results\\Item\\";
+        wstring uriPath = L"SyncML\\SyncBody\\Results\\Item\\Source\\LocURI\\";
+        wstring dataPath = L"SyncML\\SyncBody\\Results\\Item\\Data\\";
+        wstring itemPath = L"SyncML\\SyncBody\\Results\\Item\\";
 
         wstring emptyString = L"";
         auto value = emptyString;
@@ -716,14 +716,14 @@ namespace Utils
         string line;
         if (!file.is_open())
         {
-            throw new DMException("Error: failed to open binary file!");
+            throw DMException("Error: failed to open binary file!");
         }
 
         buffer.resize(static_cast<unsigned int>(file.tellg()));
         file.seekg(0, ios::beg);
         if (!file.read(buffer.data(), buffer.size()))
         {
-            throw new DMException("Error: failed to read file!");
+            throw DMException("Error: failed to read file!");
         }
         file.close();
     }
@@ -735,16 +735,17 @@ namespace Utils
         DWORD destinationSize = 0;
         if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size(), CRYPT_STRING_BASE64, nullptr, &destinationSize))
         {
-            throw new DMException("Error: cannot obtain the required size to encode buffer into base64.");
+            throw DMException("Error: cannot obtain the required size to encode buffer into base64.");
         }
 
         vector<wchar_t> destinationBuffer(destinationSize);
         if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size(), CRYPT_STRING_BASE64, destinationBuffer.data(), &destinationSize))
         {
-            throw new DMException("Error: cannot convert binary stream to base64.");
+            throw DMException("Error: cannot convert binary stream to base64.");
         }
 
-        return wstring(destinationBuffer.data(), destinationBuffer.size());
+        // Note that the size returned includes the null terminating character.
+        return wstring(destinationBuffer.data(), destinationBuffer.size() - 1);
     }
 
     wstring FileToBase64(const wstring& fileName)

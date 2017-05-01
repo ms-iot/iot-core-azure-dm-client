@@ -22,6 +22,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CSPs\RebootCSP.h"
 #include "CSPs\EnterpriseModernAppManagementCSP.h"
 #include "CSPs\CustomDeviceUiCsp.h"
+#include "AppCfg.h"
 #include "TimeCfg.h"
 #include "AppCfg.h"
 #include "TpmSupport.h"
@@ -362,8 +363,8 @@ IResponse^ HandleInstallApp(IRequest^ request)
 {
     try
     {
-        auto appInstall = dynamic_cast<AppInstallRequest^>(request);
-        auto info = appInstall->AppInstallInfo;
+        auto appInstallRequest = dynamic_cast<AppInstallRequest^>(request);
+        auto info = appInstallRequest->data;
 
         std::vector<wstring> deps;
         for each (auto dep in info->Dependencies)
@@ -372,36 +373,69 @@ IResponse^ HandleInstallApp(IRequest^ request)
         }
         auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
         auto appxPath = (wstring)info->AppxPath->Data();
+        auto certFile = (wstring)info->CertFile->Data();
+        auto certStore = (wstring)info->CertStore->Data();
+        // ToDo: Need to either fix the CSP api, or just stick with the WinRT interface.
+        // EnterpriseModernAppManagementCSP::ApplicationInfo applicationInfo = EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
+        ApplicationInfo applicationInfo = AppCfg::InstallApp(packageFamilyName, appxPath, deps, certFile, certStore);
+        AppInstallResponseData^ responseData = ref new AppInstallResponseData();
+        responseData->pkgFamilyName = ref new String(applicationInfo.packageFamilyName.c_str());
+        responseData->name = ref new String(applicationInfo.name.c_str());
+        responseData->installDate = ref new String(applicationInfo.installDate.c_str());
+        responseData->version = ref new String(applicationInfo.version.c_str());
+        responseData->errorCode = applicationInfo.errorCode;
+        responseData->errorMessage = ref new String(applicationInfo.errorMessage.c_str());
 
-        EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+        return ref new AppInstallResponse(ResponseStatus::Success, responseData);
     }
     catch (Platform::Exception^ e)
     {
         std::wstring failure(e->Message->Data());
         TRACEP(L"ERROR DMCommand::HandleInstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+
+        AppInstallResponseData^ responseData = ref new AppInstallResponseData();
+        responseData->errorCode = e->HResult;
+        responseData->errorMessage = e->Message;
+        return ref new AppInstallResponse(ResponseStatus::Failure, responseData);
     }
 }
 
 IResponse^ HandleUninstallApp(IRequest^ request)
 {
+    AppUninstallResponseData^ responseData = ref new AppUninstallResponseData();
+    responseData->errorCode = 0;
+    responseData->errorMessage = L"";
+
     try
     {
-        auto appUninstall = dynamic_cast<AppUninstallRequest^>(request);
-        auto info = appUninstall->AppUninstallInfo;
-        auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
-        auto storeApp = info->StoreApp;
-
-        EnterpriseModernAppManagementCSP::UninstallApp(packageFamilyName, storeApp);
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+        auto appUninstallRequest = dynamic_cast<AppUninstallRequest^>(request);
+        auto requestData = appUninstallRequest->data;
+        auto packageFamilyName = (wstring)requestData->PackageFamilyName->Data();
+        // ToDo: Need to either fix the CSP api, or just stick with the WinRT interface.
+        // auto storeApp = info->StoreApp;
+        // EnterpriseModernAppManagementCSP::UninstallApp(packageFamilyName, storeApp);
+        AppCfg::UninstallApp(packageFamilyName.c_str());
+        responseData->errorCode = 0;
+        responseData->errorMessage = L"";
+        return ref new AppUninstallResponse(ResponseStatus::Success, responseData);
     }
     catch (Platform::Exception^ e)
     {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleUninstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+        responseData->errorCode = e->HResult;
+        responseData->errorMessage = e->Message;
     }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        responseData->errorCode = e.ErrorCode();
+        responseData->errorMessage = ref new String(Utils::MultibyteToWide(e.what()).c_str());
+    }
+    catch (const DMException& e)
+    {
+        responseData->errorCode = 0;    // unknown error
+        responseData->errorMessage = ref new String(Utils::MultibyteToWide(e.what()).c_str());
+    }
+
+    return ref new AppUninstallResponse(ResponseStatus::Failure, responseData);
 }
 
 IResponse^ HandleTransferFile(IRequest^ request)

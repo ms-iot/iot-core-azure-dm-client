@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.0
+VisualStudioVersion = 15.0.26403.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SystemConfigurator", "SystemConfigurator\SystemConfigurator.vcxproj", "{CBBD687C-3B2A-4216-8F74-754A72E05D7F}"
 EndProject
@@ -73,6 +73,7 @@ Global
 		{CBBD687C-3B2A-4216-8F74-754A72E05D7F}.Debug|x64.ActiveCfg = Debug|x64
 		{CBBD687C-3B2A-4216-8F74-754A72E05D7F}.Debug|x64.Build.0 = Debug|x64
 		{CBBD687C-3B2A-4216-8F74-754A72E05D7F}.Debug|x86.ActiveCfg = Debug|Win32
+		{CBBD687C-3B2A-4216-8F74-754A72E05D7F}.Debug|x86.Build.0 = Debug|Win32
 		{CBBD687C-3B2A-4216-8F74-754A72E05D7F}.Release|ARM.ActiveCfg = Release|ARM
 		{CBBD687C-3B2A-4216-8F74-754A72E05D7F}.Release|ARM.Build.0 = Release|ARM
 		{CBBD687C-3B2A-4216-8F74-754A72E05D7F}.Release|x64.ActiveCfg = Release|x64

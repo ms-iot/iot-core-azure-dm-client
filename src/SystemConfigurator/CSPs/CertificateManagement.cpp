@@ -36,18 +36,18 @@ void CertificateManagement::SyncCertificates(const std::wstring& path, const std
 
     // Loading desired certificates info...
     TRACE(L"Loading desired certificates info...");
-    vector<CertificateFileInfo> desiredCertificates;
+    vector<CertificateFile> desiredCertificates;
     for (const wstring& desiredCertificateFile : desiredCertificateFilesVector)
     {
         wstring fullFileName = wstring(SC_CLEANUP_FOLDER) + L"\\" + desiredCertificateFile;
         TRACEP(L"Reading: ", fullFileName.c_str());
-        desiredCertificates.push_back(CertificateFileInfo(fullFileName));
+        desiredCertificates.push_back(CertificateFile(fullFileName));
     }
 
     // If in desired but not in current, add it.
     TRACE(L"Deciding what to add...");
-    vector<CertificateFileInfo> certificatesToAdd;
-    for (const CertificateFileInfo& certificateFileInfo : desiredCertificates)
+    vector<CertificateFile> certificatesToAdd;
+    for (const CertificateFile& certificateFileInfo : desiredCertificates)
     {
         wstring desiredHash = certificateFileInfo.ThumbPrint();
         if (currentHashesVector.end() == std::find(currentHashesVector.begin(), currentHashesVector.end(), desiredHash))
@@ -68,7 +68,7 @@ void CertificateManagement::SyncCertificates(const std::wstring& path, const std
     {
         TRACEP(L"Looking for: ", currentHash.c_str());
         bool found = false;
-        for (const CertificateFileInfo& certificateFileInfo : desiredCertificates)
+        for (const CertificateFile& certificateFileInfo : desiredCertificates)
         {
             if (currentHash == certificateFileInfo.ThumbPrint())
             {
@@ -93,7 +93,7 @@ void CertificateManagement::SyncCertificates(const std::wstring& path, const std
     }
 
     // Add certificates
-    for (const CertificateFileInfo& certificateToAdd : certificatesToAdd)
+    for (const CertificateFile& certificateToAdd : certificatesToAdd)
     {
         TRACEP(L"Adding: ", certificateToAdd.FullFileName().c_str());
         wstring certificateInBase64 = Utils::FileToBase64(certificateToAdd.FullFileName());

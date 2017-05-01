@@ -738,11 +738,14 @@
                             <ColumnDefinition Width="40"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="1" Margin="3" Text="Application" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                        <Button Grid.Column="0" Click="OnExpandApplication" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Apps" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandApps" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
-                    <Grid x:Name="ApplicationGrid" Visibility="Collapsed">
+                    <Grid x:Name="AppsGrid" Visibility="Visible">
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
@@ -754,13 +757,27 @@
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Self Update"/>
-                        <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Start" Click="OnStartAppSelfUpdate" />
-                        <Border Background="#F8F8F8" Margin="3">
-                            <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="StartAppSelfUpdateResult" />
-                        </Border>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" Text="Primary DM App" />
+                        <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Start App Self Update" Click="OnStartAppSelfUpdate" />
+                        <Grid Grid.Row="1" Grid.Column="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="300"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Result"/>
+                            <Border Grid.Row="0" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                                <TextBlock Margin="3" x:Name="StartAppSelfUpdateResult" />
+                            </Border>
+                        </Grid>
+
+                        <Border Grid.Row="2" Grid.Column="1" BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="300" Height="1" />
+                        <Border Grid.Row="2" Grid.Column="2" BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="300" Height="1" />
+
+                        <local:AppsDesiredStateControl Grid.Row="3" Grid.Column="1" x:Name="TheAppsConfigurator"/>
+                        <local:AppsReportedStateControl Grid.Row="3" Grid.Column="2" x:Name="TheAppsStatus"/>
+                        <Button Grid.Row="4" Grid.Column="1" Margin="3" Content="Set Apps Info" Click="OnSetAppsConfiguration" />
                     </Grid>
-                    
+
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -981,67 +998,6 @@
 
                     </Grid>
 
-
-                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="1" Margin="3" Text="Install App" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                        <Button Grid.Column="0" Click="OnExpandAppInstall" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Grid>
-                    <Grid x:Name="AppInstallGrid" Visibility="Collapsed">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/>
-                            <ColumnDefinition Width="490"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Label Grid.Row="0" Grid.Column="0">Azure Blob Connection String</Label>
-                        <Border Grid.Row="0" Grid.Column="1" Margin="3" Background="#F8F8F8">
-                            <TextBox Grid.ColumnSpan="2" x:Name="AppConnectionString" TextChanged="AppInstallButtonActivation"  HorizontalAlignment="Stretch"  />
-                        </Border>
-
-                        <Label Grid.Row="1" Grid.Column="0">Azure Blob Container Name</Label>
-                        <Border Grid.Row="1" Grid.Column="1" Margin="3" Background="#F8F8F8">
-                            <TextBox Grid.ColumnSpan="2" x:Name="AppContainerName" TextChanged="AppInstallButtonActivation"  HorizontalAlignment="Stretch" />
-                        </Border>
-
-                        <Label Grid.Row="2" Grid.Column="0">App Package Family Name</Label>
-                        <Border Grid.Row="2" Grid.Column="1" Margin="3" Background="#F8F8F8">
-                            <TextBox x:Name="AppPackageFamilyName" TextChanged="AppInstallButtonActivation" HorizontalAlignment="Stretch" />
-                        </Border>
-
-                        <Label Grid.Row="3" Grid.Column="0">App Package (*.appx)</Label>
-                        <Border Grid.Row="3" Grid.Column="1" Margin="3" Background="#F8F8F8">
-                            <TextBox x:Name="AppAppxPath" TextChanged="AppInstallButtonActivation" HorizontalAlignment="Stretch" />
-                        </Border>
-                        <Button Grid.Row="3" Grid.Column="2" Margin="3" Click="OnAppxBrowse" HorizontalAlignment="Stretch" >Browse</Button>
-
-                        <Label Grid.Row="4" Grid.Column="0">App Dependency Pacakge (*.appx)</Label>
-                        <Border Grid.Row="4" Grid.Column="1" Margin="3" Background="#F8F8F8">
-                            <TextBox x:Name="AppDep1AppxPath" HorizontalAlignment="Stretch" />
-                        </Border>
-                        <Button Grid.Row="4" Grid.Column="2" Margin="3" Click="OnDep1AppxBrowse" HorizontalAlignment="Stretch" >Browse</Button>
-
-                        <Label Grid.Row="5" Grid.Column="0">App Dependency Pacakge (*.appx)</Label>
-                        <Border Grid.Row="5" Grid.Column="1" Margin="3" Background="#F8F8F8">
-                            <TextBox x:Name="AppDep2AppxPath" HorizontalAlignment="Stretch" />
-                        </Border>
-                        <Button Grid.Row="5" Grid.Column="2" Margin="3" Click="OnDep2AppxBrowse" HorizontalAlignment="Stretch" >Browse</Button>
-                        <Button Grid.Row="6" Grid.Column="1" Margin="3" Click="AppInstallAsync" HorizontalAlignment="Stretch" x:Name="AppInstallButton">Install App</Button>
-                    </Grid>
-
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -1057,7 +1013,6 @@
                         <Button Grid.Row="0" Grid.Column="2" Margin="3" Content="Update DT Reported from Device" Click="OnUpdateDTReported" />
                         <Button Grid.Row="1" Grid.Column="2" Margin="3" Content="Read Reported from DT" Click="OnReadDTReported" />
                     </Grid>
-
 
                 </StackPanel>
             </ScrollViewer>

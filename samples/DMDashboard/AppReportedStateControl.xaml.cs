@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017 Microsoft
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
 and associated documentation files (the "Software"), to deal in the Software without restriction, 
@@ -12,11 +12,33 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+using System.Windows.Controls;
 
-namespace Toaster
+namespace DMDashboard
 {
-    public static class ConnectionStringProvider
+    public class AppReportedState
     {
-        public static string Value => "<connection string>";
+        public string PackageFamilyName { get; set; }
+        public string Version { get; set; }
+        public string InstallDate { get; set; }
+        public string Error { get; set; }
+
+        public AppReportedState() { }
+
+        public AppReportedState(string packageFamilyName, string version, string installDate, string error)
+        {
+            PackageFamilyName = packageFamilyName;
+            Version = version;
+            InstallDate = installDate;
+            Error = error;
+        }
+    }
+
+    public partial class AppReportedStateControl : UserControl
+    {
+        public AppReportedStateControl()
+        {
+            InitializeComponent();
+        }
     }
 }

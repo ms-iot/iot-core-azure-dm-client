@@ -102,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppCfg.h" />
+    <ClInclude Include="AppInfo.h" />
     <ClInclude Include="CommandProcessor.h" />
     <ClInclude Include="CSPs\CertificateInfo.h" />
     <ClInclude Include="CSPs\CertificateManagement.h" />

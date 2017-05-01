@@ -16,12 +16,21 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <string>
 #include <windows.h>
+#include "AppInfo.h"
 
 class AppCfg
 {
 public:
     static void StartApp(const std::wstring& appId) { StartStopApp(appId, true); }
     static void StopApp(const std::wstring& appId) { StartStopApp(appId, false); }
+
+    static ApplicationInfo InstallApp(const std::wstring& packageFamilyName, const std::wstring& appxLocalPath, const std::vector<std::wstring>& dependentPackages, const std::wstring& certFileName, const std::wstring& certStore);
+    static ApplicationInfo UninstallApp(const std::wstring& packageFamilyName);
+
 private:
+    static ApplicationInfo GetAppInfo(Windows::ApplicationModel::Package^ package);
     static void StartStopApp(const std::wstring& appId, bool start);
+
+    static Windows::ApplicationModel::Package^ FindApp(const std::wstring& packageFamilyName);
+    static ApplicationInfo BuildOperationResult(const std::wstring& packageFamilyName, int errorCode, const std::wstring& errorMessage);
 };
