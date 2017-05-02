@@ -36,6 +36,18 @@ namespace DMDashboard
 {
     public partial class MainWindow : Window
     {
+        enum AppLifeCycleAction
+        {
+            startApp,
+            stopApp
+        }
+
+        class AppLifeCycleParameters
+        {
+            public string pkgFamilyName;
+            public string action;
+        }
+
         class BlobInfo
         {
             public string Name { get; set; }
@@ -142,13 +154,13 @@ namespace DMDashboard
 
         private async void ListDevices(string connectionString)
         {
-            _registryManager = RegistryManager.CreateFromConnectionString(connectionString);
+            RegistryManager registryManager = RegistryManager.CreateFromConnectionString(connectionString);
 
             // Avoid duplicates in the list
             DeviceListBox.Items.Clear();
 
             // Populate devices.
-            IEnumerable<Device> devices = await this._registryManager.GetDevicesAsync(100);
+            IEnumerable<Device> devices = await registryManager.GetDevicesAsync(100);
             List<string> deviceIds = new List<string>();
             foreach (var device in devices)
             {
@@ -178,6 +190,27 @@ namespace DMDashboard
         private void OnDeviceSelected(object sender, SelectionChangedEventArgs e)
         {
             DeviceConnectButton.IsEnabled = true;
+        }
+
+        private async void OnManageAppLifeCycle(AppLifeCycleAction appLifeCycleAction, string packageFamilyName)
+        {
+            AppLifeCycleParameters parameters = new AppLifeCycleParameters();
+            parameters.action = appLifeCycleAction == AppLifeCycleAction.startApp ? "start" : "stop";
+            parameters.pkgFamilyName = packageFamilyName;
+            string parametersString = JsonConvert.SerializeObject(parameters);
+            CancellationToken cancellationToken = new CancellationToken();
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.manageAppLifeCycle", parametersString, new TimeSpan(0, 0, 30), cancellationToken);
+            MessageBox.Show("Reboot Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
+        }
+
+        private void OnStartApplication(object sender, RoutedEventArgs e)
+        {
+            OnManageAppLifeCycle(AppLifeCycleAction.startApp, LifeCyclePkgFamilyName.Text);
+        }
+
+        private void OnStopApplication(object sender, RoutedEventArgs e)
+        {
+            OnManageAppLifeCycle(AppLifeCycleAction.stopApp, LifeCyclePkgFamilyName.Text);
         }
 
         private void ListContainers(string connectionString)
@@ -752,7 +785,6 @@ namespace DMDashboard
             ExportCertificateDetailsAsync(sender, certificateData);
         }
 
-        private RegistryManager _registryManager;
         private DeviceTwinAndMethod _deviceTwin;
     }
 }

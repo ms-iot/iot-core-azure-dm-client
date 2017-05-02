@@ -748,6 +748,8 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="300"/>
@@ -773,9 +775,25 @@
                         <Border Grid.Row="2" Grid.Column="1" BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="300" Height="1" />
                         <Border Grid.Row="2" Grid.Column="2" BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="300" Height="1" />
 
-                        <local:AppsDesiredStateControl Grid.Row="3" Grid.Column="1" x:Name="TheAppsConfigurator"/>
-                        <local:AppsReportedStateControl Grid.Row="3" Grid.Column="2" x:Name="TheAppsStatus"/>
-                        <Button Grid.Row="4" Grid.Column="1" Margin="3" Content="Set Apps Info" Click="OnSetAppsConfiguration" />
+                        <Grid Grid.Row="3" Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="50"/>
+                                <ColumnDefinition Width="50"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Margin="3" Text="Pkg Family Name" />
+                            <TextBox Grid.Column="1" Margin="3" x:Name="LifeCyclePkgFamilyName"/>
+                            <Button Grid.Column="2" Margin="3" Click="OnStartApplication" Content="Start"/>
+                            <Button Grid.Column="3" Margin="3" Click="OnStopApplication" Content="Stop"/>
+                        </Grid>
+                        
+                        <Border Grid.Row="4" Grid.Column="1" BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="300" Height="1" />
+                        <Border Grid.Row="4" Grid.Column="2" BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="300" Height="1" />
+
+                        <local:AppsDesiredStateControl Grid.Row="5" Grid.Column="1" x:Name="TheAppsConfigurator"/>
+                        <local:AppsReportedStateControl Grid.Row="5" Grid.Column="2" x:Name="TheAppsStatus"/>
+                        <Button Grid.Row="6" Grid.Column="1" Margin="3" Content="Set Apps Info" Click="OnSetAppsConfiguration" />
                     </Grid>
 
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />

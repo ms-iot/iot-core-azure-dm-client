@@ -77,7 +77,8 @@ namespace Toaster
             await deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, null);
 
             // Tell the deviceManagementClient to sync the device with the current desired state.
-            await this.deviceManagementClient.ApplyDesiredStateAsync();
+            // Disabled due to: https://github.com/ms-iot/iot-core-azure-dm-client/issues/105
+            // await this.deviceManagementClient.ApplyDesiredStateAsync();
         }
 
         public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
