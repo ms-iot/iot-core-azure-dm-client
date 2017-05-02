@@ -55,6 +55,12 @@ namespace Microsoft.Devices.Management
             public string blobName;
         }
 
+        class AppLifeCycleParameters
+        {
+            public string pkgFamilyName;
+            public string action;
+        }
+
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             this._deviceTwin = deviceTwin;
@@ -71,6 +77,7 @@ namespace Microsoft.Devices.Management
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.startAppSelfUpdate", deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.getCertificateDetails", deviceManagementClient.GetCertificateDetailsHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.factoryReset", deviceManagementClient.FactoryResetHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync("microsoft.management.manageAppLifeCycle", deviceManagementClient.ManageAppLifeCycleHandlerAsync);
             return deviceManagementClient;
         }
 
@@ -438,6 +445,29 @@ namespace Microsoft.Devices.Management
             return Task.FromResult(JsonConvert.SerializeObject(response));
         }
 
+        private Task<string> ManageAppLifeCycleHandlerAsync(string jsonParam)
+        {
+            Debug.WriteLine("ManageAppLifeCycleHandlerAsync");
+
+            var response = new { response = "succeeded", reason = "" };
+            try
+            {
+                AppLifeCycleParameters appLifeCycleParameters = JsonConvert.DeserializeObject<AppLifeCycleParameters>(jsonParam);
+
+                Message.AppLifecycleInfo appLifeCycleInfo = new Message.AppLifecycleInfo();
+                appLifeCycleInfo.AppId = appLifeCycleParameters.pkgFamilyName;
+                appLifeCycleInfo.Start = appLifeCycleParameters.action == "start";
+                var request = new Message.AppLifecycleRequest(appLifeCycleInfo);
+                _systemConfiguratorProxy.SendCommandAsync(request);
+            }
+            catch (Exception e)
+            {
+                response = new { response = "rejected:", reason = e.Message };
+            }
+
+            return Task.FromResult(JsonConvert.SerializeObject(response));
+        }
+
         private static async void ProcessDesiredCertificateConfiguration(
             DeviceManagementClient client,
             string connectionString,
@@ -459,6 +489,31 @@ namespace Microsoft.Devices.Management
             {
                 throw new Exception("Error: failed to set update reboot policy.");
             }
+        }
+
+        private async void ApplyDesiredTimeSettings(JToken jsonValue)
+        {
+            // Default JsonConvert Deserializing changes ISO8601 date fields to "mm/dd/yyyy hh:mm:ss".
+            // We need to preserve the ISO8601 since that's the format SystemConfigurator understands.
+            // Because of that, we are not using:
+            // Message.SetTimeInfo requestInfo = JsonConvert.DeserializeObject<Message.SetTimeInfo>(fieldsJson);
+
+            Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest();
+            JObject subProperties = (JObject)jsonValue;
+            request.ntpServer = (string)subProperties.Property("ntpServer").Value;
+            request.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
+            request.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
+            DateTime daylightDate = DateTime.Parse(subProperties.Property("timeZoneDaylightDate").Value.ToString());
+            request.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            request.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
+            request.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
+            DateTime standardDate = DateTime.Parse(subProperties.Property("timeZoneStandardDate").Value.ToString());
+            request.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            request.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
+
+            await this._systemConfiguratorProxy.SendCommandAsync(request);
+
+            await ReportTimeInfoAsync();
         }
 
         public void ApplyDesiredStateAsync(JObject dmNode)
@@ -513,26 +568,7 @@ namespace Microsoft.Devices.Management
                     case "timeInfo":
                         {
                             Debug.WriteLine("timeInfo = " + managementProperty.Value.ToString());
-
-                            // Default JsonConvert Deserializing changes ISO8601 date fields to "mm/dd/yyyy hh:mm:ss".
-                            // We need to preserve the ISO8601 since that's the format SystemConfigurator understands.
-                            // Because of that, we are not using:
-                            // Message.SetTimeInfo requestInfo = JsonConvert.DeserializeObject<Message.SetTimeInfo>(fieldsJson);
-
-                            Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest();
-                            JObject subProperties = (JObject)managementProperty.Value;
-                            request.ntpServer = (string)subProperties.Property("ntpServer").Value;
-                            request.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
-                            request.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
-                            DateTime daylightDate = DateTime.Parse(subProperties.Property("timeZoneDaylightDate").Value.ToString());
-                            request.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                            request.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
-                            request.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
-                            DateTime standardDate = DateTime.Parse(subProperties.Property("timeZoneStandardDate").Value.ToString());
-                            request.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                            request.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
-
-                            this._systemConfiguratorProxy.SendCommandAsync(request);
+                            ApplyDesiredTimeSettings(managementProperty.Value);
                         }
                         break;
                     case "windowsUpdatePolicy":
@@ -616,6 +652,21 @@ namespace Microsoft.Devices.Management
         {
             var request = new Message.GetWindowsUpdatesRequest();
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse);
+        }
+
+        private async Task ReportTimeInfoAsync()
+        {
+            Message.GetTimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
+            Dictionary<string, object> collection = new Dictionary<string, object>();
+            collection["microsoft"] = new
+            {
+                management = new
+                {
+                    timeInfo = timeInfoResponse,
+                }
+            };
+
+            _deviceTwin.ReportProperties(collection);
         }
 
         private async Task ReportAllDeviceProperties()
