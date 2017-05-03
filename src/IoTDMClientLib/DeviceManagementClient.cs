@@ -682,7 +682,7 @@ namespace Microsoft.Devices.Management
             _deviceTwin.ReportProperties(collection);
         }
 
-        private async Task ReportAllDeviceProperties()
+        public async Task ReportAllDeviceProperties()
         {
             Debug.WriteLine("ReportAllDeviceProperties");
             Debug.WriteLine("Querying start: " + DateTime.Now.ToString());

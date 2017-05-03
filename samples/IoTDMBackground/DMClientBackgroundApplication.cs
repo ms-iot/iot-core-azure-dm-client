@@ -124,6 +124,7 @@ namespace IoTDMBackground
 
                 // Tell the deviceManagementClient to sync the device with the current desired state.
                 // await this._dmClient.ApplyDesiredStateAsync();
+                await this._dmClient.ReportAllDeviceProperties();
             }
             catch
             {
