@@ -61,6 +61,11 @@ namespace Microsoft.Devices.Management
             public string action;
         }
 
+        class StartupApps
+        {
+            public string foreground;
+        }
+
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             this._deviceTwin = deviceTwin;
@@ -589,6 +594,14 @@ namespace Microsoft.Devices.Management
                         {
                             Debug.WriteLine("apps = " + managementProperty.Value.ToString());
                             appsConfiguration = (JObject)managementProperty.Value;
+                        }
+                        break;
+                    case "startupApps":
+                        {
+                            Debug.WriteLine("startupApps = " + managementProperty.Value.ToString());
+                            var startupApps = JsonConvert.DeserializeObject<StartupApps>(managementProperty.Value.ToString());
+                            StartupAppInfo foregroundApp = new StartupAppInfo(startupApps.foreground, false /*!background*/);
+                            this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
                         }
                         break;
                     default:
