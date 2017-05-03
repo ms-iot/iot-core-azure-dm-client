@@ -15,9 +15,9 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Windows.ApplicationModel;
 using Windows.ApplicationModel.Background;
 using Windows.Foundation.Diagnostics;
 
@@ -68,15 +68,39 @@ namespace IoTDMBackground
             }
         }
 
+        private async Task<string> GetConnectionStringAsync()
+        {
+            var tpmDevice = new TpmDevice(0);
+
+            string connectionString = "";
+
+            do
+            {
+                try
+                {
+                    connectionString = await tpmDevice.GetConnectionStringAsync();
+                    break;
+                }
+                catch (Exception)
+                {
+                    // We'll just keep trying.
+                }
+                Debug.WriteLine("Waiting...");
+                await Task.Delay(1000);
+
+            } while (true);
+
+            return connectionString;
+        }
+
         public async void Run(IBackgroundTaskInstance taskInstance)
         {
             _deferral = taskInstance.GetDeferral();
 
-            var device = new TpmDevice(0);
 
             try
             {
-                string deviceConnectionString = await device.GetConnectionStringAsync();
+                string deviceConnectionString = await GetConnectionStringAsync();
 
                 // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
                 // as well as device management
@@ -99,7 +123,7 @@ namespace IoTDMBackground
                 await deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, null);
 
                 // Tell the deviceManagementClient to sync the device with the current desired state.
-                await this._dmClient.ApplyDesiredStateAsync();
+                // await this._dmClient.ApplyDesiredStateAsync();
             }
             catch
             {

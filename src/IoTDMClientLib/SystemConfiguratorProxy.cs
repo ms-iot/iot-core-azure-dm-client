@@ -15,11 +15,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #define DEBUG_COMMPROXY_OUTPUT
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Runtime.Serialization;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Devices.Management.Message;
 using Windows.Storage.Streams;
@@ -53,9 +49,15 @@ namespace Microsoft.Devices.Management
                     var response = (await Blob.ReadFromIInputStreamAsync(outStreamRedirect)).MakeIResponse();
                     if (response.Status != ResponseStatus.Success)
                     {
+
                         var stringResponse = response as StringResponse;
-                        if (stringResponse != null) throw new Exception(stringResponse.Response);
-                        throw new Exception("Operation failed");
+                        string message = "Error: CommProxy.exe - Operation failed";
+                        if (stringResponse != null)
+                        {
+                            message = "Error: " + stringResponse.Tag.ToString() + " : " + stringResponse.Response;
+                        }
+                        Debug.WriteLine(message);
+                        throw new Exception(message);
                     }
                     return response;
                 }

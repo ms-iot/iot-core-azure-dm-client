@@ -793,7 +793,8 @@
 
                         <local:AppsDesiredStateControl Grid.Row="5" Grid.Column="1" x:Name="TheAppsConfigurator"/>
                         <local:AppsReportedStateControl Grid.Row="5" Grid.Column="2" x:Name="TheAppsStatus"/>
-                        <Button Grid.Row="6" Grid.Column="1" Margin="3" Content="Set Apps Info" Click="OnSetAppsConfiguration" />
+                        
+                        <Button Grid.Row="6" Grid.Column="1" Margin="3" Content="Set Apps Configuration" Click="OnSetAppsConfiguration" />
                     </Grid>
 
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />

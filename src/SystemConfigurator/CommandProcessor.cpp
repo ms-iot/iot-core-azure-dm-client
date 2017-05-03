@@ -570,6 +570,7 @@ IResponse^ HandleListApps(IRequest^ request)
 IResponse^ HandleTpmGetServiceUrl(IRequest^ request)
 {
     TRACE(__FUNCTION__);
+    String^ errorMessage = L"unknown error";
     try
     {
         uint32_t logicalDeviceId = dynamic_cast<TpmGetServiceUrlRequest^>(request)->LogicalDeviceId;
@@ -577,16 +578,21 @@ IResponse^ HandleTpmGetServiceUrl(IRequest^ request)
         auto serviceUrlW = Utils::MultibyteToWide(serviceUrl.c_str());
         return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(serviceUrlW.c_str()), request->Tag);
     }
+    catch (DMException e)
+    {
+        errorMessage = ref new String(Utils::MultibyteToWide(e.what()).c_str());
+    }
     catch (...)
     {
-        TRACE(L"HandleTpmGetServiceUrl failed");
-        return ref new StringResponse(ResponseStatus::Failure, L"", request->Tag);
     }
+    TRACE(errorMessage->Data());
+    return ref new StringResponse(ResponseStatus::Failure, errorMessage, request->Tag);
 }
 
 IResponse^ HandleTpmGetSASToken(IRequest^ request)
 {
     TRACE(__FUNCTION__);
+    String^ errorMessage = L"unknown error";
     try
     {
         uint32_t logicalDeviceId = dynamic_cast<TpmGetSASTokenRequest^>(request)->LogicalDeviceId;
@@ -595,11 +601,15 @@ IResponse^ HandleTpmGetSASToken(IRequest^ request)
         auto sasTokenW = Utils::MultibyteToWide(sasToken.c_str());
         return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(sasTokenW.c_str()), request->Tag);
     }
+    catch (DMException e)
+    {
+        errorMessage = ref new String(Utils::MultibyteToWide(e.what()).c_str());
+    }
     catch (...)
     {
-        TRACE(L"HandleTpmGetSASToken failed");
-        return ref new StringResponse(ResponseStatus::Failure, L"", request->Tag);
     }
+    TRACE(errorMessage->Data());
+    return ref new StringResponse(ResponseStatus::Failure, errorMessage, request->Tag);
 }
 
 IResponse^ HandleGetWindowsUpdatePolicy(IRequest^ request)
