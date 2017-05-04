@@ -565,7 +565,7 @@ namespace Microsoft.Devices.Management
                 }
                 else if (timeZone == "cst")
                 {
-                    request.timeZoneBias = 420;
+                    request.timeZoneBias = 360;
                     request.timeZoneDaylightDate = "9999-12-31T00:00:00Z";
                     request.timeZoneDaylightName = "Central Daylight Time";
                     request.timeZoneStandardDate = "2007-01-01T00:00:00Z";
@@ -573,7 +573,7 @@ namespace Microsoft.Devices.Management
                 }
                 else if (timeZone == "mst")
                 {
-                    request.timeZoneBias = 480;
+                    request.timeZoneBias = 420;
                     request.timeZoneDaylightDate = "9999-12-31T00:00:00Z";
                     request.timeZoneDaylightName = "Mountain Daylight Time";
                     request.timeZoneStandardDate = "2007-01-01T00:00:00Z";

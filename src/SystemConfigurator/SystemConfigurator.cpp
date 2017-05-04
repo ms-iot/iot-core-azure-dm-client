@@ -25,6 +25,65 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SERVICE_ACCOUNT          L"NT AUTHORITY\\SYSTEM"
 #define SERVICE_PASSWORD         L""
 
+#define SET_TIMEZONE_SWITCH      L"settimezone:"
+
+using namespace std;
+
+int SetTimeZone(const wstring& newValue)
+{
+    TIME_ZONE_INFORMATION tzi = { 0 };
+
+    tzi.StandardBias = 0;
+    tzi.StandardDate.wYear = 2007; tzi.StandardDate.wMonth = 1; tzi.StandardDate.wDay = 1;
+    tzi.StandardDate.wHour = 2;    tzi.StandardDate.wMinute = 0; tzi.StandardDate.wSecond = 0;
+
+    tzi.DaylightBias = -60;
+    tzi.DaylightDate.wYear = 3000; tzi.DaylightDate.wMonth = 12; tzi.DaylightDate.wDay = 31;
+    tzi.DaylightDate.wHour = 2;    tzi.DaylightDate.wMinute = 0; tzi.DaylightDate.wSecond = 0;
+
+    if (0 == _wcsicmp(newValue.c_str(), L"est"))
+    {
+        tzi.Bias = 300;
+        wcsncpy_s(tzi.StandardName, L"Eastern Standard Time", _TRUNCATE);
+        wcsncpy_s(tzi.DaylightName, L"Eastern Daylight Time", _TRUNCATE);
+    }
+    else if (0 == _wcsicmp(newValue.c_str(), L"cst"))
+    {
+        tzi.Bias = 360;
+        wcsncpy_s(tzi.StandardName, L"Central Standard Time", _TRUNCATE);
+        wcsncpy_s(tzi.DaylightName, L"Central Daylight Time", _TRUNCATE);
+    }
+    else if (0 == _wcsicmp(newValue.c_str(), L"mst"))
+    {
+        tzi.Bias = 420;
+        wcsncpy_s(tzi.StandardName, L"Mountain Standard Time", _TRUNCATE);
+        wcsncpy_s(tzi.DaylightName, L"Mountain Daylight Time", _TRUNCATE);
+    }
+    else if (0 == _wcsicmp(newValue.c_str(), L"pst"))
+    {
+        tzi.Bias = 480;
+        wcsncpy_s(tzi.StandardName, L"Pacific Standard Time", _TRUNCATE);
+        wcsncpy_s(tzi.DaylightName, L"Pacific Daylight Time", _TRUNCATE);
+    }
+    else
+    {
+        TRACE("Unknown time zone...");
+        return -1;
+    }
+
+    TRACE(tzi.StandardName);
+
+    if (SetTimeZoneInformation(&tzi))
+    {
+        TRACE("Time zone set successfully.");
+    }
+    else
+    {
+        TRACEP("Failed to set time zone. Erro = ", GetLastError());
+        return -1;
+    }
+}
+
 [Platform::MTAThread]
 int wmain(int argc, wchar_t *argv[])
 {
@@ -59,8 +118,15 @@ int wmain(int argc, wchar_t *argv[])
             }
             catch (...)
             {
-
+                return -1;
             }
+            return 0;
+        }
+        else if (_wcsnicmp(SET_TIMEZONE_SWITCH, argv[1] + 1, wcslen(SET_TIMEZONE_SWITCH)) == 0)
+        {
+            TRACE("Setting time zone...");
+            wstring newValue = argv[1] + 1 + wcslen(SET_TIMEZONE_SWITCH);
+            return SetTimeZone(newValue);
         }
     }
     else
