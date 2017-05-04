@@ -642,7 +642,15 @@ namespace Microsoft.Devices.Management
                         JObject subProperties = (JObject)managementProperty.Value;
 
                         _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
-                        _externalStorage.containerName = (string)subProperties.Property("container").Value;
+                        JProperty containerProperty = subProperties.Property("container");
+                        if (containerProperty != null)
+                        {
+                            _externalStorage.containerName = (string)subProperties.Property("container").Value;
+                        }
+                        else
+                        {
+                            _externalStorage.containerName = "certificates";
+                        }
                     }
                     break;
                 case "certificates":
