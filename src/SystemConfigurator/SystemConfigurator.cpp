@@ -16,6 +16,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CommandProcessor.h"
 #include "DMService.h"
 #include "..\SharedUtilities\Logger.h"
+#include "CSPs\CertificateInfo.h"
 
 #define SERVICE_NAME             L"SystemConfigurator"
 #define SERVICE_DISPLAY_NAME     L"System Configurator"
@@ -49,6 +50,17 @@ int wmain(int argc, wchar_t *argv[])
         else if (_wcsicmp(L"debug", argv[1] + 1) == 0)
         {
             Listen();
+        }
+        else if (_wcsicmp(L"cleantest", argv[1] + 1) == 0)
+        {
+            try
+            {
+                CertificateInfo::DeleteCertificate(L"./Device/Vendor/MSFT/RootCATrustedCertificates/Root", L"6e7127c2d7c3d0aff188db3b386f63ecd98b8935");
+            }
+            catch (...)
+            {
+
+            }
         }
     }
     else

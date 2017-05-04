@@ -79,6 +79,7 @@ namespace Toaster
             // Tell the deviceManagementClient to sync the device with the current desired state.
             // Disabled due to: https://github.com/ms-iot/iot-core-azure-dm-client/issues/105
             // await this.deviceManagementClient.ApplyDesiredStateAsync();
+            await this.deviceManagementClient.ReportAllDeviceProperties();
         }
 
         public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)

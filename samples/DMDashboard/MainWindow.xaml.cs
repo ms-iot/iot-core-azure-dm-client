@@ -80,6 +80,7 @@ namespace DMDashboard
             if (connectionString != null && !string.IsNullOrEmpty(connectionString.Value))
             {
                 StorageConnectionStringBox.Text = connectionString.Value;
+                AzureStorageConnectionString.Text = connectionString.Value;
             }
 
             Desired_RootCATrustedCertificates_Root.ShowCertificateDetails += ShowCertificateDetails;
@@ -330,7 +331,7 @@ namespace DMDashboard
             Debug.WriteLine("json = " + deviceTwinData.reportedPropertiesJson);
 
             JObject jsonObject = (JObject)JsonConvert.DeserializeObject(deviceTwinData.reportedPropertiesJson);
-
+            /*
             JToken microsoftNode;
             if (!jsonObject.TryGetValue("microsoft", out microsoftNode) || microsoftNode.Type != JTokenType.Object)
             {
@@ -344,6 +345,8 @@ namespace DMDashboard
                 return;
             }
             JObject managementObject = (JObject)managementNode;
+            */
+            JObject managementObject = jsonObject;
 
             foreach (JProperty jsonProp in managementObject.Children())
             {
@@ -526,8 +529,12 @@ namespace DMDashboard
 
         private void SetDesired(string sectionString)
         {
+            /*
             string prefix = "{ \"properties\" : {\"desired\":{\"microsoft\":{\"management\":{";
             string suffix = "}}}}}";
+            */
+            string prefix = "{ \"properties\" : {\"desired\":{";
+            string suffix = "}}}";
             string jsonString = prefix + sectionString + suffix; // "{ \"properties\" : " + JsonConvert.SerializeObject(root) + "}";
             Debug.WriteLine("---- Desired Properties ----");
             Debug.WriteLine(jsonString);

@@ -83,6 +83,14 @@ namespace Microsoft.Devices.Management
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.getCertificateDetails", deviceManagementClient.GetCertificateDetailsHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.factoryReset", deviceManagementClient.FactoryResetHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.manageAppLifeCycle", deviceManagementClient.ManageAppLifeCycleHandlerAsync);
+
+            await deviceTwin.SetMethodHandlerAsync("ImmediateReboot", deviceManagementClient.ImmediateRebootMethodHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync("ReportAllDeviceProperties", deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
+            await deviceTwin.SetMethodHandlerAsync("StartAppSelfUpdate", deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync("GetCertificateDetails", deviceManagementClient.GetCertificateDetailsHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync("FactoryReset", deviceManagementClient.FactoryResetHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync("ManageAppLifeCycle", deviceManagementClient.ManageAppLifeCycleHandlerAsync);
+
             return deviceManagementClient;
         }
 
@@ -109,14 +117,46 @@ namespace Microsoft.Devices.Management
             }
         }
 
+        private async void ProcessCachedDesiredProperties()
+        {
+            // Now, handle the operations that depend on others in the necessary order.
+            // By now, Azure storage information should have been captured.
+
+            if (!String.IsNullOrEmpty(_externalStorage.connectionString))
+            {
+                if (_appsConfiguration != null)
+                {
+                    AppxManagement.ApplyDesiredAppsConfiguration(this, _externalStorage.connectionString, _appsConfiguration);
+                }
+
+                // Some operations require the default container to be specified...
+                if (!String.IsNullOrEmpty(_externalStorage.containerName))
+                {
+                    if (_certificateConfiguration != null)
+                    {
+                        ProcessDesiredCertificateConfiguration(this, _externalStorage.connectionString, _externalStorage.containerName, _certificateConfiguration);
+                    }
+                }
+            }
+        }
+
         public void ApplyDesiredStateAsync(TwinCollection desiredProperties)
         {
             Debug.WriteLine("Applying desired state...");
 
             try
             {
+                /*
                 JObject dmNode = (JObject)desiredProperties["microsoft"]["management"];
                 ApplyDesiredStateAsync(dmNode);
+                */
+                foreach (KeyValuePair<string, object> desiredProperty in desiredProperties)
+                {
+                    JProperty property = new JProperty(desiredProperty.Key, desiredProperty.Value);
+                    ApplyDesiredStateAsync(property);
+                }
+
+                ProcessCachedDesiredProperties();
             }
             catch (Exception)
             {
@@ -482,7 +522,9 @@ namespace Microsoft.Devices.Management
 
             await IoTDMClient.CertificateManagement.DownloadCertificates(client, connectionString, containerName, certificateConfiguration);
             var request = new Message.SetCertificateConfigurationRequest(certificateConfiguration);
-            client._systemConfiguratorProxy.SendCommandAsync(request);
+            await client._systemConfiguratorProxy.SendCommandAsync(request);
+
+            await ReportCertificateInfoAsync(client);
         }
 
         public async Task AllowReboots(bool allowReboots)
@@ -504,131 +546,162 @@ namespace Microsoft.Devices.Management
             // Message.SetTimeInfo requestInfo = JsonConvert.DeserializeObject<Message.SetTimeInfo>(fieldsJson);
 
             Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest();
+            request.ntpServer = "time.windows.come";
+            request.timeZoneDaylightBias = -60;
+            request.timeZoneStandardBias = 0;
+
             JObject subProperties = (JObject)jsonValue;
-            request.ntpServer = (string)subProperties.Property("ntpServer").Value;
-            request.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
-            request.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
-            DateTime daylightDate = DateTime.Parse(subProperties.Property("timeZoneDaylightDate").Value.ToString());
-            request.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-            request.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
-            request.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
-            DateTime standardDate = DateTime.Parse(subProperties.Property("timeZoneStandardDate").Value.ToString());
-            request.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-            request.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
+            JProperty timeZoneProperty = subProperties.Property("timeZone");
+            if (timeZoneProperty != null && timeZoneProperty.Value != null)
+            {
+                string timeZone = (string)timeZoneProperty.Value;
+                if (timeZone == "est")
+                {
+                    request.timeZoneBias = 300;
+                    request.timeZoneDaylightDate = "9999-12-31T00:00:00Z";
+                    request.timeZoneDaylightName = "Eastern Daylight Time";
+                    request.timeZoneStandardDate = "2007-01-01T00:00:00Z";
+                    request.timeZoneStandardName = "Eastern Standard Time";
+                }
+                else if (timeZone == "cst")
+                {
+                    request.timeZoneBias = 420;
+                    request.timeZoneDaylightDate = "9999-12-31T00:00:00Z";
+                    request.timeZoneDaylightName = "Central Daylight Time";
+                    request.timeZoneStandardDate = "2007-01-01T00:00:00Z";
+                    request.timeZoneStandardName = "Central Standard Time";
+                }
+                else if (timeZone == "mst")
+                {
+                    request.timeZoneBias = 480;
+                    request.timeZoneDaylightDate = "9999-12-31T00:00:00Z";
+                    request.timeZoneDaylightName = "Mountain Daylight Time";
+                    request.timeZoneStandardDate = "2007-01-01T00:00:00Z";
+                    request.timeZoneStandardName = "Mountain Standard Time";
+                }
+                else if (timeZone == "pst")
+                {
+                    request.timeZoneBias = 480;
+                    request.timeZoneDaylightDate = "9999-12-31T00:00:00Z";
+                    request.timeZoneDaylightName = "Pacific Daylight Time";
+                    request.timeZoneStandardDate = "2007-01-01T00:00:00Z";
+                    request.timeZoneStandardName = "Pacific Standard Time";
+                }
+            }
+            else
+            {
+                request.ntpServer = (string)subProperties.Property("ntpServer").Value;
+                request.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
+                request.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
+                DateTime daylightDate = DateTime.Parse(subProperties.Property("timeZoneDaylightDate").Value.ToString());
+                request.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                request.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
+                request.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
+                DateTime standardDate = DateTime.Parse(subProperties.Property("timeZoneStandardDate").Value.ToString());
+                request.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                request.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
+            }
 
             await this._systemConfiguratorProxy.SendCommandAsync(request);
 
             await ReportTimeInfoAsync();
         }
 
+
+        private void ApplyDesiredStateAsync(JProperty managementProperty)
+        {
+            if (managementProperty.Value.Type != JTokenType.Object)
+            {
+                return;
+            }
+
+
+            switch (managementProperty.Name)
+            {
+                case "scheduledReboot":
+                    {
+                        Debug.WriteLine("scheduledReboot = " + managementProperty.Value.ToString());
+
+                        JObject subProperties = (JObject)managementProperty.Value;
+
+                        var request = new Message.SetRebootInfoRequest();
+
+                        DateTime singleRebootTime = DateTime.Parse(subProperties.Property("singleRebootTime").Value.ToString());
+                        request.singleRebootTime = singleRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+                        DateTime dailyRebootTime = DateTime.Parse(subProperties.Property("dailyRebootTime").Value.ToString());
+                        request.dailyRebootTime = dailyRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+                        this._systemConfiguratorProxy.SendCommandAsync(request);
+                    }
+                    break;
+                case "externalStorage":
+                    {
+                        Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
+
+                        JObject subProperties = (JObject)managementProperty.Value;
+
+                        _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
+                        _externalStorage.containerName = (string)subProperties.Property("container").Value;
+                    }
+                    break;
+                case "certificates":
+                    {
+                        // Capture the configuration here.
+                        // To apply the configuration we need to wait until externalStorage has been configured too.
+                        Debug.WriteLine("CertificateConfiguration = " + managementProperty.Value.ToString());
+                        _certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(managementProperty.Value.ToString());
+                    }
+                    break;
+                case "timeInfo":
+                    {
+                        Debug.WriteLine("timeInfo = " + managementProperty.Value.ToString());
+                        ApplyDesiredTimeSettings(managementProperty.Value);
+                    }
+                    break;
+                case "windowsUpdatePolicy":
+                    {
+                        Debug.WriteLine("windowsUpdatePolicy = " + managementProperty.Value.ToString());
+                        var configuration = JsonConvert.DeserializeObject<WindowsUpdatePolicyConfiguration>(managementProperty.Value.ToString());
+                        this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatePolicyRequest(configuration));
+                    }
+                    break;
+                case "windowsUpdates":
+                    {
+                        Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
+                        var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(managementProperty.Value.ToString());
+                        this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
+                    }
+                    break;
+                case "apps":
+                    {
+                        Debug.WriteLine("apps = " + managementProperty.Value.ToString());
+                        _appsConfiguration = (JObject)managementProperty.Value;
+                    }
+                    break;
+                case "startupApps":
+                    {
+                        Debug.WriteLine("startupApps = " + managementProperty.Value.ToString());
+                        var startupApps = JsonConvert.DeserializeObject<StartupApps>(managementProperty.Value.ToString());
+                        StartupAppInfo foregroundApp = new StartupAppInfo(startupApps.foreground, false /*!background*/);
+                        this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
+                    }
+                    break;
+                default:
+                    // Not supported
+                    break;
+            }
+        }
+
         public void ApplyDesiredStateAsync(JObject dmNode)
         {
             // ToDo: We should not throw here. All problems need to be logged.
-            Message.CertificateConfiguration certificateConfiguration = null;
-            JObject appsConfiguration = null;
 
             foreach (var managementProperty in dmNode.Children().OfType<JProperty>())
             {
-                if (managementProperty.Value.Type != JTokenType.Object)
-                {
-                    continue;
-                }
-                switch (managementProperty.Name)
-                {
-                    case "scheduledReboot":
-                        {
-                            Debug.WriteLine("scheduledReboot = " + managementProperty.Value.ToString());
-
-                            JObject subProperties = (JObject)managementProperty.Value;
-
-                            var request = new Message.SetRebootInfoRequest();
-
-                            DateTime singleRebootTime = DateTime.Parse(subProperties.Property("singleRebootTime").Value.ToString());
-                            request.singleRebootTime = singleRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
-
-                            DateTime dailyRebootTime = DateTime.Parse(subProperties.Property("dailyRebootTime").Value.ToString());
-                            request.dailyRebootTime = dailyRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
-
-                            this._systemConfiguratorProxy.SendCommandAsync(request);
-                        }
-                        break;
-                    case "externalStorage":
-                        {
-                            Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
-
-                            JObject subProperties = (JObject)managementProperty.Value;
-
-                            _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
-                            _externalStorage.containerName = (string)subProperties.Property("container").Value;
-                        }
-                        break;
-                    case "certificates":
-                        {
-                            // Capture the configuration here.
-                            // To apply the configuration we need to wait until externalStorage has been configured too.
-                            Debug.WriteLine("CertificateConfiguration = " + managementProperty.Value.ToString());
-                            certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(managementProperty.Value.ToString());
-                        }
-                        break;
-                    case "timeInfo":
-                        {
-                            Debug.WriteLine("timeInfo = " + managementProperty.Value.ToString());
-                            ApplyDesiredTimeSettings(managementProperty.Value);
-                        }
-                        break;
-                    case "windowsUpdatePolicy":
-                        {
-                            Debug.WriteLine("windowsUpdatePolicy = " + managementProperty.Value.ToString());
-                            var configuration = JsonConvert.DeserializeObject<WindowsUpdatePolicyConfiguration>(managementProperty.Value.ToString());
-                            this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatePolicyRequest(configuration));
-                        }
-                        break;
-                    case "windowsUpdates":
-                        {
-                            Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
-                            var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(managementProperty.Value.ToString());
-                            this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
-                        }
-                        break;
-                    case "apps":
-                        {
-                            Debug.WriteLine("apps = " + managementProperty.Value.ToString());
-                            appsConfiguration = (JObject)managementProperty.Value;
-                        }
-                        break;
-                    case "startupApps":
-                        {
-                            Debug.WriteLine("startupApps = " + managementProperty.Value.ToString());
-                            var startupApps = JsonConvert.DeserializeObject<StartupApps>(managementProperty.Value.ToString());
-                            StartupAppInfo foregroundApp = new StartupAppInfo(startupApps.foreground, false /*!background*/);
-                            this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
-                        }
-                        break;
-                    default:
-                        // Not supported
-                        break;
-                }
+                ApplyDesiredStateAsync(managementProperty);
             }
-
-            // Now, handle the operations that depend on others in the necessary order.
-            // By now, Azure storage information should have been captured.
-
-            if (!String.IsNullOrEmpty(_externalStorage.connectionString))
-            {
-                if (appsConfiguration != null)
-                {
-                    AppxManagement.ApplyDesiredAppsConfiguration(this, _externalStorage.connectionString, appsConfiguration);
-                }
-
-                // Some operations require the default container to be specified...
-                if (!String.IsNullOrEmpty(_externalStorage.containerName))
-                {
-                    if (certificateConfiguration != null)
-                    {
-                        ProcessDesiredCertificateConfiguration(this, _externalStorage.connectionString, _externalStorage.containerName, certificateConfiguration);
-                    }
-                }
-            }
+            ProcessCachedDesiredProperties();
         }
 
         private async Task<Message.GetTimeInfoResponse> GetTimeInfoAsync()
@@ -671,6 +744,7 @@ namespace Microsoft.Devices.Management
         {
             Message.GetTimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
             Dictionary<string, object> collection = new Dictionary<string, object>();
+            /*
             collection["microsoft"] = new
             {
                 management = new
@@ -678,8 +752,28 @@ namespace Microsoft.Devices.Management
                     timeInfo = timeInfoResponse,
                 }
             };
+            */
+            collection["timeInfo"] = timeInfoResponse;
 
             _deviceTwin.ReportProperties(collection);
+        }
+
+        private static async Task ReportCertificateInfoAsync(DeviceManagementClient client)
+        {
+            Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await client.GetCertificateConfigurationAsync();
+            Dictionary<string, object> collection = new Dictionary<string, object>();
+            /*
+            collection["microsoft"] = new
+            {
+                management = new
+                {
+                    timeInfo = timeInfoResponse,
+                }
+            };
+            */
+            collection["certificates"] = certificateConfigurationResponse;
+
+            client._deviceTwin.ReportProperties(collection);
         }
 
         public async Task ReportAllDeviceProperties()
@@ -697,6 +791,8 @@ namespace Microsoft.Devices.Management
             Debug.WriteLine("Querying end: " + DateTime.Now.ToString());
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
+
+            /*
             collection["microsoft"] = new
             {
                 management = new
@@ -709,8 +805,29 @@ namespace Microsoft.Devices.Management
                     windowsUpdates = windowsUpdatesResponse.configuration
                 }
             };
+            */
 
-            _deviceTwin.ReportProperties(collection);
+            collection["timeInfo"] = timeInfoResponse;
+            collection["certificates"] = certificateConfigurationResponse;
+            collection["rebootInfo"] = rebootInfoResponse;
+            collection["deviceInfo"] = deviceInfoResponse;
+            collection["windowsUpdatePolicy"] = windowsUpdatePolicyResponse.configuration;
+            collection["windowsUpdates"] = windowsUpdatesResponse.configuration;
+
+            await _deviceTwin.ReportProperties(collection);
+
+            Dictionary<string, string> methods = new Dictionary<string, string>();
+            methods["ImmediateReboot"] = "Reboots the device immediately.";
+            methods["ReportAllDeviceProperties"] = "Forces the device to report all its properties";
+            methods["StartAppSelfUpdate"] = "Updates the DM application from the store.";
+            methods["GetCertificateDetails"] = "Returns details about a certificate given its hash.";
+            methods["FactoryReset"] = "Resets the device to its factory state.";
+            methods["ManageAppLifeCycle--pkgFamilyName-string"] = "Starts or stop an application.";
+
+            Dictionary<string, object> pcsMethods = new Dictionary<string, object>();
+            pcsMethods["SupportedMethods"] = methods;
+
+            await _deviceTwin.ReportProperties(pcsMethods);
         }
 
         private async Task<string> ReportAllDevicePropertiesMethodHandler(string jsonParam)
@@ -741,6 +858,8 @@ namespace Microsoft.Devices.Management
         IDeviceManagementRequestHandler _requestHandler;
         IDeviceTwin _deviceTwin;
         ExternalStorage _externalStorage;
+        Message.CertificateConfiguration _certificateConfiguration = null;
+        JObject _appsConfiguration = null;
     }
 
 }
