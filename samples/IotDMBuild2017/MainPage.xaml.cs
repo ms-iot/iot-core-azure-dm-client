@@ -154,13 +154,15 @@ namespace IoTDMBuild2017
             // Get connection string when av
             string deviceConnectionString = await GetConnectionStringAsync();
 
+            var connectionStringObj = Microsoft.Devices.Management.ConnectionString.Parse(deviceConnectionString);
+
             // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
             // as well as device management
             DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
 
             // IDeviceTwin abstracts away communication with the back-end.
             // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
-            IDeviceTwin deviceTwinProxy = new AzureIoTHubDeviceTwinProxy(deviceClient);
+            IDeviceTwin deviceTwinProxy = new AzureIoTHubDeviceTwinProxy(connectionStringObj.DeviceId, deviceClient);
 
             // IDeviceManagementRequestHandler handles device management-specific requests to the app,
             // such as whether it is OK to perform a reboot at any givem moment, according the app business logic

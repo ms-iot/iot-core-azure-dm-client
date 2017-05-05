@@ -45,4 +45,50 @@ namespace Microsoft.Devices.Management
         Report,
         Unreport
     }
+
+    public class ConnectionString
+    {
+        private static string HostNameConstant = "HostName=";
+        private static string DeviceIdConstant = "DeviceId=";
+        private static string SharedAccessKeyConstant = "SharedAccessKey=";
+
+        public string HostName { get; set; }
+        public string DeviceId { get; set; }
+        public string SharedAccessKey { get; set; }
+
+        public static ConnectionString Parse(string connectionString)
+        {
+            if (String.IsNullOrEmpty(connectionString))
+            {
+                throw new Exception("Invalid connection string (null or empty)");
+            }
+
+            // HostName=remote-monitoring-pcs.azure-devices.net;DeviceId=gmileka05;SharedAccessKey=pZUIZ+qW34JmiMBcySa5tjAtNjSjaZdVOczP9dle7dw=
+            string[] parts = connectionString.Split(';');
+            if (parts.Length != 3)
+            {
+                throw new Exception("Invalid connection string (missing attributes)");
+            }
+
+            ConnectionString connectionStringObj = new ConnectionString();
+
+            foreach (string part in parts)
+            {
+                if (part.StartsWith(HostNameConstant, StringComparison.OrdinalIgnoreCase))
+                {
+                    connectionStringObj.HostName = part.Substring(HostNameConstant.Length);
+                }
+                else if (part.StartsWith(DeviceIdConstant, StringComparison.OrdinalIgnoreCase))
+                {
+                    connectionStringObj.DeviceId = part.Substring(DeviceIdConstant.Length);
+                }
+                else if (part.StartsWith(SharedAccessKeyConstant, StringComparison.OrdinalIgnoreCase))
+                {
+                    connectionStringObj.SharedAccessKey = part.Substring(SharedAccessKeyConstant.Length);
+                }
+            }
+
+            return connectionStringObj;
+        }
+    }
 }

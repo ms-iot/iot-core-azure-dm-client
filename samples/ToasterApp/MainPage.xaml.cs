@@ -58,9 +58,11 @@ namespace Toaster
             // as well as device management
             DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, TransportType.Mqtt);
 
+            ConnectionString connectionStringObj = ConnectionString.Parse(DeviceConnectionString);
+
             // IDeviceTwin abstracts away communication with the back-end.
             // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
-            IDeviceTwin deviceTwinProxy = new AzureIoTHubDeviceTwinProxy(deviceClient);
+            IDeviceTwin deviceTwinProxy = new AzureIoTHubDeviceTwinProxy(connectionStringObj.DeviceId, deviceClient);
 
             // IDeviceManagementRequestHandler handles device management-specific requests to the app,
             // such as whether it is OK to perform a reboot at any givem moment, according the app business logic

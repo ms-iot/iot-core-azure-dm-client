@@ -91,6 +91,8 @@ namespace Microsoft.Devices.Management
             await deviceTwin.SetMethodHandlerAsync("FactoryReset", deviceManagementClient.FactoryResetHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("ManageAppLifeCycle", deviceManagementClient.ManageAppLifeCycleHandlerAsync);
 
+            // The supported methods need to be in the device twin before we can register them.
+            await deviceManagementClient.ReportSupportedMethods();
 
             await deviceTwin.RegisterMethods();
 
@@ -612,7 +614,6 @@ namespace Microsoft.Devices.Management
                 return;
             }
 
-
             switch (managementProperty.Name)
             {
                 case "scheduledReboot":
@@ -820,14 +821,17 @@ namespace Microsoft.Devices.Management
             collection["windowsUpdates"] = windowsUpdatesResponse.configuration;
 
             await _deviceTwin.ReportProperties(collection);
+        }
 
+        private async Task ReportSupportedMethods()
+        {
             Dictionary<string, string> methods = new Dictionary<string, string>();
             methods["ImmediateReboot"] = "Reboots the device immediately.";
             methods["ReportAllDeviceProperties"] = "Forces the device to report all its properties";
             methods["StartAppSelfUpdate"] = "Updates the DM application from the store.";
             methods["GetCertificateDetails"] = "Returns details about a certificate given its hash.";
             methods["FactoryReset"] = "Resets the device to its factory state.";
-            methods["ManageAppLifeCycle--pkgFamilyName-string"] = "Starts or stop an application.";
+            methods["ManageAppLifeCycle--pkgFamilyName-string--action-string"] = "Starts or stops an application.";
 
             Dictionary<string, object> pcsMethods = new Dictionary<string, object>();
             pcsMethods["SupportedMethods"] = methods;

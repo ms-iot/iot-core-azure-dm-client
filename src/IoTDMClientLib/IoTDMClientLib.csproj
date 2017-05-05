@@ -100,6 +100,7 @@
     <Compile Include="CertificateManagement.cs" />
     <Compile Include="DeviceManagementClient.cs" />
     <Compile Include="ISystemConfiguratorProxy.cs" />
+    <Compile Include="PCSHelpers.cs" />
     <Compile Include="SystemConfiguratorProxy.cs" />
     <Compile Include="IDeviceManagementRequestHandler.cs" />
     <Compile Include="IDeviceTwin.cs" />

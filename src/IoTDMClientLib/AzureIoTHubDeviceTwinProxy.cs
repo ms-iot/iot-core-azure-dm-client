@@ -14,22 +14,24 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
-using Newtonsoft.Json;
+using Microsoft.Devices.Management.PCS;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
-using System;
 
 namespace Microsoft.Devices.Management
 {
     // This IDeviceTwin represents the actual Azure IoT Device Twin
     public class AzureIoTHubDeviceTwinProxy : IDeviceTwin
     {
+        string deviceId;
         DeviceClient deviceClient;
 
-        public AzureIoTHubDeviceTwinProxy(DeviceClient deviceClient)
+        public AzureIoTHubDeviceTwinProxy(string deviceId, DeviceClient deviceClient)
         {
+            this.deviceId = deviceId;
             this.deviceClient = deviceClient;
         }
 
@@ -91,6 +93,7 @@ namespace Microsoft.Devices.Management
 
         async Task IDeviceTwin.RegisterMethods()
         {
+            await PCSHelpers.RegisterMethods(this.deviceClient, this.deviceId);
         }
     }
 }
