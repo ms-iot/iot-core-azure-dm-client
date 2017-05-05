@@ -49,5 +49,10 @@ namespace Microsoft.Devices.Management
         {
             throw new NotImplementedException();
         }
+
+        async Task IDeviceTwin.RegisterMethods()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

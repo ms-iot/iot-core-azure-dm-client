@@ -49,6 +49,11 @@ namespace IoTDMClientLibTests
         {
             throw new NotImplementedException();
         }
+
+        async Task IDeviceTwin.RegisterMethods()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     class HandlerMockupForReboot : IDeviceManagementRequestHandler

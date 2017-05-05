@@ -88,5 +88,9 @@ namespace Microsoft.Devices.Management
         {
             // Recreate deviceClient using a new SAS token
         }
+
+        async Task IDeviceTwin.RegisterMethods()
+        {
+        }
     }
 }

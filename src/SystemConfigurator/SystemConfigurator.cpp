@@ -33,13 +33,16 @@ int SetTimeZone(const wstring& newValue)
 {
     TIME_ZONE_INFORMATION tzi = { 0 };
 
+    tzi.DaylightBias = -60;
+    tzi.DaylightDate.wYear = 0; tzi.DaylightDate.wMonth = 3; tzi.DaylightDate.wDay = 2; // 2nd occurance
+    tzi.DaylightDate.wDayOfWeek = 0; // Sunday
+    tzi.DaylightDate.wHour = 2;    tzi.DaylightDate.wMinute = 0; tzi.DaylightDate.wSecond = 0;
+
     tzi.StandardBias = 0;
-    tzi.StandardDate.wYear = 2007; tzi.StandardDate.wMonth = 1; tzi.StandardDate.wDay = 1;
+    tzi.StandardDate.wYear = 0; tzi.StandardDate.wMonth = 11; tzi.StandardDate.wDay = 1; // 1st occurance
+    tzi.StandardDate.wDayOfWeek = 0; // Sunday
     tzi.StandardDate.wHour = 2;    tzi.StandardDate.wMinute = 0; tzi.StandardDate.wSecond = 0;
 
-    tzi.DaylightBias = -60;
-    tzi.DaylightDate.wYear = 3000; tzi.DaylightDate.wMonth = 12; tzi.DaylightDate.wDay = 31;
-    tzi.DaylightDate.wHour = 2;    tzi.DaylightDate.wMinute = 0; tzi.DaylightDate.wSecond = 0;
 
     if (0 == _wcsicmp(newValue.c_str(), L"est"))
     {

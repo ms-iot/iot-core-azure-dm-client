@@ -91,6 +91,9 @@ namespace Microsoft.Devices.Management
             await deviceTwin.SetMethodHandlerAsync("FactoryReset", deviceManagementClient.FactoryResetHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("ManageAppLifeCycle", deviceManagementClient.ManageAppLifeCycleHandlerAsync);
 
+
+            await deviceTwin.RegisterMethods();
+
             return deviceManagementClient;
         }
 
@@ -549,6 +552,8 @@ namespace Microsoft.Devices.Management
             request.ntpServer = "time.windows.come";
             request.timeZoneDaylightBias = -60;
             request.timeZoneStandardBias = 0;
+            request.timeZoneDaylightDate = "0-03-02T02:00:00Z"; // Dates have to conform to TIME_ZONE_INFORMATION.
+            request.timeZoneStandardDate = "0-11-01T02:00:00Z"; // Dates have to conform to TIME_ZONE_INFORMATION.
 
             JObject subProperties = (JObject)jsonValue;
             JProperty timeZoneProperty = subProperties.Property("timeZone");
@@ -558,33 +563,25 @@ namespace Microsoft.Devices.Management
                 if (timeZone == "est")
                 {
                     request.timeZoneBias = 300;
-                    request.timeZoneDaylightDate = "9999-12-31T00:00:00Z";
                     request.timeZoneDaylightName = "Eastern Daylight Time";
-                    request.timeZoneStandardDate = "2007-01-01T00:00:00Z";
                     request.timeZoneStandardName = "Eastern Standard Time";
                 }
                 else if (timeZone == "cst")
                 {
                     request.timeZoneBias = 360;
-                    request.timeZoneDaylightDate = "9999-12-31T00:00:00Z";
                     request.timeZoneDaylightName = "Central Daylight Time";
-                    request.timeZoneStandardDate = "2007-01-01T00:00:00Z";
                     request.timeZoneStandardName = "Central Standard Time";
                 }
                 else if (timeZone == "mst")
                 {
                     request.timeZoneBias = 420;
-                    request.timeZoneDaylightDate = "9999-12-31T00:00:00Z";
                     request.timeZoneDaylightName = "Mountain Daylight Time";
-                    request.timeZoneStandardDate = "2007-01-01T00:00:00Z";
                     request.timeZoneStandardName = "Mountain Standard Time";
                 }
                 else if (timeZone == "pst")
                 {
                     request.timeZoneBias = 480;
-                    request.timeZoneDaylightDate = "9999-12-31T00:00:00Z";
                     request.timeZoneDaylightName = "Pacific Daylight Time";
-                    request.timeZoneStandardDate = "2007-01-01T00:00:00Z";
                     request.timeZoneStandardName = "Pacific Standard Time";
                 }
             }
