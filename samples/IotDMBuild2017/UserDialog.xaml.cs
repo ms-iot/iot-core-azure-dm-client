@@ -29,7 +29,7 @@ using Windows.UI.Xaml.Navigation;
 
 // The Content Dialog item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
-namespace IoTDMBuild2017
+namespace IoTDMBackground
 {
     public sealed partial class UserDialog : ContentDialog
     {

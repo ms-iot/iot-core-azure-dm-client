@@ -22,7 +22,7 @@ using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
-namespace IoTDMBuild2017
+namespace IoTDMBackground
 {
     public static class ConnectionStringProvider
     {

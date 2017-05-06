@@ -18,7 +18,7 @@ using Windows.ApplicationModel;
 
 using Microsoft.Devices.Management;
 
-namespace IoTDMBuild2017
+namespace IoTDMBackground
 {
     class ToasterDeviceManagementRequestHandler : IDeviceManagementRequestHandler
     {

@@ -1,8 +1,8 @@
 ﻿<Application
-    x:Class="IoTDMBuild2017.App"
+    x:Class="IoTDMBackground.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:IoTDMBuild2017"
+    xmlns:local="using:IoTDMBackground"
     RequestedTheme="Light">
 
 </Application>

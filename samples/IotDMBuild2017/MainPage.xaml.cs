@@ -19,6 +19,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Networking.Connectivity;
 using Windows.UI;
@@ -27,7 +28,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 
-namespace IoTDMBuild2017
+namespace IoTDMBackground
 {
     internal static class NativeTimeMethods
     {
@@ -112,24 +113,32 @@ namespace IoTDMBuild2017
 
             string connectionString = "";
 
-            do
+            bool getConnectionStringFromTPM = true;
+            if (getConnectionStringFromTPM)
             {
-                try
+                do
                 {
-                    connectionString = await tpmDevice.GetConnectionStringAsync();
-                    break;
-                }
-                catch (Exception)
-                {
-                    // We'll just keep trying.
-                }
-                Debug.WriteLine("Waiting...");
-                await Task.Delay(1000);
-                UpdateDateTime();
+                    try
+                    {
+                        connectionString = await tpmDevice.GetConnectionStringAsync();
+                        break;
+                    }
+                    catch (Exception)
+                    {
+                        // We'll just keep trying.
+                    }
+                    Debug.WriteLine("Waiting...");
+                    await Task.Delay(1000);
+                    UpdateDateTime();
 
-            } while (true);
+                } while (true);
 
-            return connectionString;
+                return connectionString;
+            }
+            else
+            {
+                return "<replace>";
+            }
         }
         private async Task<bool> WaitForConnection()
         {
@@ -146,12 +155,15 @@ namespace IoTDMBuild2017
 
             return true;
         }
+
+        private Telemetry telemetry;
+
         private async Task InitializeDeviceClientAsync()
         {
             // Ensure network connection
             bool isConnected = await WaitForConnection();
 
-            // Get connection string when av
+            // Get connection string when available
             string deviceConnectionString = await GetConnectionStringAsync();
 
             var connectionStringObj = Microsoft.Devices.Management.ConnectionString.Parse(deviceConnectionString);
@@ -159,6 +171,9 @@ namespace IoTDMBuild2017
             // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
             // as well as device management
             DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
+
+            telemetry = new Telemetry(connectionStringObj.DeviceId, deviceClient);
+            var fireAndForget = telemetry.StartSendingData();
 
             // IDeviceTwin abstracts away communication with the back-end.
             // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub

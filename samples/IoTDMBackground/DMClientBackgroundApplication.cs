@@ -93,6 +93,8 @@ namespace IoTDMBackground
             return connectionString;
         }
 
+        private Telemetry telemetry;
+
         public async void Run(IBackgroundTaskInstance taskInstance)
         {
             _deferral = taskInstance.GetDeferral();
@@ -107,6 +109,9 @@ namespace IoTDMBackground
                 // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
                 // as well as device management
                 DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
+
+                telemetry = new Telemetry(connectionStringObj.DeviceId, deviceClient);
+                var fireAndForget = telemetry.StartSendingData();
 
                 // IDeviceTwin abstracts away communication with the back-end.
                 // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub

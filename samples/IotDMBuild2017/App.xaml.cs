@@ -31,7 +31,8 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
-namespace IoTDMBuild2017
+namespace IoTDMBackground
+
 {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
