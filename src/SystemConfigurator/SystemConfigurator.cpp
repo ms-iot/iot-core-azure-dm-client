@@ -85,6 +85,8 @@ int SetTimeZone(const wstring& newValue)
         TRACEP("Failed to set time zone. Erro = ", GetLastError());
         return -1;
     }
+
+    return 0;
 }
 
 [Platform::MTAThread]
@@ -113,11 +115,11 @@ int wmain(int argc, wchar_t *argv[])
         {
             Listen();
         }
-        else if (_wcsicmp(L"cleantest", argv[1] + 1) == 0)
+        else if (_wcsicmp(L"cleantestcert", argv[1] + 1) == 0)
         {
             try
             {
-                CertificateInfo::DeleteCertificate(L"./Device/Vendor/MSFT/RootCATrustedCertificates/Root", L"6e7127c2d7c3d0aff188db3b386f63ecd98b8935");
+                CertificateInfo::DeleteCertificate(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople", L"6e7127c2d7c3d0aff188db3b386f63ecd98b8935");
             }
             catch (...)
             {
