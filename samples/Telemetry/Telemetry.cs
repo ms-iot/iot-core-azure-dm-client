@@ -181,13 +181,13 @@ namespace IoTDMBackground
                 Deviation = 5
             };
 
-        public Telemetry(string deviceId, DeviceClient deviceClient)
+        internal Telemetry(string deviceId, DeviceClient deviceClient)
         {
             this.deviceId = deviceId;
             this.deviceClient = deviceClient;
         }
 
-        public async Task StartSendingData()
+        internal async Task StartSendingData()
         {
             SendDataToAzureIoTHub = true;
             await sendDeviceMetaData();
