@@ -166,11 +166,11 @@ void StoreServiceUrl(int logicalId, const std::string& url)
 	RunLimpet(to_wstring(logicalId) + (std::wstring)L" -sur " + Utils::MultibyteToWide(url.c_str()));
 }
 
-void CreateHmacKey(int logicalId, const std::string& key)
+void ImportSymetricIdentity(int logicalId, const std::string& hostageFile)
 {
 	TRACE(__FUNCTION__);
 
-	RunLimpet(to_wstring(logicalId) + L" -chk " + Utils::MultibyteToWide(key.c_str()));
+	RunLimpet(to_wstring(logicalId) + L" -isi " + Utils::MultibyteToWide(hostageFile.c_str()));
 }
 
 void EvictHmacKey(int logicalId)

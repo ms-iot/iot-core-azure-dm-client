@@ -20,7 +20,7 @@ std::string GetEndorsementKey();
 std::string GetSRootKey();
 void DestroyServiceUrl(int logicalId);
 void StoreServiceUrl(int logicalId, const std::string& url);
-void CreateHmacKey(int logicalId, const std::string& key);
+void ImportSymetricIdentity(int logicalId, const std::string& hostageFile);
 void EvictHmacKey(int logicalId);
 std::string GetServiceUrl(int logicalId);
 std::string GetSASToken(int logicalId);
