@@ -127,6 +127,9 @@
   <ItemGroup>
     <Content Include="Assets\gear.png" />
     <Content Include="Assets\hot.png" />
+    <Content Include="Assets\sale1.png" />
+    <Content Include="Assets\sign1_800x480.jpg" />
+    <Content Include="Assets\sign2_800x480.jpg" />
     <Content Include="Assets\toaster.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />

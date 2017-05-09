@@ -9,8 +9,9 @@
 
     <Grid x:Name="backgroundGrid" Background="Black">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Vertical">
-            <TextBlock x:Name="message" Foreground="White" FontSize="28" />
-            <TextBlock x:Name="timer1" Foreground="White" FontSize="28" />
+            <TextBlock x:Name="message" Foreground="White" FontSize="28" Visibility="Collapsed" />
+            <!--<TextBlock x:Name="timer1" Foreground="White" FontSize="28" Visibility="Collapsed" />-->
+            <Image x:Name="image" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Collapsed" Source="ms-appx:///Assets/sign1_800x480.jpg" />
         </StackPanel>
     </Grid>
 </Page>

@@ -79,6 +79,7 @@ namespace IoTDMBackground
     public sealed partial class MainPage : Page
     {
         private DispatcherTimer timer;
+        private DispatcherTimer showImageTimer;
         private DeviceManagementClient deviceManagementClient;
 
         private readonly string DeviceConnectionString = ConnectionStringProvider.Value;
@@ -87,7 +88,14 @@ namespace IoTDMBackground
         {
             this.backgroundGrid.Background = new SolidColorBrush(connected ? Colors.Blue : Colors.Black);
             this.message.Text = connected ? "Connection established." : "Waiting for connection ... ";
-            UpdateDateTime();
+            //UpdateDateTime();
+
+            this.message.Visibility = Visibility.Visible;
+
+            if (connected)
+            {
+                showImageTimer.Start();
+            }
         }
 
         public MainPage()
@@ -98,6 +106,10 @@ namespace IoTDMBackground
             timer.Tick += timer_Tick;
             timer.Interval = TimeSpan.FromSeconds(10);
             timer.Start();
+
+            showImageTimer = new DispatcherTimer();
+            showImageTimer.Tick += showImageTimer_Tick;
+            showImageTimer.Interval = TimeSpan.FromSeconds(2);
 
             EnableDeviceManagementUI(false);
 
@@ -222,7 +234,13 @@ namespace IoTDMBackground
 
             DateTime t = localTime.ToDateTime();
             var timeString = t.ToString("t", CultureInfo.CurrentCulture) + Environment.NewLine + t.ToString("d", CultureInfo.CurrentCulture);
-            timer1.Text = timeString;
+            //timer1.Text = timeString;
         }
+        private void showImageTimer_Tick(object sender, object e)
+        {
+            this.image.Visibility = Visibility.Visible;
+            this.message.Visibility = Visibility.Collapsed;
+        }
+
     }
 }
