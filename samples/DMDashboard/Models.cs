@@ -41,39 +41,6 @@ namespace Microsoft.Devices.Management
         }
     }
 
-    namespace TimeInfo
-    {
-        public class GetResponse
-        {
-            public long timeZoneDaylightBias;
-            public string timeZoneDaylightDate;
-            public string timeZoneDaylightName;
-            public long timeZoneStandardBias;
-            public string timeZoneStandardDate;
-            public string timeZoneStandardName;
-            public long timeZoneBias;
-            public string localTime;
-            public string ntpServer;
-        }
-
-        public class SetParams
-        {
-            public long timeZoneDaylightBias;
-            public string timeZoneDaylightDate;
-            public string timeZoneDaylightName;
-            public long timeZoneStandardBias;
-            public string timeZoneStandardDate;
-            public string timeZoneStandardName;
-            public long timeZoneBias;
-            public string ntpServer;
-
-            public string ToJson()
-            {
-                return "\"timeInfo\" : " + JsonConvert.SerializeObject(this);
-            }
-        }
-    }
-
     public struct DeviceInfo
     {
         public string id;

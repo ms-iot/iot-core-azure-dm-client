@@ -267,19 +267,6 @@ namespace DMDashboard
             BlobsList.ItemsSource = blobInfoList;
         }
 
-        private void TimeInfoModelToUI(Microsoft.Devices.Management.TimeInfo.GetResponse timeInfo)
-        {
-            LocalTime.Text = timeInfo.localTime.ToString();
-            NtpServer.Text = timeInfo.ntpServer;
-            ReportedTimeZoneBias.Text = timeInfo.timeZoneBias.ToString();
-            ReportedTimeZoneStandardName.Text = timeInfo.timeZoneStandardName;
-            ReportedTimeZoneStandardDate.Text = timeInfo.timeZoneStandardDate.ToString();
-            ReportedTimeZoneStandardBias.Text = timeInfo.timeZoneStandardBias.ToString();
-            ReportedTimeZoneDaylightName.Text = timeInfo.timeZoneDaylightName;
-            ReportedTimeZoneDaylightDate.Text = timeInfo.timeZoneDaylightDate.ToString();
-            ReportedTimeZoneDaylightBias.Text = timeInfo.timeZoneDaylightBias.ToString();
-        }
-
         private void RebootInfoModelToUI(Microsoft.Devices.Management.RebootInfo.GetResponse rebootInfo)
         {
             LastRebootCmdTime.Text = rebootInfo.lastRebootCmdTime.ToString();
@@ -347,10 +334,9 @@ namespace DMDashboard
 
             foreach (JProperty jsonProp in managementObject.Children())
             {
-                if (jsonProp.Name == "timeInfo")
+                if (jsonProp.Name == "timeInfo" && jsonProp.Value.Type == JTokenType.Object)
                 {
-                    Microsoft.Devices.Management.TimeInfo.GetResponse timeInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.TimeInfo.GetResponse>(jsonProp.Value.ToString());
-                    TimeInfoModelToUI(timeInfo);
+                        TimeReportedState.FromJson((JObject)jsonProp.Value);
                 }
                 if (jsonProp.Name == "certificates")
                 {
@@ -492,24 +478,6 @@ namespace DMDashboard
             UpdateDTReportedAsync();
         }
 
-        private Microsoft.Devices.Management.TimeInfo.SetParams UIToTimeInfoModel()
-        {
-            Microsoft.Devices.Management.TimeInfo.SetParams timeInfo = new Microsoft.Devices.Management.TimeInfo.SetParams();
-
-            ComboBoxItem ntpServerItem = (ComboBoxItem)DesiredNtpServer.SelectedItem;
-            timeInfo.ntpServer = (string)ntpServerItem.Content;
-
-            timeInfo.timeZoneBias = Int32.Parse(DesiredTimeZoneBias.Text);
-            timeInfo.timeZoneStandardName = DesiredTimeZoneStandardName.Text;
-            timeInfo.timeZoneStandardDate = DesiredTimeZoneStandardDate.Text;
-            timeInfo.timeZoneStandardBias = Int32.Parse(DesiredTimeZoneStandardBias.Text);
-            timeInfo.timeZoneDaylightName = DesiredTimeZoneDaylightName.Text;
-            timeInfo.timeZoneDaylightDate = DesiredTimeZoneDaylightDate.Text;
-            timeInfo.timeZoneDaylightBias = Int32.Parse(DesiredTimeZoneDaylightBias.Text);
-
-            return timeInfo;
-        }
-
         private Microsoft.Devices.Management.RebootInfo.SetParams UIToRebootInfoModel()
         {
             var rebootInfo = new Microsoft.Devices.Management.RebootInfo.SetParams();
@@ -538,7 +506,7 @@ namespace DMDashboard
 
         private void OnSetTimeInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(UIToTimeInfoModel().ToJson());
+            SetDesired(TimeDesiredState.ToJson());
         }
 
         private ExternalStorage UIToExternalStorageModel()
@@ -667,7 +635,7 @@ namespace DMDashboard
         {
             StringBuilder json = new StringBuilder();
 
-            json.Append(UIToTimeInfoModel().ToJson());
+            json.Append(TimeDesiredState.ToJson());
             json.Append(",");
             json.Append(UIToExternalStorageModel().ToJson());
             json.Append(",");

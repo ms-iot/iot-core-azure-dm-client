@@ -2,7 +2,7 @@
 
 The **Time** functionality allows the operator to configure the time zone and the time synchronization server.
 
-## Setting Time Configuration
+### Setting Time Configuration
 The format of the `"desired.microsoft.management.timeInfo"` desired property is as follows:
 
 <pre>
@@ -13,9 +13,11 @@ The format of the `"desired.microsoft.management.timeInfo"` desired property is 
             "timeZoneDaylightBias": <i>daylightBias</i>,
             "timeZoneDaylightDate": "<i>Datetime in ISO 8601 format, UTC</i>",
             "timeZoneDaylightName": "<i>daylight display name</i>",
+            "timeZoneDaylightDayOfWeek": <i>0 for Sunday, etc</i>,
             "timeZoneStandardBias": <i>standardBias</i>,
             "timeZoneStandardDate": "<i>Datetime in ISO 8601 format, UTC</i>",
             "timeZoneStandardName": "<i>standard display name</i>",
+            "timeZoneStandardDayOfWeek": <i>0 for Sunday, etc</i>,
             "timeZoneBias": <i>bias</i>,
             "ntpServer": "<i>ntpServer</i>"
           }
@@ -24,7 +26,7 @@ The format of the `"desired.microsoft.management.timeInfo"` desired property is 
     }
 </pre>
 
-## Reporting Time Configuration
+### Reporting Time Configuration
 The format of the `"reported.microsoft.management.timeInfo"` desired property is as follows:
 
 <pre>
@@ -32,11 +34,11 @@ The format of the `"reported.microsoft.management.timeInfo"` desired property is
       "microsoft": {
         "management": {
           "timeInfo": {
-            "Tag": 30,
-            "Status": <i>status</i>,
+            "timeZoneDaylightDayOfWeek": <i>0 for Sunday, etc</i>,
             "timeZoneDaylightBias": <i>daylightBias</i>,
             "timeZoneDaylightDate": "<i>Datetime in ISO 8601 format, UTC</i>",
             "timeZoneDaylightName": "<i>daylight display name</i>",
+            "timeZoneStandardDayOfWeek": <i>0 for Sunday, etc</i>,
             "timeZoneStandardBias": <i>standardBias</i>,
             "timeZoneStandardDate": "<i>Datetime in ISO 8601 format, UTC</i>",
             "timeZoneStandardName": "<i>standard display name</i>",
@@ -49,11 +51,11 @@ The format of the `"reported.microsoft.management.timeInfo"` desired property is
     }
 </pre>
 
-**Examples**
+###Examples
 
 To configure the device to Pacifict Standard Time, the <i>timeInfo</i> is set to:
 
-```
+<pre>
 "desired" : {
     "microsoft" : {
         "management" : {
@@ -70,16 +72,14 @@ To configure the device to Pacifict Standard Time, the <i>timeInfo</i> is set to
         }
     }
 }
-```
+</pre>
 
 The reported settings will looks something like this:
-```
+<pre>
 "reported" : {
     "microsoft" : {
         "management" : {
           "timeInfo": {
-            "Tag": 30,
-            "Status": 0,
             "timeZoneDaylightBias": -60,
             "timeZoneDaylightDate": "2016-03-02T02:00:00Z",
             "timeZoneDaylightName": "Pacific Daylight Time",
@@ -93,4 +93,4 @@ The reported settings will looks something like this:
         }
     }
 }
-```
+</pre>
