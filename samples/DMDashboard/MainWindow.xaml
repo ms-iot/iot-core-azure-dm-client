@@ -604,15 +604,6 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="300"/>
@@ -621,82 +612,9 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-
-                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Local Time"/>
-                        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                            <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="LocalTime"/>
-                            </Border>
-                        </StackPanel>
-
-                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="NTP Server"/>
-                        <ComboBox Grid.Row="2" Grid.Column="1" Margin="3" SelectedIndex="1" x:Name="DesiredNtpServer">
-                            <ComboBoxItem Content="pool.ntp.org" />
-                            <ComboBoxItem Content="time.windows.com" />
-                        </ComboBox>
-                        <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
-                            <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="NtpServer" />
-                            </Border>
-                        </StackPanel>
-
-                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Time Zone Bias"/>
-                        <TextBox Grid.Row="3" Grid.Column="1" Margin="3" Text="480" x:Name="DesiredTimeZoneBias"/>
-                        <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
-                            <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="ReportedTimeZoneBias"/>
-                            </Border>
-                        </StackPanel>
-
-                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Time Zone Standard Name"/>
-                        <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="Pacific Standard Time1" x:Name="DesiredTimeZoneStandardName"/>
-                        <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
-                            <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="ReportedTimeZoneStandardName"/>
-                            </Border>
-                        </StackPanel>
-
-                        <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Time Zone Standard Date"/>
-                        <TextBox Grid.Row="5" Grid.Column="1" Margin="3" Text="11/1/2016 2:00:00 AM" x:Name="DesiredTimeZoneStandardDate"/>
-                        <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal">
-                            <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="ReportedTimeZoneStandardDate" />
-                            </Border>
-                        </StackPanel>
-
-                        <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Time Zone Standard Bias"/>
-                        <TextBox Grid.Row="6" Grid.Column="1" Margin="3" Text="0" x:Name="DesiredTimeZoneStandardBias"/>
-                        <StackPanel Grid.Row="6" Grid.Column="2" Orientation="Horizontal">
-                            <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="ReportedTimeZoneStandardBias" />
-                            </Border>
-                        </StackPanel>
-
-                        <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Time Zone Daylight Name"/>
-                        <TextBox Grid.Row="7" Grid.Column="1" Margin="3" Text="Pacific Daylight Time1" x:Name="DesiredTimeZoneDaylightName"/>
-                        <StackPanel Grid.Row="7" Grid.Column="2" Orientation="Horizontal">
-                            <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="ReportedTimeZoneDaylightName" />
-                            </Border>
-                        </StackPanel>
-
-                        <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Time Zone Daylight Date"/>
-                        <TextBox Grid.Row="8" Grid.Column="1" Margin="3" Text="3/2/2016 2:00:00 AM" x:Name="DesiredTimeZoneDaylightDate"/>
-                        <StackPanel Grid.Row="8" Grid.Column="2" Orientation="Horizontal">
-                            <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="ReportedTimeZoneDaylightDate" />
-                            </Border>
-                        </StackPanel>
-
-                        <TextBlock Grid.Row="9" Grid.Column="0" Margin="3" Text="Time Zone Daylight Bias"/>
-                        <TextBox Grid.Row="9" Grid.Column="1" Margin="3" Text="-60" x:Name="DesiredTimeZoneDaylightBias"/>
-                        <StackPanel Grid.Row="9" Grid.Column="2" Orientation="Horizontal">
-                            <Border Background="#F8F8F8" Margin="3">
-                                <TextBlock Width="200" x:Name="ReportedTimeZoneDaylightBias" />
-                            </Border>
-                        </StackPanel>
-
-                        <Button Grid.Row="10" Grid.Column="1" Margin="3" Content="Set Time Info" Click="OnSetTimeInfo" />
+                        <local:TimeDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="TimeDesiredState"/>
+                        <local:TimeReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="TimeReportedState"/>
+                        <Button Grid.Row="3" Grid.Column="1" Margin="2" Content="Set Time Info" Click="OnSetTimeInfo" />
                     </Grid>
 
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
@@ -741,7 +659,7 @@
                         <TextBlock Grid.Column="1" Margin="3" Text="Apps" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
                         <Button Grid.Column="0" Click="OnExpandApps" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
-                    <Grid x:Name="AppsGrid" Visibility="Visible">
+                    <Grid x:Name="AppsGrid" Visibility="Collapsed">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30"/>
                             <RowDefinition Height="Auto"/>

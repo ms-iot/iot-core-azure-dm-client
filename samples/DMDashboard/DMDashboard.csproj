@@ -160,6 +160,12 @@
     <Compile Include="CertificateExportDetails.xaml.cs">
       <DependentUpon>CertificateExportDetails.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TimeSettings\TimeDesiredStateControl.xaml.cs">
+      <DependentUpon>TimeDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TimeSettings\TimeReportedStateControl.xaml.cs">
+      <DependentUpon>TimeReportedStateControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WPFUtils.cs" />
     <Page Include="AppDesiredStateControl.xaml">
       <SubType>Designer</SubType>
@@ -217,6 +223,14 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="TimeSettings\TimeDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TimeSettings\TimeReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models.cs" />

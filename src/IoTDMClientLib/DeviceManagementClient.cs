@@ -503,18 +503,27 @@ namespace Microsoft.Devices.Management
             // Because of that, we are not using:
             // Message.SetTimeInfo requestInfo = JsonConvert.DeserializeObject<Message.SetTimeInfo>(fieldsJson);
 
-            Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest();
+            Message.SetTimeInfoRequestData data = new Message.SetTimeInfoRequestData();
+
             JObject subProperties = (JObject)jsonValue;
-            request.ntpServer = (string)subProperties.Property("ntpServer").Value;
-            request.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
-            request.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
-            DateTime daylightDate = DateTime.Parse(subProperties.Property("timeZoneDaylightDate").Value.ToString());
-            request.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-            request.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
-            request.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
-            DateTime standardDate = DateTime.Parse(subProperties.Property("timeZoneStandardDate").Value.ToString());
-            request.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-            request.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
+            data.ntpServer = (string)subProperties.Property("ntpServer").Value;
+            data.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
+
+            data.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
+            string standardDateString = subProperties.Property("timeZoneStandardDate").Value.ToString();
+            DateTime standardDate = DateTime.Parse(standardDateString).ToUniversalTime();
+            data.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            data.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
+            data.timeZoneStandardDayOfWeek = (int)subProperties.Property("timeZoneStandardDayOfWeek").Value;
+
+            data.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
+            string daylightDateString = subProperties.Property("timeZoneDaylightDate").Value.ToString();
+            DateTime daylightDate = DateTime.Parse(daylightDateString).ToUniversalTime();
+            data.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            data.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
+            data.timeZoneDaylightDayOfWeek = (int)subProperties.Property("timeZoneDaylightDayOfWeek").Value;
+
+            Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest(data);
 
             await this._systemConfiguratorProxy.SendCommandAsync(request);
 
@@ -669,13 +678,15 @@ namespace Microsoft.Devices.Management
 
         private async Task ReportTimeInfoAsync()
         {
+            Debug.WriteLine("Reporting timeInfo...");
+
             Message.GetTimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
             Dictionary<string, object> collection = new Dictionary<string, object>();
             collection["microsoft"] = new
             {
                 management = new
                 {
-                    timeInfo = timeInfoResponse,
+                    timeInfo = timeInfoResponse.data,
                 }
             };
 

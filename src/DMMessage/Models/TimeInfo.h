@@ -25,46 +25,76 @@ using namespace Windows::Data::Json;
 
 namespace Microsoft { namespace Devices { namespace Management { namespace Message
 {
-    public ref class SetTimeInfoRequest sealed : public IRequest
+    public ref class SetTimeInfoRequestData sealed
     {
     public:
         property String^ ntpServer;
         property int     timeZoneBias;
+
         property String^ timeZoneStandardName;
         property String^ timeZoneStandardDate;
         property int     timeZoneStandardBias;
+        property int     timeZoneStandardDayOfWeek;
+
         property String^ timeZoneDaylightName;
         property String^ timeZoneDaylightDate;
         property int     timeZoneDaylightBias;
+        property int     timeZoneDaylightDayOfWeek;
 
-        virtual Blob^ Serialize() {
+        Blob^ Serialize(uint32_t tag) {
             JsonObject^ jsonObject = ref new JsonObject();
             jsonObject->Insert("ntpServer", JsonValue::CreateStringValue(ntpServer));
             jsonObject->Insert("timeZoneBias", JsonValue::CreateNumberValue(timeZoneBias));
+
             jsonObject->Insert("timeZoneStandardName", JsonValue::CreateStringValue(timeZoneStandardName));
             jsonObject->Insert("timeZoneStandardDate", JsonValue::CreateStringValue(timeZoneStandardDate));
             jsonObject->Insert("timeZoneStandardBias", JsonValue::CreateNumberValue(timeZoneStandardBias));
+            jsonObject->Insert("timeZoneStandardDayOfWeek", JsonValue::CreateNumberValue(timeZoneStandardDayOfWeek));
+
             jsonObject->Insert("timeZoneDaylightName", JsonValue::CreateStringValue(timeZoneDaylightName));
             jsonObject->Insert("timeZoneDaylightDate", JsonValue::CreateStringValue(timeZoneDaylightDate));
             jsonObject->Insert("timeZoneDaylightBias", JsonValue::CreateNumberValue(timeZoneDaylightBias));
-            return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
+            jsonObject->Insert("timeZoneDaylightDayOfWeek", JsonValue::CreateNumberValue(timeZoneDaylightDayOfWeek));
+            return SerializationHelper::CreateBlobFromJson((uint32_t)tag, jsonObject);
+        }
+
+        static SetTimeInfoRequestData^ Deserialize(Blob^ blob) {
+            String^ str = SerializationHelper::GetStringFromBlob(blob);
+            JsonObject^ jsonObject = JsonObject::Parse(str);
+            auto result = ref new SetTimeInfoRequestData();
+            result->ntpServer = jsonObject->Lookup("ntpServer")->GetString();
+            result->timeZoneBias = (int)jsonObject->Lookup("timeZoneBias")->GetNumber();
+
+            result->timeZoneStandardName = jsonObject->Lookup("timeZoneStandardName")->GetString();
+            result->timeZoneStandardDate = jsonObject->Lookup("timeZoneStandardDate")->GetString();
+            result->timeZoneStandardBias = (int)jsonObject->Lookup("timeZoneStandardBias")->GetNumber();
+            result->timeZoneStandardDayOfWeek = (int)jsonObject->Lookup("timeZoneStandardDayOfWeek")->GetNumber();
+
+            result->timeZoneDaylightName = jsonObject->Lookup("timeZoneDaylightName")->GetString();
+            result->timeZoneDaylightDate = jsonObject->Lookup("timeZoneDaylightDate")->GetString();
+            result->timeZoneDaylightBias = (int)jsonObject->Lookup("timeZoneDaylightBias")->GetNumber();
+            result->timeZoneDaylightDayOfWeek = (int)jsonObject->Lookup("timeZoneDaylightDayOfWeek")->GetNumber();
+            return result;
+        }
+    };
+
+    public ref class SetTimeInfoRequest sealed : public IRequest
+    {
+    public:
+        property SetTimeInfoRequestData^ data;
+
+        SetTimeInfoRequest(SetTimeInfoRequestData^ d)
+        {
+            data = d;
+        }
+
+        virtual Blob^ Serialize() {
+            return data->Serialize((uint32_t)Tag);
         }
 
         static IDataPayload^ Deserialize(Blob^ blob) {
-            String^ str = SerializationHelper::GetStringFromBlob(blob);
-
-            JsonObject^ jsonObject = JsonObject::Parse(str);
-            auto setTimeInfo = ref new SetTimeInfoRequest();
-            setTimeInfo->ntpServer = jsonObject->Lookup("ntpServer")->GetString();
-            setTimeInfo->timeZoneBias = (int)jsonObject->Lookup("timeZoneBias")->GetNumber();
-            setTimeInfo->timeZoneStandardName = jsonObject->Lookup("timeZoneStandardName")->GetString();
-            setTimeInfo->timeZoneStandardDate = jsonObject->Lookup("timeZoneStandardDate")->GetString();
-            setTimeInfo->timeZoneStandardBias = (int)jsonObject->Lookup("timeZoneStandardBias")->GetNumber();
-            setTimeInfo->timeZoneDaylightName = jsonObject->Lookup("timeZoneDaylightName")->GetString();
-            setTimeInfo->timeZoneDaylightDate = jsonObject->Lookup("timeZoneDaylightDate")->GetString();
-            setTimeInfo->timeZoneDaylightBias = (int)jsonObject->Lookup("timeZoneDaylightBias")->GetNumber();
-
-            return setTimeInfo;
+            SetTimeInfoRequestData^ d = SetTimeInfoRequestData::Deserialize(blob);
+            return ref new SetTimeInfoRequest(d);
         }
 
         virtual property DMMessageKind Tag {
@@ -89,50 +119,81 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
     };
 
-    public ref class GetTimeInfoResponse sealed : public IResponse
+    public ref class GetTimeInfoResponseData sealed
     {
-        StatusCodeResponse statusCodeResponse;
     public:
         property String^ localTime;
         property String^ ntpServer;
         property int     timeZoneBias;
+
         property String^ timeZoneStandardName;
         property String^ timeZoneStandardDate;
         property int     timeZoneStandardBias;
+        property int     timeZoneStandardDayOfWeek;
+
         property String^ timeZoneDaylightName;
         property String^ timeZoneDaylightDate;
         property int     timeZoneDaylightBias;
+        property int     timeZoneDaylightDayOfWeek;
 
-        GetTimeInfoResponse(ResponseStatus status) : statusCodeResponse(status, this->Tag) {}
-
-        virtual Blob^ Serialize() {
+        Blob^ Serialize(uint32_t tag) {
             JsonObject^ jsonObject = ref new JsonObject();
             jsonObject->Insert("localTime", JsonValue::CreateStringValue(localTime));
             jsonObject->Insert("ntpServer", JsonValue::CreateStringValue(ntpServer));
             jsonObject->Insert("timeZoneBias", JsonValue::CreateNumberValue(timeZoneBias));
+
             jsonObject->Insert("timeZoneStandardName", JsonValue::CreateStringValue(timeZoneStandardName));
             jsonObject->Insert("timeZoneStandardDate", JsonValue::CreateStringValue(timeZoneStandardDate));
             jsonObject->Insert("timeZoneStandardBias", JsonValue::CreateNumberValue(timeZoneStandardBias));
+            jsonObject->Insert("timeZoneStandardDayOfWeek", JsonValue::CreateNumberValue(timeZoneStandardDayOfWeek));
+
             jsonObject->Insert("timeZoneDaylightName", JsonValue::CreateStringValue(timeZoneDaylightName));
             jsonObject->Insert("timeZoneDaylightDate", JsonValue::CreateStringValue(timeZoneDaylightDate));
             jsonObject->Insert("timeZoneDaylightBias", JsonValue::CreateNumberValue(timeZoneDaylightBias));
-            return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
+            jsonObject->Insert("timeZoneDaylightDayOfWeek", JsonValue::CreateNumberValue(timeZoneDaylightDayOfWeek));
+            return SerializationHelper::CreateBlobFromJson((uint32_t)tag, jsonObject);
         }
 
-        static IDataPayload^ Deserialize(Blob^ blob) {
+        static GetTimeInfoResponseData^ Deserialize(Blob^ blob) {
             String^ str = SerializationHelper::GetStringFromBlob(blob);
             JsonObject^ jsonObject = JsonObject::Parse(str);
-            auto result = ref new GetTimeInfoResponse(ResponseStatus::Success);
+            auto result = ref new GetTimeInfoResponseData();
             result->localTime = jsonObject->Lookup("localTime")->GetString();
             result->ntpServer = jsonObject->Lookup("ntpServer")->GetString();
             result->timeZoneBias = (int)jsonObject->Lookup("timeZoneBias")->GetNumber();
+
             result->timeZoneStandardName = jsonObject->Lookup("timeZoneStandardName")->GetString();
             result->timeZoneStandardDate = jsonObject->Lookup("timeZoneStandardDate")->GetString();
             result->timeZoneStandardBias = (int)jsonObject->Lookup("timeZoneStandardBias")->GetNumber();
+            result->timeZoneStandardDayOfWeek = (int)jsonObject->Lookup("timeZoneStandardDayOfWeek")->GetNumber();
+
             result->timeZoneDaylightName = jsonObject->Lookup("timeZoneDaylightName")->GetString();
             result->timeZoneDaylightDate = jsonObject->Lookup("timeZoneDaylightDate")->GetString();
             result->timeZoneDaylightBias = (int)jsonObject->Lookup("timeZoneDaylightBias")->GetNumber();
+            result->timeZoneDaylightDayOfWeek = (int)jsonObject->Lookup("timeZoneDaylightDayOfWeek")->GetNumber();
             return result;
+        }
+    };
+
+    public ref class GetTimeInfoResponse sealed : public IResponse
+    {
+        StatusCodeResponse statusCodeResponse;
+
+    public:
+        property GetTimeInfoResponseData^ data;
+
+        GetTimeInfoResponse(ResponseStatus status, GetTimeInfoResponseData^ d) : statusCodeResponse(status, this->Tag)
+        {
+            data = d;
+        }
+
+        virtual Blob^ Serialize() {
+            return data->Serialize((uint32_t)Tag);
+        }
+
+        static IDataPayload^ Deserialize(Blob^ blob) {
+            GetTimeInfoResponseData^ d = GetTimeInfoResponseData::Deserialize(blob);
+            return ref new GetTimeInfoResponse(ResponseStatus::Success, d);
         }
 
         virtual property ResponseStatus Status {
