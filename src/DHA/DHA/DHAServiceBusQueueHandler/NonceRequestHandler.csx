@@ -14,11 +14,11 @@ using Microsoft.ServiceBus.Messaging;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 
-static Random Rnd = new Random();
-static TimeSpan MethodCallTimeOut = new TimeSpan(0, 0, 30);
-
 public class NonceRequestHandler
 {
+    static Random Rnd = new Random();
+    static TimeSpan MethodCallTimeOut = new TimeSpan(0, 0, 30);
+
     public NonceRequestHandler(CloudTable nonceTable, ServiceClient iotHubServiceClient, TraceWriter log)
     {
         _log = log;

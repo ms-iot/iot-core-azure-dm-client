@@ -111,22 +111,17 @@ namespace Microsoft.Devices.Management
             this._desiredPropertyMap = new Dictionary<string, IClientPropertyHandler>();
         }
 
-        private async Task AddHandler(IClientHandler handler)
+        private void AddPropertyHandler(IClientPropertyHandler handler)
         {
-            var clientPropertyHandler = handler as IClientPropertyHandler;
-            if (clientPropertyHandler != null)
-            {
-                this._desiredPropertyMap.Add(clientPropertyHandler.PropertySectionName, clientPropertyHandler);
-            }
+            this._desiredPropertyMap.Add(handler.PropertySectionName, handler);
+        }
 
-            var directMethodHandler = handler as IClientDirectMethodHandler;
-            if (directMethodHandler != null)
+        private async Task AddDirectMethodHandlerAsync(IClientDirectMethodHandler handler)
+        {
+            foreach (var pair in handler.GetDirectMethodHandler())
             {
-                foreach (var pair in directMethodHandler.GetDirectMethodHandler())
-                {
-                    var guard = new DirectMethodGuard(pair.Key, pair.Value);
-                    await this._deviceTwin.SetMethodHandlerAsync(pair.Key, guard.Invoke);
-                }
+                var guard = new DirectMethodGuard(pair.Key, pair.Value);
+                await this._deviceTwin.SetMethodHandlerAsync(pair.Key, guard.Invoke);
             }
         }
 
@@ -142,7 +137,10 @@ namespace Microsoft.Devices.Management
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.factoryReset", deviceManagementClient.FactoryResetHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.manageAppLifeCycle", deviceManagementClient.ManageAppLifeCycleHandlerAsync);
 
-            await deviceManagementClient.AddHandler(new DeviceHealthAttestationHandler(clientCallback, systemConfiguratorProxy));
+            var deviceHealthAttestationHandler = new DeviceHealthAttestationHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(deviceHealthAttestationHandler);
+            await deviceManagementClient.AddDirectMethodHandlerAsync(deviceHealthAttestationHandler);
+
             return deviceManagementClient;
         }
 
@@ -688,8 +686,9 @@ namespace Microsoft.Devices.Management
                     }
                     catch (Exception e)
                     {
-                        Debug.WriteLine($"Exception caught was handling desired property - {managementProperty.Name}");
+                        Debug.WriteLine($"Exception caught while handling desired property - {managementProperty.Name}");
                         Debug.WriteLine(e);
+                        throw;
                     }
                 }
             }

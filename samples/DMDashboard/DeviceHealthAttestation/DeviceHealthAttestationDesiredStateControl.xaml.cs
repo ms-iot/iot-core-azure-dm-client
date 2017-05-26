@@ -28,7 +28,7 @@ namespace DMDashboard.DeviceHealthAttestation
         {
             InitializeComponent();
             this.ServerEndpoint.Text = "";
-            this.ReportInterval.Text = "0";
+            this.ReportInterval.Text = "-1";
         }
 
         public string ToJson()

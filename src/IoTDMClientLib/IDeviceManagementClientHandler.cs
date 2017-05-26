@@ -27,19 +27,14 @@ namespace Microsoft.Devices.Management
         Task SendMessageAsync(string message, IDictionary<string, string> properties);
     }
 
-    // Empty interface as common base for IClientDirectMethodHandler and IClientPropertyHandler
-    internal interface IClientHandler
-    {
-    }
-
     // Interface for handlers that implements direct methods
-    internal interface IClientDirectMethodHandler : IClientHandler
+    internal interface IClientDirectMethodHandler
     {
         IReadOnlyDictionary<string, Func<string, Task<string>>> GetDirectMethodHandler();
     }
 
     // Interface for handlers that perform actions based on desired/reported properties
-    internal interface IClientPropertyHandler : IClientHandler
+    internal interface IClientPropertyHandler
     {
         string PropertySectionName { get; }
 

@@ -29,39 +29,18 @@ namespace Microsoft.Devices.Management
             this._method = function;
         }
 
-        public Task<string> Invoke(string arg)
+        public async Task<string> Invoke(string arg)
         {
             Debug.WriteLine($"Executing direct method: {this._methodName}");
 
             try
             {
-                return _method(arg).ContinueWith((t) =>
-                {
-                    if (t.Status == TaskStatus.RanToCompletion)
-                    {
-                        return t.Result;
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"{this._methodName} failed -- Exception:");
-                        Debug.WriteLine(t.Exception.ToString());
-
-                        Exception e = t.Exception;
-                        if (e is AggregateException && e.InnerException != null)
-                        {
-                            // Task usually throws AggregateExceptions.
-                            // Pick the first exception as the error message.
-                            e = e.InnerException;
-                        }
-                        var response = new { response = "rejected:", reason = e.Message };
-                        return JsonConvert.SerializeObject(response);
-                    }
-                }); ;
+                return await _method(arg);
             }
             catch (Exception e)
             {
                 var response = new { response = "rejected:", reason = e.Message };
-                return Task.FromResult(JsonConvert.SerializeObject(response));
+                return JsonConvert.SerializeObject(response);
             }
         }
 

@@ -834,8 +834,9 @@ IResponse^ HandleDeviceHealthAttestationVerifyHealth(IRequest^ request)
 
         DeviceHealthAttestationCSP::SetHASEndpoint(verifyHealthRequest->HealthAttestationServerEndpoint->Data());
         DeviceHealthAttestationCSP::ExecVerifyHealth();
+
         auto healthAttestationStatus = DeviceHealthAttestationCSP::GetStatus();
-        while (healthAttestationStatus == 1 /*HEALTHATTESTATION_CERT_RETRIEVAL_REQUESTED*/)
+        for (int i = 0; i < 5 && healthAttestationStatus == 1 /*HEALTHATTESTATION_CERT_RETRIEVAL_REQUESTED*/; i++)
         {
             /* HEALTHATTESTATION_CERT_RETRIEVAL_REQUESTED signifies that the call on the node VerifyHealth 
                has been triggered and now the OS is trying to retrieve DHA-EncBlob from DHA-Server.*/
