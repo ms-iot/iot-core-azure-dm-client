@@ -98,7 +98,10 @@
     <Compile Include="AzureBlobFileTransfer.cs" />
     <Compile Include="AzureIoTHubDeviceTwinProxy.cs" />
     <Compile Include="CertificateManagement.cs" />
+    <Compile Include="DeviceHealthAttestationHandler.cs" />
     <Compile Include="DeviceManagementClient.cs" />
+    <Compile Include="DirectMethodGuard.cs" />
+    <Compile Include="IDeviceManagementClientHandler.cs" />
     <Compile Include="ISystemConfiguratorProxy.cs" />
     <Compile Include="SystemConfiguratorProxy.cs" />
     <Compile Include="IDeviceManagementRequestHandler.cs" />
@@ -115,6 +118,10 @@
     </SDKReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DMDataContract\DMDataContract\DMDataContract.csproj">
+      <Project>{94794bf1-4d16-46be-97c1-15f968cd433f}</Project>
+      <Name>DMDataContract</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DMMessage\DMMessage.vcxproj">
       <Project>{241582cd-4861-4643-a7a2-21865b779aaf}</Project>
       <Name>DMMessage</Name>
