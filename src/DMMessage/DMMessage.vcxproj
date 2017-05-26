@@ -95,6 +95,7 @@
     <ClInclude Include="Models\CertificateConfiguration.h" />
     <ClInclude Include="Models\CertificateDetails.h" />
     <ClInclude Include="Models\CheckForUpdates.h" />
+    <ClInclude Include="Models\DeviceHealthAttestation.h" />
     <ClInclude Include="Models\DeviceInfo.h" />
     <ClInclude Include="Models\FactoryReset.h" />
     <ClInclude Include="Models\FileTransfer.h" />

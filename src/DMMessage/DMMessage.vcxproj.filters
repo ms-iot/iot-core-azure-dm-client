@@ -84,6 +84,9 @@
     <ClInclude Include="Models\FactoryReset.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="Models\DeviceHealthAttestation.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Models\ModelsInfo.dat" />

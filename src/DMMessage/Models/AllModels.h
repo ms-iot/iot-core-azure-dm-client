@@ -19,6 +19,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CheckForUpdates.h"
 #include "CertificateConfiguration.h"
 #include "CertificateDetails.h"
+#include "DeviceHealthAttestation.h"
 #include "DeviceInfo.h"
 #include "FactoryReset.h"
 #include "FileTransfer.h"

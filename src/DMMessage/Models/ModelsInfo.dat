@@ -36,3 +36,5 @@ MODEL_ALLDEF(   GetWindowsUpdateRebootPolicy, 62, GetWindowsUpdateRebootPolicyRe
 MODEL_REQDEF(   SetWindowsUpdateRebootPolicy, 63, SetWindowsUpdateRebootPolicyRequest,  StatusCodeResponse )
 MODEL_ALLDEF(   GetWindowsUpdates,            70, GetWindowsUpdatesRequest,             GetWindowsUpdatesResponse )
 MODEL_REQDEF(   SetWindowsUpdates,            71, SetWindowsUpdatesRequest,             StatusCodeResponse )
+MODEL_REQDEF(   DeviceHealthAttestationVerifyHealth, 80, DeviceHealthAttestationVerifyHealthRequest, StatusCodeResponse )
+MODEL_ALLDEF(   DeviceHealthAttestationGetReport,    81, DeviceHealthAttestationGetReportRequest,    DeviceHealthAttestationGetReportResponse )
