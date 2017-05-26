@@ -87,6 +87,9 @@
     <ClInclude Include="AppInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CSPs\DeviceHealthAttestationCSP.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -138,6 +141,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\CertificateManagement.cpp">
+      <Filter>Source Files\CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\DeviceHealthAttestationCSP.cpp">
       <Filter>Source Files\CSPs</Filter>
     </ClCompile>
   </ItemGroup>
