@@ -49,5 +49,10 @@ namespace Microsoft.Devices.Management
         {
             throw new NotImplementedException();
         }
+
+        Task IDeviceTwin.SendMessageAsync(string message, IDictionary<string, string> properties)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
