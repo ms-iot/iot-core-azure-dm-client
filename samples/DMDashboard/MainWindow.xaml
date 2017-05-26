@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DMDashboard"
+        xmlns:DeviceHealthAttestation="clr-namespace:DMDashboard.DeviceHealthAttestation"
         mc:Ignorable="d"
         Title="MainWindow" Height="700" Width="1400">
     <Grid>
@@ -935,6 +936,40 @@
 
                     </Grid>
 
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Device Health Attestation" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandDeviceHealthAttestation" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid x:Name="DeviceHealthAttestationGrid" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="400"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                        <DeviceHealthAttestation:DeviceHealthAttestationDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="DeviceHealthAttestationDesiredState"/>
+                        <DeviceHealthAttestation:DeviceHealthAttestationReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="DeviceHealthAttestationReportedState"/>
+
+                        <Button Grid.Row="2" Grid.Column="1" Margin="3" Click="DeviceHealthAttestationSetInfoButtonAsync" HorizontalAlignment="Stretch" x:Name="DeviceHealthAttestationSetInfoButton">Set Device Health Attestation Info</Button>
+                        <Button Grid.Row="2" Grid.Column="2" Margin="3" Click="DeviceHealthAttestationReportButtonAsync" HorizontalAlignment="Stretch" x:Name="DeviceHealthAttestationReportButton">Report Now</Button>
+
+                    </Grid>
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                     <Grid>
                         <Grid.ColumnDefinitions>
