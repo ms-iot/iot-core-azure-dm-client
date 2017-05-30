@@ -31,6 +31,7 @@ using Microsoft.WindowsAzure.Storage.Blob;  // Namespace for Blob storage types
 using System.Configuration;
 using Microsoft.Win32;
 using System.IO;
+using Microsoft.Devices.Management.DMDataContract;
 
 namespace DMDashboard
 {
@@ -371,7 +372,12 @@ namespace DMDashboard
                     Debug.WriteLine(jsonProp.Value.ToString());
                     TheAppsStatus.AppsStatusJsonToUI(jsonProp.Value);
                 }
-
+                else if (jsonProp.Name == "deviceHealthAttestation")
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    var jobj = JObject.Parse(jsonProp.Value.ToString());
+                    DeviceHealthAttestationReportedState.FromJson(jobj);
+                }
             }
         }
 
@@ -393,6 +399,11 @@ namespace DMDashboard
         private void OnExpandDeviceInfo(object sender, RoutedEventArgs e)
         {
             ToggleUIElementVisibility(DeviceInfoGrid);
+        }
+
+        private void OnExpandDeviceHealthAttestation(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(DeviceHealthAttestationGrid);
         }
 
         private void DeviceStatusModelToUI(Microsoft.Devices.Management.DeviceInfo deviceInfo)
@@ -646,6 +657,8 @@ namespace DMDashboard
             json.Append(UIToWindowsUpdatePolicyConfiguration().ToJson());
             json.Append(",");
             json.Append(UIToWindowsUpdatesConfiguration().ToJson());
+            json.Append(",");
+            json.Append(DeviceHealthAttestationDesiredState.ToJson());
 
             SetDesired(json.ToString());
         }
@@ -695,6 +708,16 @@ namespace DMDashboard
                 var blob = containerRef.GetBlockBlobReference(new FileInfo(certLocalPath).Name);
                 await blob.UploadFromFileAsync(certLocalPath);
             }
+        }
+
+        private async void DeviceHealthAttestationReportButtonAsync(object sender, RoutedEventArgs e)
+        {
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(DeviceHealthAttestationDataContract.ReportNowMethodName, "{}", new TimeSpan(0, 0, 30), new CancellationToken());
+        }
+
+        private void DeviceHealthAttestationSetInfoButtonAsync(object sender, RoutedEventArgs e)
+        {
+            SetDesired(DeviceHealthAttestationDesiredState.ToJson());
         }
 
         private void OnExpandAzureStorageExplorer(object sender, RoutedEventArgs e)

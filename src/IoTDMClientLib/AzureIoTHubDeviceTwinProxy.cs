@@ -88,5 +88,15 @@ namespace Microsoft.Devices.Management
         {
             // Recreate deviceClient using a new SAS token
         }
+
+        Task IDeviceTwin.SendMessageAsync(string messageContent, IDictionary<string, string> properties)
+        {
+            var message = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes(messageContent));
+            foreach(var pair in properties)
+            {
+                message.Properties.Add(pair);
+            }
+            return this.deviceClient.SendEventAsync(message);
+        }
     }
 }

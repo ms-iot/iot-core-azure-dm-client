@@ -109,6 +109,7 @@
     <ClInclude Include="CSPs\CertificateStoreCSP.h" />
     <ClInclude Include="CSPs\ClientCertificateInstallCSP.h" />
     <ClInclude Include="CSPs\CustomDeviceUiCsp.h" />
+    <ClInclude Include="CSPs\DeviceHealthAttestationCSP.h" />
     <ClInclude Include="CSPs\EnterpriseModernAppManagementCSP.h" />
     <ClInclude Include="CSPs\MdmProvision.h" />
     <ClInclude Include="CSPs\PrivateAPIs\WinSDKRS2.h" />
@@ -130,6 +131,7 @@
     <ClCompile Include="CSPs\CertificateStoreCSP.cpp" />
     <ClCompile Include="CSPs\ClientCertificateInstallCSP.cpp" />
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp" />
+    <ClCompile Include="CSPs\DeviceHealthAttestationCSP.cpp" />
     <ClCompile Include="CSPs\EnterpriseModernAppManagementCSP.cpp" />
     <ClCompile Include="CSPs\MdmProvision.cpp" />
     <ClCompile Include="CSPs\RebootCSP.cpp" />

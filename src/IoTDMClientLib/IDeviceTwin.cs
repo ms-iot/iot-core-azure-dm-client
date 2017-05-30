@@ -34,5 +34,7 @@ namespace Microsoft.Devices.Management
 
         // This API is called when the connection has expired (such as when SAS token has expired)
         void RefreshConnection();
+
+        Task SendMessageAsync(string message, IDictionary<string, string> properties);
     }
 }

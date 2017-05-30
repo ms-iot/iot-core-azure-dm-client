@@ -17,6 +17,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "stdafx.h"
 #include "CertificateManagementTest.h"
+#include "DeviceHealthAttestationTest.h"
 #include "..\..\src\SharedUtilities\Logger.h"
 
 void ShowUsage()
@@ -42,6 +43,7 @@ int wmain(int argc, wchar_t *argv[])
     bool result = true;
 
     result &= CertificateManagementTest::RunTest();
+    result &= DeviceHealthAttestationTest::RunTest();
 
     // Add other tests here.
 

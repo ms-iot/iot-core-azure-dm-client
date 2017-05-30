@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.0
+VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SystemConfigurator", "SystemConfigurator\SystemConfigurator.vcxproj", "{CBBD687C-3B2A-4216-8F74-754A72E05D7F}"
 EndProject
@@ -46,6 +46,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoTHubManager", "..\tests\IoTHubManager\IoTHubManager.csproj", "{16CE7DA3-EB9A-4D8D-8E0C-F07996E5C378}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSPTests", "..\tests\CSPTests\CSPTests.vcxproj", "{A64DB0EF-13E8-4D43-8C09-534259C3818C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMDataContract", "DMDataContract\DMDataContract\DMDataContract.csproj", "{94794BF1-4D16-46BE-97C1-15F968CD433F}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -217,6 +219,18 @@ Global
 		{A64DB0EF-13E8-4D43-8C09-534259C3818C}.Release|x64.Build.0 = Release|x64
 		{A64DB0EF-13E8-4D43-8C09-534259C3818C}.Release|x86.ActiveCfg = Release|Win32
 		{A64DB0EF-13E8-4D43-8C09-534259C3818C}.Release|x86.Build.0 = Release|Win32
+		{94794BF1-4D16-46BE-97C1-15F968CD433F}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{94794BF1-4D16-46BE-97C1-15F968CD433F}.Debug|ARM.Build.0 = Debug|Any CPU
+		{94794BF1-4D16-46BE-97C1-15F968CD433F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{94794BF1-4D16-46BE-97C1-15F968CD433F}.Debug|x64.Build.0 = Debug|Any CPU
+		{94794BF1-4D16-46BE-97C1-15F968CD433F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{94794BF1-4D16-46BE-97C1-15F968CD433F}.Debug|x86.Build.0 = Debug|Any CPU
+		{94794BF1-4D16-46BE-97C1-15F968CD433F}.Release|ARM.ActiveCfg = Release|Any CPU
+		{94794BF1-4D16-46BE-97C1-15F968CD433F}.Release|ARM.Build.0 = Release|Any CPU
+		{94794BF1-4D16-46BE-97C1-15F968CD433F}.Release|x64.ActiveCfg = Release|Any CPU
+		{94794BF1-4D16-46BE-97C1-15F968CD433F}.Release|x64.Build.0 = Release|Any CPU
+		{94794BF1-4D16-46BE-97C1-15F968CD433F}.Release|x86.ActiveCfg = Release|Any CPU
+		{94794BF1-4D16-46BE-97C1-15F968CD433F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -235,5 +249,6 @@ Global
 		{65CF34F0-6724-4C05-A90B-D0143772B0CC} = {48F869F6-CAD1-4DCA-90C3-231BC4ACC10F}
 		{16CE7DA3-EB9A-4D8D-8E0C-F07996E5C378} = {ACADCA61-EDB4-4D41-A868-FEAEFBC8ED43}
 		{A64DB0EF-13E8-4D43-8C09-534259C3818C} = {ACADCA61-EDB4-4D41-A868-FEAEFBC8ED43}
+		{94794BF1-4D16-46BE-97C1-15F968CD433F} = {48F869F6-CAD1-4DCA-90C3-231BC4ACC10F}
 	EndGlobalSection
 EndGlobal

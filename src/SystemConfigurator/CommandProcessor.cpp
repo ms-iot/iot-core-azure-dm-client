@@ -22,6 +22,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CSPs\RebootCSP.h"
 #include "CSPs\EnterpriseModernAppManagementCSP.h"
 #include "CSPs\CustomDeviceUiCsp.h"
+#include "CSPs\DeviceHealthAttestationCSP.h"
 #include "AppCfg.h"
 #include "TimeCfg.h"
 #include "AppCfg.h"
@@ -821,6 +822,68 @@ IResponse^ HandleSetWindowsUpdates(IRequest^ request)
     {
         TRACEP("ERROR DMCommand::HandleSetWindowsUpdates: ", e.what());
         return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
+IResponse^ HandleDeviceHealthAttestationVerifyHealth(IRequest^ request)
+{
+    try
+    {
+        auto verifyHealthRequest = dynamic_cast<DeviceHealthAttestationVerifyHealthRequest^>(request);
+        assert(verifyHealthRequest != nullptr);
+
+        DeviceHealthAttestationCSP::SetHASEndpoint(verifyHealthRequest->HealthAttestationServerEndpoint->Data());
+        DeviceHealthAttestationCSP::ExecVerifyHealth();
+
+        auto healthAttestationStatus = DeviceHealthAttestationCSP::GetStatus();
+        for (int i = 0; i < 5 && healthAttestationStatus == 1 /*HEALTHATTESTATION_CERT_RETRIEVAL_REQUESTED*/; i++)
+        {
+            /* HEALTHATTESTATION_CERT_RETRIEVAL_REQUESTED signifies that the call on the node VerifyHealth 
+               has been triggered and now the OS is trying to retrieve DHA-EncBlob from DHA-Server.*/
+            Sleep(200);
+            healthAttestationStatus = DeviceHealthAttestationCSP::GetStatus();
+        }
+
+        if (healthAttestationStatus != 3 /*HEALTHATTESTATION_CERT_RETRIEVAL_COMPLETE*/)
+        {
+            wstringstream ws;
+            ws << L"VerifyHealth failed: 0x" << hex << healthAttestationStatus;
+            auto errorMessageCStr = ws.str();
+            auto errorMessage = ref new String(errorMessageCStr.c_str(), errorMessageCStr.length());
+            return ref new StringResponse(ResponseStatus::Failure, errorMessage, DMMessageKind::ErrorResponse);
+        }
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleDeviceHealthAttestationVerifyHealth: ", e.what());
+        auto errorMessageCStr = Utils::MultibyteToWide(e.what());
+        auto errorMessage = ref new String(errorMessageCStr.c_str(), errorMessageCStr.length());
+        return ref new StringResponse(ResponseStatus::Failure, errorMessage, DMMessageKind::ErrorResponse);
+    }
+}
+
+IResponse^ HandleDeviceHealthAttestationGetReport(IRequest^ request)
+{
+    try
+    {
+        auto certificateRequest = dynamic_cast<DeviceHealthAttestationGetReportRequest^>(request);
+        assert(certificateRequest != nullptr);
+
+        DeviceHealthAttestationCSP::SetNonce(certificateRequest->Nonce->Data());
+        auto certificateCStr = DeviceHealthAttestationCSP::GetCertificate();
+        auto certificate = ref new Platform::String(certificateCStr.c_str(), certificateCStr.length());
+        auto correlationIdCStr = DeviceHealthAttestationCSP::GetCorrelationId();
+        auto correlationId = ref new Platform::String(correlationIdCStr.c_str(), correlationIdCStr.length());
+
+        return ref new DeviceHealthAttestationGetReportResponse(certificate, correlationId);
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleDeviceHealthAttestationGetCertificate: ", e.what());
+        auto errorMessageCStr = Utils::MultibyteToWide(e.what());
+        auto errorMessage = ref new String(errorMessageCStr.c_str(), errorMessageCStr.length());
+        return ref new StringResponse(ResponseStatus::Failure, errorMessage, DMMessageKind::ErrorResponse);
     }
 }
 

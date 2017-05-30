@@ -160,6 +160,12 @@
     <Compile Include="CertificateExportDetails.xaml.cs">
       <DependentUpon>CertificateExportDetails.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DeviceHealthAttestation\DeviceHealthAttestationDesiredStateControl.xaml.cs">
+      <DependentUpon>DeviceHealthAttestationDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DeviceHealthAttestation\DeviceHealthAttestationReportedStateControl.xaml.cs">
+      <DependentUpon>DeviceHealthAttestationReportedStateControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TimeSettings\TimeDesiredStateControl.xaml.cs">
       <DependentUpon>TimeDesiredStateControl.xaml</DependentUpon>
     </Compile>
@@ -196,6 +202,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="CertificateSelector.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DeviceHealthAttestation\DeviceHealthAttestationDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DeviceHealthAttestation\DeviceHealthAttestationReportedStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -265,6 +279,13 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DMDataContract\DMDataContract\DMDataContract.csproj">
+      <Project>{94794bf1-4d16-46be-97c1-15f968cd433f}</Project>
+      <Name>DMDataContract</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
