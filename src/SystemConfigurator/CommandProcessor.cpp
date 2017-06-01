@@ -299,6 +299,54 @@ IResponse^ HandleGetCertificateDetails(IRequest^ request)
     }
 }
 
+IResponse^ HandleGetWifiConfiguration(IRequest^ request)
+{
+	TRACE(__FUNCTION__);
+
+	WifiConfiguration^ configuration = ref new WifiConfiguration();
+	//TODO: fill in details
+	return ref new GetWifiConfigurationResponse(ResponseStatus::Success, configuration);
+}
+
+IResponse^ HandleSetWifiConfiguration(IRequest^ request)
+{
+	TRACE(__FUNCTION__);
+
+	try
+	{
+		auto setWifiConfigurationRequest = dynamic_cast<SetWifiConfigurationRequest^>(request);
+		WifiConfiguration^ configuration = setWifiConfigurationRequest->configuration;
+		//TODO: fill in details
+		return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+	}
+	catch (const DMException& e)
+	{
+		TRACEP("ERROR DMCommand::HandleSetWifiConfiguration: ", e.what());
+		return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+	}
+}
+
+IResponse^ HandleGetWifiDetails(IRequest^ request)
+{
+	TRACE(__FUNCTION__);
+
+	try
+	{
+		auto getWifiDetailsRequest = dynamic_cast<GetWifiDetailsRequest^>(request);
+		//TODO: fill in details
+
+		GetWifiDetailsResponse^ getWifiDetailsResponse = ref new GetWifiDetailsResponse(ResponseStatus::Success);
+		//TODO: fill in details
+
+		return getWifiDetailsResponse;
+	}
+	catch (const DMException& e)
+	{
+		TRACEP("ERROR DMCommand::HandleGetWifiDetails: ", e.what());
+		return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+	}
+}
+
 IResponse^ HandleGetRebootInfo(IRequest^ request)
 {
     TRACE(__FUNCTION__);

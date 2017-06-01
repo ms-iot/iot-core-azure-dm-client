@@ -38,3 +38,6 @@ MODEL_ALLDEF(   GetWindowsUpdates,            70, GetWindowsUpdatesRequest,     
 MODEL_REQDEF(   SetWindowsUpdates,            71, SetWindowsUpdatesRequest,             StatusCodeResponse )
 MODEL_REQDEF(   DeviceHealthAttestationVerifyHealth, 80, DeviceHealthAttestationVerifyHealthRequest, StatusCodeResponse )
 MODEL_ALLDEF(   DeviceHealthAttestationGetReport,    81, DeviceHealthAttestationGetReportRequest,    DeviceHealthAttestationGetReportResponse )
+MODEL_ALLDEF(   GetWifiConfiguration,         90, GetWifiConfigurationRequest,          GetWifiConfigurationResponse )
+MODEL_REQDEF(   SetWifiConfiguration,         91, SetWifiConfigurationRequest,          StatusCodeResponse )
+MODEL_ALLDEF(   GetWifiDetails,               92, GetWifiDetailsRequest,                GetWifiDetailsResponse )
