@@ -40,10 +40,12 @@ The DM client reports the hashes of installed certificates under the pre-defined
     "reported": {
       "microsoft": {
         "management": {
-          "profiles": {
-            "active": "WifiProfile1",
-            "0": "WifiProfile1",
-            "1": "WifiProfile2"
+          "wifi": {
+            "profiles": [
+              "WifiProfile1",
+              "WifiProfile2"
+            ],
+            "active": "WifiProfile1"
           }
         }
       }
