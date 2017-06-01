@@ -69,52 +69,6 @@ void WifiCSP::SetProfile(const wstring& profileName, const wstring& profileXml)
     MdmProvision::RunSet(path, profileXml);
 }
 
-void WifiCSP::AddProxy(const wstring& profileName, const wstring& proxy)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/Proxy";
-
-    MdmProvision::RunAddData(path, proxy);
-}
-
-void WifiCSP::DeleteProxy(const wstring& profileName)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/Proxy";
-
-    MdmProvision::RunDelete(path);
-}
-
-wstring WifiCSP::GetProxy(const wstring& profileName)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/Proxy";
-
-    wstring proxy = MdmProvision::RunGetString(path);
-    TRACEP(L" proxy = ", proxy.c_str());
-    return proxy;
-}
-
-void WifiCSP::SetProxy(const wstring& profileName, const wstring& proxy)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/Proxy";
-
-    MdmProvision::RunSet(path, proxy);
-}
-
 void WifiCSP::AddDisableInternetConnectivityChecks(const wstring& profileName, bool disable)
 {
     TRACE(__FUNCTION__);
@@ -161,48 +115,3 @@ void WifiCSP::SetDisableInternetConnectivityChecks(const wstring& profileName, b
     MdmProvision::RunSet(path, disable);
 }
 
-void AddProxyPacUrl(const wstring& profileName, const wstring& proxyPacUrl)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/ProxyPacUrl";
-
-    MdmProvision::RunAddData(path, proxyPacUrl);
-}
-
-void WifiCSP::DeleteProxyPacUrl(const wstring& profileName)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/ProxyPacUrl";
-
-    MdmProvision::RunDelete(path);
-}
-
-wstring WifiCSP::GetProxyPacUrl(const wstring& profileName)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/ProxyPacUrl";
-
-    wstring proxyPacUrl = MdmProvision::RunGetString(path);
-    TRACEP(L" proxyPacUrl = ", proxyPacUrl.c_str());
-    return proxyPacUrl;
-}
-
-void WifiCSP::SetProxyPacUrl(const wstring& profileName, const wstring& proxyPacUrl)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/ProxyPacUrl";
-
-    MdmProvision::RunSet(path, proxyPacUrl);
-}
