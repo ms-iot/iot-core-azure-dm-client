@@ -106,6 +106,8 @@
     <ClInclude Include="Models\StringResponse.h" />
     <ClInclude Include="Models\TimeInfo.h" />
     <ClInclude Include="Models\TpmRequests.h" />
+    <ClInclude Include="Models\WifiConfiguration.h" />
+    <ClInclude Include="Models\WifiDetails.h" />
     <ClInclude Include="Models\WindowsUpdatePolicy.h" />
     <ClInclude Include="Models\WindowsUpdateRebootPolicy.h" />
     <ClInclude Include="Models\WindowsUpdates.h" />
