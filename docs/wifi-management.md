@@ -23,10 +23,10 @@ The operator can specify the list of desired wifi profiles to be installed. When
               },
               "WifiProfile2": { 
                 "profile": "fileName02.xml",
-               "disableInternetConnectivityChecks": "false",
+                "disableInternetConnectivityChecks": "false",
               }
             },
-            "activeProfile": "WifiProfile1"
+            "active": "WifiProfile1"
           }
         }
       }

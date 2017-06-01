@@ -547,6 +547,26 @@ namespace Microsoft.Devices.Management
             client._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
+        private static async void ProcessDesiredWifiConfiguration(
+            DeviceManagementClient client,
+            string connectionString,
+            string containerName,
+            Message.WifiConfiguration wifiConfiguration)
+        {
+            // Get installed wifi profiles
+            var getInstalledRequest = new GetWifiConfigurationRequest();
+            var getInstalledResponse = (await client._systemConfiguratorProxy.SendCommandAsync(getInstalledRequest)) as GetWifiConfigurationResponse;
+            
+            // Find profiles that need to be removed and added
+
+            // Download and install new profiles
+
+            // Remove profiles that aren't desired
+
+            // Set active profile
+
+        }
+
         public async Task AllowReboots(bool allowReboots)
         {
             var configuration = new WindowsUpdateRebootPolicyConfiguration();
@@ -596,6 +616,7 @@ namespace Microsoft.Devices.Management
         {
             // ToDo: We should not throw here. All problems need to be logged.
             Message.CertificateConfiguration certificateConfiguration = null;
+            Message.WifiConfiguration wifiConfiguration = null;
             JObject appsConfiguration = null;
 
             foreach (var managementProperty in dmNode.Children().OfType<JProperty>())
@@ -685,6 +706,15 @@ namespace Microsoft.Devices.Management
                                 this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
                             }
                             break;
+                        case "wifi":
+                            if (managementProperty.Value.Type == JTokenType.Object)
+                            {
+                                // Capture the configuration here.
+                                // To apply the configuration we need to wait until externalStorage has been configured too.
+                                Debug.WriteLine("WifiConfiguration = " + managementProperty.Value.ToString());
+                                wifiConfiguration = JsonConvert.DeserializeObject<WifiConfiguration>(managementProperty.Value.ToString());
+                            }
+                            break;
                         default:
                             // Not supported
                             break;
@@ -708,6 +738,10 @@ namespace Microsoft.Devices.Management
                     if (certificateConfiguration != null)
                     {
                         ProcessDesiredCertificateConfiguration(this, _externalStorage.connectionString, _externalStorage.containerName, certificateConfiguration);
+                    }
+                    if (wifiConfiguration != null)
+                    {
+                        ProcessDesiredWifiConfiguration(this, _externalStorage.connectionString, _externalStorage.containerName, wifiConfiguration);
                     }
                 }
             }

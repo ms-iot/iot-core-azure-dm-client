@@ -31,13 +31,13 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         GetWifiDetailsRequest() {}
 
         property String^ path;
-        property String^ hash;
+        property String^ profileName;
 
         virtual Blob^ Serialize() {
 
             JsonObject^ jsonObject = ref new JsonObject();
             jsonObject->Insert("path", JsonValue::CreateStringValue(path));
-            jsonObject->Insert("hash", JsonValue::CreateStringValue(hash));
+            jsonObject->Insert("profileName", JsonValue::CreateStringValue(profileName));
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
 
@@ -48,8 +48,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
             JsonObject^ jsonObject = JsonObject::Parse(str);
             GetWifiDetailsRequest^ getWifiDetailsRequest = ref new GetWifiDetailsRequest();
-            getWifiDetailsRequest->path = jsonObject->Lookup("path")->GetString();
-            getWifiDetailsRequest->hash = jsonObject->Lookup("hash")->GetString();
+            getWifiDetailsRequest->path = jsonObject->GetNamedString("path");
+            getWifiDetailsRequest->profileName = jsonObject->GetNamedString("profileName");
 
             return getWifiDetailsRequest;
         }
@@ -63,24 +63,16 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     {
         StatusCodeResponse statusCodeResponse;
     public:
-        property String^ base64Encoding;
-        property String^ templateName;
-        property String^ issuedBy;
-        property String^ issuedTo;
-        property String^ validFrom;
-        property String^ validTo;
+        property String^ profileXml;
+		property bool disableInternetConnectivityChecks;
 
         GetWifiDetailsResponse(ResponseStatus status) : statusCodeResponse(status, this->Tag) {}
 
         virtual Blob^ Serialize() {
 
             JsonObject^ jsonObject = ref new JsonObject();
-            jsonObject->Insert("Base64Encoding", JsonValue::CreateStringValue(base64Encoding));
-            jsonObject->Insert("TemplateName", JsonValue::CreateStringValue(templateName));
-            jsonObject->Insert("IssuedBy", JsonValue::CreateStringValue(issuedBy));
-            jsonObject->Insert("IssuedTo", JsonValue::CreateStringValue(issuedTo));
-            jsonObject->Insert("ValidFrom", JsonValue::CreateStringValue(validFrom));
-            jsonObject->Insert("ValidTo", JsonValue::CreateStringValue(validTo));
+			jsonObject->Insert("profileXml", JsonValue::CreateStringValue(profileXml));
+			jsonObject->Insert("disableInternetConnectivityChecks", JsonValue::CreateBooleanValue(disableInternetConnectivityChecks));
 
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
@@ -91,12 +83,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto getWifiDetailsResponse = ref new GetWifiDetailsResponse(ResponseStatus::Success);
-            getWifiDetailsResponse->base64Encoding = jsonObject->Lookup("Base64Encoding")->GetString();
-            getWifiDetailsResponse->templateName = jsonObject->Lookup("TemplateName")->GetString();
-            getWifiDetailsResponse->issuedBy = jsonObject->Lookup("IssuedBy")->GetString();
-            getWifiDetailsResponse->issuedTo = jsonObject->Lookup("IssuedTo")->GetString();
-            getWifiDetailsResponse->validFrom = jsonObject->Lookup("ValidFrom")->GetString();
-            getWifiDetailsResponse->validTo = jsonObject->Lookup("ValidTo")->GetString();
+			getWifiDetailsResponse->profileXml = jsonObject->GetNamedString("profileXml");
+			getWifiDetailsResponse->disableInternetConnectivityChecks = jsonObject->GetNamedBoolean("disableInternetConnectivityChecks");
 
             return getWifiDetailsResponse;
         }
