@@ -25,31 +25,68 @@ using namespace Windows::Data::Json;
 
 namespace Microsoft { namespace Devices { namespace Management { namespace Message
 {
-    public ref class WifiConfiguration sealed
+    public ref class WifiProfileConfiguration sealed
     {
     public:
-        property String^ rootCATrustedCertificates_Root;
-        property String^ rootCATrustedCertificates_CA;
-        property String^ rootCATrustedCertificates_TrustedPublisher;
-        property String^ rootCATrustedCertificates_TrustedPeople;
-
-        property String^ certificateStore_CA_System;
-        property String^ certificateStore_Root_System;
-        property String^ certificateStore_My_User;
-        property String^ certificateStore_My_System;
+        property String^ Name;
+        property String^ Xml;
+        property bool disableInternetConnectivityChecks;
 
         Blob^ Serialize(uint32_t tag) {
 
             JsonObject^ jsonObject = ref new JsonObject();
-            jsonObject->Insert("rootCATrustedCertificates_Root", JsonValue::CreateStringValue(rootCATrustedCertificates_Root));
-            jsonObject->Insert("rootCATrustedCertificates_CA", JsonValue::CreateStringValue(rootCATrustedCertificates_CA));
-            jsonObject->Insert("rootCATrustedCertificates_TrustedPublisher", JsonValue::CreateStringValue(rootCATrustedCertificates_TrustedPublisher));
-            jsonObject->Insert("rootCATrustedCertificates_TrustedPeople", JsonValue::CreateStringValue(rootCATrustedCertificates_TrustedPeople));
+            jsonObject->Insert("Name", JsonValue::CreateStringValue(Name));
+            jsonObject->Insert("Xml", JsonValue::CreateStringValue(Xml));
+            jsonObject->Insert("disableInternetConnectivityChecks", JsonValue::CreateBooleanValue(disableInternetConnectivityChecks));
 
-            jsonObject->Insert("certificateStore_CA_System", JsonValue::CreateStringValue(certificateStore_CA_System));
-            jsonObject->Insert("certificateStore_Root_System", JsonValue::CreateStringValue(certificateStore_Root_System));
-            jsonObject->Insert("certificateStore_My_User", JsonValue::CreateStringValue(certificateStore_My_User));
-            jsonObject->Insert("certificateStore_My_System", JsonValue::CreateStringValue(certificateStore_My_System));
+            return SerializationHelper::CreateBlobFromJson(tag, jsonObject);
+        }
+
+        static WifiProfileConfiguration^ Deserialize(Blob^ blob) {
+
+            String^ str = SerializationHelper::GetStringFromBlob(blob);
+
+            JsonObject^ jsonObject = JsonObject::Parse(str);
+            auto wifiConfiguration = ref new WifiProfileConfiguration();
+			wifiConfiguration->Name = jsonObject->GetNamedString("Name");
+			wifiConfiguration->Xml = jsonObject->GetNamedString("Xml");
+			wifiConfiguration->disableInternetConnectivityChecks = jsonObject->GetNamedBoolean("disableInternetConnectivityChecks");
+
+            return wifiConfiguration;
+        }
+    };
+
+    public ref class WifiConfiguration sealed
+    {
+    public:
+        property IVector<WifiProfileConfiguration^>^ Profiles;
+        property String^ Active;
+
+        WifiConfiguration()
+        {
+            Active = ref new Platform::String();
+            Profiles = ref new Vector<WifiProfileConfiguration^>();
+        }
+        WifiConfiguration(String^ active, IVector<WifiProfileConfiguration^>^ profiles)
+        {
+            Active = active;
+            Profiles = profiles;
+        }
+
+        Blob^ Serialize(uint32_t tag) {
+
+            JsonObject^ jsonObject = ref new JsonObject();
+            jsonObject->Insert("active", JsonValue::CreateStringValue(Active));
+            JsonObject^ jsonProfiles = ref new JsonObject();
+            for each (auto profile in Profiles)
+            {
+                auto propMap = ref new JsonObject();
+                propMap->Insert(ref new Platform::String(L"profile"), JsonValue::CreateStringValue(profile->Xml));
+                propMap->Insert(ref new Platform::String(L"disableInternetConnectivityChecks"), JsonValue::CreateBooleanValue(profile->disableInternetConnectivityChecks));
+
+                jsonProfiles->Insert(profile->Name, propMap);
+            }
+            jsonObject->Insert("profiles", jsonProfiles);
 
             return SerializationHelper::CreateBlobFromJson(tag, jsonObject);
         }
@@ -60,29 +97,35 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto wifiConfiguration = ref new WifiConfiguration();
-			wifiConfiguration->rootCATrustedCertificates_Root = jsonObject->Lookup("rootCATrustedCertificates_Root")->GetString();
-			wifiConfiguration->rootCATrustedCertificates_CA = jsonObject->Lookup("rootCATrustedCertificates_CA")->GetString();
-			wifiConfiguration->rootCATrustedCertificates_TrustedPublisher = jsonObject->Lookup("rootCATrustedCertificates_TrustedPublisher")->GetString();
-			wifiConfiguration->rootCATrustedCertificates_TrustedPeople = jsonObject->Lookup("rootCATrustedCertificates_TrustedPeople")->GetString();
+            wifiConfiguration->Active = jsonObject->GetNamedString("active");
 
-			wifiConfiguration->certificateStore_CA_System = jsonObject->Lookup("certificateStore_CA_System")->GetString();
-			wifiConfiguration->certificateStore_Root_System = jsonObject->Lookup("certificateStore_Root_System")->GetString();
-			wifiConfiguration->certificateStore_My_User = jsonObject->Lookup("certificateStore_My_User")->GetString();
-			wifiConfiguration->certificateStore_My_System = jsonObject->Lookup("certificateStore_My_System")->GetString();
+            JsonObject^ profiles = jsonObject->GetNamedObject(ref new Platform::String(L"profiles"));
+            for each (auto profile in profiles)
+            {
+                auto profileName = profile->Key;
+                auto profileValue = profiles->GetNamedObject(profileName);
+
+                auto wifiProfile = ref new WifiProfileConfiguration();
+                wifiProfile->Name = profileName;
+                wifiProfile->disableInternetConnectivityChecks = profileValue->GetNamedBoolean("disableInternetConnectivityChecks");
+                wifiProfile->Xml = profileValue->GetNamedString("profile");
+
+                wifiConfiguration->Profiles->Append(wifiProfile);
+            }
 
             return wifiConfiguration;
         }
     };
 
-    public ref class SetWifiConfigurationRequest sealed : public IRequest
+	public ref class SetWifiConfigurationRequest sealed : public IRequest
     {
     public:
         property WifiConfiguration^ configuration;
 
 
-		SetWifiConfigurationRequest(WifiConfiguration^ certificateConfiguration)
+		SetWifiConfigurationRequest(WifiConfiguration^ wifiConfiguration)
         {
-            configuration = certificateConfiguration;
+            configuration = wifiConfiguration;
         }
 
         virtual Blob^ Serialize()
@@ -111,7 +154,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         static IDataPayload^ Deserialize(Blob^ blob) {
-            assert(blob->Tag == DMMessageKind::GetCertificateConfiguration);
+            assert(blob->Tag == DMMessageKind::GetWifiConfiguration);
             return ref new GetWifiConfigurationRequest();
         }
 
@@ -126,9 +169,9 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public:
         property WifiConfiguration^ configuration;
 
-		GetWifiConfigurationResponse(ResponseStatus status, WifiConfiguration^ certificateConfiguration) : statusCodeResponse(status, this->Tag)
+		GetWifiConfigurationResponse(ResponseStatus status, WifiConfiguration^ wifiConfiguration) : statusCodeResponse(status, this->Tag)
         {
-            configuration = certificateConfiguration;
+            configuration = wifiConfiguration;
         }
 
         virtual Blob^ Serialize() {
@@ -136,8 +179,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         static IDataPayload^ Deserialize(Blob^ blob) {
-            WifiConfiguration^ certificateConfiguration = WifiConfiguration::Deserialize(blob);
-            return ref new GetWifiConfigurationResponse(ResponseStatus::Success, certificateConfiguration);
+            WifiConfiguration^ wifiConfiguration = WifiConfiguration::Deserialize(blob);
+            return ref new GetWifiConfigurationResponse(ResponseStatus::Success, wifiConfiguration);
         }
 
         virtual property ResponseStatus Status {
