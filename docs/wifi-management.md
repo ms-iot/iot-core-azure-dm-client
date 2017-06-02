@@ -27,7 +27,6 @@ The operator can specify the list of desired wifi profiles to be installed. When
               },
               "activeProfile": "WifiProfile1"
             }
-            "reportProperties": "yes"
           }
         }
       }
@@ -131,13 +130,25 @@ If the operator wants to uninstall a wifi profile (home-wifi.xml), the following
 </pre>
 
 ### Not interested in configuring or reporting Wifi properties
-
 - Set the desired properties to:
 <pre>
     "desired": {
       "microsoft": {
         "management": {
-          "wifi": "nono"
+          "wifi": "no-no"
+        }
+      }
+    }
+</pre>
+- Equivalent, but more verbose:
+<pre>
+    "desired": {
+      "microsoft": {
+        "management": {
+          "wifi": {
+            "applyProperties": "no"
+            "reportProperties": "no"
+          }
         }
       }
     }
@@ -150,7 +161,20 @@ If the operator wants to uninstall a wifi profile (home-wifi.xml), the following
     "desired": {
       "microsoft": {
         "management": {
-          "wifi": "noyes"
+          "wifi": "no-yes"
+        }
+      }
+    }
+</pre>
+- Equivalent, but more verbose:
+<pre>
+    "desired": {
+      "microsoft": {
+        "management": {
+          "wifi": {
+            "applyProperties": "no"
+            "reportProperties": "yes"
+          }
         }
       }
     }
