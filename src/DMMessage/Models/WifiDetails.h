@@ -30,13 +30,11 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public:
         GetWifiDetailsRequest() {}
 
-        property String^ path;
         property String^ profileName;
 
         virtual Blob^ Serialize() {
 
             JsonObject^ jsonObject = ref new JsonObject();
-            jsonObject->Insert("path", JsonValue::CreateStringValue(path));
             jsonObject->Insert("profileName", JsonValue::CreateStringValue(profileName));
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
@@ -48,7 +46,6 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
             JsonObject^ jsonObject = JsonObject::Parse(str);
             GetWifiDetailsRequest^ getWifiDetailsRequest = ref new GetWifiDetailsRequest();
-            getWifiDetailsRequest->path = jsonObject->GetNamedString("path");
             getWifiDetailsRequest->profileName = jsonObject->GetNamedString("profileName");
 
             return getWifiDetailsRequest;
@@ -63,16 +60,18 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     {
         StatusCodeResponse statusCodeResponse;
     public:
-        property String^ profileXml;
-		property bool disableInternetConnectivityChecks;
+        property String^ Name;
+        property String^ Xml;
+		property bool DisableInternetConnectivityChecks;
 
         GetWifiDetailsResponse(ResponseStatus status) : statusCodeResponse(status, this->Tag) {}
 
         virtual Blob^ Serialize() {
 
             JsonObject^ jsonObject = ref new JsonObject();
-			jsonObject->Insert("profileXml", JsonValue::CreateStringValue(profileXml));
-			jsonObject->Insert("disableInternetConnectivityChecks", JsonValue::CreateBooleanValue(disableInternetConnectivityChecks));
+			jsonObject->Insert("name", JsonValue::CreateStringValue(Name));
+            jsonObject->Insert("xml", JsonValue::CreateStringValue(Xml));
+            jsonObject->Insert("disableInternetConnectivityChecks", JsonValue::CreateBooleanValue(DisableInternetConnectivityChecks));
 
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
@@ -83,8 +82,9 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto getWifiDetailsResponse = ref new GetWifiDetailsResponse(ResponseStatus::Success);
-			getWifiDetailsResponse->profileXml = jsonObject->GetNamedString("profileXml");
-			getWifiDetailsResponse->disableInternetConnectivityChecks = jsonObject->GetNamedBoolean("disableInternetConnectivityChecks");
+			getWifiDetailsResponse->Name = jsonObject->GetNamedString("Name");
+            getWifiDetailsResponse->Xml = jsonObject->GetNamedString("Xml");
+            getWifiDetailsResponse->DisableInternetConnectivityChecks = jsonObject->GetNamedBoolean("DisableInternetConnectivityChecks");
 
             return getWifiDetailsResponse;
         }
