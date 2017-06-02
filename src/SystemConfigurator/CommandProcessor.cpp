@@ -314,7 +314,7 @@ IResponse^ HandleSetWifiConfiguration(IRequest^ request)
     try
     {
         auto setWifiConfigurationRequest = dynamic_cast<SetWifiConfigurationRequest^>(request);
-        WifiConfiguration^ configuration = setWifiConfigurationRequest->configuration;
+        WifiConfiguration^ configuration = setWifiConfigurationRequest->Configuration;
         //TODO: fill in details
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
