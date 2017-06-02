@@ -16,23 +16,26 @@ The operator can specify the list of desired wifi profiles to be installed. When
       "microsoft": {
         "management": {
           "wifi": {
-            "WifiProfile1": {
-              "profile": "container/fileName01.xml",
-              "disableInternetConnectivityChecks": "true",
-            },
-            "WifiProfile2": {
-              "profile": "container/fileName02.xml",
-             "disableInternetConnectivityChecks": "false",
-            },
-            "activeProfile": "WifiProfile1"
+            "applyProperties": {
+              "WifiProfile1": {
+                "profile": "container/fileName01.xml",
+                "disableInternetConnectivityChecks": "true",
+              },
+              "WifiProfile2": {
+                "profile": "container/fileName02.xml",
+               "disableInternetConnectivityChecks": "false",
+              },
+              "activeProfile": "WifiProfile1"
+            }
+            "reportProperties": "yes"
           }
         }
       }
     }
 </pre>
 
-## List Installed Certificates
-The DM client reports the hashes of installed certificates under the pre-defined set of CSP paths. Each set of hashes will appear under the json property name corresponding to the CSPs path as described in the mapping above.
+## List Installed Wifi Profiles
+The DM client reports the names of installed wifi profiles. 
 
 <pre>
     "reported": {
@@ -48,8 +51,8 @@ The DM client reports the hashes of installed certificates under the pre-defined
 </pre>
 
 ## Retrieve Wifi Details
-To get more details about any of the installed certificates, the request can be initiated by calling the asynchronous `microsoft.management.getProfileDetails` method.
-The method will schedule a job on the device to capture the certificate details in a json file and upload it to the specified blob in Azure Storage.
+To get more details about any of the installed wifi profiles, the request can be initiated by calling the asynchronous `microsoft.management.getProfileDetails` method.
+The method will schedule a job on the device to capture the wifi profile details in a json file and upload it to the specified blob in Azure Storage.
 The method returns immediately and indicates that it has accepted or rejected the job.
 
 ### Input Payload 
@@ -73,7 +76,7 @@ The device responds immediately with the following JSON payload:
 ```
 
 Possible `"response"` values are: 
-- `"accepted"` - The reboot request was accepted. The device will retrieve the certificate details and upload it to the Azure Storage specified in the input parameters.
+- `"accepted"` - The reboot request was accepted. The device will retrieve the profile details and upload it to the Azure Storage specified in the input parameters.
 - `"rejected"` - The device rejected the request.
 
 `"reason"` is used to communicate why an App Install request was rejected if possible.
@@ -90,17 +93,19 @@ Possible `"response"` values are:
 ### Install Profile
 
 If the operator wants to install a new wifi profile (home-wifi.xml), the following steps should be followed:
-- Upload the certificate file to the default Azure blob storage. Let's assume the profile name is 'HomeWifi'.
+- Upload the wifi profile xml file to the default Azure blob storage. Let's assume the profile name is 'HomeWifi'.
 - Set the desired properties to:
 <pre>
     "desired": {
       "microsoft": {
         "management": {
           "wifi": {
-            "HomeWifi": {
-              "profile": "container/home-wifi.xml"
-            },
-            "activeProfile": "HomeWifi"
+            "applyProperties": {
+              "HomeWifi": {
+                "profile": "container/home-wifi.xml"
+              },
+              "activeProfile": "HomeWifi"
+            }
           }
         }
       }
@@ -116,23 +121,36 @@ If the operator wants to uninstall a wifi profile (home-wifi.xml), the following
       "microsoft": {
         "management": {
           "wifi": {
-            "HomeWifi": "uninstall"
+            "applyProperties": {
+              "HomeWifi": "uninstall"
+            }
           }
         }
       }
     }
 </pre>
 
-### Not interested in Wifi
+### Not interested in configuring or reporting Wifi properties
 
-If the operator wants to install a new wifi profile (home-wifi.xml), the following steps should be followed:
-- Upload the certificate file to the default Azure blob storage. Let's assume the profile name is 'HomeWifi'.
 - Set the desired properties to:
 <pre>
     "desired": {
       "microsoft": {
         "management": {
-          "wifi": null
+          "wifi": "nono"
+        }
+      }
+    }
+</pre>
+
+### Only interested in reporting Wifi properties
+
+- Set the desired properties to:
+<pre>
+    "desired": {
+      "microsoft": {
+        "management": {
+          "wifi": "noyes"
         }
       }
     }
