@@ -551,17 +551,26 @@ namespace Microsoft.Devices.Management
             DeviceManagementClient client,
             string connectionString,
             string containerName,
-            Message.WifiConfiguration wifiConfiguration)
+            Message.WifiConfiguration desiredConfiguration)
         {
             // Get installed wifi profiles
             var getInstalledRequest = new GetWifiConfigurationRequest();
             var getInstalledResponse = (await client._systemConfiguratorProxy.SendCommandAsync(getInstalledRequest)) as GetWifiConfigurationResponse;
-            
+            var reportedConfiguration = getInstalledResponse.Configuration;
+
             // Find profiles that need to be removed and added
+            var toAdd = desiredConfiguration.Profiles.Except(reportedConfiguration.Profiles);
+            var toRemove = desiredConfiguration.Profiles.Where((profile)=> { return profile.Uninstall; });
 
             // Download and install new profiles
+            toAdd.ToList().ForEach((profile) => {
+
+            });
 
             // Remove profiles that aren't desired
+            toRemove.ToList().ForEach((profile) => {
+                
+            });
 
             // Set active profile
 
