@@ -19,6 +19,8 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class WifiCSP
 {
 public:
+    static std::wstring GetProfiles();
+
     static void AddProfile(const std::wstring& profileName, const std::wstring& profileXml);
     static void DeleteProfile(const std::wstring& profileName);
     static std::wstring GetProfile(const std::wstring& profileName);

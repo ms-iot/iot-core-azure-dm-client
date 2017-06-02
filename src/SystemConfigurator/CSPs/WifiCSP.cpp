@@ -19,17 +19,29 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using namespace std;
 
-const wchar_t* WifeProfilePath = L"./Vendor/MSFT/WiFi/Profile/";
+const wchar_t* WifeProfilePath = L"./Vendor/MSFT/WiFi/Profile";
 
 // Wifi CSP docs
 // https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/wifi-csp
 //
+
+wstring WifiCSP::GetProfiles()
+{
+    TRACE(__FUNCTION__);
+
+    wstring path = WifeProfilePath;
+
+    wstring profileXml = MdmProvision::RunGetString(path);
+    TRACEP(L" profile xml = ", profileXml.c_str());
+    return profileXml;
+}
 
 void WifiCSP::AddProfile(const wstring& profileName, const wstring& profileXml)
 {
     TRACE(__FUNCTION__);
 
     wstring path = WifeProfilePath;
+    path += L"/";
     path += profileName;
     path += L"/WlanXml";
 
@@ -41,6 +53,7 @@ void WifiCSP::DeleteProfile(const wstring& profileName)
     TRACE(__FUNCTION__);
 
     wstring path = WifeProfilePath;
+    path += L"/";
     path += profileName;
 
     MdmProvision::RunDelete(path);
@@ -51,6 +64,7 @@ wstring WifiCSP::GetProfile(const wstring& profileName)
     TRACE(__FUNCTION__);
 
     wstring path = WifeProfilePath;
+    path += L"/";
     path += profileName;
 
     wstring profileXml = MdmProvision::RunGetString(path);
@@ -63,6 +77,7 @@ void WifiCSP::SetProfile(const wstring& profileName, const wstring& profileXml)
     TRACE(__FUNCTION__);
 
     wstring path = WifeProfilePath;
+    path += L"/";
     path += profileName;
     path += L"/WlanXml";
 
@@ -74,6 +89,7 @@ void WifiCSP::AddDisableInternetConnectivityChecks(const wstring& profileName, b
     TRACE(__FUNCTION__);
 
     wstring path = WifeProfilePath;
+    path += L"/";
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
@@ -85,6 +101,7 @@ void WifiCSP::DeleteDisableInternetConnectivityChecks(const wstring& profileName
     TRACE(__FUNCTION__);
 
     wstring path = WifeProfilePath;
+    path += L"/";
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
@@ -96,6 +113,7 @@ bool WifiCSP::GetDisableInternetConnectivityChecks(const wstring& profileName)
     TRACE(__FUNCTION__);
 
     wstring path = WifeProfilePath;
+    path += L"/";
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
@@ -109,6 +127,7 @@ void WifiCSP::SetDisableInternetConnectivityChecks(const wstring& profileName, b
     TRACE(__FUNCTION__);
 
     wstring path = WifeProfilePath;
+    path += L"/";
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
