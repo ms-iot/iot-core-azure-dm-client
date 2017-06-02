@@ -707,13 +707,11 @@ namespace Microsoft.Devices.Management
                             }
                             break;
                         case "wifi":
-                            if (managementProperty.Value.Type == JTokenType.Object)
-                            {
-                                // Capture the configuration here.
-                                // To apply the configuration we need to wait until externalStorage has been configured too.
-                                Debug.WriteLine("WifiConfiguration = " + managementProperty.Value.ToString());
-                                wifiConfiguration = JsonConvert.DeserializeObject<WifiConfiguration>(managementProperty.Value.ToString());
-                            }
+                            // Capture the configuration here.
+                            // To apply the configuration we need to wait until externalStorage has been configured too.
+                            var valueString = managementProperty.Value.ToString();
+                            Debug.WriteLine("WifiConfiguration = " + valueString);
+                            wifiConfiguration = WifiConfiguration.Parse(valueString);
                             break;
                         default:
                             // Not supported

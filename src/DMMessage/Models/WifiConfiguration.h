@@ -18,6 +18,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DMMessageKind.h"
 #include "StatusCodeResponse.h"
 #include "Blob.h"
+#include "ModelHelper.h"
 
 using namespace Platform;
 using namespace Platform::Metadata;
@@ -30,14 +31,14 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public:
         property String^ Name;
         property String^ Xml;
-        property bool disableInternetConnectivityChecks;
+        property bool DisableInternetConnectivityChecks;
 
         Blob^ Serialize(uint32_t tag) {
 
             JsonObject^ jsonObject = ref new JsonObject();
             jsonObject->Insert("Name", JsonValue::CreateStringValue(Name));
             jsonObject->Insert("Xml", JsonValue::CreateStringValue(Xml));
-            jsonObject->Insert("disableInternetConnectivityChecks", JsonValue::CreateBooleanValue(disableInternetConnectivityChecks));
+            jsonObject->Insert("DisableInternetConnectivityChecks", JsonValue::CreateBooleanValue(DisableInternetConnectivityChecks));
 
             return SerializationHelper::CreateBlobFromJson(tag, jsonObject);
         }
@@ -50,7 +51,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             auto wifiConfiguration = ref new WifiProfileConfiguration();
 			wifiConfiguration->Name = jsonObject->GetNamedString("Name");
 			wifiConfiguration->Xml = jsonObject->GetNamedString("Xml");
-			wifiConfiguration->disableInternetConnectivityChecks = jsonObject->GetNamedBoolean("disableInternetConnectivityChecks");
+			wifiConfiguration->DisableInternetConnectivityChecks = jsonObject->GetNamedBoolean("DisableInternetConnectivityChecks");
 
             return wifiConfiguration;
         }
@@ -61,59 +62,69 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public:
         property IVector<WifiProfileConfiguration^>^ Profiles;
         property String^ Active;
+        property bool Reporting;
+        property bool Applying;
 
         WifiConfiguration()
         {
             Active = ref new Platform::String();
             Profiles = ref new Vector<WifiProfileConfiguration^>();
+            Applying = true;
+            Reporting = true;
         }
-        WifiConfiguration(String^ active, IVector<WifiProfileConfiguration^>^ profiles)
+        WifiConfiguration(String^ active, IVector<WifiProfileConfiguration^>^ profiles, bool applying, bool reporting)
         {
             Active = active;
             Profiles = profiles;
+            Applying = applying;
+            Reporting = reporting;
         }
 
         Blob^ Serialize(uint32_t tag) {
+            return DesiredAndReportedConfigurationHelper<WifiConfiguration>::Serialize(
+                this, tag, [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) {
+                    applyPropertiesObject->Insert("activeProfile", JsonValue::CreateStringValue(configObject->Active));
+                    for each (auto profile in configObject->Profiles)
+                    {
+                        auto propMap = ref new JsonObject();
+                        propMap->Insert(ref new Platform::String(L"profile"), JsonValue::CreateStringValue(profile->Xml));
+                        propMap->Insert(ref new Platform::String(L"disableInternetConnectivityChecks"), JsonValue::CreateBooleanValue(profile->DisableInternetConnectivityChecks));
 
-            JsonObject^ jsonObject = ref new JsonObject();
-            jsonObject->Insert("active", JsonValue::CreateStringValue(Active));
-            JsonObject^ jsonProfiles = ref new JsonObject();
-            for each (auto profile in Profiles)
-            {
-                auto propMap = ref new JsonObject();
-                propMap->Insert(ref new Platform::String(L"profile"), JsonValue::CreateStringValue(profile->Xml));
-                propMap->Insert(ref new Platform::String(L"disableInternetConnectivityChecks"), JsonValue::CreateBooleanValue(profile->disableInternetConnectivityChecks));
+                        applyPropertiesObject->Insert(profile->Name, propMap);
+                    }
+                });
+        }
 
-                jsonProfiles->Insert(profile->Name, propMap);
-            }
-            jsonObject->Insert("profiles", jsonProfiles);
+        static WifiConfiguration^ Parse(Platform::String^ str) {
+            return DesiredAndReportedConfigurationHelper<WifiConfiguration>::Parse(
+                str, [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) {
+                    for each (auto profile in applyPropertiesObject)
+                    {
+                        auto profileName = profile->Key;
+                        auto profileValue = applyPropertiesObject->Lookup(profileName);
 
-            return SerializationHelper::CreateBlobFromJson(tag, jsonObject);
+                        if (profileName == L"activeProfile")
+                        {
+                            configObject->Active = profileValue->GetString();
+                        }
+                        else if (profileValue->ValueType == JsonValueType::Object)
+                        {
+                            auto profileValueObject = applyPropertiesObject->GetNamedObject(profileName);
+
+                            auto wifiProfile = ref new WifiProfileConfiguration();
+                            wifiProfile->Name = profileName;
+                            wifiProfile->DisableInternetConnectivityChecks = profileValueObject->GetNamedBoolean("disableInternetConnectivityChecks");
+                            wifiProfile->Xml = profileValueObject->GetNamedString("profile");
+
+                            configObject->Profiles->Append(wifiProfile);
+                        }
+                    }
+                });
         }
 
         static WifiConfiguration^ Deserialize(Blob^ blob) {
-
             String^ str = SerializationHelper::GetStringFromBlob(blob);
-
-            JsonObject^ jsonObject = JsonObject::Parse(str);
-            auto wifiConfiguration = ref new WifiConfiguration();
-            wifiConfiguration->Active = jsonObject->GetNamedString("active");
-
-            JsonObject^ profiles = jsonObject->GetNamedObject(ref new Platform::String(L"profiles"));
-            for each (auto profile in profiles)
-            {
-                auto profileName = profile->Key;
-                auto profileValue = profiles->GetNamedObject(profileName);
-
-                auto wifiProfile = ref new WifiProfileConfiguration();
-                wifiProfile->Name = profileName;
-                wifiProfile->disableInternetConnectivityChecks = profileValue->GetNamedBoolean("disableInternetConnectivityChecks");
-                wifiProfile->Xml = profileValue->GetNamedString("profile");
-
-                wifiConfiguration->Profiles->Append(wifiProfile);
-            }
-
-            return wifiConfiguration;
+            return Parse(str);
         }
     };
 
