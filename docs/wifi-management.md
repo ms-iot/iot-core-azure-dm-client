@@ -16,17 +16,15 @@ The operator can specify the list of desired wifi profiles to be installed. When
       "microsoft": {
         "management": {
           "wifi": {
-            "profiles": {
-              "WifiProfile1": { 
-                "profile": "fileName01.xml",
-                "disableInternetConnectivityChecks": "true",
-              },
-              "WifiProfile2": { 
-                "profile": "fileName02.xml",
-                "disableInternetConnectivityChecks": "false",
-              }
+            "WifiProfile1": {
+              "profile": "container/fileName01.xml",
+              "disableInternetConnectivityChecks": "true",
             },
-            "active": "WifiProfile1"
+            "WifiProfile2": {
+              "profile": "container/fileName02.xml",
+             "disableInternetConnectivityChecks": "false",
+            },
+            "activeProfile": "WifiProfile1"
           }
         }
       }
@@ -41,11 +39,8 @@ The DM client reports the hashes of installed certificates under the pre-defined
       "microsoft": {
         "management": {
           "wifi": {
-            "profiles": [
-              "WifiProfile1",
-              "WifiProfile2"
-            ],
-            "active": "WifiProfile1"
+            "WifiProfile1": "active",
+            "WifiProfile2": ""
           }
         }
       }
@@ -92,7 +87,7 @@ Possible `"response"` values are:
 
 ## Examples:
 
-### Install Certificates
+### Install Profile
 
 If the operator wants to install a new wifi profile (home-wifi.xml), the following steps should be followed:
 - Upload the certificate file to the default Azure blob storage. Let's assume the profile name is 'HomeWifi'.
@@ -102,13 +97,42 @@ If the operator wants to install a new wifi profile (home-wifi.xml), the followi
       "microsoft": {
         "management": {
           "wifi": {
-            "profiles": {
-              "HomeWifi": { 
-                "profile": "home-wifi.xml"
-              }
+            "HomeWifi": {
+              "profile": "container/home-wifi.xml"
             },
             "activeProfile": "HomeWifi"
           }
+        }
+      }
+    }
+</pre>
+
+### Uninstall Profile
+
+If the operator wants to uninstall a wifi profile (home-wifi.xml), the following steps should be followed:
+- Set the desired properties to:
+<pre>
+    "desired": {
+      "microsoft": {
+        "management": {
+          "wifi": {
+            "HomeWifi": "uninstall"
+          }
+        }
+      }
+    }
+</pre>
+
+### Not interested in Wifi
+
+If the operator wants to install a new wifi profile (home-wifi.xml), the following steps should be followed:
+- Upload the certificate file to the default Azure blob storage. Let's assume the profile name is 'HomeWifi'.
+- Set the desired properties to:
+<pre>
+    "desired": {
+      "microsoft": {
+        "management": {
+          "wifi": null
         }
       }
     }
