@@ -723,7 +723,6 @@ namespace Microsoft.Devices.Management
                 }
             }
 
-<<<<<<< HEAD
             // Now, handle the operations that depend on others in the necessary order.
             // By now, Azure storage information should have been captured.
 
