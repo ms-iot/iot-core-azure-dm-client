@@ -160,6 +160,17 @@
     <Compile Include="CertificateExportDetails.xaml.cs">
       <DependentUpon>CertificateExportDetails.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Common\DMComboBox.xaml.cs">
+      <DependentUpon>DMComboBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Common\DMControl.cs" />
+    <Compile Include="Common\DMSectionControl.cs" />
+    <Compile Include="Common\DMTextBlock.xaml.cs">
+      <DependentUpon>DMTextBlock.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Common\DMTextBox.xaml.cs">
+      <DependentUpon>DMTextBox.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DeviceHealthAttestation\DeviceHealthAttestationDesiredStateControl.xaml.cs">
       <DependentUpon>DeviceHealthAttestationDesiredStateControl.xaml</DependentUpon>
     </Compile>
@@ -171,6 +182,12 @@
     </Compile>
     <Compile Include="TimeSettings\TimeReportedStateControl.xaml.cs">
       <DependentUpon>TimeReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WindowsUpdatePolicy\WindowsUpdatePolicyDesiredStateControl.xaml.cs">
+      <DependentUpon>WindowsUpdatePolicyDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WindowsUpdatePolicy\WindowsUpdatePolicyReportedStateControl.xaml.cs">
+      <DependentUpon>WindowsUpdatePolicyReportedStateControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="WPFUtils.cs" />
     <Page Include="AppDesiredStateControl.xaml">
@@ -202,6 +219,18 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="CertificateSelector.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Common\DMComboBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Common\DMTextBlock.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Common\DMTextBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -242,6 +271,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="TimeSettings\TimeReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowsUpdatePolicy\WindowsUpdatePolicyDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowsUpdatePolicy\WindowsUpdatePolicyReportedStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

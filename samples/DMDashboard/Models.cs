@@ -14,7 +14,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 using System;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Devices.Management
 {
@@ -71,34 +70,6 @@ namespace Microsoft.Devices.Management
         public string batteryStatus;
         public string batteryRemaining;
         public string batteryRuntime;
-    }
-
-    public struct WindowsUpdatePolicyConfiguration
-    {
-        public uint activeHoursStart;
-        public uint activeHoursEnd;
-        public uint allowAutoUpdate;
-        public uint allowMUUpdateService;
-        public uint allowNonMicrosoftSignedUpdate;
-
-        public uint allowUpdateService;
-        public uint branchReadinessLevel;
-        public uint deferFeatureUpdatesPeriod;    // in days
-        public uint deferQualityUpdatesPeriod;    // in days
-        public uint excludeWUDrivers;
-
-        public uint pauseFeatureUpdates;
-        public uint pauseQualityUpdates;
-        public uint requireUpdateApproval;
-        public uint scheduledInstallDay;
-        public uint scheduledInstallTime;
-
-        public string updateServiceUrl;
-
-        public string ToJson()
-        {
-            return "\"windowsUpdatePolicy\" : " + JsonConvert.SerializeObject(this);
-        }
     }
 
     namespace WindowsUpdates
