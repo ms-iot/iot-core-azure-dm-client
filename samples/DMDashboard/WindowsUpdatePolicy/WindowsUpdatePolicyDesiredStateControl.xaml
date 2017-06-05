@@ -1,0 +1,56 @@
+﻿<local:DMSectionControl x:Class="DMDashboard.WindowsUpdatePolicyDesiredStateControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DMDashboard"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <StackPanel Orientation="Vertical">
+        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="200" Height="1" />
+        <local:DMComboBox Title="Apply Properties" PropertyName="applyProperties" IsNumeric="False" IsOptional="False" x:Name="ApplyPropertiesCombo">
+            <local:DMComboBox.ValuesList>
+                <x:Array Type="sys:String">
+                    <sys:String>yes</sys:String>
+                    <sys:String>no</sys:String>
+                </x:Array>
+            </local:DMComboBox.ValuesList>
+            <local:DMComboBox.PropertyValue>yes</local:DMComboBox.PropertyValue><!-- need to come after ValuesList -->
+        </local:DMComboBox>
+        <StackPanel Orientation="Vertical" x:Name="PropertyList">
+            <local:DMComboBox Title="Ring" PropertyName="ring" IsNumeric="False" IsOptional="True">
+                <local:DMComboBox.ValuesList>
+                    <x:Array Type="sys:String">
+                        <sys:String>EarlyAdopter</sys:String>
+                        <sys:String>Preview</sys:String>
+                        <sys:String>GeneralAvailability</sys:String>
+                    </x:Array>
+                </local:DMComboBox.ValuesList>
+                <local:DMComboBox.PropertyValue>GeneralAvailability</local:DMComboBox.PropertyValue>
+                <!-- need to come after ValuesList -->
+            </local:DMComboBox>
+            <local:DMTextBox Title="Active Hours Start (0-23)" PropertyName="activeHoursStart" PropertyValue="2" IsNumeric="True" IsOptional="True"/>
+            <local:DMTextBox Title="Active Hours End (0-23)" PropertyName="activeHoursEnd" PropertyValue="1" IsNumeric="True" IsOptional="True"/>
+            <local:DMTextBox Title="Allow Auto Update (0-5)" PropertyName="allowAutoUpdate" PropertyValue="1" IsNumeric="True" IsOptional="True"/>
+            <local:DMTextBox Title="Allow Update Service (0-1)" PropertyName="allowUpdateService" PropertyValue="0" IsNumeric="True" IsOptional="True"/>
+            <local:DMTextBox Title="Branch Readiness Level (0-1)" PropertyName="branchReadinessLevel" PropertyValue="0" IsNumeric="True" IsOptional="True"/>
+            <local:DMTextBox Title="Defer Feature Updates Period (0-180 days)" PropertyName="deferFeatureUpdatesPeriod" PropertyValue="30" IsNumeric="True"  IsOptional="True"/>
+            <local:DMTextBox Title="Defer Quality Updates Period (0-30 days)" PropertyName="deferQualityUpdatesPeriod" PropertyValue="15" IsNumeric="True"  IsOptional="True"/>
+            <local:DMTextBox Title="Pause Feature Updates (0-1)" PropertyName="pauseFeatureUpdates" PropertyValue="0" IsNumeric="True" IsOptional="True"/>
+            <local:DMTextBox Title="Pause Quality Updates (0-1)" PropertyName="pauseQualityUpdates" PropertyValue="0" IsNumeric="True" IsOptional="True"/>
+            <local:DMTextBox Title="Scheduled Install Day (0-7)" PropertyName="scheduledInstallDay" PropertyValue="3" IsNumeric="True" IsOptional="True"/>
+            <local:DMTextBox Title="Scheduled Install Time (0-23)" PropertyName="scheduledInstallTime" PropertyValue="2" IsNumeric="True" IsOptional="True"/>
+        </StackPanel>
+        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="200" Height="1" />
+        <local:DMComboBox Title="Report Properties" PropertyName="reportProperties" IsNumeric="False" IsOptional="False" x:Name="ReportPropertiesCombo">
+            <local:DMComboBox.ValuesList>
+                <x:Array Type="sys:String">
+                    <sys:String>yes</sys:String>
+                    <sys:String>no</sys:String>
+                </x:Array>
+            </local:DMComboBox.ValuesList>
+            <local:DMComboBox.PropertyValue>enabled</local:DMComboBox.PropertyValue><!-- need to come after ValuesList -->
+        </local:DMComboBox>
+    </StackPanel>
+</local:DMSectionControl>

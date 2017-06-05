@@ -54,6 +54,11 @@ namespace IoTDMClientLibTests
                 throw new NotImplementedException();
             }
 
+            public Task ReportPropertiesAsync(string propertyName, string propertyValue)
+            {
+                throw new NotImplementedException();
+            }
+
             public Action<string, IDictionary<string, string>> SendMessageHook;
             public Action<string, JObject> ReportPropertiesHook;
         }

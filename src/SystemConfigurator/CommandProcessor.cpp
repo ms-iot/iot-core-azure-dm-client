@@ -27,6 +27,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "TimeCfg.h"
 #include "AppCfg.h"
 #include "TpmSupport.h"
+#include "Permissions\PermissionsManager.h"
 
 #include <fstream>
 
@@ -35,6 +36,9 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 using namespace Microsoft::Devices::Management::Message;
 using namespace std;
 using namespace Windows::Data::Json;
+
+const wchar_t* WURingRegistrySubKey = L"SYSTEM\\Platform\\DeviceTargetingInfo";
+const wchar_t* WURingPropertyName = L"TargetRing";
 
 IResponse^ HandleFactoryReset(IRequest^ request)
 {
@@ -617,66 +621,60 @@ IResponse^ HandleGetWindowsUpdatePolicy(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
+    // Set default values...
     unsigned int activeHoursStart = static_cast<unsigned int>(-1);
     unsigned int activeHoursEnd = static_cast<unsigned int>(-1);
     unsigned int allowAutoUpdate = static_cast<unsigned int>(-1);
-    unsigned int allowMUUpdateService = static_cast<unsigned int>(-1);
-    unsigned int allowNonMicrosoftSignedUpdate = static_cast<unsigned int>(-1);
+
 
     unsigned int allowUpdateService = static_cast<unsigned int>(-1);
     unsigned int branchReadinessLevel = static_cast<unsigned int>(-1);
     unsigned int deferFeatureUpdatesPeriod = static_cast<unsigned int>(-1);    // in days
     unsigned int deferQualityUpdatesPeriod = static_cast<unsigned int>(-1);    // in days
-    unsigned int excludeWUDrivers = static_cast<unsigned int>(-1);
 
     unsigned int pauseFeatureUpdates = static_cast<unsigned int>(-1);
     unsigned int pauseQualityUpdates = static_cast<unsigned int>(-1);
-    unsigned int requireUpdateApproval = static_cast<unsigned int>(-1);
     unsigned int scheduledInstallDay = static_cast<unsigned int>(-1);
     unsigned int scheduledInstallTime = static_cast<unsigned int>(-1);
 
-    wstring updateServiceUrl = L"<error>";
+    wstring ring = L"<error reading ring>";
 
+    // Read the values...
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ActiveHoursStart", activeHoursStart);
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ActiveHoursEnd", activeHoursEnd);
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowAutoUpdate", allowAutoUpdate);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowMUUpdateService", allowMUUpdateService);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowNonMicrosoftSignedUpdate", allowNonMicrosoftSignedUpdate);
 
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowUpdateService", allowUpdateService);
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/BranchReadinessLevel", branchReadinessLevel);
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferFeatureUpdatesPeriodInDays", deferFeatureUpdatesPeriod);
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferQualityUpdatesPeriodInDays", deferQualityUpdatesPeriod);
-    // MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ExcludeWUDrivers", excludeWUDrivers);
 
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseFeatureUpdates", pauseFeatureUpdates);
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseQualityUpdates", pauseQualityUpdates);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/RequireUpdateApproval", requireUpdateApproval);
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallDay", scheduledInstallDay);
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallTime", scheduledInstallTime);
 
-    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/Policy/Result/Update/UpdateServiceUrl", updateServiceUrl);
+    Utils::TryReadRegistryValue(WURingRegistrySubKey, WURingPropertyName, ring);
 
+    // Populate the response...
     auto configuration = ref new WindowsUpdatePolicyConfiguration();
+
     configuration->activeHoursStart = activeHoursStart;
     configuration->activeHoursEnd = activeHoursEnd;
     configuration->allowAutoUpdate = allowAutoUpdate;
-    configuration->allowMUUpdateService = allowMUUpdateService;
-    configuration->allowNonMicrosoftSignedUpdate = allowNonMicrosoftSignedUpdate;
 
     configuration->allowUpdateService = allowUpdateService;
     configuration->branchReadinessLevel = branchReadinessLevel;
     configuration->deferFeatureUpdatesPeriod = deferFeatureUpdatesPeriod;
     configuration->deferQualityUpdatesPeriod = deferQualityUpdatesPeriod;
-    configuration->excludeWUDrivers = excludeWUDrivers;
 
     configuration->pauseFeatureUpdates = pauseFeatureUpdates;
     configuration->pauseQualityUpdates = pauseQualityUpdates;
-    configuration->requireUpdateApproval = requireUpdateApproval;
     configuration->scheduledInstallDay = scheduledInstallDay;
     configuration->scheduledInstallTime = scheduledInstallTime;
 
-    configuration->updateServiceUrl = ref new String(updateServiceUrl.c_str());
+    configuration->ring = ref new String(ring.c_str());
+
     return ref new GetWindowsUpdatePolicyResponse(ResponseStatus::Success, configuration);
 }
 
@@ -690,23 +688,54 @@ IResponse^ HandleSetWindowsUpdatePolicy(IRequest^ request)
     {
         auto updatePolicyRequest = dynamic_cast<SetWindowsUpdatePolicyRequest^>(request);
         assert(updatePolicyRequest->configuration != nullptr);
+        unsigned int activeFields = updatePolicyRequest->configuration->activeFields;
 
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", static_cast<int>(updatePolicyRequest->configuration->activeHoursStart));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", static_cast<int>(updatePolicyRequest->configuration->activeHoursEnd));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", static_cast<int>(updatePolicyRequest->configuration->allowAutoUpdate));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowMUUpdateService", static_cast<int>(updatePolicyRequest->configuration->allowMUUpdateService));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowNonMicrosoftSignedUpdate", static_cast<int>(updatePolicyRequest->configuration->allowNonMicrosoftSignedUpdate));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", static_cast<int>(updatePolicyRequest->configuration->allowUpdateService));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", static_cast<int>(updatePolicyRequest->configuration->branchReadinessLevel));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", static_cast<int>(updatePolicyRequest->configuration->deferFeatureUpdatesPeriod));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", static_cast<int>(updatePolicyRequest->configuration->deferQualityUpdatesPeriod));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ExcludeWUDrivers", static_cast<int>(updatePolicyRequest->configuration->excludeWUDrivers));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", static_cast<int>(updatePolicyRequest->configuration->pauseFeatureUpdates));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", static_cast<int>(updatePolicyRequest->configuration->pauseQualityUpdates));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/RequireUpdateApproval", static_cast<int>(updatePolicyRequest->configuration->requireUpdateApproval));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", static_cast<int>(updatePolicyRequest->configuration->scheduledInstallDay));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", static_cast<int>(updatePolicyRequest->configuration->scheduledInstallTime));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/UpdateServiceUrl", wstring(updatePolicyRequest->configuration->updateServiceUrl->Data()));
+        if (activeFields & (unsigned int)ActiveFields::ActiveHoursStart)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", static_cast<int>(updatePolicyRequest->configuration->activeHoursStart));
+
+        if (activeFields & (unsigned int)ActiveFields::ActiveHoursEnd)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", static_cast<int>(updatePolicyRequest->configuration->activeHoursEnd));
+
+        if (activeFields & (unsigned int)ActiveFields::AllowAutoUpdate)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", static_cast<int>(updatePolicyRequest->configuration->allowAutoUpdate));
+
+        if (activeFields & (unsigned int)ActiveFields::AllowUpdateService)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", static_cast<int>(updatePolicyRequest->configuration->allowUpdateService));
+
+        if (activeFields & (unsigned int)ActiveFields::BranchReadinessLevel)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", static_cast<int>(updatePolicyRequest->configuration->branchReadinessLevel));
+
+        if (activeFields & (unsigned int)ActiveFields::DeferFeatureUpdatesPeriod)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", static_cast<int>(updatePolicyRequest->configuration->deferFeatureUpdatesPeriod));
+
+        if (activeFields & (unsigned int)ActiveFields::DeferQualityUpdatesPeriod)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", static_cast<int>(updatePolicyRequest->configuration->deferQualityUpdatesPeriod));
+
+        if (activeFields & (unsigned int)ActiveFields::PauseFeatureUpdates)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", static_cast<int>(updatePolicyRequest->configuration->pauseFeatureUpdates));
+
+        if (activeFields & (unsigned int)ActiveFields::PauseQualityUpdates)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", static_cast<int>(updatePolicyRequest->configuration->pauseQualityUpdates));
+
+        if (activeFields & (unsigned int)ActiveFields::ScheduledInstallDay)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", static_cast<int>(updatePolicyRequest->configuration->scheduledInstallDay));
+
+        if (activeFields & (unsigned int)ActiveFields::ScheduledInstallTime)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", static_cast<int>(updatePolicyRequest->configuration->scheduledInstallTime));
+
+        if (activeFields & (unsigned int)ActiveFields::Ring)
+        {
+            wstring registryRoot = L"MACHINE";
+            wstring registryKey = registryRoot + L"\\" + WURingRegistrySubKey;
+            wstring propertyValue = updatePolicyRequest->configuration->ring->Data();
+
+            PermissionsManager::ModifyProtected(registryKey, SE_REGISTRY_KEY, [propertyValue]()
+            {
+                TRACEP(L"........Writing registry: key name: ", WURingRegistrySubKey);
+                TRACEP(L"........Writing registry: key value: ", propertyValue.c_str());
+                Utils::WriteRegistryValue(WURingRegistrySubKey, WURingPropertyName, propertyValue);
+            });
+        }
 
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }

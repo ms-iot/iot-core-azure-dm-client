@@ -26,6 +26,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define IoTDMRegistryRoot L"Software\\Microsoft\\IoTDM"
 #define IoTDMRegistryLastRebootCmd L"LastRebootCmd"
 #define IoTDMRegistryWindowsUpdateRebootAllowed L"WindowsUpdateRebootAllowed"
+#define IoTDMRegistryWindowsUpdatePolicySectionReportion L"WindowsUpdatePolicySectionReportion"
 #define IoTDMRegistryTrue L"True"
 #define IoTDMRegistryFalse L"False"
 
@@ -135,52 +136,127 @@ namespace Utils
         std::thread _thread;
     };
 
-    class AutoCloseHandle
+    template<class T>
+    class AutoCloseBase
     {
     public:
-        AutoCloseHandle() :
-            _handle(NULL)
-        {}
 
-        AutoCloseHandle(HANDLE&& handle) :
-            _handle(handle)
+        AutoCloseBase(T&& handle, const std::function<BOOL(T)>& cleanUp) :
+            _handle(handle),
+            _cleanUp(cleanUp)
         {
             handle = NULL;
         }
 
-        HANDLE operator=(HANDLE&& handle)
+        void SetHandle(T&& handle)
         {
             _handle = handle;
             handle = NULL;
-            return _handle;
         }
 
-        HANDLE Get() { return _handle; }
+        T Get() { return _handle; }
         uint64_t Get64() { return reinterpret_cast<uint64_t>(_handle); }
-        HANDLE* GetAddress() { return &_handle; }
+        T* GetAddress() { return &_handle; }
 
         BOOL Close()
         {
             BOOL result = TRUE;
-            if (_handle != NULL)
+            if (_handle != NULL && _cleanUp)
             {
-                result = CloseHandle(_handle);
+                result = _cleanUp(_handle);
                 _handle = NULL;
             }
             return result;
         }
 
-        ~AutoCloseHandle()
+        ~AutoCloseBase()
         {
             Close();
         }
 
     private:
+        AutoCloseBase(const AutoCloseBase &);            // prevent copy
+        AutoCloseBase& operator=(const AutoCloseBase&);  // prevent assignment
+
+        T _handle;
+        std::function<BOOL(T)> _cleanUp;
+    };
+
+    class AutoCloseHandle : public AutoCloseBase<HANDLE>
+    {
+    public:
+        AutoCloseHandle() :
+            AutoCloseBase(NULL, [](HANDLE h) { CloseHandle(h); return TRUE; })
+        {}
+
+        AutoCloseHandle(HANDLE&& handle) :
+            AutoCloseBase(std::move(handle), [](HANDLE h) { CloseHandle(h); return TRUE; })
+        {}
+
+    private:
         AutoCloseHandle(const AutoCloseHandle &);            // prevent copy
         AutoCloseHandle& operator=(const AutoCloseHandle&);  // prevent assignment
-
-        HANDLE _handle;
     };
+
+    class AutoCloseSID : public AutoCloseBase<PSID>
+    {
+    public:
+        AutoCloseSID() :
+            AutoCloseBase(NULL, [](PSID h) { CloseHandle(h); return TRUE; })
+        {}
+
+        AutoCloseSID(PSID&& handle) :
+            AutoCloseBase(std::move(handle), [](PSID h) { FreeSid(h); return TRUE; })
+        {}
+
+    private:
+        AutoCloseSID(const AutoCloseSID &);            // prevent copy
+        AutoCloseSID& operator=(const AutoCloseSID&);  // prevent assignment
+    };
+
+    class AutoCloseACL : public AutoCloseBase<PACL>
+    {
+    public:
+        AutoCloseACL() :
+            AutoCloseBase(NULL, [](PSID h) { CloseHandle(h); return TRUE; })
+        {}
+
+        AutoCloseACL(PACL&& handle) :
+            AutoCloseBase(std::move(handle), [](PACL h) { LocalFree(h); return TRUE; })
+        {}
+
+    private:
+        AutoCloseACL(const AutoCloseACL &);            // prevent copy
+        AutoCloseACL& operator=(const AutoCloseACL&);  // prevent assignment
+    };
+
+
+#if 0
+    template<class T>
+    class SafeResource
+    {
+    public:
+        SafeResource(const T& sid, const std::function<void(T)>& cleanUp) :
+            _sid(sid),
+            _cleanUp(cleanUp)
+        {
+        }
+        T Get() const
+        {
+            return _sid;
+        }
+        ~SafeResource()
+        {
+            _cleanUp(_sid);
+        }
+    private:
+        SafeResource(const AutoCloseHandle &);            // prevent copy
+        SafeResource& operator=(const AutoCloseHandle&);  // prevent assignment
+
+        T _sid;
+        std::function<void(T)> _cleanUp;
+    };
+#endif
 
     void LoadFile(const std::wstring& fileName, std::vector<char>& buffer);
     std::wstring ToBase64(std::vector<char>& buffer);

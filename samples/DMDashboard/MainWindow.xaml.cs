@@ -358,8 +358,7 @@ namespace DMDashboard
                 else if (jsonProp.Name == "windowsUpdatePolicy")
                 {
                     Debug.WriteLine(jsonProp.Value.ToString());
-                    var info = JsonConvert.DeserializeObject<Microsoft.Devices.Management.WindowsUpdatePolicyConfiguration>(jsonProp.Value.ToString());
-                    WindowsUpdatePolicyConfigurationToUI(info);
+                    ReportedWindowsUpdatePolicy.FromJson(jsonProp.Value);
                 }
                 else if (jsonProp.Name == "windowsUpdates")
                 {
@@ -533,59 +532,9 @@ namespace DMDashboard
             SetDesired(UIToExternalStorageModel().ToJson());
         }
 
-        private WindowsUpdatePolicyConfiguration UIToWindowsUpdatePolicyConfiguration()
-        {
-            var configuration = new WindowsUpdatePolicyConfiguration();
-
-            configuration.activeHoursStart = UInt32.Parse(DesiredActiveHoursStart.Text);
-            configuration.activeHoursEnd = UInt32.Parse(DesiredActiveHoursEnd.Text);
-            configuration.allowAutoUpdate = UInt32.Parse(DesiredAllowAutoUpdate.Text);
-            configuration.allowMUUpdateService = UInt32.Parse(DesiredAllowMUUpdateService.Text);
-            configuration.allowNonMicrosoftSignedUpdate = UInt32.Parse(DesiredAllowNonMicrosoftSignedUpdate.Text);
-
-            configuration.allowUpdateService = UInt32.Parse(DesiredAllowUpdateService.Text);
-            configuration.branchReadinessLevel = UInt32.Parse(DesiredBranchReadinessLevel.Text);
-            configuration.deferFeatureUpdatesPeriod = UInt32.Parse(DesiredDeferFeatureUpdatesPeriod.Text);
-            configuration.deferQualityUpdatesPeriod = UInt32.Parse(DesiredDeferQualityUpdatesPeriod.Text);
-            configuration.excludeWUDrivers = UInt32.Parse(DesiredExcludeWUDrivers.Text);
-
-            configuration.pauseFeatureUpdates = UInt32.Parse(DesiredPauseFeatureUpdates.Text);
-            configuration.pauseQualityUpdates = UInt32.Parse(DesiredPauseQualityUpdates.Text);
-            configuration.requireUpdateApproval = UInt32.Parse(DesiredRequireUpdateApproval.Text);
-            configuration.scheduledInstallDay = UInt32.Parse(DesiredScheduledInstallDay.Text);
-            configuration.scheduledInstallTime = UInt32.Parse(DesiredScheduledInstallTime.Text);
-
-            configuration.updateServiceUrl = DesiredUpdateServiceUrl.Text;
-
-            return configuration;
-        }
-
-        private void WindowsUpdatePolicyConfigurationToUI(WindowsUpdatePolicyConfiguration configuration)
-        {
-            ReportedActiveHoursStart.Text = configuration.activeHoursStart.ToString();
-            ReportedActiveHoursEnd.Text = configuration.activeHoursEnd.ToString();
-            ReportedAllowAutoUpdate.Text = configuration.allowAutoUpdate.ToString();
-            ReportedAllowMUUpdateService.Text = configuration.allowMUUpdateService.ToString();
-            ReportedAllowNonMicrosoftSignedUpdate.Text = configuration.allowNonMicrosoftSignedUpdate.ToString();
-
-            ReportedAllowUpdateService.Text = configuration.allowUpdateService.ToString();
-            ReportedBranchReadinessLevel.Text = configuration.branchReadinessLevel.ToString();
-            ReportedDeferFeatureUpdatesPeriod.Text = configuration.deferFeatureUpdatesPeriod.ToString();
-            ReportedDeferQualityUpdatesPeriod.Text = configuration.deferQualityUpdatesPeriod.ToString();
-            ReportedExcludeWUDrivers.Text = configuration.excludeWUDrivers.ToString();
-
-            ReportedPauseFeatureUpdates.Text = configuration.pauseFeatureUpdates.ToString();
-            ReportedPauseQualityUpdates.Text = configuration.pauseQualityUpdates.ToString();
-            ReportedRequireUpdateApproval.Text = configuration.requireUpdateApproval.ToString();
-            ReportedScheduledInstallDay.Text = configuration.scheduledInstallDay.ToString();
-            ReportedScheduledInstallTime.Text = configuration.scheduledInstallTime.ToString();
-
-            ReportedUpdateServiceUrl.Text = configuration.updateServiceUrl;
-        }
-
         private void OnSetWindowsUpdatePolicyInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(UIToWindowsUpdatePolicyConfiguration().ToJson());
+            SetDesired(DesiredWindowsUpdatePolicy.ToJson());
         }
 
         private Microsoft.Devices.Management.WindowsUpdates.SetParams UIToWindowsUpdatesConfiguration()
@@ -654,7 +603,7 @@ namespace DMDashboard
             json.Append(",");
             json.Append(UIToRebootInfoModel().ToJson());
             json.Append(",");
-            json.Append(UIToWindowsUpdatePolicyConfiguration().ToJson());
+            json.Append(DesiredWindowsUpdatePolicy.ToJson());
             json.Append(",");
             json.Append(UIToWindowsUpdatesConfiguration().ToJson());
             json.Append(",");

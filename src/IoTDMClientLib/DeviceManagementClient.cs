@@ -94,6 +94,27 @@ namespace Microsoft.Devices.Management
                 }
             }
 
+            public async Task ReportPropertiesAsync(string propertyName, string propertyValue)
+            {
+                try
+                {
+                    JObject managementObj = new JObject();
+                    managementObj[propertyName] = propertyValue;
+
+                    Dictionary<string, object> collection = new Dictionary<string, object>();
+                    collection["microsoft"] = new
+                    {
+                        management = managementObj
+                    };
+
+                    await _deviceTwin.ReportProperties(collection);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"Failed to report property {propertyName} : \n {e}");
+                }
+            }
+
             public async Task SendMessageAsync(string message, IDictionary<string, string> properties)
             {
                 await _deviceTwin.SendMessageAsync(message, properties);
@@ -140,6 +161,9 @@ namespace Microsoft.Devices.Management
             var deviceHealthAttestationHandler = new DeviceHealthAttestationHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceHealthAttestationHandler);
             await deviceManagementClient.AddDirectMethodHandlerAsync(deviceHealthAttestationHandler);
+
+            deviceManagementClient._windowsUpdatePolicyHandler = new WindowsUpdatePolicyHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsUpdatePolicyHandler);
 
             return deviceManagementClient;
         }
@@ -303,9 +327,9 @@ namespace Microsoft.Devices.Management
                 return RebootRequestStatus.Disabled;
             }
 
-            Message.GetWindowsUpdatePolicyResponse updatePolicy = await this.GetWindowsUpdatePolicyAsync();
+            Message.WindowsUpdatePolicyConfiguration updatePolicy = await _windowsUpdatePolicyHandler.GetWindowsUpdatePolicyAsync();
             uint nowHour = (uint)DateTime.Now.Hour;
-            if (updatePolicy.configuration.activeHoursStart <= nowHour && nowHour < updatePolicy.configuration.activeHoursEnd)
+            if (updatePolicy.activeHoursStart <= nowHour && nowHour < updatePolicy.activeHoursEnd)
             {
                 return RebootRequestStatus.InActiveHours;
             }
@@ -643,13 +667,6 @@ namespace Microsoft.Devices.Management
                             ApplyDesiredTimeSettings(managementProperty.Value);
                         }
                         break;
-                    case "windowsUpdatePolicy":
-                        {
-                            Debug.WriteLine("windowsUpdatePolicy = " + managementProperty.Value.ToString());
-                            var configuration = JsonConvert.DeserializeObject<WindowsUpdatePolicyConfiguration>(managementProperty.Value.ToString());
-                            this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatePolicyRequest(configuration));
-                        }
-                        break;
                     case "windowsUpdates":
                         {
                             Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
@@ -682,7 +699,7 @@ namespace Microsoft.Devices.Management
                     try
                     {
                         Debug.WriteLine($"{managementProperty.Name} = {managementProperty.Value.ToString()}");
-                        handler.OnDesiredPropertyChange((JObject)managementProperty.Value);
+                        handler.OnDesiredPropertyChange(managementProperty.Value);
                     }
                     catch (Exception e)
                     {
@@ -738,12 +755,6 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetDeviceInfoResponse);
         }
 
-        private async Task<Message.GetWindowsUpdatePolicyResponse> GetWindowsUpdatePolicyAsync()
-        {
-            var request = new Message.GetWindowsUpdatePolicyRequest();
-            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatePolicyResponse);
-        }
-
         private async Task<Message.GetWindowsUpdatesResponse> GetWindowsUpdatesAsync()
         {
             var request = new Message.GetWindowsUpdatesRequest();
@@ -776,7 +787,6 @@ namespace Microsoft.Devices.Management
             Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await GetCertificateConfigurationAsync();
             Message.GetRebootInfoResponse rebootInfoResponse = await GetRebootInfoAsync();
             Message.GetDeviceInfoResponse deviceInfoResponse = await GetDeviceInfoAsync();
-            Message.GetWindowsUpdatePolicyResponse windowsUpdatePolicyResponse = await GetWindowsUpdatePolicyAsync();
             Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
 
             JObject managementObj = new JObject();
@@ -784,7 +794,6 @@ namespace Microsoft.Devices.Management
             managementObj["certificates"] = JObject.FromObject(certificateConfigurationResponse);
             managementObj["rebootInfo"] = JObject.FromObject(rebootInfoResponse);
             managementObj["deviceInfo"] = JObject.FromObject(deviceInfoResponse);
-            managementObj["windowsUpdatePolicy"] = JObject.FromObject(windowsUpdatePolicyResponse.configuration);
             managementObj["windowsUpdates"] = JObject.FromObject(windowsUpdatesResponse.configuration);
 
             foreach (var handler in this._desiredPropertyMap.Values)
@@ -828,6 +837,7 @@ namespace Microsoft.Devices.Management
 
         // Data members
         ISystemConfiguratorProxy _systemConfiguratorProxy;
+        WindowsUpdatePolicyHandler _windowsUpdatePolicyHandler;
         IDeviceManagementRequestHandler _requestHandler;
         IDeviceTwin _deviceTwin;
         ExternalStorage _externalStorage;

@@ -1,0 +1,29 @@
+﻿<local:DMSectionControl x:Class="DMDashboard.WindowsUpdatePolicyReportedStateControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DMDashboard"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <StackPanel Orientation="Vertical" x:Name="PropertyList">
+        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="200" Height="1" />
+        <Border Height="30"/>
+        <local:DMTextBlock Title="Ring" PropertyName="ring" IsNumeric="False" IsOptional="False"/>
+        <local:DMTextBlock Title="Active Hours Start (0-23)" PropertyName="activeHoursStart" IsNumeric="True" IsOptional="False"/>
+        <local:DMTextBlock Title="Active Hours End (0-23)" PropertyName="activeHoursEnd" IsNumeric="True" IsOptional="False"/>
+        <local:DMTextBlock Title="Allow Auto Update (0-5)" PropertyName="allowAutoUpdate" IsNumeric="True" IsOptional="False"/>
+        <local:DMTextBlock Title="Allow Auto Update (0-5)" PropertyName="allowUpdateService" IsNumeric="True" IsOptional="False"/>
+        <local:DMTextBlock Title="Branch Readiness Level (0-1)" PropertyName="branchReadinessLevel" IsNumeric="True" IsOptional="False"/>
+        <local:DMTextBlock Title="Defer Feature Updates Period (0-180 days)" PropertyName="deferFeatureUpdatesPeriod" IsNumeric="True" IsOptional="False"/>
+        <local:DMTextBlock Title="Defer Quality Updates Period (0-30 days)" PropertyName="deferQualityUpdatesPeriod" IsNumeric="True" IsOptional="False"/>
+        <local:DMTextBlock Title="Pause Feature Updates (0-1)" PropertyName="pauseFeatureUpdates" IsNumeric="True" IsOptional="False"/>
+        <local:DMTextBlock Title="Pause Quality Updates (0-1)" PropertyName="pauseQualityUpdates" IsNumeric="True" IsOptional="False"/>
+        <local:DMTextBlock Title="Scheduled Install Day (0-7)" PropertyName="scheduledInstallDay" IsNumeric="True" IsOptional="False"/>
+        <local:DMTextBlock Title="Scheduled Install Time (0-23)" PropertyName="scheduledInstallTime" IsNumeric="True" IsOptional="False"/>
+        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="200" Height="1" />
+        <!--
+        <local:DMTextBlock Title="Report Properties" PropertyName="reportProperties" IsNumeric="False" IsOptional="False"/>
+        -->
+    </StackPanel>
+</local:DMSectionControl>

@@ -77,7 +77,7 @@
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Margin="3">Connection String</TextBlock>
                         <Border Grid.Row="1" Grid.Column="1" Margin="3" Background="#F8F8F8">
-                            <TextBox x:Name="AzureStorageConnectionString" HorizontalAlignment="Stretch" Text="&lt;Azure Storage connection string&gt;" />
+                            <TextBox x:Name="AzureStorageConnectionString" HorizontalAlignment="Stretch" Text="DefaultEndpointsProtocol=https;AccountName=gmilekastore00;AccountKey=J3Gr0Hz2HZR/OMxCur2oXkIp/V8+N5k5JNgRwlrZcSGtw7u6TFqJ2IkMbA6VOwnji02PnW4mKDWU96nFGVeAmQ==;" />
                         </Border>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" >Container Name</TextBlock>
@@ -103,163 +103,19 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="300"/>
                             <ColumnDefinition Width="400"/>
                             <ColumnDefinition Width="400"/>
                         </Grid.ColumnDefinitions>
+
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Active Hours Start (0-23)"/>
-                        <Border Grid.Row="1" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredActiveHoursStart" Text="2"/>
-                        </Border>
-                        <Border Grid.Row="1" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedActiveHoursStart"/>
-                        </Border>
-
-                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Active Hours End (0-23)"/>
-                        <Border Grid.Row="2" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredActiveHoursEnd" Text="3"/>
-                        </Border>
-                        <Border Grid.Row="2" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedActiveHoursEnd"/>
-                        </Border>
-
-                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Allow Auto Update (0-5)"/>
-                        <Border Grid.Row="3" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredAllowAutoUpdate" Text="1"/>
-                        </Border>
-                        <Border Grid.Row="3" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedAllowAutoUpdate"/>
-                        </Border>
-
-                        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Allow MU Update Service (0-1)"/>
-                        <Border Grid.Row="4" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredAllowMUUpdateService" Text="0"/>
-                        </Border>
-                        <Border Grid.Row="4" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedAllowMUUpdateService"/>
-                        </Border>
-
-                        <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Allow Non-Microsoft Signed Update (0-1)"/>
-                        <Border Grid.Row="5" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredAllowNonMicrosoftSignedUpdate" Text="0"/>
-                        </Border>
-                        <Border Grid.Row="5" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedAllowNonMicrosoftSignedUpdate"/>
-                        </Border>
-
-
-                        <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Allow Update Service (0-1)"/>
-                        <Border Grid.Row="6" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredAllowUpdateService" Text="0"/>
-                        </Border>
-                        <Border Grid.Row="6" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedAllowUpdateService"/>
-                        </Border>
-
-                        <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Branch Readiness Level (0-1)"/>
-                        <Border Grid.Row="7" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredBranchReadinessLevel" Text="0"/>
-                        </Border>
-                        <Border Grid.Row="7" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedBranchReadinessLevel"/>
-                        </Border>
-
-                        <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Defer Feature Updates Period (0-180 days)"/>
-                        <Border Grid.Row="8" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredDeferFeatureUpdatesPeriod" Text="30"/>
-                        </Border>
-                        <Border Grid.Row="8" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedDeferFeatureUpdatesPeriod"/>
-                        </Border>
-        
-                        <TextBlock Grid.Row="9" Grid.Column="0" Margin="3" Text="Defer Quality Updates Period (0-30 days)"/>
-                        <Border Grid.Row="9" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredDeferQualityUpdatesPeriod" Text="15"/>
-                        </Border>
-                        <Border Grid.Row="9" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedDeferQualityUpdatesPeriod"/>
-                        </Border>
-        
-                        <TextBlock Grid.Row="10" Grid.Column="0" Margin="3" Text="Exclude WU Drivers (0-1)"/>
-                        <Border Grid.Row="10" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredExcludeWUDrivers" Text="0"/>
-                        </Border>
-                        <Border Grid.Row="10" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedExcludeWUDrivers"/>
-                        </Border>
-
-                        <TextBlock Grid.Row="11" Grid.Column="0" Margin="3" Text="Pause Feature Updates (0-1)"/>
-                        <Border Grid.Row="11" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredPauseFeatureUpdates" Text="0"/>
-                        </Border>
-                        <Border Grid.Row="11" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedPauseFeatureUpdates"/>
-                        </Border>
-        
-                        <TextBlock Grid.Row="12" Grid.Column="0" Margin="3" Text="Pause Quality Updates (0-1)"/>
-                        <Border Grid.Row="12" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredPauseQualityUpdates" Text="0"/>
-                        </Border>
-                        <Border Grid.Row="12" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedPauseQualityUpdates"/>
-                        </Border>
-
-                        <TextBlock Grid.Row="13" Grid.Column="0" Margin="3" Text="Require Update Approval (0-1)"/>
-                        <Border Grid.Row="13" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredRequireUpdateApproval" Text="0"/>
-                        </Border>
-                        <Border Grid.Row="13" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedRequireUpdateApproval"/>
-                        </Border>
-
-                        <TextBlock Grid.Row="14" Grid.Column="0" Margin="3" Text="Scheduled Install Day (0-7)"/>
-                        <Border Grid.Row="14" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredScheduledInstallDay" Text="3"/>
-                        </Border>
-                        <Border Grid.Row="14" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedScheduledInstallDay"/>
-                        </Border>
-        
-                        <TextBlock Grid.Row="15" Grid.Column="0" Margin="3" Text="Scheduled Install Time (0-23)"/>
-                        <Border Grid.Row="15" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredScheduledInstallTime" Text="2"/>
-                        </Border>
-                        <Border Grid.Row="15" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedScheduledInstallTime"/>
-                        </Border>
-
-                        <TextBlock Grid.Row="16" Grid.Column="0" Margin="3" Text="Update Service Url"/>
-                        <Border Grid.Row="16" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                            <TextBox x:Name="DesiredUpdateServiceUrl"/>
-                        </Border>
-                        <Border Grid.Row="16" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                            <TextBlock x:Name="ReportedUpdateServiceUrl"/>
-                        </Border>
-
-                        <Button Grid.Row="17" Grid.Column="1" Margin="3" Content="Set Windows Update Policy" Click="OnSetWindowsUpdatePolicyInfo" />
+                        <local:WindowsUpdatePolicyDesiredStateControl Grid.Row="1" Grid.Column="1" Margin="3" x:Name="DesiredWindowsUpdatePolicy"/>
+                        <local:WindowsUpdatePolicyReportedStateControl Grid.Row="1" Grid.Column="2" Margin="3" x:Name="ReportedWindowsUpdatePolicy" />
+                        <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Set Windows Update Policy" Click="OnSetWindowsUpdatePolicyInfo" />
                     </Grid>
 
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
