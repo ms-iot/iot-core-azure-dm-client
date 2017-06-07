@@ -133,7 +133,7 @@ namespace DMDashboard
             {
                 JValue jValue = (JValue)json;
                 string value = (string)jValue.Value;
-                if (value == DMJSonConstants.NoReportString)
+                if (value == DMJSonConstants.NoString)
                 {
                     foreach (UIElement uc in PropertiesCollection)
                     {

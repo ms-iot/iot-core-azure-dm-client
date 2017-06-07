@@ -12,6 +12,8 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
+using DMDataContract;
 using System.Windows.Controls;
 
 namespace DMDashboard
@@ -37,7 +39,7 @@ namespace DMDashboard
         {
             get
             {
-                return ApplyPropertiesCombo.PropertyValue == YesString;
+                return ApplyPropertiesCombo.PropertyValue == DMJSonConstants.YesString;
             }
         }
 
@@ -45,7 +47,7 @@ namespace DMDashboard
         {
             get
             {
-                return ReportPropertiesCombo.PropertyValue == YesString;
+                return ReportPropertiesCombo.PropertyValue == DMJSonConstants.YesString;
             }
         }
 

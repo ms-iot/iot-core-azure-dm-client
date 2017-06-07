@@ -26,7 +26,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define IoTDMRegistryRoot L"Software\\Microsoft\\IoTDM"
 #define IoTDMRegistryLastRebootCmd L"LastRebootCmd"
 #define IoTDMRegistryWindowsUpdateRebootAllowed L"WindowsUpdateRebootAllowed"
-#define IoTDMRegistryWindowsUpdatePolicySectionReportion L"WindowsUpdatePolicySectionReportion"
+#define IoTDMRegistryWindowsUpdatePolicySectionReporting L"WindowsUpdatePolicySectionReporting"
 #define IoTDMRegistryTrue L"True"
 #define IoTDMRegistryFalse L"False"
 

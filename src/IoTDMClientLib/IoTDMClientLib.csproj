@@ -103,7 +103,6 @@
     <Compile Include="DirectMethodGuard.cs" />
     <Compile Include="IDeviceManagementClientHandler.cs" />
     <Compile Include="ISystemConfiguratorProxy.cs" />
-    <Compile Include="SectionHandler.cs" />
     <Compile Include="SystemConfiguratorProxy.cs" />
     <Compile Include="IDeviceManagementRequestHandler.cs" />
     <Compile Include="IDeviceTwin.cs" />

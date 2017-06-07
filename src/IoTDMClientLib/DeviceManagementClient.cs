@@ -12,6 +12,7 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management.Message;
 using Newtonsoft.Json;
@@ -327,9 +328,9 @@ namespace Microsoft.Devices.Management
                 return RebootRequestStatus.Disabled;
             }
 
-            Message.WindowsUpdatePolicyConfiguration updatePolicy = await _windowsUpdatePolicyHandler.GetWindowsUpdatePolicyAsync();
+            Message.GetWindowsUpdatePolicyResponse updatePolicy = await _windowsUpdatePolicyHandler.GetWindowsUpdatePolicyAsync();
             uint nowHour = (uint)DateTime.Now.Hour;
-            if (updatePolicy.activeHoursStart <= nowHour && nowHour < updatePolicy.activeHoursEnd)
+            if (updatePolicy.data.activeHoursStart <= nowHour && nowHour < updatePolicy.data.activeHoursEnd)
             {
                 return RebootRequestStatus.InActiveHours;
             }
@@ -620,79 +621,6 @@ namespace Microsoft.Devices.Management
 
             foreach (var managementProperty in dmNode.Children().OfType<JProperty>())
             {
-                if (managementProperty.Value.Type != JTokenType.Object)
-                {
-                    continue;
-                }
-                switch (managementProperty.Name)
-                {
-                    case "scheduledReboot":
-                        {
-                            Debug.WriteLine("scheduledReboot = " + managementProperty.Value.ToString());
-
-                            JObject subProperties = (JObject)managementProperty.Value;
-
-                            var request = new Message.SetRebootInfoRequest();
-
-                            DateTime singleRebootTime = DateTime.Parse(subProperties.Property("singleRebootTime").Value.ToString());
-                            request.singleRebootTime = singleRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
-
-                            DateTime dailyRebootTime = DateTime.Parse(subProperties.Property("dailyRebootTime").Value.ToString());
-                            request.dailyRebootTime = dailyRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
-
-                            this._systemConfiguratorProxy.SendCommandAsync(request);
-                        }
-                        break;
-                    case "externalStorage":
-                        {
-                            Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
-
-                            JObject subProperties = (JObject)managementProperty.Value;
-
-                            _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
-                            _externalStorage.containerName = (string)subProperties.Property("container").Value;
-                        }
-                        break;
-                    case "certificates":
-                        {
-                            // Capture the configuration here.
-                            // To apply the configuration we need to wait until externalStorage has been configured too.
-                            Debug.WriteLine("CertificateConfiguration = " + managementProperty.Value.ToString());
-                            certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(managementProperty.Value.ToString());
-                        }
-                        break;
-                    case "timeInfo":
-                        {
-                            Debug.WriteLine("timeInfo = " + managementProperty.Value.ToString());
-                            ApplyDesiredTimeSettings(managementProperty.Value);
-                        }
-                        break;
-                    case "windowsUpdates":
-                        {
-                            Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
-                            var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(managementProperty.Value.ToString());
-                            this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
-                        }
-                        break;
-                    case "apps":
-                        {
-                            Debug.WriteLine("apps = " + managementProperty.Value.ToString());
-                            appsConfiguration = (JObject)managementProperty.Value;
-                        }
-                        break;
-                    case "startupApps":
-                        {
-                            Debug.WriteLine("startupApps = " + managementProperty.Value.ToString());
-                            var startupApps = JsonConvert.DeserializeObject<StartupApps>(managementProperty.Value.ToString());
-                            StartupAppInfo foregroundApp = new StartupAppInfo(startupApps.foreground, false /*!background*/);
-                            this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
-                        }
-                        break;
-                    default:
-                        // Not supported
-                        break;
-                }
-
                 IClientPropertyHandler handler;
                 if (this._desiredPropertyMap.TryGetValue(managementProperty.Name, out handler))
                 {
@@ -706,6 +634,81 @@ namespace Microsoft.Devices.Management
                         Debug.WriteLine($"Exception caught while handling desired property - {managementProperty.Name}");
                         Debug.WriteLine(e);
                         throw;
+                    }
+                }
+                else
+                {
+                    if (managementProperty.Value.Type != JTokenType.Object)
+                    {
+                        continue;
+                    }
+                    switch (managementProperty.Name)
+                    {
+                        case "scheduledReboot":
+                            {
+                                Debug.WriteLine("scheduledReboot = " + managementProperty.Value.ToString());
+
+                                JObject subProperties = (JObject)managementProperty.Value;
+
+                                var request = new Message.SetRebootInfoRequest();
+
+                                DateTime singleRebootTime = DateTime.Parse(subProperties.Property("singleRebootTime").Value.ToString());
+                                request.singleRebootTime = singleRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+                                DateTime dailyRebootTime = DateTime.Parse(subProperties.Property("dailyRebootTime").Value.ToString());
+                                request.dailyRebootTime = dailyRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+                                this._systemConfiguratorProxy.SendCommandAsync(request);
+                            }
+                            break;
+                        case "externalStorage":
+                            {
+                                Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
+
+                                JObject subProperties = (JObject)managementProperty.Value;
+
+                                _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
+                                _externalStorage.containerName = (string)subProperties.Property("container").Value;
+                            }
+                            break;
+                        case "certificates":
+                            {
+                                // Capture the configuration here.
+                                // To apply the configuration we need to wait until externalStorage has been configured too.
+                                Debug.WriteLine("CertificateConfiguration = " + managementProperty.Value.ToString());
+                                certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(managementProperty.Value.ToString());
+                            }
+                            break;
+                        case "timeInfo":
+                            {
+                                Debug.WriteLine("timeInfo = " + managementProperty.Value.ToString());
+                                ApplyDesiredTimeSettings(managementProperty.Value);
+                            }
+                            break;
+                        case "windowsUpdates":
+                            {
+                                Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
+                                var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(managementProperty.Value.ToString());
+                                this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
+                            }
+                            break;
+                        case "apps":
+                            {
+                                Debug.WriteLine("apps = " + managementProperty.Value.ToString());
+                                appsConfiguration = (JObject)managementProperty.Value;
+                            }
+                            break;
+                        case "startupApps":
+                            {
+                                Debug.WriteLine("startupApps = " + managementProperty.Value.ToString());
+                                var startupApps = JsonConvert.DeserializeObject<StartupApps>(managementProperty.Value.ToString());
+                                StartupAppInfo foregroundApp = new StartupAppInfo(startupApps.foreground, false /*!background*/);
+                                this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
+                            }
+                            break;
+                        default:
+                            // Not supported
+                            break;
                     }
                 }
             }

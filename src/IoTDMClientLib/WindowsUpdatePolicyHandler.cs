@@ -12,16 +12,17 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
+using DMDataContract;
 using Microsoft.Devices.Management.Message;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
-    class WindowsUpdatePolicyHandler : SectionHandler
+    class WindowsUpdatePolicyHandler : IClientPropertyHandler
     {
         static string JsonSectionName = "windowsUpdatePolicy";
 
@@ -32,7 +33,7 @@ namespace Microsoft.Devices.Management
         }
 
         // IClientPropertyHandler
-        public override string PropertySectionName
+        public string PropertySectionName
         {
             get
             {
@@ -40,70 +41,45 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        protected override void ApplyProperties(JToken properties)
+        private async Task HandleDesiredPropertyChangeAsync(JToken desiredValue)
         {
-            uint activeFields = 0;
-            JObject jObject = (JObject)properties;
-            foreach (JToken token in jObject.Children())
-            {
-                if (token is JProperty)
-                {
-                    JProperty jProperty = (JProperty)token;
-                    switch (jProperty.Name)
-                    {
-                        case "activeHoursStart": activeFields |= (uint)ActiveFields.ActiveHoursStart; break;
-                        case "activeHoursEnd": activeFields |= (uint)ActiveFields.ActiveHoursEnd; break;
-                        case "allowAutoUpdate": activeFields |= (uint)ActiveFields.AllowAutoUpdate; break;
-                        case "allowUpdateService": activeFields |= (uint)ActiveFields.AllowUpdateService; break;
-                        case "branchReadinessLevel": activeFields |= (uint)ActiveFields.BranchReadinessLevel; break;
-                        case "deferFeatureUpdatesPeriod": activeFields |= (uint)ActiveFields.DeferFeatureUpdatesPeriod; break;
-                        case "deferQualityUpdatesPeriod": activeFields |= (uint)ActiveFields.DeferQualityUpdatesPeriod; break;
-                        case "pauseFeatureUpdates": activeFields |= (uint)ActiveFields.PauseFeatureUpdates; break;
-                        case "pauseQualityUpdates": activeFields |= (uint)ActiveFields.PauseQualityUpdates; break;
-                        case "scheduledInstallDay": activeFields |= (uint)ActiveFields.ScheduledInstallDay; break;
-                        case "scheduledInstallTime": activeFields |= (uint)ActiveFields.ScheduledInstallTime; break;
-                        case "ring": activeFields |= (uint)ActiveFields.Ring; break;
-                    }
-                }
-            }
-            var configuration = JsonConvert.DeserializeObject<WindowsUpdatePolicyConfiguration>(properties.ToString());
-            configuration.activeFields = activeFields;
+            Debug.WriteLine("WindowsUpdatePolicy:");
+            Debug.WriteLine(desiredValue.ToString());
 
-            this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatePolicyRequest(configuration));
-        }
+            Message.SetWindowsUpdatePolicyRequest request = Message.SetWindowsUpdatePolicyRequest.Deserialize(desiredValue.ToString());
 
-        // This will be called whenever the desired state sets this to true.
-        protected override async Task ReportPropertiesAsync(bool reportProperties)
-        {
-            if (reportProperties)
+            // Always send down to SystemConfigurator because we need to persist the reporting (if specified).
+            await this._systemConfiguratorProxy.SendCommandAsync(request);
+
+            Message.GetWindowsUpdatePolicyResponse reportedProperties = await GetWindowsUpdatePolicyAsync();
+            if (reportedProperties.ReportToDeviceTwin == DMJSonConstants.YesString)
             {
-                var reportedProperties = await GetWindowsUpdatePolicyAsync();
-                await this._callback.ReportPropertiesAsync(JsonSectionName, JObject.FromObject(reportedProperties));
+                await this._callback.ReportPropertiesAsync(JsonSectionName, JObject.FromObject(reportedProperties.data));
             }
             else
             {
-                await this._callback.ReportPropertiesAsync(JsonSectionName, NoReportString);
+                await this._callback.ReportPropertiesAsync(JsonSectionName, DMJSonConstants.NoString);
             }
         }
 
         // IClientPropertyHandler
-        public override void OnDesiredPropertyChange(JToken desiredValue)
+        public void OnDesiredPropertyChange(JToken desiredValue)
         {
-            base.HandleDeviceTwinControlProperties(desiredValue);
+            HandleDesiredPropertyChangeAsync(desiredValue);
         }
 
         // IClientPropertyHandler
-        public override async Task<JObject> GetReportedPropertyAsync()
+        public async Task<JObject> GetReportedPropertyAsync()
         {
-            var reportedProperties = await GetWindowsUpdatePolicyAsync();
+            Message.GetWindowsUpdatePolicyResponse reportedProperties = await GetWindowsUpdatePolicyAsync();
             return JObject.FromObject(reportedProperties);
         }
 
-        public async Task<Message.WindowsUpdatePolicyConfiguration> GetWindowsUpdatePolicyAsync()
+        public async Task<Message.GetWindowsUpdatePolicyResponse> GetWindowsUpdatePolicyAsync()
         {
             var request = new Message.GetWindowsUpdatePolicyRequest();
             Message.GetWindowsUpdatePolicyResponse response = await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatePolicyResponse;
-            return response.configuration;
+            return response;
         }
 
         private ISystemConfiguratorProxy _systemConfiguratorProxy;

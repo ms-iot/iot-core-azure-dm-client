@@ -23,7 +23,6 @@ namespace DMDataContract
         public const string NoString = "no";
         public const string NoApplyYesReportString = "no-apply-yes-report";
         public const string NoApplyNoReportString = "no-apply-no-report";
-        public const string NoReportString = "no-report";
         public const string NotFoundString = "<not found>";
         public const string NAString = "n/a";
     }

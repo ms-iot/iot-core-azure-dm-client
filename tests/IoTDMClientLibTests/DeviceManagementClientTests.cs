@@ -23,6 +23,8 @@ using Microsoft.Devices.Management.Message;
 
 namespace IoTDMClientLibTests
 {
+#pragma warning disable 1998
+
     class TwinMockup : IDeviceTwin
     {
         void IDeviceTwin.RefreshConnection()
