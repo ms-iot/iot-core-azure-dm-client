@@ -554,15 +554,14 @@ namespace Microsoft.Devices.Management
             }
 
         }
-        private static async void ProcessDesiredWifiConfiguration(
+        private async void ProcessDesiredWifiConfiguration(
             DeviceManagementClient client,
             string connectionString,
             string containerName,
             Message.WifiConfiguration desiredConfiguration)
         {
             // Get installed wifi profiles
-            var getInstalledRequest = new GetWifiConfigurationRequest();
-            var getInstalledResponse = (await client._systemConfiguratorProxy.SendCommandAsync(getInstalledRequest)) as GetWifiConfigurationResponse;
+            var getInstalledResponse = await client.GetWifiConfigurationAsync();
             var reportedConfigurationProfiles = getInstalledResponse.Configuration.Profiles;
             var desiredConfigurationProfiles = desiredConfiguration.Profiles;
 
@@ -797,6 +796,22 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse);
         }
 
+        private async Task<Message.GetWifiConfigurationResponse> GetWifiConfigurationAsync()
+        {
+            var request = new Message.GetWifiConfigurationRequest();
+            var response = (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWifiConfigurationResponse);
+
+            if (Debugger.IsAttached)
+            {
+                foreach (var profile in response.Configuration.Profiles)
+                {
+                    Debug.WriteLine($"{profile.Name} : path={profile.Path} uninstall={profile.Uninstall}");
+                }
+            }
+
+            return response;
+        }
+
         private async Task ReportTimeInfoAsync()
         {
             Debug.WriteLine("Reporting timeInfo...");
@@ -825,6 +840,7 @@ namespace Microsoft.Devices.Management
             Message.GetDeviceInfoResponse deviceInfoResponse = await GetDeviceInfoAsync();
             Message.GetWindowsUpdatePolicyResponse windowsUpdatePolicyResponse = await GetWindowsUpdatePolicyAsync();
             Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
+            Message.GetWifiConfigurationResponse wifiResponse = await GetWifiConfigurationAsync();
 
             JObject managementObj = new JObject();
             managementObj["timeInfo"] = JObject.FromObject(timeInfoResponse.data);
@@ -833,6 +849,7 @@ namespace Microsoft.Devices.Management
             managementObj["deviceInfo"] = JObject.FromObject(deviceInfoResponse);
             managementObj["windowsUpdatePolicy"] = JObject.FromObject(windowsUpdatePolicyResponse.configuration);
             managementObj["windowsUpdates"] = JObject.FromObject(windowsUpdatesResponse.configuration);
+            managementObj["wifi"] = JObject.Parse(wifiResponse.Configuration.ToJson().ToString());
 
             foreach (var handler in this._desiredPropertyMap.Values)
             {
@@ -847,6 +864,7 @@ namespace Microsoft.Devices.Management
                 management = managementObj
             };
 
+            Debug.WriteLine($"Report properties: {managementObj.ToString()}");
             _deviceTwin.ReportProperties(collection);
         }
 

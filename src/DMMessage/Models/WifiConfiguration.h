@@ -83,26 +83,36 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             Reporting = reporting;
         }
 
+        JsonObject^ ToJson()
+        {
+            JsonObject^ applyPropertiesObject = ref new JsonObject();
+            ToJson(applyPropertiesObject);
+            return applyPropertiesObject;
+        }
+
+        void ToJson(JsonObject^ applyPropertiesObject)
+        {
+            for each (auto profile in Profiles)
+            {
+                if (profile->Uninstall)
+                {
+                    applyPropertiesObject->Insert(profile->Name, JsonValue::CreateStringValue(L"uninstall"));
+                }
+                else
+                {
+                    auto propMap = ref new JsonObject();
+                    propMap->Insert(ref new Platform::String(L"profile"), JsonValue::CreateStringValue(profile->Path));
+                    propMap->Insert(ref new Platform::String(L"xml"), JsonValue::CreateStringValue(profile->Xml));
+                    propMap->Insert(ref new Platform::String(L"disableInternetConnectivityChecks"), JsonValue::CreateBooleanValue(profile->DisableInternetConnectivityChecks));
+                    propMap->Insert(ref new Platform::String(L"uninstall"), JsonValue::CreateBooleanValue(profile->Uninstall));
+                    applyPropertiesObject->Insert(profile->Name, propMap);
+                }
+            }
+        }
+
         Blob^ Serialize(uint32_t tag) {
             return DesiredAndReportedConfigurationHelper<WifiConfiguration>::Serialize(
-                this, tag, [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) {
-                    for each (auto profile in configObject->Profiles)
-                    {
-                        if (profile->Uninstall)
-                        {
-                            applyPropertiesObject->Insert(profile->Name, JsonValue::CreateStringValue(L"uninstall"));
-                        }
-                        else
-                        {
-                            auto propMap = ref new JsonObject();
-                            propMap->Insert(ref new Platform::String(L"profile"), JsonValue::CreateStringValue(profile->Path));
-                            propMap->Insert(ref new Platform::String(L"xml"), JsonValue::CreateStringValue(profile->Xml));
-                            propMap->Insert(ref new Platform::String(L"disableInternetConnectivityChecks"), JsonValue::CreateBooleanValue(profile->DisableInternetConnectivityChecks));
-                            propMap->Insert(ref new Platform::String(L"uninstall"), JsonValue::CreateBooleanValue(profile->Uninstall));
-                            applyPropertiesObject->Insert(profile->Name, propMap);
-                        }
-                    }
-                });
+                this, tag, [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) { configObject->ToJson(applyPropertiesObject); });
         }
 
         static WifiConfiguration^ Parse(Platform::String^ str) {

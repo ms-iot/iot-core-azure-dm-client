@@ -10,10 +10,10 @@
     <Grid>
         <Grid.RowDefinitions> <RowDefinition Height="Auto" /> </Grid.RowDefinitions>
         <Grid.ColumnDefinitions> <ColumnDefinition Width="Auto"/> </Grid.ColumnDefinitions>
-        <ListView Grid.Row="0" Grid.Column="0" ItemsSource="{Binding ReportedList}" x:Name="reportedList">
+        <ListView Grid.Row="0" Grid.Column="0" x:Name="reportedList">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <local:WifiReportedStateControl Tag="{Binding DataContext,ElementName=reportedList}"/>
+                    <local:WifiReportedStateControl />
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
