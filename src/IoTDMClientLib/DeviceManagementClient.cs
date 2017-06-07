@@ -554,7 +554,7 @@ namespace Microsoft.Devices.Management
             }
 
         }
-        private async void ProcessDesiredWifiConfiguration(
+        private async Task ProcessDesiredWifiConfigurationAsync(
             DeviceManagementClient client,
             string connectionString,
             string containerName,
@@ -573,29 +573,33 @@ namespace Microsoft.Devices.Management
             var adjustedConfig = new WifiConfiguration() { Applying = desiredConfiguration.Applying, Reporting = desiredConfiguration.Reporting };
             adjustedConfig.Profiles = needToRemove.Union(needToAdd).ToList();
 
-            // Download profiles needed for adding from Azure and load XML into WifiProfileConfiguration.Xml
-            await WifiManagement.UpdateConfigWithProfileXmlAsync(client, connectionString, needToAdd);
-
-            // Let SystemConfigurator do the actual work
-            var request = new Message.SetWifiConfigurationRequest(adjustedConfig);
-            var response = await client._systemConfiguratorProxy.SendCommandAsync(request);
-
-            if (response.Status == ResponseStatus.Success)
+            // Only make changes if needed
+            if (adjustedConfig.Profiles.Count != 0)
             {
-                var configToUpdateTwin = await client.GetWifiConfigurationAsync();
-                var profilesToReport = configToUpdateTwin.Configuration.Profiles;
-                foreach (var removed in needToRemove)
+                // Download profiles needed for adding from Azure and load XML into WifiProfileConfiguration.Xml
+                await WifiManagement.UpdateConfigWithProfileXmlAsync(client, connectionString, needToAdd);
+
+                // Let SystemConfigurator do the actual work
+                var request = new Message.SetWifiConfigurationRequest(adjustedConfig);
+                var response = await client._systemConfiguratorProxy.SendCommandAsync(request);
+
+                if (response.Status == ResponseStatus.Success)
                 {
-                    configToUpdateTwin.Configuration.Profiles.Add(removed);
+                    var configToUpdateTwin = await client.GetWifiConfigurationAsync();
+                    var profilesToReport = configToUpdateTwin.Configuration.Profiles;
+                    foreach (var removed in needToRemove)
+                    {
+                        configToUpdateTwin.Configuration.Profiles.Add(removed);
+                    }
+
+                    var jsonToReport = configToUpdateTwin.Configuration.ToJson(true);
+                    var reportString = $"{{\n \"management\" : {{\n \"wifi\" : {jsonToReport.ToString()}\n }}\n }}\n";
+                    Debug.WriteLine("Report:\n" + reportString);
+
+                    Dictionary<string, object> collection = new Dictionary<string, object>();
+                    collection["microsoft"] = JsonConvert.DeserializeObject(reportString);
+                    await client.DeviceTwin.ReportProperties(collection);
                 }
-
-                var jsonToReport = configToUpdateTwin.Configuration.ToJson(true);
-                var reportString = $"{{\n \"management\" : {{\n \"wifi\" : {jsonToReport.ToString()}\n }}\n }}\n";
-                Debug.WriteLine("Report:\n" + reportString);
-
-                Dictionary<string, object> collection = new Dictionary<string, object>();
-                collection["microsoft"] = JsonConvert.DeserializeObject(reportString);
-                await client.DeviceTwin.ReportProperties(collection);
             }
         }
 
@@ -655,6 +659,16 @@ namespace Microsoft.Devices.Management
             {
                 switch (managementProperty.Name)
                 {
+                    case "externalStorage":
+                        {
+                            Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
+
+                            JObject subProperties = (JObject)managementProperty.Value;
+
+                            _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
+                            _externalStorage.containerName = (string)subProperties.Property("container").Value;
+                        }
+                        break;
                     case "scheduledReboot":
                         {
                             Debug.WriteLine("scheduledReboot = " + managementProperty.Value.ToString());
@@ -672,16 +686,6 @@ namespace Microsoft.Devices.Management
                             this._systemConfiguratorProxy.SendCommandAsync(request);
                         }
                         break;
-                    case "externalStorage":
-                        {
-                            Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
-
-                            JObject subProperties = (JObject)managementProperty.Value;
-
-                            _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
-                            _externalStorage.containerName = (string)subProperties.Property("container").Value;
-                        }
-                        break;
                     case "certificates":
                         {
                             // Capture the configuration here.
@@ -695,13 +699,6 @@ namespace Microsoft.Devices.Management
                             Debug.WriteLine("timeInfo = " + managementProperty.Value.ToString());
                             ApplyDesiredTimeSettings(managementProperty.Value);
                         }
-                        break;
-                    case "wifi":
-                        // Capture the configuration here.
-                        // To apply the configuration we need to wait until externalStorage has been configured too.
-                        var valueString = managementProperty.Value.ToString();
-                        Debug.WriteLine("WifiConfiguration = " + valueString);
-                        wifiConfiguration = WifiConfiguration.Parse(valueString);
                         break;
                     case "windowsUpdatePolicy":
                         {
@@ -730,6 +727,13 @@ namespace Microsoft.Devices.Management
                             StartupAppInfo foregroundApp = new StartupAppInfo(startupApps.foreground, false /*!background*/);
                             this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
                         }
+                        break;
+                    case "wifi":
+                        // Capture the configuration here.
+                        // To apply the configuration we need to wait until externalStorage has been configured too.
+                        var valueString = managementProperty.Value.ToString();
+                        Debug.WriteLine("WifiConfiguration = " + valueString);
+                        wifiConfiguration = WifiConfiguration.Parse(valueString);
                         break;
                     default:
                         // Not supported
@@ -772,7 +776,7 @@ namespace Microsoft.Devices.Management
                     }
                     if (wifiConfiguration != null)
                     {
-                        ProcessDesiredWifiConfiguration(this, _externalStorage.connectionString, _externalStorage.containerName, wifiConfiguration);
+                        ProcessDesiredWifiConfigurationAsync(this, _externalStorage.connectionString, _externalStorage.containerName, wifiConfiguration);
                     }
                 }
             }
