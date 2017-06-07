@@ -307,7 +307,12 @@ IResponse^ HandleGetWifiConfiguration(IRequest^ request)
     auto profiles = WifiCSP::GetProfiles();
 
     auto configuration = ref new WifiConfiguration();
-    //TODO: fill in details
+    for each (auto profile in profiles)
+    {
+        auto profileConfig = ref new WifiProfileConfiguration();
+        profileConfig->Name = ref new Platform::String(profile.c_str());
+        configuration->Profiles->Append(profileConfig);
+    }
     return ref new GetWifiConfigurationResponse(ResponseStatus::Success, configuration);
 }
 
@@ -323,6 +328,8 @@ IResponse^ HandleSetWifiConfiguration(IRequest^ request)
         for each (auto profile in configuration->Profiles)
         {
             std::wstring profileName = profile->Name->Data();
+            TRACEP(L"DMCommand::HandleSetWifiConfiguration handle profile: ", profileName);
+            TRACEP("DMCommand::HandleSetWifiConfiguration uninstall? ", profile->Uninstall);
             if (profile->Uninstall)
             {
                 WifiCSP::DeleteProfile(profileName);

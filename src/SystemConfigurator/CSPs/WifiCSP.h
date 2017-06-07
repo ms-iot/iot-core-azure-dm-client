@@ -14,12 +14,13 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #pragma once
 
+#include <vector>
 #include <string>
 
 class WifiCSP
 {
 public:
-    static std::wstring GetProfiles();
+    static std::vector<std::wstring> GetProfiles();
 
     static void AddProfile(const std::wstring& profileName, const std::wstring& profileXml);
     static void DeleteProfile(const std::wstring& profileName);

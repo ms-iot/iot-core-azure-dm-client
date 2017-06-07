@@ -546,7 +546,18 @@ namespace Microsoft.Devices.Management
             var request = new Message.SetCertificateConfigurationRequest(certificateConfiguration);
             client._systemConfiguratorProxy.SendCommandAsync(request);
         }
+        private class WifiProfileConfigurationComparer : IEqualityComparer<WifiProfileConfiguration>
+        {
+            public bool Equals(WifiProfileConfiguration x, WifiProfileConfiguration y)
+            {
+                return (x.Name == y.Name);
+            }
+            public int GetHashCode(WifiProfileConfiguration x)
+            {
+                return x.Name.GetHashCode();
+            }
 
+        }
         private static async void ProcessDesiredWifiConfiguration(
             DeviceManagementClient client,
             string connectionString,
@@ -556,14 +567,22 @@ namespace Microsoft.Devices.Management
             // Get installed wifi profiles
             var getInstalledRequest = new GetWifiConfigurationRequest();
             var getInstalledResponse = (await client._systemConfiguratorProxy.SendCommandAsync(getInstalledRequest)) as GetWifiConfigurationResponse;
+            var reportedConfigurationProfiles = getInstalledResponse.Configuration.Profiles;
+            var desiredConfigurationProfiles = desiredConfiguration.Profiles;
 
-            // Find profiles that need to be removed and added
-            var reportedConfiguration = getInstalledResponse.Configuration;
-            var toAdd = desiredConfiguration.Profiles.Except(reportedConfiguration.Profiles);
+            // Only profiles that don't already exist need to be installed
+            var needToAdd = desiredConfigurationProfiles.Where((config) => { return !config.Uninstall; }).Except(reportedConfigurationProfiles, new WifiProfileConfigurationComparer());
+            // Only profiles that already exist need to be uninstalled
+            var needToRemove = desiredConfigurationProfiles.Where((config) => { return config.Uninstall; }).Intersect(reportedConfigurationProfiles, new WifiProfileConfigurationComparer());
+            // Create list of profiles for SystemConfigurator based on what NEEDS to be done
+            var adjustedConfig = new WifiConfiguration() { Applying = desiredConfiguration.Applying, Reporting = desiredConfiguration.Reporting };
+            adjustedConfig.Profiles = needToRemove.Union(needToAdd).ToList();
 
-            await WifiManagement.UpdateConfigWithProfileXmlAsync(client, connectionString, toAdd);
+            // Download profiles needed for adding from Azure and load XML into WifiProfileConfiguration.Xml
+            await WifiManagement.UpdateConfigWithProfileXmlAsync(client, connectionString, needToAdd);
 
-            var request = new Message.SetWifiConfigurationRequest(desiredConfiguration);
+            // Let SystemConfigurator do the actual work
+            var request = new Message.SetWifiConfigurationRequest(adjustedConfig);
             client._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
