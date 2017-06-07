@@ -67,8 +67,6 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
         WindowsUpdatePolicyConfiguration()
         {
-            OutputDebugString(L"WindowsUpdatePolicyConfiguration::WindowsUpdatePolicyConfiguration()\n");
-
             activeFields = 0;
 
             activeHoursStart = 0;

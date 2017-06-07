@@ -18,30 +18,46 @@ The **Windows Update Policy** can be configured through the ```"windowsUpdatePol
 "desired" : {
     "microsoft" : {
         "management" : {
-            "windowsUpdatePolicy": {
-                "activeHoursStart": <i>see below</i>,
-                "activeHoursEnd": <i>see below</i>,
-                "allowAutoUpdate": <i>see below</i>,
-                "allowMUUpdateService": <i>see below</i>,
-                "allowNonMicrosoftSignedUpdate": <i>see below</i>,
-                "allowUpdateService": <i>see below</i>,
-                "branchReadinessLevel":  <i>see below</i>,
-                "deferFeatureUpdatesPeriod": <i>see below</i>,
-                "deferQualityUpdatesPeriod": <i>see below</i>,
-                "excludeWUDrivers": <i>see below</i>,
-                "pauseFeatureUpdates": <i>see below</i>,
-                "pauseQualityUpdates": <i>see below</i>,
-                "requireUpdateApproval": <i>see below</i>,
-                "scheduledInstallDay": <i>see below</i>,
-                "scheduledInstallTime": <i>see below</i>,
-                "updateServiceUrl": "<i>see below</i>",
+            "windowsUpdatePolicy": <i>see below</i>
             }
         }
     }
 }
 </pre>
 
-For a full documentation on what each field does, see the [Policy CSP](https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/policy-configuration-service-provider) MSDN page.
+- ```"windowsUpdatePolicy"``` can be set to one of the following values:
+  - ```"no-apply-no-report"``` : This means no desired state, and not reported state should be stored in the device twin.
+  - ```"no-apply-yes-report"```: This means no desired state should be stored in the device twin, but reported state should.
+  - <i>Device twin control properties</i> json object as follows:
+
+<pre>
+    {
+        "applyProperties" : {
+            "activeHoursStart": <i>see below</i>,
+            "activeHoursEnd": <i>see below</i>,
+            "allowAutoUpdate": <i>see below</i>,
+            "allowUpdateService": <i>see below</i>,
+            "branchReadinessLevel":  <i>see below</i>,
+            "deferFeatureUpdatesPeriod": <i>see below</i>,
+            "deferQualityUpdatesPeriod": <i>see below</i>,
+            "pauseFeatureUpdates": <i>see below</i>,
+            "pauseQualityUpdates": <i>see below</i>,
+            "scheduledInstallDay": <i>see below</i>,
+            "scheduledInstallTime": <i>see below</i>,
+            "ring": <i>see below</i>
+        }
+        "reportProperties" : <i>see below</i>
+    }
+</pre>
+
+- For a full documentation on what each field does, see the [Policy CSP](https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/policy-configuration-service-provider) MSDN page.
+- The ```"ring"``` field can be set to one of the following values:
+  - ```"EarlyAdopter"```
+  - ```"Preview"```
+  - ```"GeneralAvailability"```
+- The ```"reportProperties"``` can be set to one of the following values:
+  - ```"yes"```: tells the DM client to report the Windows Update Policy state of the device.
+  - ```"no"```: tells the DM client to not report the Windows Update Policy section in the reported properties. This can be useful to free some room in the Device Twin.
 
 ### Reporting
 
@@ -51,30 +67,34 @@ The device current state of the **Windows Update Policy** can be inspected throu
 "reported" : {
     "microsoft" : {
         "management" : {
-            "windowsUpdatePolicy": {
-                "activeHoursStart": <i>see below</i>,
-                "activeHoursEnd": <i>see below</i>,
-                "allowAutoUpdate": <i>see below</i>,
-                "allowMUUpdateService": <i>see below</i>,
-                "allowNonMicrosoftSignedUpdate": <i>see below</i>,
-                "allowUpdateService": <i>see below</i>,
-                "branchReadinessLevel":  <i>see below</i>,
-                "deferFeatureUpdatesPeriod": <i>see below</i>,
-                "deferQualityUpdatesPeriod": <i>see below</i>,
-                "excludeWUDrivers": <i>see below</i>,
-                "pauseFeatureUpdates": <i>see below</i>,
-                "pauseQualityUpdates": <i>see below</i>,
-                "requireUpdateApproval": <i>see below</i>,
-                "scheduledInstallDay": <i>see below</i>,
-                "scheduledInstallTime": <i>see below</i>,
-                "updateServiceUrl": "<i>see below</i>",
-            }
+            "windowsUpdatePolicy": <i>see below</i>
         }
     }
 }
 </pre>
 
-For a full documentation on what each field does, see the [Policy CSP](https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/policy-configuration-service-provider) MSDN page.
+
+- ```"windowsUpdatePolicy"``` can be set to one of the following values:
+  - ```"no-report"```
+  - <i>Windows update policy properties</i> json object as follows:
+<pre>
+ {
+    "activeHoursStart": <i>see below</i>,
+    "activeHoursEnd": <i>see below</i>,
+    "allowAutoUpdate": <i>see below</i>,
+    "allowUpdateService": <i>see below</i>,
+    "branchReadinessLevel":  <i>see below</i>,
+    "deferFeatureUpdatesPeriod": <i>see below</i>,
+    "deferQualityUpdatesPeriod": <i>see below</i>,
+    "pauseFeatureUpdates": <i>see below</i>,
+    "pauseQualityUpdates": <i>see below</i>,
+    "scheduledInstallDay": <i>see below</i>,
+    "scheduledInstallTime": <i>see below</i>,
+    "ring": <i>see below</i>,
+}
+</pre>
+
+- See documentation of individual properties under the Configuration section above.
 
 ## Windows Updates
 

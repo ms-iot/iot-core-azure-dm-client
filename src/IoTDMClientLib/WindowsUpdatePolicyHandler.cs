@@ -14,8 +14,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 using DMDataContract;
-using Microsoft.Devices.Management.Message;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -24,7 +22,7 @@ namespace Microsoft.Devices.Management
 {
     class WindowsUpdatePolicyHandler : IClientPropertyHandler
     {
-        static string JsonSectionName = "windowsUpdatePolicy";
+        const string JsonSectionName = "windowsUpdatePolicy";
 
         public WindowsUpdatePolicyHandler(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
@@ -43,9 +41,6 @@ namespace Microsoft.Devices.Management
 
         private async Task HandleDesiredPropertyChangeAsync(JToken desiredValue)
         {
-            Debug.WriteLine("WindowsUpdatePolicy:");
-            Debug.WriteLine(desiredValue.ToString());
-
             Message.SetWindowsUpdatePolicyRequest request = Message.SetWindowsUpdatePolicyRequest.Deserialize(desiredValue.ToString());
 
             // Always send down to SystemConfigurator because we need to persist the reporting (if specified).
@@ -54,11 +49,12 @@ namespace Microsoft.Devices.Management
             Message.GetWindowsUpdatePolicyResponse reportedProperties = await GetWindowsUpdatePolicyAsync();
             if (reportedProperties.ReportToDeviceTwin == DMJSonConstants.YesString)
             {
+                // ToDo: Need to avoid serializing activeFields since it is internal implementation details.
                 await this._callback.ReportPropertiesAsync(JsonSectionName, JObject.FromObject(reportedProperties.data));
             }
             else
             {
-                await this._callback.ReportPropertiesAsync(JsonSectionName, DMJSonConstants.NoString);
+                await this._callback.ReportPropertiesAsync(JsonSectionName, DMJSonConstants.NoReportString);
             }
         }
 
@@ -78,8 +74,8 @@ namespace Microsoft.Devices.Management
         public async Task<Message.GetWindowsUpdatePolicyResponse> GetWindowsUpdatePolicyAsync()
         {
             var request = new Message.GetWindowsUpdatePolicyRequest();
-            Message.GetWindowsUpdatePolicyResponse response = await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatePolicyResponse;
-            return response;
+            var response = await this._systemConfiguratorProxy.SendCommandAsync(request);
+            return response as Message.GetWindowsUpdatePolicyResponse;
         }
 
         private ISystemConfiguratorProxy _systemConfiguratorProxy;
