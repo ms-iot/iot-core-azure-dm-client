@@ -558,7 +558,7 @@ namespace Microsoft.Devices.Management
             }
 
         }
-        private async void ProcessDesiredWifiConfiguration(
+        private async Task ProcessDesiredWifiConfigurationAsync(
             DeviceManagementClient client,
             string connectionString,
             string containerName,
@@ -577,29 +577,33 @@ namespace Microsoft.Devices.Management
             var adjustedConfig = new WifiConfiguration() { Applying = desiredConfiguration.Applying, Reporting = desiredConfiguration.Reporting };
             adjustedConfig.Profiles = needToRemove.Union(needToAdd).ToList();
 
-            // Download profiles needed for adding from Azure and load XML into WifiProfileConfiguration.Xml
-            await WifiManagement.UpdateConfigWithProfileXmlAsync(client, connectionString, needToAdd);
-
-            // Let SystemConfigurator do the actual work
-            var request = new Message.SetWifiConfigurationRequest(adjustedConfig);
-            var response = await client._systemConfiguratorProxy.SendCommandAsync(request);
-
-            if (response.Status == ResponseStatus.Success)
+            // Only make changes if needed
+            if (adjustedConfig.Profiles.Count != 0)
             {
-                var configToUpdateTwin = await client.GetWifiConfigurationAsync();
-                var profilesToReport = configToUpdateTwin.Configuration.Profiles;
-                foreach (var removed in needToRemove)
+                // Download profiles needed for adding from Azure and load XML into WifiProfileConfiguration.Xml
+                await WifiManagement.UpdateConfigWithProfileXmlAsync(client, connectionString, needToAdd);
+
+                // Let SystemConfigurator do the actual work
+                var request = new Message.SetWifiConfigurationRequest(adjustedConfig);
+                var response = await client._systemConfiguratorProxy.SendCommandAsync(request);
+
+                if (response.Status == ResponseStatus.Success)
                 {
-                    configToUpdateTwin.Configuration.Profiles.Add(removed);
+                    var configToUpdateTwin = await client.GetWifiConfigurationAsync();
+                    var profilesToReport = configToUpdateTwin.Configuration.Profiles;
+                    foreach (var removed in needToRemove)
+                    {
+                        configToUpdateTwin.Configuration.Profiles.Add(removed);
+                    }
+
+                    var jsonToReport = configToUpdateTwin.Configuration.ToJson(true);
+                    var reportString = $"{{\n \"management\" : {{\n \"wifi\" : {jsonToReport.ToString()}\n }}\n }}\n";
+                    Debug.WriteLine("Report:\n" + reportString);
+
+                    Dictionary<string, object> collection = new Dictionary<string, object>();
+                    collection["microsoft"] = JsonConvert.DeserializeObject(reportString);
+                    await client.DeviceTwin.ReportProperties(collection);
                 }
-
-                var jsonToReport = configToUpdateTwin.Configuration.ToJson(true);
-                var reportString = $"{{\n \"management\" : {{\n \"wifi\" : {jsonToReport.ToString()}\n }}\n }}\n";
-                Debug.WriteLine("Report:\n" + reportString);
-
-                Dictionary<string, object> collection = new Dictionary<string, object>();
-                collection["microsoft"] = JsonConvert.DeserializeObject(reportString);
-                await client.DeviceTwin.ReportProperties(collection);
             }
         }
 
@@ -775,7 +779,7 @@ namespace Microsoft.Devices.Management
                     }
                     if (wifiConfiguration != null)
                     {
-                        ProcessDesiredWifiConfiguration(this, _externalStorage.connectionString, _externalStorage.containerName, wifiConfiguration);
+                        ProcessDesiredWifiConfigurationAsync(this, _externalStorage.connectionString, _externalStorage.containerName, wifiConfiguration);
                     }
                 }
             }
