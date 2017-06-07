@@ -1,0 +1,22 @@
+﻿<UserControl x:Class="DMDashboard.Wifi.WifiReportedStateControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DMDashboard.Wifi"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="200"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Profile Name"/>
+        <Border Grid.Row="0" Grid.Column="1" Background="#F8F8F8" Margin="3">
+            <TextBlock Width="200" x:Name="ProfileName" HorizontalAlignment="Left" Text="{Binding Name}" />
+        </Border>
+    </Grid>
+</UserControl>

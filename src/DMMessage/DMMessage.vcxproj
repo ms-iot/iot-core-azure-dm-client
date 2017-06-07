@@ -100,12 +100,15 @@
     <ClInclude Include="Models\FactoryReset.h" />
     <ClInclude Include="Models\FileTransfer.h" />
     <ClInclude Include="Models\ListApps.h" />
+    <ClInclude Include="Models\ModelHelper.h" />
     <ClInclude Include="Models\Reboot.h" />
     <ClInclude Include="Models\StartupApp.h" />
     <ClInclude Include="Models\StatusCodeResponse.h" />
     <ClInclude Include="Models\StringResponse.h" />
     <ClInclude Include="Models\TimeInfo.h" />
     <ClInclude Include="Models\TpmRequests.h" />
+    <ClInclude Include="Models\WifiConfiguration.h" />
+    <ClInclude Include="Models\WifiDetails.h" />
     <ClInclude Include="Models\WindowsUpdatePolicy.h" />
     <ClInclude Include="Models\WindowsUpdateRebootPolicy.h" />
     <ClInclude Include="Models\WindowsUpdates.h" />

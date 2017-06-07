@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DMDashboard"
         xmlns:DeviceHealthAttestation="clr-namespace:DMDashboard.DeviceHealthAttestation"
+        xmlns:Wifi="clr-namespace:DMDashboard.Wifi"
         mc:Ignorable="d"
         Title="MainWindow" Height="700" Width="1400">
     <Grid>
@@ -714,6 +715,37 @@
                         <local:AppsReportedStateControl Grid.Row="5" Grid.Column="2" x:Name="TheAppsStatus"/>
                         
                         <Button Grid.Row="6" Grid.Column="1" Margin="3" Content="Set Apps Configuration" Click="OnSetAppsConfiguration" />
+                    </Grid>
+
+                    <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Margin="3" Text="Wifi" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                        <Button Grid.Column="0" Click="OnExpandWifi" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid x:Name="WifiGrid" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="400"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                        <Wifi:WifiProfilesDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="WifiDesiredState"/>
+                        <Wifi:WifiProfilesReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="WifiReportedState"/>
+
+                        <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Add Desired Profile" Click="OnAddProfile" />
+                        <Button Grid.Row="3" Grid.Column="1" Margin="3" Content="Set Wifi Configuration" Click="OnSetWifiConfiguration" />
                     </Grid>
 
                     <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
