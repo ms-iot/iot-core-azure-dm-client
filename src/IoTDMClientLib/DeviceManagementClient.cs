@@ -578,7 +578,25 @@ namespace Microsoft.Devices.Management
 
             // Let SystemConfigurator do the actual work
             var request = new Message.SetWifiConfigurationRequest(adjustedConfig);
-            client._systemConfiguratorProxy.SendCommandAsync(request);
+            var response = await client._systemConfiguratorProxy.SendCommandAsync(request);
+
+            if (response.Status == ResponseStatus.Success)
+            {
+                var configToUpdateTwin = await client.GetWifiConfigurationAsync();
+                var profilesToReport = configToUpdateTwin.Configuration.Profiles;
+                foreach (var removed in needToRemove)
+                {
+                    configToUpdateTwin.Configuration.Profiles.Add(removed);
+                }
+
+                var jsonToReport = configToUpdateTwin.Configuration.ToJson(true);
+                var reportString = $"{{\n \"management\" : {{\n \"wifi\" : {jsonToReport.ToString()}\n }}\n }}\n";
+                Debug.WriteLine("Report:\n" + reportString);
+
+                Dictionary<string, object> collection = new Dictionary<string, object>();
+                collection["microsoft"] = JsonConvert.DeserializeObject(reportString);
+                await client.DeviceTwin.ReportProperties(collection);
+            }
         }
 
         public async Task AllowReboots(bool allowReboots)
@@ -849,7 +867,7 @@ namespace Microsoft.Devices.Management
             managementObj["deviceInfo"] = JObject.FromObject(deviceInfoResponse);
             managementObj["windowsUpdatePolicy"] = JObject.FromObject(windowsUpdatePolicyResponse.configuration);
             managementObj["windowsUpdates"] = JObject.FromObject(windowsUpdatesResponse.configuration);
-            managementObj["wifi"] = JObject.Parse(wifiResponse.Configuration.ToJson().ToString());
+            managementObj["wifi"] = JObject.Parse(wifiResponse.Configuration.ToJson(true).ToString());
 
             foreach (var handler in this._desiredPropertyMap.Values)
             {
