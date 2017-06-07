@@ -26,20 +26,31 @@ using namespace std;
 // https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/wifi-csp
 //
 
-wstring WifiCSP::GetProfiles()
+vector<wstring> WifiCSP::GetProfiles()
 {
     TRACE(__FUNCTION__);
 
-    auto data = ref new JsonObject();
+    vector<wstring> data;
     // use std::function to pass lambda that captures something
     std::function<void(std::vector<std::wstring>&, std::wstring&)> valueHandler =
-        [data](vector<wstring>& uriTokens, wstring& value) {
-            auto numTokens = uriTokens.size();
+        [&data](vector<wstring>& uriTokens, wstring& value) {
+
+        TRACE("------------------");
+        for each (auto t in uriTokens) { TRACEP(L"token: ", t); }
+        TRACE("==================");
+
+            if (uriTokens.size() == 6)
+            {
+                // 0/__1____/_2_/__3__/__4___/______5______
+                // ./Vendor/MSFT/WiFi/Profile/connector701
+                data.push_back(uriTokens[5]);
+            }
         };
 
     wstring path = WIFI_PROFILE_PATH L"?list=StructData";
     MdmProvision::RunGetStructData(path, valueHandler);
-    return data->Stringify()->Data();
+
+    return data;
 }
 
 void WifiCSP::AddProfile(const wstring& profileName, const wstring& profileXml)

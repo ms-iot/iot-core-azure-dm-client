@@ -135,7 +135,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
                                 auto wifiProfile = ref new WifiProfileConfiguration();
                                 wifiProfile->Name = profileName;
                                 wifiProfile->Uninstall = true;
-
+                                
+                                configObject->Profiles->Append(wifiProfile);
                             }
                         }
                     }
