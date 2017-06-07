@@ -31,16 +31,18 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public:
         property String^ Name;
         property String^ Xml;
+        property String^ Path;
         property bool DisableInternetConnectivityChecks;
         property bool Uninstall;
 
         Blob^ Serialize(uint32_t tag) {
 
             JsonObject^ jsonObject = ref new JsonObject();
-            jsonObject->Insert("Name", JsonValue::CreateStringValue(Name));
-            jsonObject->Insert("Xml", JsonValue::CreateStringValue(Xml));
-            jsonObject->Insert("DisableInternetConnectivityChecks", JsonValue::CreateBooleanValue(DisableInternetConnectivityChecks));
-            jsonObject->Insert("Uninstall", JsonValue::CreateBooleanValue(Uninstall));
+            jsonObject->Insert("name", JsonValue::CreateStringValue(Name));
+            jsonObject->Insert("xml", JsonValue::CreateStringValue(Xml));
+            jsonObject->Insert("profile", JsonValue::CreateStringValue(Xml));
+            jsonObject->Insert("disableInternetConnectivityChecks", JsonValue::CreateBooleanValue(DisableInternetConnectivityChecks));
+            jsonObject->Insert("uninstall", JsonValue::CreateBooleanValue(Uninstall));
 
             return SerializationHelper::CreateBlobFromJson(tag, jsonObject);
         }
@@ -51,10 +53,11 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto wifiConfiguration = ref new WifiProfileConfiguration();
-			wifiConfiguration->Name = jsonObject->GetNamedString("Name");
-			wifiConfiguration->Xml = jsonObject->GetNamedString("Xml");
-            wifiConfiguration->DisableInternetConnectivityChecks = jsonObject->GetNamedBoolean("DisableInternetConnectivityChecks");
-            wifiConfiguration->Uninstall = jsonObject->GetNamedBoolean("Uninstall");
+			wifiConfiguration->Name = jsonObject->GetNamedString("name");
+            wifiConfiguration->Path = jsonObject->GetNamedString("profile");
+            wifiConfiguration->Xml = jsonObject->GetNamedString("xml");
+            wifiConfiguration->DisableInternetConnectivityChecks = jsonObject->GetNamedBoolean("disableInternetConnectivityChecks");
+            wifiConfiguration->Uninstall = jsonObject->GetNamedBoolean("uninstall");
 
             return wifiConfiguration;
         }
@@ -64,20 +67,17 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     {
     public:
         property IVector<WifiProfileConfiguration^>^ Profiles;
-        property String^ Active;
         property bool Reporting;
         property bool Applying;
 
         WifiConfiguration()
         {
-            Active = ref new Platform::String();
             Profiles = ref new Vector<WifiProfileConfiguration^>();
             Applying = true;
             Reporting = true;
         }
         WifiConfiguration(String^ active, IVector<WifiProfileConfiguration^>^ profiles, bool applying, bool reporting)
         {
-            Active = active;
             Profiles = profiles;
             Applying = applying;
             Reporting = reporting;
@@ -86,18 +86,19 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         Blob^ Serialize(uint32_t tag) {
             return DesiredAndReportedConfigurationHelper<WifiConfiguration>::Serialize(
                 this, tag, [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) {
-                    applyPropertiesObject->Insert("activeProfile", JsonValue::CreateStringValue(configObject->Active));
                     for each (auto profile in configObject->Profiles)
                     {
                         if (profile->Uninstall)
                         {
-                            applyPropertiesObject->Insert(profile->Name, JsonValue::CreateBooleanValue(true));
+                            applyPropertiesObject->Insert(profile->Name, JsonValue::CreateStringValue(L"uninstall"));
                         }
                         else
                         {
                             auto propMap = ref new JsonObject();
-                            propMap->Insert(ref new Platform::String(L"profile"), JsonValue::CreateStringValue(profile->Xml));
+                            propMap->Insert(ref new Platform::String(L"profile"), JsonValue::CreateStringValue(profile->Path));
+                            propMap->Insert(ref new Platform::String(L"xml"), JsonValue::CreateStringValue(profile->Xml));
                             propMap->Insert(ref new Platform::String(L"disableInternetConnectivityChecks"), JsonValue::CreateBooleanValue(profile->DisableInternetConnectivityChecks));
+                            propMap->Insert(ref new Platform::String(L"uninstall"), JsonValue::CreateBooleanValue(profile->Uninstall));
                             applyPropertiesObject->Insert(profile->Name, propMap);
                         }
                     }
@@ -112,18 +113,17 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
                         auto profileName = profile->Key;
                         auto profileValue = applyPropertiesObject->Lookup(profileName);
 
-                        if (profileName == L"activeProfile")
-                        {
-                            configObject->Active = profileValue->GetString();
-                        }
-                        else if (profileValue->ValueType == JsonValueType::Object)
+                        if (profileValue->ValueType == JsonValueType::Object)
                         {
                             auto profileValueObject = applyPropertiesObject->GetNamedObject(profileName);
 
                             auto wifiProfile = ref new WifiProfileConfiguration();
                             wifiProfile->Name = profileName;
-                            wifiProfile->DisableInternetConnectivityChecks = profileValueObject->GetNamedBoolean("disableInternetConnectivityChecks");
-                            wifiProfile->Xml = profileValueObject->GetNamedString("profile");
+
+                            wifiProfile->DisableInternetConnectivityChecks = profileValueObject->GetNamedBoolean("disableInternetConnectivityChecks", false);
+                            wifiProfile->Path = profileValueObject->GetNamedString("profile");
+                            wifiProfile->Xml = profileValueObject->GetNamedString("xml", L"");
+                            wifiProfile->Uninstall = profileValueObject->GetNamedBoolean("uninstall", false);
 
                             configObject->Profiles->Append(wifiProfile);
                         }
@@ -154,7 +154,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         property WifiConfiguration^ Configuration;
 
 
-		SetWifiConfigurationRequest(WifiConfiguration^ wifiConfiguration)
+        SetWifiConfigurationRequest(WifiConfiguration^ wifiConfiguration)
         {
             Configuration = wifiConfiguration;
         }
@@ -166,8 +166,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
         static IDataPayload^ Deserialize(Blob^ blob)
         {
-			WifiConfiguration^ wifiConfiguration = WifiConfiguration::Deserialize(blob);
-             return ref new SetWifiConfigurationRequest(wifiConfiguration);
+            WifiConfiguration^ wifi = WifiConfiguration::Deserialize(blob);
+             return ref new SetWifiConfigurationRequest(wifi);
         }
 
         virtual property DMMessageKind Tag {

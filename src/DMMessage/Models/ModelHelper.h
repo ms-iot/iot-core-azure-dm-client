@@ -34,7 +34,6 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
         static JsonObject^ HandleDesiredAndReportedConfiguration(String^ str, BaseClass^ configObject)
         {
-            JsonObject^ applyPropertiesObject = nullptr;
             if (str->Equals(ref new Platform::String(L"no-no")))
             {
                 configObject->Applying = false;
@@ -47,14 +46,16 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             }
             else
             {
-                applyPropertiesObject = JsonObject::Parse(str);
-                //    "wifi": { "applyProperties": {...}|"no", "reportProperties": "yes|no" }
+                // "<section>": { "applyProperties": {...}|"no", "reportProperties": "yes|no" }
+                auto sectionObject = JsonObject::Parse(str);
 
-                configObject->Reporting = !(applyPropertiesObject->GetNamedString(ref new Platform::String(L"reportProperties")) == L"no");
-                auto applyProperties = applyPropertiesObject->Lookup(ref new Platform::String(L"applyProperties"));
+                auto reportProperties = sectionObject->Lookup(ref new Platform::String(L"reportProperties"));
+                configObject->Reporting = !(sectionObject->GetNamedString(ref new Platform::String(L"reportProperties")) == L"no");
+                auto applyProperties = sectionObject->Lookup(ref new Platform::String(L"applyProperties"));
                 if (applyProperties->ValueType == JsonValueType::Object)
                 {
                     configObject->Applying = true;
+                    return sectionObject->GetNamedObject(ref new Platform::String(L"applyProperties"));
                 }
                 else if (applyProperties->ValueType == JsonValueType::String)
                 {
@@ -63,7 +64,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
                 }
 
             }
-            return applyPropertiesObject;
+            return nullptr;
         }
 
         static Blob^ Serialize(BaseClass^ configObject, uint32_t tag, SerializePropertiesFxn SerializeProperties) {
@@ -77,9 +78,9 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             }
             else
             {
-                jsonObject->Insert("applyProperties", JsonValue::CreateBooleanValue(false));
+                jsonObject->Insert("applyProperties", JsonValue::CreateStringValue(L"no"));
             }
-            jsonObject->Insert("reportProperties", JsonValue::CreateBooleanValue(configObject->Reporting));
+            jsonObject->Insert("reportProperties", JsonValue::CreateStringValue(configObject->Reporting ? L"yes" : L"no"));
 
             return SerializationHelper::CreateBlobFromJson(tag, jsonObject);
         }

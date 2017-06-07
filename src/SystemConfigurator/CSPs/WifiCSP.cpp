@@ -17,9 +17,10 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "MdmProvision.h"
 #include "..\SharedUtilities\Logger.h"
 
+using namespace Windows::Data::Json;
 using namespace std;
 
-const wchar_t* WifeProfilePath = L"./Vendor/MSFT/WiFi/Profile";
+#define WIFI_PROFILE_PATH L"./Vendor/MSFT/WiFi/Profile"
 
 // Wifi CSP docs
 // https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/wifi-csp
@@ -29,19 +30,23 @@ wstring WifiCSP::GetProfiles()
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
+    auto data = ref new JsonObject();
+    // use std::function to pass lambda that captures something
+    std::function<void(std::vector<std::wstring>&, std::wstring&)> valueHandler =
+        [data](vector<wstring>& uriTokens, wstring& value) {
+            auto numTokens = uriTokens.size();
+        };
 
-    wstring profileXml = MdmProvision::RunGetString(path);
-    TRACEP(L" profile xml = ", profileXml.c_str());
-    return profileXml;
+    wstring path = WIFI_PROFILE_PATH L"?list=StructData";
+    MdmProvision::RunGetStructData(path, valueHandler);
+    return data->Stringify()->Data();
 }
 
 void WifiCSP::AddProfile(const wstring& profileName, const wstring& profileXml)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
-    path += L"/";
+    wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
     path += L"/WlanXml";
 
@@ -52,8 +57,7 @@ void WifiCSP::DeleteProfile(const wstring& profileName)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
-    path += L"/";
+    wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
 
     MdmProvision::RunDelete(path);
@@ -63,8 +67,7 @@ wstring WifiCSP::GetProfile(const wstring& profileName)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
-    path += L"/";
+    wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
 
     wstring profileXml = MdmProvision::RunGetString(path);
@@ -76,8 +79,7 @@ void WifiCSP::SetProfile(const wstring& profileName, const wstring& profileXml)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
-    path += L"/";
+    wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
     path += L"/WlanXml";
 
@@ -88,8 +90,7 @@ void WifiCSP::AddDisableInternetConnectivityChecks(const wstring& profileName, b
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
-    path += L"/";
+    wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
@@ -100,8 +101,7 @@ void WifiCSP::DeleteDisableInternetConnectivityChecks(const wstring& profileName
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
-    path += L"/";
+    wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
@@ -112,8 +112,7 @@ bool WifiCSP::GetDisableInternetConnectivityChecks(const wstring& profileName)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
-    path += L"/";
+    wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 
@@ -126,8 +125,7 @@ void WifiCSP::SetDisableInternetConnectivityChecks(const wstring& profileName, b
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
-    path += L"/";
+    wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
     path += L"/DisableInternetConnectivityChecks";
 

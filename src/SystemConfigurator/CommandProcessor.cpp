@@ -302,7 +302,7 @@ IResponse^ HandleGetWifiConfiguration(IRequest^ request)
 
     auto profiles = WifiCSP::GetProfiles();
 
-    WifiConfiguration^ configuration = ref new WifiConfiguration();
+    auto configuration = ref new WifiConfiguration();
     //TODO: fill in details
     return ref new GetWifiConfigurationResponse(ResponseStatus::Success, configuration);
 }
@@ -313,9 +313,23 @@ IResponse^ HandleSetWifiConfiguration(IRequest^ request)
 
     try
     {
-        auto setWifiConfigurationRequest = dynamic_cast<SetWifiConfigurationRequest^>(request);
-        WifiConfiguration^ configuration = setWifiConfigurationRequest->Configuration;
-        //TODO: fill in details
+        auto wifiRequest = dynamic_cast<SetWifiConfigurationRequest^>(request);
+        auto configuration = wifiRequest->Configuration;
+        
+        for each (auto profile in configuration->Profiles)
+        {
+            std::wstring profileName = profile->Name->Data();
+            if (profile->Uninstall)
+            {
+                WifiCSP::DeleteProfile(profileName);
+            }
+            else
+            {
+                std::wstring profileXml = profile->Xml->Data();
+                WifiCSP::AddProfile(profileName, profileXml);
+            }
+        }
+
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
     catch (const DMException& e)

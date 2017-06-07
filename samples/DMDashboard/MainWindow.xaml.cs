@@ -378,6 +378,11 @@ namespace DMDashboard
                     var jobj = JObject.Parse(jsonProp.Value.ToString());
                     DeviceHealthAttestationReportedState.FromJson(jobj);
                 }
+                else if (jsonProp.Name == "wifi")
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    this.WifiReportedState.FromJson(jsonProp.Value);
+                }
             }
         }
 
@@ -646,9 +651,9 @@ namespace DMDashboard
         {
             StringBuilder json = new StringBuilder();
 
-            json.Append(TimeDesiredState.ToJson());
-            json.Append(",");
             json.Append(UIToExternalStorageModel().ToJson());
+            json.Append(",");
+            json.Append(TimeDesiredState.ToJson());
             json.Append(",");
             json.Append(UIToCertificateConfiguration().ToJson());
             json.Append(",");
@@ -659,6 +664,8 @@ namespace DMDashboard
             json.Append(UIToWindowsUpdatesConfiguration().ToJson());
             json.Append(",");
             json.Append(DeviceHealthAttestationDesiredState.ToJson());
+            json.Append(",");
+            json.Append(WifiDesiredState.ToJson());
 
             SetDesired(json.ToString());
         }
@@ -774,6 +781,21 @@ namespace DMDashboard
         private void ExportCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
         {
             ExportCertificateDetailsAsync(sender, certificateData);
+        }
+
+        private void OnExpandWifi(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(WifiGrid);
+        }
+
+        private void OnSetWifiConfiguration(object sender, RoutedEventArgs e)
+        {
+            SetDesired(WifiDesiredState.ToJson());
+        }
+
+        private void OnAddProfile(object sender, RoutedEventArgs e)
+        {
+            this.WifiDesiredState.DesiredList.Add(new Wifi.WifiProfileConfiguration());
         }
 
         private DeviceTwinAndMethod _deviceTwin;
