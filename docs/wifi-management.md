@@ -41,7 +41,7 @@ The DM client reports the names of installed wifi profiles.
       "microsoft": {
         "management": {
           "wifi": {
-            "WifiProfile1": "active",
+            "WifiProfile1": "",
             "WifiProfile2": ""
           }
         }
@@ -102,8 +102,7 @@ If the operator wants to install a new wifi profile (home-wifi.xml), the followi
             "applyProperties": {
               "HomeWifi": {
                 "profile": "container/home-wifi.xml"
-              },
-              "activeProfile": "HomeWifi"
+              }
             }
           }
         }

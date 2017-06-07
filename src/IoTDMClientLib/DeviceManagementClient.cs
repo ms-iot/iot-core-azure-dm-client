@@ -556,24 +556,15 @@ namespace Microsoft.Devices.Management
             // Get installed wifi profiles
             var getInstalledRequest = new GetWifiConfigurationRequest();
             var getInstalledResponse = (await client._systemConfiguratorProxy.SendCommandAsync(getInstalledRequest)) as GetWifiConfigurationResponse;
-            var reportedConfiguration = getInstalledResponse.Configuration;
 
             // Find profiles that need to be removed and added
+            var reportedConfiguration = getInstalledResponse.Configuration;
             var toAdd = desiredConfiguration.Profiles.Except(reportedConfiguration.Profiles);
-            var toRemove = desiredConfiguration.Profiles.Where((profile)=> { return profile.Uninstall; });
 
-            // Download and install new profiles
-            toAdd.ToList().ForEach((profile) => {
+            await WifiManagement.UpdateConfigWithProfileXmlAsync(client, connectionString, toAdd);
 
-            });
-
-            // Remove profiles that aren't desired
-            toRemove.ToList().ForEach((profile) => {
-                
-            });
-
-            // Set active profile
-
+            var request = new Message.SetWifiConfigurationRequest(desiredConfiguration);
+            client._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         public async Task AllowReboots(bool allowReboots)

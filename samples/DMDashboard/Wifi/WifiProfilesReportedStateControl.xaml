@@ -1,0 +1,29 @@
+﻿<UserControl x:Class="DMDashboard.Wifi.WifiProfilesReportedStateControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DMDashboard.Wifi"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+
+    <Grid>
+        <Grid.RowDefinitions> <RowDefinition Height="Auto" /> </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions> <ColumnDefinition Width="Auto"/> </Grid.ColumnDefinitions>
+        <ListView Grid.Row="0" Grid.Column="0" ItemsSource="{Binding ReportedList}" x:Name="reportedList">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <local:WifiReportedStateControl Tag="{Binding DataContext,ElementName=reportedList}"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+    <!--
+    <StackPanel Orientation="Vertical">
+        <local:WifiReportedStateControl x:Name="App0"/>
+        <local:WifiReportedStateControl x:Name="App1"/>
+        <local:WifiReportedStateControl x:Name="App2"/>
+        <local:WifiReportedStateControl x:Name="App3"/>
+    </StackPanel>
+    -->
+</UserControl>
