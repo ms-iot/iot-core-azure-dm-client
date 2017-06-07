@@ -29,11 +29,11 @@ namespace DMDashboard.Wifi
         public WifiProfilesReportedStateControl()
         {
             InitializeComponent();
-            ReportedList = new ObservableCollection<WifiProfileConfiguration>();
             this.reportedList.ItemsSource = ReportedList;
         }
 
-        public ObservableCollection<WifiProfileConfiguration> ReportedList { get; set; }
+        private ObservableCollection<WifiProfileConfiguration> _ReportedList = new ObservableCollection<WifiProfileConfiguration>();
+        public ObservableCollection<WifiProfileConfiguration> ReportedList { get { return _ReportedList; } }
 
         public void FromJson(JToken token)
         {
