@@ -83,18 +83,22 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             Reporting = reporting;
         }
 
-        JsonObject^ ToJson()
+        JsonObject^ ToJson(bool reportedProperties)
         {
             JsonObject^ applyPropertiesObject = ref new JsonObject();
-            ToJson(applyPropertiesObject);
+            ToJson(applyPropertiesObject, reportedProperties);
             return applyPropertiesObject;
         }
 
-        void ToJson(JsonObject^ applyPropertiesObject)
+        void ToJson(JsonObject^ applyPropertiesObject, bool reportedProperties)
         {
             for each (auto profile in Profiles)
             {
-                if (profile->Uninstall)
+                if (reportedProperties)
+                {
+                    applyPropertiesObject->Insert(profile->Name, (profile->Uninstall) ? JsonValue::CreateNullValue() : JsonValue::CreateStringValue(""));
+                }
+                else if (profile->Uninstall)
                 {
                     applyPropertiesObject->Insert(profile->Name, JsonValue::CreateStringValue(L"uninstall"));
                 }
@@ -112,7 +116,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
         Blob^ Serialize(uint32_t tag) {
             return DesiredAndReportedConfigurationHelper<WifiConfiguration>::Serialize(
-                this, tag, [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) { configObject->ToJson(applyPropertiesObject); });
+                this, tag, [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) { configObject->ToJson(applyPropertiesObject, false); });
         }
 
         static WifiConfiguration^ Parse(Platform::String^ str) {
