@@ -37,9 +37,15 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Impersonator.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Permissions\PermissionsManager.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Permissions\PermissionsSnapshot.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Permissions\PermissionsTracer.h" />
+    <ClInclude Include="D:\Projs\DM.0530\iot-core-azure-dm-client\src\SharedUtilities\Permissions\PermissionsTracer.h">
+      <Filter>Headers\Permissions</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projs\DM.0530\iot-core-azure-dm-client\src\SharedUtilities\Permissions\PermissionsSnapshot.h">
+      <Filter>Headers\Permissions</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projs\DM.0530\iot-core-azure-dm-client\src\SharedUtilities\Permissions\PermissionsManager.h">
+      <Filter>Headers\Permissions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)DMException.cpp">
@@ -61,8 +67,14 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Impersonator.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Permissions\PermissionsManager.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Permissions\PermissionsSnapshot.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Permissions\PermissionsTracer.cpp" />
+    <ClCompile Include="D:\Projs\DM.0530\iot-core-azure-dm-client\src\SharedUtilities\Permissions\PermissionsManager.cpp">
+      <Filter>Sources\Permissions</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projs\DM.0530\iot-core-azure-dm-client\src\SharedUtilities\Permissions\PermissionsSnapshot.cpp">
+      <Filter>Sources\Permissions</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projs\DM.0530\iot-core-azure-dm-client\src\SharedUtilities\Permissions\PermissionsTracer.cpp">
+      <Filter>Sources\Permissions</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
