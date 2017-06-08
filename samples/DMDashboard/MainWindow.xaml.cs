@@ -185,8 +185,11 @@ namespace DMDashboard
         {
             string deviceIdString = (string)DeviceListBox.SelectedItem;
             ConnectedProperties.IsEnabled = false;
-            _deviceTwin = new DeviceTwinAndMethod(ConnectionStringBox.Text, deviceIdString);
-            ConnectedProperties.IsEnabled = true;
+            if (!String.IsNullOrEmpty(deviceIdString))
+            {
+                _deviceTwin = new DeviceTwinAndMethod(ConnectionStringBox.Text, deviceIdString);
+                ConnectedProperties.IsEnabled = true;
+            }
             SelectedDeviceName.Text = deviceIdString;
         }
 
