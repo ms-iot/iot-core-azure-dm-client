@@ -158,7 +158,7 @@ namespace DMDashboard
             RegistryManager registryManager = RegistryManager.CreateFromConnectionString(connectionString);
 
             // Avoid duplicates in the list
-            DeviceListBox.Items.Clear();
+            DeviceListBox.ItemsSource = null;
 
             // Populate devices.
             IEnumerable<Device> devices = await registryManager.GetDevicesAsync(100);
@@ -181,16 +181,13 @@ namespace DMDashboard
             ListDevices(ConnectionStringBox.Text);
         }
 
-        private void OnDeviceConnect(object sender, RoutedEventArgs e)
-        {
-            string deviceIdString = (string)DeviceListBox.SelectedItem;
-            _deviceTwin = new DeviceTwinAndMethod(ConnectionStringBox.Text, deviceIdString);
-            ConnectedProperties.IsEnabled = true;
-        }
-
         private void OnDeviceSelected(object sender, SelectionChangedEventArgs e)
         {
-            DeviceConnectButton.IsEnabled = true;
+            string deviceIdString = (string)DeviceListBox.SelectedItem;
+            ConnectedProperties.IsEnabled = false;
+            _deviceTwin = new DeviceTwinAndMethod(ConnectionStringBox.Text, deviceIdString);
+            ConnectedProperties.IsEnabled = true;
+            SelectedDeviceName.Text = deviceIdString;
         }
 
         private async void OnManageAppLifeCycle(AppLifeCycleAction appLifeCycleAction, string packageFamilyName)

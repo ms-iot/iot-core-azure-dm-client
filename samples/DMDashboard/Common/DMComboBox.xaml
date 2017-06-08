@@ -17,22 +17,22 @@
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="260"/>
-            <ColumnDefinition Width="110"/>
+            <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="30"/>
+            <ColumnDefinition Width="110"/>
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" x:Name="NameBox"
                    Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:DMControl}},
                           Path=Title}"/>
-        <ComboBox Grid.Row="0" Grid.Column="1" Margin="3" x:Name="ValueBox"
-                  ItemsSource="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:DMControl}},
-                                Path=ValuesList}"/>
-        <CheckBox Grid.Row="0" Grid.Column="2" Margin="3" x:Name="Included"
+        <CheckBox Grid.Row="0" Grid.Column="1" Margin="3" x:Name="Included"
                   IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:DMControl}},
                               Path=IsIncluded,
                               Mode=TwoWay}"
                   Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:DMControl}},
                                Path=IsOptional, 
                                Converter={StaticResource booleanToVisibilityConverter}}"/>
+        <ComboBox Grid.Row="0" Grid.Column="2" Margin="3" x:Name="ValueBox"
+                  ItemsSource="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:DMControl}},
+                                Path=ValuesList}"/>
     </Grid>
 </local:DMControl>
