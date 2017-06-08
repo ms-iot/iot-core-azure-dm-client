@@ -18,35 +18,35 @@ The **Windows Update Policy** can be configured through the ```"windowsUpdatePol
 "desired" : {
     "microsoft" : {
         "management" : {
-            "windowsUpdatePolicy": <i>see below</i>
+            "windowsUpdatePolicy": &lt;<i>see below</i>&gt;
             }
         }
     }
 }
 </pre>
 
-- ```"windowsUpdatePolicy"``` can be set to one of the following values:
-  - ```"no-apply-no-report"``` : This means no desired state, and not reported state should be stored in the device twin.
-  - ```"no-apply-yes-report"```: This means no desired state should be stored in the device twin, but reported state should.
-  - <i>Device twin control properties</i> json object as follows:
+- ```"windowsUpdatePolicy"``` can be set to one of the following:
+    - ```"no-apply-no-report"``` : This means no desired state, and no reported state will be stored in the device twin.
+  - ```"no-apply-yes-report"```: This means no desired state will be stored in the device twin, but reported state will.
+  - A json object of the following format:
 
 <pre>
     {
         "applyProperties" : {
-            "activeHoursStart": <i>see below</i>,
-            "activeHoursEnd": <i>see below</i>,
-            "allowAutoUpdate": <i>see below</i>,
-            "allowUpdateService": <i>see below</i>,
-            "branchReadinessLevel":  <i>see below</i>,
-            "deferFeatureUpdatesPeriod": <i>see below</i>,
-            "deferQualityUpdatesPeriod": <i>see below</i>,
-            "pauseFeatureUpdates": <i>see below</i>,
-            "pauseQualityUpdates": <i>see below</i>,
-            "scheduledInstallDay": <i>see below</i>,
-            "scheduledInstallTime": <i>see below</i>,
-            "ring": <i>see below</i>
+            "activeHoursStart": &lt;<i>see below</i>&gt;,
+            "activeHoursEnd": &lt;<i>see below</i>&gt;,
+            "allowAutoUpdate": &lt;<i>see below</i>&gt;,
+            "allowUpdateService": &lt;<i>see below</i>&gt;,
+            "branchReadinessLevel":  &lt;<i>see below</i>&gt;,
+            "deferFeatureUpdatesPeriod": &lt;<i>see below</i>&gt;,
+            "deferQualityUpdatesPeriod": &lt;<i>see below</i>&gt;,
+            "pauseFeatureUpdates": &lt;<i>see below</i>&gt;,
+            "pauseQualityUpdates": &lt;<i>see below</i>&gt;,
+            "scheduledInstallDay": &lt;<i>see below</i>&gt;,
+            "scheduledInstallTime": &lt;<i>see below</i>&gt;,
+            "ring": &lt;<i>see below</i>&gt;
         }
-        "reportProperties" : <i>see below</i>
+        "reportProperties" : &lt;<i>see below</i>&gt;
     }
 </pre>
 
@@ -67,7 +67,7 @@ The device current state of the **Windows Update Policy** can be inspected throu
 "reported" : {
     "microsoft" : {
         "management" : {
-            "windowsUpdatePolicy": <i>see below</i>
+            "windowsUpdatePolicy": &lt;<i>see below</i>&gt;
         }
     }
 }
@@ -76,21 +76,21 @@ The device current state of the **Windows Update Policy** can be inspected throu
 
 - ```"windowsUpdatePolicy"``` can be set to one of the following values:
   - ```"no-report"```
-  - <i>Windows update policy properties</i> json object as follows:
+  - A json object of the following format:
 <pre>
  {
-    "activeHoursStart": <i>see below</i>,
-    "activeHoursEnd": <i>see below</i>,
-    "allowAutoUpdate": <i>see below</i>,
-    "allowUpdateService": <i>see below</i>,
-    "branchReadinessLevel":  <i>see below</i>,
-    "deferFeatureUpdatesPeriod": <i>see below</i>,
-    "deferQualityUpdatesPeriod": <i>see below</i>,
-    "pauseFeatureUpdates": <i>see below</i>,
-    "pauseQualityUpdates": <i>see below</i>,
-    "scheduledInstallDay": <i>see below</i>,
-    "scheduledInstallTime": <i>see below</i>,
-    "ring": <i>see below</i>,
+    "activeHoursStart": &lt;<i>see below</i>&gt;,
+    "activeHoursEnd": &lt;<i>see below</i>&gt;,
+    "allowAutoUpdate": &lt;<i>see below</i>&gt;,
+    "allowUpdateService": &lt;<i>see below</i>&gt;,
+    "branchReadinessLevel":  &lt;<i>see below</i>&gt;,
+    "deferFeatureUpdatesPeriod": &lt;<i>see below</i>&gt;,
+    "deferQualityUpdatesPeriod": &lt;<i>see below</i>&gt;,
+    "pauseFeatureUpdates": &lt;<i>see below</i>&gt;,
+    "pauseQualityUpdates": &lt;<i>see below</i>&gt;,
+    "scheduledInstallDay": &lt;<i>see below</i>&gt;,
+    "scheduledInstallTime": &lt;<i>see below</i>&gt;,
+    "ring": &lt;<i>see below</i>&gt;,
 }
 </pre>
 
@@ -107,7 +107,7 @@ The **Windows Updates** can be configured through the ```"windowsUpdates"``` nod
     "microsoft" : {
         "management" : {
             "windowsUpdates": {
-                "approved": "<i>see below</i>"
+                "approved": "&lt;<i>see below</i>&gt;"
             }
         }
     }
@@ -125,13 +125,13 @@ The device current state of the **Windows Updates** can be inspected through the
     "microsoft" : {
         "management" : {
             "windowsUpdates": {
-                "deferUpgrade": <i>see below</i>,
-                "lastScanTime": "<i>see below</i>",
-                "pendingReboot": "<i>see below</i>",
-                "installable": "<i>see below</i>",
-                "failed": "<i>see below</i>",
-                "approved": "<i>see below</i>",
-                "installed": "<i>see below</i>"
+                "deferUpgrade": &lt;<i>see below</i>&gt;,
+                "lastScanTime": "&lt;<i>see below</i>&gt;",
+                "pendingReboot": "&lt;<i>see below</i>&gt;",
+                "installable": "&lt;<i>see below</i>&gt;",
+                "failed": "&lt;<i>see below</i>&gt;",
+                "approved": "&lt;<i>see below</i>&gt;",
+                "installed": "&lt;<i>see below</i>&gt;"
             }
         }
     }

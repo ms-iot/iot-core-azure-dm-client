@@ -133,6 +133,9 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
             IJsonValue^ jValue;
 
+            // ToDo: Find a more compact form. Note that:
+            //       - WinRT properties cannot be passed by reference.
+            //       - C macros are not favored.
             if (jsonObject->HasKey("activeHoursStart"))
             {
                 jValue = jsonObject->Lookup("activeHoursStart");
