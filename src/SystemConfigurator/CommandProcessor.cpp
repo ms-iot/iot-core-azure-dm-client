@@ -304,16 +304,24 @@ IResponse^ HandleGetWifiConfiguration(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    auto profiles = WifiCSP::GetProfiles();
-
-    auto configuration = ref new WifiConfiguration();
-    for each (auto profile in profiles)
+    try
     {
-        auto profileConfig = ref new WifiProfileConfiguration();
-        profileConfig->Name = ref new Platform::String(profile.c_str());
-        configuration->Profiles->Append(profileConfig);
+        auto profiles = WifiCSP::GetProfiles();
+
+        auto configuration = ref new WifiConfiguration();
+        for each (auto profile in profiles)
+        {
+            auto profileConfig = ref new WifiProfileConfiguration();
+            profileConfig->Name = ref new Platform::String(profile.c_str());
+            configuration->Profiles->Append(profileConfig);
+        }
+        return ref new GetWifiConfigurationResponse(ResponseStatus::Success, configuration);
     }
-    return ref new GetWifiConfigurationResponse(ResponseStatus::Success, configuration);
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleGetWifiConfiguration: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
 }
 
 IResponse^ HandleSetWifiConfiguration(IRequest^ request)
@@ -324,20 +332,23 @@ IResponse^ HandleSetWifiConfiguration(IRequest^ request)
     {
         auto wifiRequest = dynamic_cast<SetWifiConfigurationRequest^>(request);
         auto configuration = wifiRequest->Configuration;
-        
-        for each (auto profile in configuration->Profiles)
+
+        if (configuration != nullptr)
         {
-            std::wstring profileName = profile->Name->Data();
-            TRACEP(L"DMCommand::HandleSetWifiConfiguration handle profile: ", profileName);
-            TRACEP("DMCommand::HandleSetWifiConfiguration uninstall? ", profile->Uninstall);
-            if (profile->Uninstall)
+            for each (auto profile in configuration->Profiles)
             {
-                WifiCSP::DeleteProfile(profileName);
-            }
-            else
-            {
-                std::wstring profileXml = profile->Xml->Data();
-                WifiCSP::AddProfile(profileName, profileXml);
+                std::wstring profileName = profile->Name->Data();
+                TRACEP(L"DMCommand::HandleSetWifiConfiguration handle profile: ", profileName);
+                TRACEP("DMCommand::HandleSetWifiConfiguration uninstall? ", profile->Uninstall);
+                if (profile->Uninstall)
+                {
+                    WifiCSP::DeleteProfile(profileName);
+                }
+                else
+                {
+                    std::wstring profileXml = profile->Xml->Data();
+                    WifiCSP::AddProfile(profileName, profileXml);
+                }
             }
         }
 

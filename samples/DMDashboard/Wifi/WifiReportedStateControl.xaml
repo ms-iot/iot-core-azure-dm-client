@@ -16,7 +16,7 @@
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Profile Name"/>
         <Border Grid.Row="0" Grid.Column="1" Background="#F8F8F8" Margin="3">
-            <TextBlock Width="200" x:Name="ProfileName" HorizontalAlignment="Left" Text="{Binding Name}" />
+            <TextBlock Width="200" Margin="3" x:Name="ProfileName" HorizontalAlignment="Left" Text="{Binding Name}" />
         </Border>
     </Grid>
 </UserControl>

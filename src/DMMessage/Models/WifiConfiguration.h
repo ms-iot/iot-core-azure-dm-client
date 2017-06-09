@@ -53,7 +53,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto wifiConfiguration = ref new WifiProfileConfiguration();
-			wifiConfiguration->Name = jsonObject->GetNamedString("name");
+            wifiConfiguration->Name = jsonObject->GetNamedString("name");
             wifiConfiguration->Path = jsonObject->GetNamedString("profile");
             wifiConfiguration->Xml = jsonObject->GetNamedString("xml");
             wifiConfiguration->DisableInternetConnectivityChecks = jsonObject->GetNamedBoolean("disableInternetConnectivityChecks");
@@ -163,7 +163,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
     };
 
-	public ref class SetWifiConfigurationRequest sealed : public IRequest
+    public ref class SetWifiConfigurationRequest sealed : public IRequest
     {
     public:
         property WifiConfiguration^ Configuration;
@@ -182,7 +182,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         static IDataPayload^ Deserialize(Blob^ blob)
         {
             WifiConfiguration^ wifi = WifiConfiguration::Deserialize(blob);
-             return ref new SetWifiConfigurationRequest(wifi);
+            return ref new SetWifiConfigurationRequest(wifi);
         }
 
         virtual property DMMessageKind Tag {
@@ -193,7 +193,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public ref class GetWifiConfigurationRequest sealed : public IRequest
     {
     public:
-		GetWifiConfigurationRequest() {}
+        GetWifiConfigurationRequest() {}
 
         virtual Blob^ Serialize() {
             return SerializationHelper::CreateEmptyBlob((uint32_t)Tag);
@@ -215,7 +215,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public:
         property WifiConfiguration^ Configuration;
 
-		GetWifiConfigurationResponse(ResponseStatus status, WifiConfiguration^ wifiConfiguration) : statusCodeResponse(status, this->Tag)
+        GetWifiConfigurationResponse(ResponseStatus status, WifiConfiguration^ wifiConfiguration) : statusCodeResponse(status, this->Tag)
         {
             Configuration = wifiConfiguration;
         }

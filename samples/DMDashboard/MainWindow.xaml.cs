@@ -744,7 +744,7 @@ namespace DMDashboard
 
         private void OnAddProfile(object sender, RoutedEventArgs e)
         {
-            this.WifiDesiredState.DesiredList.Add(new Wifi.WifiProfileConfiguration());
+            this.WifiDesiredState.AddProfile(new Wifi.WifiProfileConfiguration());
         }
 
         private DeviceTwinAndMethod _deviceTwin;

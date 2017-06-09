@@ -180,6 +180,7 @@
     <Compile Include="Wifi\WifiDesiredStateControl.xaml.cs">
       <DependentUpon>WifiDesiredStateControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Wifi\WifiProfileConfiguration.cs" />
     <Compile Include="Wifi\WifiProfilesDesiredStateControl.xaml.cs">
       <DependentUpon>WifiProfilesDesiredStateControl.xaml</DependentUpon>
     </Compile>

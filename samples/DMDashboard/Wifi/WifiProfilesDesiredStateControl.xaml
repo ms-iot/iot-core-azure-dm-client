@@ -10,7 +10,7 @@
     <Grid>
         <Grid.RowDefinitions> <RowDefinition Height="Auto" /> </Grid.RowDefinitions>
         <Grid.ColumnDefinitions> <ColumnDefinition Width="Auto" /> </Grid.ColumnDefinitions>
-        <ListView Grid.Row="0" Grid.Column="0" x:Name="desiredList">
+        <ListView Grid.Row="0" Grid.Column="0" Margin="3" x:Name="desiredList">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <local:WifiDesiredStateControl/>
@@ -18,12 +18,4 @@
             </ListView.ItemTemplate>
         </ListView>
     </Grid>
-    <!--
-    <StackPanel Orientation="Vertical">
-        <local:WifiDesiredStateControl x:Name="App0"/>
-        <local:WifiDesiredStateControl x:Name="App1"/>
-        <local:WifiDesiredStateControl x:Name="App2"/>
-        <local:WifiDesiredStateControl x:Name="App3"/>
-    </StackPanel>
-    -->
 </UserControl>

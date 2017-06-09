@@ -21,15 +21,6 @@ using System.Windows.Controls;
 
 namespace DMDashboard.Wifi
 {
-    public class WifiProfileConfiguration
-    {
-        public string Name { get; set; }
-        public string Profile { get; set; }
-        public bool Uninstall { get; set; }
-        public bool DisableInternetConnectivityChecks { get; set; }
-
-    }
-
     /// <summary>
     /// Interaction logic for WifiReportedStateControl.xaml
     /// </summary>

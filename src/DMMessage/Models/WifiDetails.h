@@ -62,14 +62,14 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public:
         property String^ Name;
         property String^ Xml;
-		property bool DisableInternetConnectivityChecks;
+        property bool DisableInternetConnectivityChecks;
 
         GetWifiDetailsResponse(ResponseStatus status) : statusCodeResponse(status, this->Tag) {}
 
         virtual Blob^ Serialize() {
 
             JsonObject^ jsonObject = ref new JsonObject();
-			jsonObject->Insert("name", JsonValue::CreateStringValue(Name));
+            jsonObject->Insert("name", JsonValue::CreateStringValue(Name));
             jsonObject->Insert("xml", JsonValue::CreateStringValue(Xml));
             jsonObject->Insert("disableInternetConnectivityChecks", JsonValue::CreateBooleanValue(DisableInternetConnectivityChecks));
 
@@ -82,7 +82,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto getWifiDetailsResponse = ref new GetWifiDetailsResponse(ResponseStatus::Success);
-			getWifiDetailsResponse->Name = jsonObject->GetNamedString("Name");
+            getWifiDetailsResponse->Name = jsonObject->GetNamedString("Name");
             getWifiDetailsResponse->Xml = jsonObject->GetNamedString("Xml");
             getWifiDetailsResponse->DisableInternetConnectivityChecks = jsonObject->GetNamedBoolean("DisableInternetConnectivityChecks");
 

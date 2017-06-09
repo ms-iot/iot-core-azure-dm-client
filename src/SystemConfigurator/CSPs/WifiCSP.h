@@ -32,9 +32,9 @@ public:
     static bool GetDisableInternetConnectivityChecks(const std::wstring& profileName);
     static void SetDisableInternetConnectivityChecks(const std::wstring& profileName, bool disable);
 
-	// Proxy
-	// ProxyPacUrl
-	// ProxyWPAD
-	// From MSDN: This configurations are only supported in Windows 10 Mobile.
+    // Proxy
+    // ProxyPacUrl
+    // ProxyWPAD
+    // From MSDN: These configurations are only supported in Windows 10 Mobile.
     // https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/wifi-csp
 };

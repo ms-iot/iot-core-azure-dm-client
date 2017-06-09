@@ -29,44 +29,20 @@ namespace DMDashboard.Wifi
         public WifiProfilesDesiredStateControl()
         {
             InitializeComponent();
+            DesiredList = new ObservableCollection<WifiProfileConfiguration>();
             this.desiredList.ItemsSource = DesiredList;
         }
 
-        private ObservableCollection<WifiProfileConfiguration> _DesiredList = new ObservableCollection<WifiProfileConfiguration>();
-        public ObservableCollection<WifiProfileConfiguration> DesiredList { get { return _DesiredList; } }
+        public ObservableCollection<WifiProfileConfiguration> DesiredList { get; set; }
+
+        public void AddProfile(WifiProfileConfiguration newProfile)
+        {
+            DesiredList.Add(newProfile);
+        }
 
         public string ToJson()
         {
-            StringBuilder sb = new StringBuilder("\"wifi\": ");
-
-            if (DesiredList.Count == 0) sb.Append("\"no-no\"\n");
-            else
-            {
-                bool first = true;
-                sb.Append("{\n\"applyProperties\": {");
-                foreach (var profile in DesiredList)
-                {
-                    if (!first)
-                    {
-                        sb.Append(",");
-                    }
-                    sb.Append("\n");
-                    if (profile.Uninstall)
-                    {
-                        sb.Append($"\"{profile.Name}\": \"uninstall\"");
-                    }
-                    else
-                    {
-                        var disable = profile.DisableInternetConnectivityChecks ? "true" : "false";
-                        sb.Append($"\"{profile.Name}\": {{\n\"profile\": \"{profile.Profile}\",\n\"disableInternetConnectivityChecks\": {disable}\n}}");
-                    }
-                    first = false;
-                }
-                sb.Append( "\n},\n");
-                sb.Append("\"reportProperties\": \"yes\"\n}");
-            }
-
-            return sb.ToString();
+            return WifiProfileConfiguration.ToJsonString(DesiredList);
         }
     }
 }

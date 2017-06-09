@@ -38,7 +38,7 @@ namespace Microsoft.Devices.Management
             return info;
         }
 
-        public static async Task UpdateConfigWithProfileXmlAsync(DeviceManagementClient client, string connectionString, IEnumerable<Message.WifiProfileConfiguration> profilesToAdd)
+        public static async Task UpdateConfigWithProfileXmlAsync(string connectionString, IEnumerable<Message.WifiProfileConfiguration> profilesToAdd)
         {
             // Download missing profiles
             foreach (var profile in profilesToAdd)

@@ -8,8 +8,8 @@ The **Wifi Management** functionality allows the operator to perform the followi
 
 ## Install/Uninstall A Wifi Profile
 The operator can specify the list of desired wifi profiles to be installed. When the device receives the desired state, it compares it to the device current state and:
-- If a wifi profile exists in the desired list but is not installed on the device, it is installed.
-- If a wifi profile is installed on the device, but is not present in the desired list, it is uninstalled.
+- If a wifi profile exists in the desired list but is not installed on the device, it is installed with the provided properties.
+- If a wifi profile is to be uninstalled on the device, but is not present in the desired list, it is uninstalled.
 
 <pre>
     "desired": {
@@ -21,11 +21,7 @@ The operator can specify the list of desired wifi profiles to be installed. When
                 "profile": "container/fileName01.xml",
                 "disableInternetConnectivityChecks": "true",
               },
-              "WifiProfile2": {
-                "profile": "container/fileName02.xml",
-               "disableInternetConnectivityChecks": "false",
-              },
-              "activeProfile": "WifiProfile1"
+              "WifiProfile2": "uninstall"
             }
           }
         }

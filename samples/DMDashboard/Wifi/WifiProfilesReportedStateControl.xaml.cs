@@ -29,32 +29,16 @@ namespace DMDashboard.Wifi
         public WifiProfilesReportedStateControl()
         {
             InitializeComponent();
+
+            ReportedList = new ObservableCollection<WifiProfileConfiguration>();
             this.reportedList.ItemsSource = ReportedList;
         }
 
-        private ObservableCollection<WifiProfileConfiguration> _ReportedList = new ObservableCollection<WifiProfileConfiguration>();
-        public ObservableCollection<WifiProfileConfiguration> ReportedList { get { return _ReportedList; } }
+        private ObservableCollection<WifiProfileConfiguration> ReportedList { get; set; }
 
         public void FromJson(JToken token)
         {
-            if (!(token is JObject))
-            {
-                MessageBox.Show("Error: invalid apps node json format!");
-                return;
-            }
-            ReportedList.Clear();
-
-            JObject root = (JObject)token;
-            foreach (JToken p in root.Children())
-            {
-                if (!(p is JProperty))
-                {
-                    continue;
-                }
-                JProperty property = (JProperty)p;
-                string profileName = property.Name;
-                ReportedList.Add(new WifiProfileConfiguration() { Name = profileName });
-            }
+            WifiProfileConfiguration.ReadReportedFromJson(token, ReportedList);
         }
     }
 }

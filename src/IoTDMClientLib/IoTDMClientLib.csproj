@@ -111,6 +111,7 @@
     <Compile Include="TpmDevice.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="WindowsUpdatePolicyHandler.cs" />
+    <Compile Include="WifiHandler.cs" />
     <Compile Include="WifiManagement.cs" />
     <EmbeddedResource Include="Properties\IoTDMClient.rd.xml" />
   </ItemGroup>

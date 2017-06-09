@@ -42,4 +42,10 @@ namespace Microsoft.Devices.Management
 
         Task<JObject> GetReportedPropertyAsync();
     }
+
+    internal interface IClientPropertyDependencyHandler
+    {
+        string[] PropertySectionDependencyNames { get; }
+        void OnDesiredPropertyDependencyChange(string section, JObject value);
+    }
 }

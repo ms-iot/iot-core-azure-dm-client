@@ -29,20 +29,5 @@ namespace DMDashboard.Wifi
         {
             InitializeComponent();
         }
-
-        public string ToJson()
-        {
-            var profileName = this.Name;
-            StringBuilder sb = new StringBuilder($"\"{profileName}\": ");
-            if (this.Uninstall.IsChecked.Value) sb.Append("uninstall");
-            else
-            {
-                sb.Append("{");
-                sb.Append($"\"profile\": \"{this.Profile}\", ");
-                sb.Append($"\"disableInternetConnectivityChecks\": \"{this.DisableInternetConnectivityChecks.IsChecked.Value}\", ");
-                sb.Append("}");
-            };
-            return sb.ToString();
-        }
     }
 }
