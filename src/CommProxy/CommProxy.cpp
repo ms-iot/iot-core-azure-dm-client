@@ -36,13 +36,13 @@ Blob^ GetResponseFromSystemConfigurator(Blob^ request, const wchar_t* pipeName)
     {
         TRACE("Attempting to connect to system configurator pipe...");
 
-        pipeHandle = CreateFileW(pipeName,
+        pipeHandle.SetHandle(CreateFileW(pipeName,
             GENERIC_READ | GENERIC_WRITE,
             0,
             NULL,
             OPEN_EXISTING,
             0,
-            NULL);
+            NULL));
 
         // Break if the pipe handle is valid.
         if (pipeHandle.Get() != INVALID_HANDLE_VALUE)
