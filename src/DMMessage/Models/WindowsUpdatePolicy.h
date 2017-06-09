@@ -149,7 +149,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         private:
-            static void SetIfExists(JsonObject^ jsonObject, const std::wstring& propertyName, enum class ActiveFields flag, WindowsUpdatePolicyConfiguration^ config)
+            static void SetIfExists(JsonObject^ jsonObject, const std::wstring& propertyName, enum class ActiveFields activeField, WindowsUpdatePolicyConfiguration^ config)
             {
                 String^ winRTPropertyName = ref new String(propertyName.c_str());
                 if (!jsonObject->HasKey(winRTPropertyName))
@@ -157,43 +157,47 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
                     return;
                 }
 
-                if (flag == ActiveFields::ActiveHoursStart)
+                switch (activeField)
+                {
+                case ActiveFields::ActiveHoursStart:
                     config->activeHoursStart = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
-
-                if (flag == ActiveFields::ActiveHoursEnd)
+                    break;
+                case ActiveFields::ActiveHoursEnd:
                     config->activeHoursEnd = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
-
-                if (flag == ActiveFields::AllowAutoUpdate)
+                    break;
+                case ActiveFields::AllowAutoUpdate:
                     config->allowAutoUpdate = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
-
-                if (flag == ActiveFields::AllowUpdateService)
+                    break;
+                case ActiveFields::AllowUpdateService:
                     config->allowUpdateService = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
-
-                if (flag == ActiveFields::BranchReadinessLevel)
+                    break;
+                case ActiveFields::BranchReadinessLevel:
                     config->branchReadinessLevel = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
-
-                if (flag == ActiveFields::DeferFeatureUpdatesPeriod)
+                    break;
+                case ActiveFields::DeferFeatureUpdatesPeriod:
                     config->deferFeatureUpdatesPeriod = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
-
-                if (flag == ActiveFields::DeferQualityUpdatesPeriod)
+                    break;
+                case ActiveFields::DeferQualityUpdatesPeriod:
                     config->deferQualityUpdatesPeriod = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
-
-                if (flag == ActiveFields::PauseFeatureUpdates)
+                    break;
+                case ActiveFields::PauseFeatureUpdates:
                     config->pauseFeatureUpdates = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
-
-                if (flag == ActiveFields::PauseQualityUpdates)
+                    break;
+                case ActiveFields::PauseQualityUpdates:
                     config->pauseQualityUpdates = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
-
-                if (flag == ActiveFields::ScheduledInstallDay)
+                    break;
+                case ActiveFields::ScheduledInstallDay:
                     config->scheduledInstallDay = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
-
-                if (flag == ActiveFields::ScheduledInstallTime)
+                    break;
+                case ActiveFields::ScheduledInstallTime:
                     config->scheduledInstallTime = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
-
-                if (flag == ActiveFields::Ring)
+                    break;
+                case ActiveFields::Ring:
                     config->ring = jsonObject->GetNamedString(winRTPropertyName);
+                    break;
+                }
 
-                config->activeFields |= static_cast<unsigned int>(flag);
+                config->activeFields |= static_cast<unsigned int>(activeField);
             }
     };
 
