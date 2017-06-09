@@ -57,9 +57,9 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public void OnDesiredPropertyChange(JObject value)
+        public void OnDesiredPropertyChange(JToken value)
         {
-            VerifyHealthAsync(value); // fire and forget
+            VerifyHealthAsync((JObject)value); // fire and forget
         }
 
         public async Task<JObject> GetReportedPropertyAsync()

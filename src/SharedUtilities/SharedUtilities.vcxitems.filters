@@ -7,6 +7,12 @@
     <Filter Include="Sources">
       <UniqueIdentifier>{44f0f6e6-c7cd-47b5-9cfa-8af4bef6737c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Permissions">
+      <UniqueIdentifier>{03b59fd2-b57b-419e-af03-4105476de970}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Permissions">
+      <UniqueIdentifier>{5bd3a01a-1c01-45c3-8973-e1a6e3b2fed9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)DMException.h">
@@ -31,6 +37,15 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Impersonator.h" />
+    <ClInclude Include="D:\Projs\DM.0530\iot-core-azure-dm-client\src\SharedUtilities\Permissions\PermissionsTracer.h">
+      <Filter>Headers\Permissions</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projs\DM.0530\iot-core-azure-dm-client\src\SharedUtilities\Permissions\PermissionsSnapshot.h">
+      <Filter>Headers\Permissions</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projs\DM.0530\iot-core-azure-dm-client\src\SharedUtilities\Permissions\PermissionsManager.h">
+      <Filter>Headers\Permissions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)DMException.cpp">
@@ -52,5 +67,14 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Impersonator.cpp" />
+    <ClCompile Include="D:\Projs\DM.0530\iot-core-azure-dm-client\src\SharedUtilities\Permissions\PermissionsManager.cpp">
+      <Filter>Sources\Permissions</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projs\DM.0530\iot-core-azure-dm-client\src\SharedUtilities\Permissions\PermissionsSnapshot.cpp">
+      <Filter>Sources\Permissions</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projs\DM.0530\iot-core-azure-dm-client\src\SharedUtilities\Permissions\PermissionsTracer.cpp">
+      <Filter>Sources\Permissions</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

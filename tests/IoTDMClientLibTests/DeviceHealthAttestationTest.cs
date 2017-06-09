@@ -13,6 +13,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 using Microsoft.Devices.Management;
@@ -44,7 +45,7 @@ namespace IoTDMClientLibTests
                 throw new NotImplementedException();
             }
 
-            public Task ReportPropertiesAsync(string propertyName, JObject properties)
+            public Task ReportPropertiesAsync(string propertyName, JToken properties)
             {
                 if (ReportPropertiesHook != null)
                 {
@@ -55,9 +56,8 @@ namespace IoTDMClientLibTests
             }
 
             public Action<string, IDictionary<string, string>> SendMessageHook;
-            public Action<string, JObject> ReportPropertiesHook;
+            public Action<string, JToken> ReportPropertiesHook;
         }
-
 
         class ConfigurationProxyMockup : ISystemConfiguratorProxy
         {
@@ -265,10 +265,11 @@ namespace IoTDMClientLibTests
             Assert.AreEqual(expectedStatus, actualReportedProperty.status);
         }
 
-        private void ReportPropertiesHook(string propertyName, JObject properties)
+        private void ReportPropertiesHook(string propertyName, JToken properties)
         {
+            Debug.Assert(properties is JObject);
             actualReportedPropertyName = propertyName;
-            actualReportedPropertyJObject = properties;
+            actualReportedPropertyJObject = (JObject)properties;
             reportedPropertEvent.Set();
         }
 

@@ -18,7 +18,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Utils.h"
 #include "Logger.h"
 #include "DMRequest.h"
-#include "SecurityAttributes.h"
 
 #include "Models\StartupApp.h"
 #include "Models\AppInstall.h"
@@ -78,8 +77,7 @@ namespace CommProxyTests
 
         Blob^ RoundTripThroughNativeHandle(Blob^ inputBlob)
         {
-            Utils::AutoCloseHandle pipeHandleWrite;
-            pipeHandleWrite = CreateNamedPipeW(
+            Utils::AutoCloseHandle pipeHandleWrite = CreateNamedPipeW(
                 PIPE_NAME L"-test",
                 PIPE_ACCESS_DUPLEX,
                 PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
@@ -89,8 +87,7 @@ namespace CommProxyTests
                 NMPWAIT_USE_DEFAULT_WAIT,
                 nullptr);
 
-            Utils::AutoCloseHandle pipeHandleRead;
-            pipeHandleRead = CreateFileW(PIPE_NAME L"-test",
+            Utils::AutoCloseHandle pipeHandleRead = CreateFileW(PIPE_NAME L"-test",
                 GENERIC_READ | GENERIC_WRITE,
                 0,
                 nullptr,
