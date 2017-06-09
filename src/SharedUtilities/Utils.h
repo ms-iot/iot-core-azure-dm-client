@@ -230,34 +230,6 @@ namespace Utils
         AutoCloseACL& operator=(const AutoCloseACL&);  // prevent assignment
     };
 
-
-#if 0
-    template<class T>
-    class SafeResource
-    {
-    public:
-        SafeResource(const T& sid, const std::function<void(T)>& cleanUp) :
-            _sid(sid),
-            _cleanUp(cleanUp)
-        {
-        }
-        T Get() const
-        {
-            return _sid;
-        }
-        ~SafeResource()
-        {
-            _cleanUp(_sid);
-        }
-    private:
-        SafeResource(const AutoCloseHandle &);            // prevent copy
-        SafeResource& operator=(const AutoCloseHandle&);  // prevent assignment
-
-        T _sid;
-        std::function<void(T)> _cleanUp;
-    };
-#endif
-
     void LoadFile(const std::wstring& fileName, std::vector<char>& buffer);
     std::wstring ToBase64(std::vector<char>& buffer);
     std::wstring FileToBase64(const std::wstring& fileName);

@@ -13,6 +13,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #pragma once
+#include <string>
 #include "IRequestIResponse.h"
 #include "SerializationHelper.h"
 #include "DMMessageKind.h"
@@ -131,97 +132,69 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         {
             auto configuration = ref new WindowsUpdatePolicyConfiguration();
 
-            IJsonValue^ jValue;
-
-            // ToDo: Find a more compact form. Note that:
-            //       - WinRT properties cannot be passed by reference.
-            //       - C macros are not favored.
-            if (jsonObject->HasKey("activeHoursStart"))
-            {
-                jValue = jsonObject->Lookup("activeHoursStart");
-                configuration->activeHoursStart = static_cast<unsigned int>(jValue->GetNumber());
-                configuration->activeFields |= (unsigned int)ActiveFields::ActiveHoursStart;
-            }
-
-            if (jsonObject->HasKey("activeHoursEnd"))
-            {
-                jValue = jsonObject->Lookup("activeHoursEnd");
-                configuration->activeHoursEnd = static_cast<unsigned int>(jValue->GetNumber());
-                configuration->activeFields |= (unsigned int)ActiveFields::ActiveHoursEnd;
-            }
-
-            if (jsonObject->HasKey("allowAutoUpdate"))
-            {
-                jValue = jsonObject->Lookup("allowAutoUpdate");
-                configuration->allowAutoUpdate = static_cast<unsigned int>(jValue->GetNumber());
-                configuration->activeFields |= (unsigned int)ActiveFields::AllowAutoUpdate;
-            }
-
-            if (jsonObject->HasKey("allowUpdateService"))
-            {
-                jValue = jsonObject->Lookup("allowUpdateService");
-                configuration->allowUpdateService = static_cast<unsigned int>(jValue->GetNumber());
-                configuration->activeFields |= (unsigned int)ActiveFields::AllowUpdateService;
-            }
-
-            if (jsonObject->HasKey("branchReadinessLevel"))
-            {
-                jValue = jsonObject->Lookup("branchReadinessLevel");
-                configuration->branchReadinessLevel = static_cast<unsigned int>(jValue->GetNumber());
-                configuration->activeFields |= (unsigned int)ActiveFields::BranchReadinessLevel;
-            }
-
-            if (jsonObject->HasKey("deferFeatureUpdatesPeriod"))
-            {
-                jValue = jsonObject->Lookup("deferFeatureUpdatesPeriod");
-                configuration->deferFeatureUpdatesPeriod = static_cast<unsigned int>(jValue->GetNumber());
-                configuration->activeFields |= (unsigned int)ActiveFields::DeferFeatureUpdatesPeriod;
-            }
-
-            if (jsonObject->HasKey("deferQualityUpdatesPeriod"))
-            {
-                jValue = jsonObject->Lookup("deferQualityUpdatesPeriod");
-                configuration->deferQualityUpdatesPeriod = static_cast<unsigned int>(jValue->GetNumber());
-                configuration->activeFields |= (unsigned int)ActiveFields::DeferQualityUpdatesPeriod;
-            }
-
-            if (jsonObject->HasKey("pauseFeatureUpdates"))
-            {
-                jValue = jsonObject->Lookup("pauseFeatureUpdates");
-                configuration->pauseFeatureUpdates = static_cast<unsigned int>(jValue->GetNumber());
-                configuration->activeFields |= (unsigned int)ActiveFields::PauseFeatureUpdates;
-            }
-
-            if (jsonObject->HasKey("pauseQualityUpdates"))
-            {
-                jValue = jsonObject->Lookup("pauseQualityUpdates");
-                configuration->pauseQualityUpdates = static_cast<unsigned int>(jValue->GetNumber());
-                configuration->activeFields |= (unsigned int)ActiveFields::PauseQualityUpdates;
-            }
-
-            if (jsonObject->HasKey("scheduledInstallDay"))
-            {
-                jValue = jsonObject->Lookup("scheduledInstallDay");
-                configuration->scheduledInstallDay = static_cast<unsigned int>(jValue->GetNumber());
-                configuration->activeFields |= (unsigned int)ActiveFields::ScheduledInstallDay;
-            }
-
-            if (jsonObject->HasKey("scheduledInstallTime"))
-            {
-                jValue = jsonObject->Lookup("scheduledInstallTime");
-                configuration->scheduledInstallTime = static_cast<unsigned int>(jValue->GetNumber());
-                configuration->activeFields |= (unsigned int)ActiveFields::ScheduledInstallTime;
-            }
-
-            if (jsonObject->HasKey("ring"))
-            {
-                jValue = jsonObject->Lookup("ring");
-                configuration->ring = jValue->GetString();
-                configuration->activeFields |= (unsigned int)ActiveFields::Ring;
-            }
+            SetIfExists(jsonObject, L"activeHoursStart", ActiveFields::ActiveHoursStart, configuration);
+            SetIfExists(jsonObject, L"activeHoursEnd", ActiveFields::ActiveHoursEnd, configuration);
+            SetIfExists(jsonObject, L"allowAutoUpdate", ActiveFields::AllowAutoUpdate, configuration);
+            SetIfExists(jsonObject, L"allowUpdateService", ActiveFields::AllowUpdateService, configuration);
+            SetIfExists(jsonObject, L"branchReadinessLevel", ActiveFields::BranchReadinessLevel, configuration);
+            SetIfExists(jsonObject, L"deferFeatureUpdatesPeriod", ActiveFields::DeferFeatureUpdatesPeriod, configuration);
+            SetIfExists(jsonObject, L"deferQualityUpdatesPeriod", ActiveFields::DeferQualityUpdatesPeriod, configuration);
+            SetIfExists(jsonObject, L"pauseFeatureUpdates", ActiveFields::PauseFeatureUpdates, configuration);
+            SetIfExists(jsonObject, L"pauseQualityUpdates", ActiveFields::PauseQualityUpdates, configuration);
+            SetIfExists(jsonObject, L"scheduledInstallDay", ActiveFields::ScheduledInstallDay, configuration);
+            SetIfExists(jsonObject, L"scheduledInstallTime", ActiveFields::ScheduledInstallTime, configuration);
+            SetIfExists(jsonObject, L"ring", ActiveFields::Ring, configuration);
 
             return configuration;
         }
+
+        private:
+            static void SetIfExists(JsonObject^ jsonObject, const std::wstring& propertyName, enum class ActiveFields flag, WindowsUpdatePolicyConfiguration^ config)
+            {
+                String^ winRTPropertyName = ref new String(propertyName.c_str());
+                if (!jsonObject->HasKey(winRTPropertyName))
+                {
+                    return;
+                }
+
+                if (flag == ActiveFields::ActiveHoursStart)
+                    config->activeHoursStart = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
+
+                if (flag == ActiveFields::ActiveHoursEnd)
+                    config->activeHoursEnd = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
+
+                if (flag == ActiveFields::AllowAutoUpdate)
+                    config->allowAutoUpdate = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
+
+                if (flag == ActiveFields::AllowUpdateService)
+                    config->allowUpdateService = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
+
+                if (flag == ActiveFields::BranchReadinessLevel)
+                    config->branchReadinessLevel = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
+
+                if (flag == ActiveFields::DeferFeatureUpdatesPeriod)
+                    config->deferFeatureUpdatesPeriod = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
+
+                if (flag == ActiveFields::DeferQualityUpdatesPeriod)
+                    config->deferQualityUpdatesPeriod = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
+
+                if (flag == ActiveFields::PauseFeatureUpdates)
+                    config->pauseFeatureUpdates = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
+
+                if (flag == ActiveFields::PauseQualityUpdates)
+                    config->pauseQualityUpdates = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
+
+                if (flag == ActiveFields::ScheduledInstallDay)
+                    config->scheduledInstallDay = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
+
+                if (flag == ActiveFields::ScheduledInstallTime)
+                    config->scheduledInstallTime = static_cast<unsigned int>(jsonObject->GetNamedNumber(winRTPropertyName));
+
+                if (flag == ActiveFields::Ring)
+                    config->ring = jsonObject->GetNamedString(winRTPropertyName);
+
+                config->activeFields |= static_cast<unsigned int>(flag);
+            }
     };
 
     [Windows::Foundation::Metadata::WebHostHidden]

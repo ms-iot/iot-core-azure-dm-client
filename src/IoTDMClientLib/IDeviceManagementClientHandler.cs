@@ -22,9 +22,7 @@ namespace Microsoft.Devices.Management
 {
     internal interface IClientHandlerCallBack
     {
-        Task ReportPropertiesAsync(string propertyName, JObject properties);
-
-        Task ReportPropertiesAsync(string propertyName, string propertyValue);
+        Task ReportPropertiesAsync(string propertyName, JToken properties);
 
         Task SendMessageAsync(string message, IDictionary<string, string> properties);
     }

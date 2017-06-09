@@ -74,33 +74,12 @@ namespace Microsoft.Devices.Management
                 _deviceTwin = deviceTwin;
             }
 
-            public async Task ReportPropertiesAsync(string propertyName, JObject properties)
+            public async Task ReportPropertiesAsync(string propertyName, JToken properties)
             {
                 try
                 {
                     JObject managementObj = new JObject();
                     managementObj[propertyName] = properties;
-
-                    Dictionary<string, object> collection = new Dictionary<string, object>();
-                    collection["microsoft"] = new
-                    {
-                        management = managementObj
-                    };
-
-                    await _deviceTwin.ReportProperties(collection);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"Failed to report property {propertyName} : \n {e}");
-                }
-            }
-
-            public async Task ReportPropertiesAsync(string propertyName, string propertyValue)
-            {
-                try
-                {
-                    JObject managementObj = new JObject();
-                    managementObj[propertyName] = propertyValue;
 
                     Dictionary<string, object> collection = new Dictionary<string, object>();
                     collection["microsoft"] = new
