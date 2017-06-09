@@ -12,6 +12,7 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management.Message;
 using Newtonsoft.Json;
@@ -73,7 +74,7 @@ namespace Microsoft.Devices.Management
                 _deviceTwin = deviceTwin;
             }
 
-            public async Task ReportPropertiesAsync(string propertyName, JObject properties)
+            public async Task ReportPropertiesAsync(string propertyName, JToken properties)
             {
                 try
                 {
@@ -140,6 +141,9 @@ namespace Microsoft.Devices.Management
             var deviceHealthAttestationHandler = new DeviceHealthAttestationHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceHealthAttestationHandler);
             await deviceManagementClient.AddDirectMethodHandlerAsync(deviceHealthAttestationHandler);
+
+            deviceManagementClient._windowsUpdatePolicyHandler = new WindowsUpdatePolicyHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsUpdatePolicyHandler);
 
             return deviceManagementClient;
         }
@@ -303,9 +307,9 @@ namespace Microsoft.Devices.Management
                 return RebootRequestStatus.Disabled;
             }
 
-            Message.GetWindowsUpdatePolicyResponse updatePolicy = await this.GetWindowsUpdatePolicyAsync();
+            Message.GetWindowsUpdatePolicyResponse updatePolicy = await _windowsUpdatePolicyHandler.GetWindowsUpdatePolicyAsync();
             uint nowHour = (uint)DateTime.Now.Hour;
-            if (updatePolicy.configuration.activeHoursStart <= nowHour && nowHour < updatePolicy.configuration.activeHoursEnd)
+            if (updatePolicy.data.activeHoursStart <= nowHour && nowHour < updatePolicy.data.activeHoursEnd)
             {
                 return RebootRequestStatus.InActiveHours;
             }
@@ -596,99 +600,94 @@ namespace Microsoft.Devices.Management
 
             foreach (var managementProperty in dmNode.Children().OfType<JProperty>())
             {
-                if (managementProperty.Value.Type != JTokenType.Object)
-                {
-                    continue;
-                }
-                switch (managementProperty.Name)
-                {
-                    case "scheduledReboot":
-                        {
-                            Debug.WriteLine("scheduledReboot = " + managementProperty.Value.ToString());
-
-                            JObject subProperties = (JObject)managementProperty.Value;
-
-                            var request = new Message.SetRebootInfoRequest();
-
-                            DateTime singleRebootTime = DateTime.Parse(subProperties.Property("singleRebootTime").Value.ToString());
-                            request.singleRebootTime = singleRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
-
-                            DateTime dailyRebootTime = DateTime.Parse(subProperties.Property("dailyRebootTime").Value.ToString());
-                            request.dailyRebootTime = dailyRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
-
-                            this._systemConfiguratorProxy.SendCommandAsync(request);
-                        }
-                        break;
-                    case "externalStorage":
-                        {
-                            Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
-
-                            JObject subProperties = (JObject)managementProperty.Value;
-
-                            _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
-                            _externalStorage.containerName = (string)subProperties.Property("container").Value;
-                        }
-                        break;
-                    case "certificates":
-                        {
-                            // Capture the configuration here.
-                            // To apply the configuration we need to wait until externalStorage has been configured too.
-                            Debug.WriteLine("CertificateConfiguration = " + managementProperty.Value.ToString());
-                            certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(managementProperty.Value.ToString());
-                        }
-                        break;
-                    case "timeInfo":
-                        {
-                            Debug.WriteLine("timeInfo = " + managementProperty.Value.ToString());
-                            ApplyDesiredTimeSettings(managementProperty.Value);
-                        }
-                        break;
-                    case "windowsUpdatePolicy":
-                        {
-                            Debug.WriteLine("windowsUpdatePolicy = " + managementProperty.Value.ToString());
-                            var configuration = JsonConvert.DeserializeObject<WindowsUpdatePolicyConfiguration>(managementProperty.Value.ToString());
-                            this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatePolicyRequest(configuration));
-                        }
-                        break;
-                    case "windowsUpdates":
-                        {
-                            Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
-                            var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(managementProperty.Value.ToString());
-                            this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
-                        }
-                        break;
-                    case "apps":
-                        {
-                            Debug.WriteLine("apps = " + managementProperty.Value.ToString());
-                            appsConfiguration = (JObject)managementProperty.Value;
-                        }
-                        break;
-                    case "startupApps":
-                        {
-                            Debug.WriteLine("startupApps = " + managementProperty.Value.ToString());
-                            var startupApps = JsonConvert.DeserializeObject<StartupApps>(managementProperty.Value.ToString());
-                            StartupAppInfo foregroundApp = new StartupAppInfo(startupApps.foreground, false /*!background*/);
-                            this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
-                        }
-                        break;
-                    default:
-                        // Not supported
-                        break;
-                }
-
                 IClientPropertyHandler handler;
                 if (this._desiredPropertyMap.TryGetValue(managementProperty.Name, out handler))
                 {
                     try
                     {
                         Debug.WriteLine($"{managementProperty.Name} = {managementProperty.Value.ToString()}");
-                        handler.OnDesiredPropertyChange((JObject)managementProperty.Value);
+                        handler.OnDesiredPropertyChange(managementProperty.Value);
                     }
                     catch (Exception e)
                     {
                         Debug.WriteLine($"Exception caught while handling desired property - {managementProperty.Name}");
                         Debug.WriteLine(e);
                         throw;
+                    }
+                }
+                else
+                {
+                    if (managementProperty.Value.Type != JTokenType.Object)
+                    {
+                        continue;
+                    }
+                    switch (managementProperty.Name)
+                    {
+                        case "scheduledReboot":
+                            {
+                                Debug.WriteLine("scheduledReboot = " + managementProperty.Value.ToString());
+
+                                JObject subProperties = (JObject)managementProperty.Value;
+
+                                var request = new Message.SetRebootInfoRequest();
+
+                                DateTime singleRebootTime = DateTime.Parse(subProperties.Property("singleRebootTime").Value.ToString());
+                                request.singleRebootTime = singleRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+                                DateTime dailyRebootTime = DateTime.Parse(subProperties.Property("dailyRebootTime").Value.ToString());
+                                request.dailyRebootTime = dailyRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+                                this._systemConfiguratorProxy.SendCommandAsync(request);
+                            }
+                            break;
+                        case "externalStorage":
+                            {
+                                Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
+
+                                JObject subProperties = (JObject)managementProperty.Value;
+
+                                _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
+                                _externalStorage.containerName = (string)subProperties.Property("container").Value;
+                            }
+                            break;
+                        case "certificates":
+                            {
+                                // Capture the configuration here.
+                                // To apply the configuration we need to wait until externalStorage has been configured too.
+                                Debug.WriteLine("CertificateConfiguration = " + managementProperty.Value.ToString());
+                                certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(managementProperty.Value.ToString());
+                            }
+                            break;
+                        case "timeInfo":
+                            {
+                                Debug.WriteLine("timeInfo = " + managementProperty.Value.ToString());
+                                ApplyDesiredTimeSettings(managementProperty.Value);
+                            }
+                            break;
+                        case "windowsUpdates":
+                            {
+                                Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
+                                var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(managementProperty.Value.ToString());
+                                this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
+                            }
+                            break;
+                        case "apps":
+                            {
+                                Debug.WriteLine("apps = " + managementProperty.Value.ToString());
+                                appsConfiguration = (JObject)managementProperty.Value;
+                            }
+                            break;
+                        case "startupApps":
+                            {
+                                Debug.WriteLine("startupApps = " + managementProperty.Value.ToString());
+                                var startupApps = JsonConvert.DeserializeObject<StartupApps>(managementProperty.Value.ToString());
+                                StartupAppInfo foregroundApp = new StartupAppInfo(startupApps.foreground, false /*!background*/);
+                                this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
+                            }
+                            break;
+                        default:
+                            // Not supported
+                            break;
                     }
                 }
             }
@@ -738,12 +737,6 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetDeviceInfoResponse);
         }
 
-        private async Task<Message.GetWindowsUpdatePolicyResponse> GetWindowsUpdatePolicyAsync()
-        {
-            var request = new Message.GetWindowsUpdatePolicyRequest();
-            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatePolicyResponse);
-        }
-
         private async Task<Message.GetWindowsUpdatesResponse> GetWindowsUpdatesAsync()
         {
             var request = new Message.GetWindowsUpdatesRequest();
@@ -776,7 +769,6 @@ namespace Microsoft.Devices.Management
             Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await GetCertificateConfigurationAsync();
             Message.GetRebootInfoResponse rebootInfoResponse = await GetRebootInfoAsync();
             Message.GetDeviceInfoResponse deviceInfoResponse = await GetDeviceInfoAsync();
-            Message.GetWindowsUpdatePolicyResponse windowsUpdatePolicyResponse = await GetWindowsUpdatePolicyAsync();
             Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
 
             JObject managementObj = new JObject();
@@ -784,7 +776,6 @@ namespace Microsoft.Devices.Management
             managementObj["certificates"] = JObject.FromObject(certificateConfigurationResponse);
             managementObj["rebootInfo"] = JObject.FromObject(rebootInfoResponse);
             managementObj["deviceInfo"] = JObject.FromObject(deviceInfoResponse);
-            managementObj["windowsUpdatePolicy"] = JObject.FromObject(windowsUpdatePolicyResponse.configuration);
             managementObj["windowsUpdates"] = JObject.FromObject(windowsUpdatesResponse.configuration);
 
             foreach (var handler in this._desiredPropertyMap.Values)
@@ -828,6 +819,7 @@ namespace Microsoft.Devices.Management
 
         // Data members
         ISystemConfiguratorProxy _systemConfiguratorProxy;
+        WindowsUpdatePolicyHandler _windowsUpdatePolicyHandler;
         IDeviceManagementRequestHandler _requestHandler;
         IDeviceTwin _deviceTwin;
         ExternalStorage _externalStorage;

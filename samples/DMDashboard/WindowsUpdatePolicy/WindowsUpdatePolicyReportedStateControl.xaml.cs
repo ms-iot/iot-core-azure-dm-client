@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017 Microsoft
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
 and associated documentation files (the "Software"), to deal in the Software without restriction, 
@@ -13,33 +13,23 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Windows.Controls;
 
-namespace Microsoft.Devices.Management
+namespace DMDashboard
 {
-    internal interface IClientHandlerCallBack
+    public partial class WindowsUpdatePolicyReportedStateControl : DMSectionControl
     {
-        Task ReportPropertiesAsync(string propertyName, JToken properties);
+        public WindowsUpdatePolicyReportedStateControl()
+        {
+            InitializeComponent();
+        }
 
-        Task SendMessageAsync(string message, IDictionary<string, string> properties);
-    }
-
-    // Interface for handlers that implements direct methods
-    internal interface IClientDirectMethodHandler
-    {
-        IReadOnlyDictionary<string, Func<string, Task<string>>> GetDirectMethodHandler();
-    }
-
-    // Interface for handlers that perform actions based on desired/reported properties
-    internal interface IClientPropertyHandler
-    {
-        string PropertySectionName { get; }
-
-        void OnDesiredPropertyChange(JToken value);
-
-        Task<JObject> GetReportedPropertyAsync();
+        public override UIElementCollection PropertiesCollection
+        {
+            get
+            {
+                return PropertyList.Children;
+            }
+        }
     }
 }
