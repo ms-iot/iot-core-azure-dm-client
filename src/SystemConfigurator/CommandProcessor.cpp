@@ -309,13 +309,16 @@ IResponse^ HandleGetWifiConfiguration(IRequest^ request)
         auto profiles = WifiCSP::GetProfiles();
 
         auto configuration = ref new WifiConfiguration();
+        configuration->ReportToDeviceTwin = ref new Platform::String(L"yes");
         for each (auto profile in profiles)
         {
             auto profileConfig = ref new WifiProfileConfiguration();
             profileConfig->Name = ref new Platform::String(profile.c_str());
+            TRACEP(L"Wifi profile found: ", profileConfig->Name->Data());
             configuration->Profiles->Append(profileConfig);
         }
-        return ref new GetWifiConfigurationResponse(ResponseStatus::Success, configuration);
+        auto response = ref new GetWifiConfigurationResponse(ResponseStatus::Success, configuration);
+        return response;
     }
     catch (const DMException& e)
     {

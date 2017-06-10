@@ -26,6 +26,8 @@ using namespace Windows::Data::Json;
 
 namespace Microsoft { namespace Devices { namespace Management { namespace Message
 {
+    public enum class ConfigurationType { Desired, Reported };
+
     public ref class WifiProfileConfiguration sealed
     {
     public:
@@ -67,34 +69,26 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     {
     public:
         property IVector<WifiProfileConfiguration^>^ Profiles;
-        property bool Reporting;
-        property bool Applying;
+        property String^ ReportToDeviceTwin;
+        property String^ ApplyFromDeviceTwin;
 
         WifiConfiguration()
         {
             Profiles = ref new Vector<WifiProfileConfiguration^>();
-            Applying = true;
-            Reporting = true;
-        }
-        WifiConfiguration(String^ active, IVector<WifiProfileConfiguration^>^ profiles, bool applying, bool reporting)
-        {
-            Profiles = profiles;
-            Applying = applying;
-            Reporting = reporting;
         }
 
-        JsonObject^ ToJson(bool reportedProperties)
+        JsonObject^ ToJson(ConfigurationType conigurationType)
         {
             JsonObject^ applyPropertiesObject = ref new JsonObject();
-            ToJson(applyPropertiesObject, reportedProperties);
+            ToJson(applyPropertiesObject, conigurationType);
             return applyPropertiesObject;
         }
 
-        void ToJson(JsonObject^ applyPropertiesObject, bool reportedProperties)
+        void ToJson(JsonObject^ applyPropertiesObject, ConfigurationType conigurationType)
         {
             for each (auto profile in Profiles)
             {
-                if (reportedProperties)
+                if (ConfigurationType::Reported == conigurationType)
                 {
                     applyPropertiesObject->Insert(profile->Name, (profile->Uninstall) ? JsonValue::CreateNullValue() : JsonValue::CreateStringValue(""));
                 }
@@ -114,52 +108,73 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             }
         }
 
-        Blob^ Serialize(uint32_t tag) {
-            return DesiredAndReportedConfigurationHelper<WifiConfiguration>::Serialize(
-                this, tag, [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) { configObject->ToJson(applyPropertiesObject, false); });
-        }
-
-        static WifiConfiguration^ Parse(Platform::String^ str) {
-            return DesiredAndReportedConfigurationHelper<WifiConfiguration>::Parse(
-                str, [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) {
+        static WifiConfiguration^ Parse(Platform::String^ str, ConfigurationType conigurationType) {
+            if (ConfigurationType::Reported == conigurationType)
+            {
+                auto handler = [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) {
                     for each (auto profile in applyPropertiesObject)
                     {
-                        auto profileName = profile->Key;
-                        auto profileValue = applyPropertiesObject->Lookup(profileName);
+                        auto wifiProfile = ref new WifiProfileConfiguration();
+                        wifiProfile->Name = profile->Key;;
+                        configObject->Profiles->Append(wifiProfile);
+                    }
+                };
+                return DeviceTwinReportedConfiguration<WifiConfiguration>::Deserialize(str, handler);
+            }
+            auto handler = [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) {
+                for each (auto profile in applyPropertiesObject)
+                {
+                    auto profileName = profile->Key;
+                    auto profileValue = applyPropertiesObject->Lookup(profileName);
 
-                        if (profileValue->ValueType == JsonValueType::Object)
+                    if (profileValue->ValueType == JsonValueType::Object)
+                    {
+                        auto profileValueObject = applyPropertiesObject->GetNamedObject(profileName);
+
+                        auto wifiProfile = ref new WifiProfileConfiguration();
+                        wifiProfile->Name = profileName;
+
+                        wifiProfile->DisableInternetConnectivityChecks = profileValueObject->GetNamedBoolean("disableInternetConnectivityChecks", false);
+                        wifiProfile->Path = profileValueObject->GetNamedString("profile");
+                        wifiProfile->Xml = profileValueObject->GetNamedString("xml", L"");
+                        wifiProfile->Uninstall = profileValueObject->GetNamedBoolean("uninstall", false);
+
+                        configObject->Profiles->Append(wifiProfile);
+                    }
+                    else if (profileValue->ValueType == JsonValueType::String)
+                    {
+                        auto valueString = profileValue->GetString();
+                        if (valueString == "uninstall")
                         {
-                            auto profileValueObject = applyPropertiesObject->GetNamedObject(profileName);
-
                             auto wifiProfile = ref new WifiProfileConfiguration();
                             wifiProfile->Name = profileName;
-
-                            wifiProfile->DisableInternetConnectivityChecks = profileValueObject->GetNamedBoolean("disableInternetConnectivityChecks", false);
-                            wifiProfile->Path = profileValueObject->GetNamedString("profile");
-                            wifiProfile->Xml = profileValueObject->GetNamedString("xml", L"");
-                            wifiProfile->Uninstall = profileValueObject->GetNamedBoolean("uninstall", false);
+                            wifiProfile->Uninstall = true;
 
                             configObject->Profiles->Append(wifiProfile);
                         }
-                        else if (profileValue->ValueType == JsonValueType::String)
-                        {
-                            auto valueString = profileValue->GetString();
-                            if (valueString == "uninstall")
-                            {
-                                auto wifiProfile = ref new WifiProfileConfiguration();
-                                wifiProfile->Name = profileName;
-                                wifiProfile->Uninstall = true;
-                                
-                                configObject->Profiles->Append(wifiProfile);
-                            }
-                        }
                     }
-                });
+                }
+            };
+            return DeviceTwinDesiredConfiguration<WifiConfiguration>::Deserialize(str, handler);
         }
 
-        static WifiConfiguration^ Deserialize(Blob^ blob) {
+        static WifiConfiguration^ Deserialize(Blob^ blob, ConfigurationType conigurationType) {
             String^ str = SerializationHelper::GetStringFromBlob(blob);
-            return Parse(str);
+            return Parse(str, conigurationType);
+        }
+
+        Blob^ Serialize(uint32_t tag, ConfigurationType conigurationType) {
+            if (ConfigurationType::Reported == conigurationType)
+            {
+                return DeviceTwinReportedConfiguration<WifiConfiguration>::Serialize(
+                    this, tag, [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) {
+                        configObject->ToJson(applyPropertiesObject, ConfigurationType::Reported);
+                    });
+            }
+            return DeviceTwinDesiredConfiguration<WifiConfiguration>::Serialize(
+                this, tag, [](JsonObject^ applyPropertiesObject, WifiConfiguration^ configObject) {
+                    configObject->ToJson(applyPropertiesObject, ConfigurationType::Desired);
+                });
         }
     };
 
@@ -176,12 +191,12 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
         virtual Blob^ Serialize()
         {
-            return Configuration->Serialize((uint32_t)Tag);
+            return Configuration->Serialize((uint32_t)Tag, ConfigurationType::Desired);
         }
 
         static IDataPayload^ Deserialize(Blob^ blob)
         {
-            WifiConfiguration^ wifi = WifiConfiguration::Deserialize(blob);
+            WifiConfiguration^ wifi = WifiConfiguration::Deserialize(blob, ConfigurationType::Desired);
             return ref new SetWifiConfigurationRequest(wifi);
         }
 
@@ -221,11 +236,11 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         virtual Blob^ Serialize() {
-            return Configuration->Serialize((uint32_t)Tag);
+            return Configuration->Serialize((uint32_t)Tag, ConfigurationType::Reported);
         }
 
         static IDataPayload^ Deserialize(Blob^ blob) {
-            WifiConfiguration^ wifiConfiguration = WifiConfiguration::Deserialize(blob);
+            WifiConfiguration^ wifiConfiguration = WifiConfiguration::Deserialize(blob, ConfigurationType::Reported);
             return ref new GetWifiConfigurationResponse(ResponseStatus::Success, wifiConfiguration);
         }
 

@@ -77,6 +77,7 @@ namespace Microsoft.Devices.Management
             string connectionString,
             Message.WifiConfiguration desiredConfiguration)
         {
+
             // Get installed wifi profiles
             var getInstalledResponse = await GetWifiConfigurationAsync();
             var reportedConfigurationProfiles = getInstalledResponse.Configuration.Profiles;
@@ -87,7 +88,7 @@ namespace Microsoft.Devices.Management
             // Only profiles that already exist need to be uninstalled
             var needToRemove = desiredConfigurationProfiles.Where((config) => { return config.Uninstall; }).Intersect(reportedConfigurationProfiles, new WifiProfileConfigurationComparer());
             // Create list of profiles for SystemConfigurator based on what NEEDS to be done
-            var adjustedConfig = new WifiConfiguration() { Applying = desiredConfiguration.Applying, Reporting = desiredConfiguration.Reporting };
+            var adjustedConfig = new WifiConfiguration() { ApplyFromDeviceTwin = desiredConfiguration.ApplyFromDeviceTwin, ReportToDeviceTwin = desiredConfiguration.ReportToDeviceTwin };
             adjustedConfig.Profiles = needToRemove.Union(needToAdd).ToList();
 
             // Only make changes if needed
@@ -119,7 +120,7 @@ namespace Microsoft.Devices.Management
                         configToUpdateTwin.Configuration.Profiles.Add(removed);
                     }
 
-                    var jsonToReport = configToUpdateTwin.Configuration.ToJson(true);
+                    var jsonToReport = configToUpdateTwin.Configuration.ToJson(ConfigurationType.Reported);
                     await this._callback.ReportPropertiesAsync(JsonSectionName, JObject.Parse(jsonToReport.ToString()));
                 }
             }
@@ -127,13 +128,13 @@ namespace Microsoft.Devices.Management
 
         private async Task HandleDesiredPropertyChangeAsync(JToken desiredValue)
         {
-            var desiredConfig = WifiConfiguration.Parse(desiredValue.ToString());
+            var desiredConfig = WifiConfiguration.Parse(desiredValue.ToString(), ConfigurationType.Desired);
             string connectionString = _connectionString;
             await ProcessDesiredWifiConfigurationAsync(connectionString, desiredConfig);
         }
 
         // IClientPropertyHandler
-        public void OnDesiredPropertyChange(JObject desiredValue)
+        public void OnDesiredPropertyChange(JToken desiredValue)
         {
             HandleDesiredPropertyChangeAsync(desiredValue);
         }
@@ -141,15 +142,8 @@ namespace Microsoft.Devices.Management
         // IClientPropertyHandler
         public async Task<JObject> GetReportedPropertyAsync()
         {
-            Message.GetWindowsUpdatePolicyResponse reportedProperties = await GetWindowsUpdatePolicyAsync();
+            Message.GetWifiConfigurationResponse reportedProperties = await GetWifiConfigurationAsync();
             return JObject.FromObject(reportedProperties);
-        }
-
-        public async Task<Message.GetWindowsUpdatePolicyResponse> GetWindowsUpdatePolicyAsync()
-        {
-            var request = new Message.GetWindowsUpdatePolicyRequest();
-            var response = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return response as Message.GetWindowsUpdatePolicyResponse;
         }
 
         public string[] PropertySectionDependencyNames
