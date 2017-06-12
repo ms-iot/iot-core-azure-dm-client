@@ -42,6 +42,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y "$(TargetDir)$(TargetFileName)" "$(SolutionDir)\DHA\DHA\DHAServiceBusQueueHandler\bin"</PostBuildEvent>
+    <PostBuildEvent>md "$(SolutionDir)DHA\DHA\DHAServiceBusQueueHandler\bin"
+xcopy /Y "$(TargetDir)$(TargetFileName)" "$(SolutionDir)DHA\DHA\DHAServiceBusQueueHandler\bin"</PostBuildEvent>
   </PropertyGroup>
 </Project>
