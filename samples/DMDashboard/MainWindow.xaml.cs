@@ -742,11 +742,6 @@ namespace DMDashboard
             SetDesired(WifiDesiredState.ToJson());
         }
 
-        private void OnAddProfile(object sender, RoutedEventArgs e)
-        {
-            this.WifiDesiredState.AddProfile(new Wifi.WifiProfileConfiguration());
-        }
-
         private DeviceTwinAndMethod _deviceTwin;
     }
 }

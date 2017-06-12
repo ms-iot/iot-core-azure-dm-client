@@ -42,7 +42,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             JsonObject^ jsonObject = ref new JsonObject();
             jsonObject->Insert("name", JsonValue::CreateStringValue(Name));
             jsonObject->Insert("xml", JsonValue::CreateStringValue(Xml));
-            jsonObject->Insert("profile", JsonValue::CreateStringValue(Xml));
+            jsonObject->Insert("profile", JsonValue::CreateStringValue(Path));
             jsonObject->Insert("disableInternetConnectivityChecks", JsonValue::CreateBooleanValue(DisableInternetConnectivityChecks));
             jsonObject->Insert("uninstall", JsonValue::CreateBooleanValue(Uninstall));
 

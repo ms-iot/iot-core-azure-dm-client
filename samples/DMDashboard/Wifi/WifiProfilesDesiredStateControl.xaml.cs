@@ -17,6 +17,7 @@ using Microsoft.Devices.Management.DMDataContract;
 using Newtonsoft.Json;
 using System.Collections.ObjectModel;
 using System.Text;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace DMDashboard.Wifi
@@ -33,11 +34,16 @@ namespace DMDashboard.Wifi
             this.desiredList.ItemsSource = DesiredList;
         }
 
-        public ObservableCollection<WifiProfileConfiguration> DesiredList { get; set; }
+        private ObservableCollection<WifiProfileConfiguration> DesiredList { get; set; }
 
         public void AddProfile(WifiProfileConfiguration newProfile)
         {
             DesiredList.Add(newProfile);
+        }
+
+        private void OnAddProfile(object sender, RoutedEventArgs e)
+        {
+            AddProfile(new Wifi.WifiProfileConfiguration());
         }
 
         public string ToJson()

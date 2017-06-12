@@ -21,6 +21,8 @@ using Microsoft.Devices.Management.Message;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Windows.Storage;
+using IoTDMClient;
 
 namespace Microsoft.Devices.Management
 {
@@ -73,6 +75,25 @@ namespace Microsoft.Devices.Management
             return response;
         }
 
+        public async Task UpdateConfigWithProfileXmlAsync(string connectionString, IEnumerable<Message.WifiProfileConfiguration> profilesToAdd)
+        {
+            // Download missing profiles
+            foreach (var profile in profilesToAdd)
+            {
+                var profileBlob = IoTDMClient.BlobInfo.BlobInfoFromSource(connectionString, profile.Path);
+                AzureFileTransferInfo info = new AzureFileTransferInfo() { BlobName = profileBlob.BlobName, ConnectionString = profileBlob.ConnectionString, ContainerName = profileBlob.ContainerName };
+                var storageFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(profileBlob.BlobName, CreationCollisionOption.ReplaceExisting);
+                var localProfilePath = await AzureBlobFileTransfer.DownloadFile(info, storageFile);
+
+                // strip off temp folder prefix for use with TemporaryFolder.CreateFileAsync
+                var contents = await Windows.Storage.FileIO.ReadTextAsync(storageFile);
+                var encodedXml = new System.Xml.Linq.XElement("Data", contents);
+                profile.Xml = encodedXml.FirstNode.ToString();
+                //profile.Xml = SecurityElement.Escape(contents);
+                await storageFile.DeleteAsync();
+            }
+        }
+
         private async Task ProcessDesiredWifiConfigurationAsync(
             string connectionString,
             Message.WifiConfiguration desiredConfiguration)
@@ -95,7 +116,7 @@ namespace Microsoft.Devices.Management
             if (adjustedConfig.Profiles.Count != 0)
             {
                 // Download profiles needed for adding from Azure and load XML into WifiProfileConfiguration.Xml
-                await WifiManagement.UpdateConfigWithProfileXmlAsync(connectionString, needToAdd);
+                await UpdateConfigWithProfileXmlAsync(connectionString, needToAdd);
 
                 // Let SystemConfigurator do the actual work
                 var request = new Message.SetWifiConfigurationRequest(adjustedConfig);

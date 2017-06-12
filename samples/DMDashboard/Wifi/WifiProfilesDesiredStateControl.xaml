@@ -8,8 +8,14 @@
              d:DesignHeight="300" d:DesignWidth="300">
 
     <Grid>
-        <Grid.RowDefinitions> <RowDefinition Height="Auto" /> </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions> <ColumnDefinition Width="Auto" /> </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
         <ListView Grid.Row="0" Grid.Column="0" Margin="3" x:Name="desiredList">
             <ListView.ItemTemplate>
                 <DataTemplate>
@@ -17,5 +23,6 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+        <Button Grid.Row="2" Grid.Column="0" Margin="3" Content="Add Desired Profile" Click="OnAddProfile" />
     </Grid>
 </UserControl>

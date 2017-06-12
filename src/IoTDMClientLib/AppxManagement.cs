@@ -125,20 +125,6 @@ namespace Microsoft.Devices.Management
     {
         private static string VersionNotInstalled = "not installed";
 
-        private static IoTDMClient.BlobInfo BlobInfoFromSource(string connectionString, string source)
-        {
-            string[] sourceParts = source.Split('\\');
-            if (sourceParts.Length != 2)
-            {
-                throw new Exception("container name is missing in: " + source);
-            }
-            IoTDMClient.BlobInfo info = new IoTDMClient.BlobInfo();
-            info.ConnectionString = connectionString;
-            info.ContainerName = sourceParts[0];
-            info.BlobName = sourceParts[1];
-            return info;
-        }
-
         private static void DumpInstalledApps(IDictionary<string, AppInfo> data)
         {
             foreach (KeyValuePair<string, AppInfo> p in data)
@@ -357,7 +343,7 @@ namespace Microsoft.Devices.Management
 
                     for (int i = 0; i < depsSources.Length; ++i)
                     {
-                        IoTDMClient.BlobInfo dependencyBlob = BlobInfoFromSource(connectionString, depsSources[i]);
+                        IoTDMClient.BlobInfo dependencyBlob = IoTDMClient.BlobInfo.BlobInfoFromSource(connectionString, depsSources[i]);
                         Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Downloading " + dependencyBlob.BlobName);
 
                         var dependencyPath = await dependencyBlob.DownloadToTempAsync(client);
@@ -368,13 +354,13 @@ namespace Microsoft.Devices.Management
 
                 // Downloading certificates...
                 Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Downloading appx certificate...");
-                IoTDMClient.BlobInfo certificateBlob = BlobInfoFromSource(connectionString, desiredState.certSource);
+                IoTDMClient.BlobInfo certificateBlob = IoTDMClient.BlobInfo.BlobInfoFromSource(connectionString, desiredState.certSource);
                 requestData.CertFile = await certificateBlob.DownloadToTempAsync(client);
                 requestData.CertStore = desiredState.certStore;
 
                 // Downloading appx...
                 Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Downloading appx...");
-                IoTDMClient.BlobInfo appxBlob = BlobInfoFromSource(connectionString, desiredState.appxSource);
+                IoTDMClient.BlobInfo appxBlob = IoTDMClient.BlobInfo.BlobInfoFromSource(connectionString, desiredState.appxSource);
                 requestData.AppxPath = await appxBlob.DownloadToTempAsync(client);
 
                 // Installing appx...

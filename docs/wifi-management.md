@@ -7,9 +7,24 @@ The **Wifi Management** functionality allows the operator to perform the followi
 - Get detailed information about an installed wifi profile.
 
 ## Install/Uninstall A Wifi Profile
-The operator can specify the list of desired wifi profiles to be installed. When the device receives the desired state, it compares it to the device current state and:
+The operator can specify the list of desired wifi profiles to be installed or uninstalled. When the device receives the desired state, it compares it to the device current state and:
 - If a wifi profile exists in the desired list but is not installed on the device, it is installed with the provided properties.
-- If a wifi profile is to be uninstalled on the device, but is not present in the desired list, it is uninstalled.
+- To uninstall a wifi profile, specify the profile name and set its value to "uninstall". This will have effect only if that wifi profile is already present on the machine - if not, no action will be taken.
+
+<pre>
+    "desired": {
+      "microsoft": {
+        "management": {
+          "wifi": &lt;<i>see below</i>&gt;
+        }
+      }
+    }
+</pre>
+
+- ```"wifi"``` can be set to one of the following:
+    - ```"no-apply-no-report"``` : This means no desired state, and no reported state will be stored in the device twin.
+  - ```"no-apply-yes-report"```: This means no desired state will be stored in the device twin, but reported state will.
+  - A json object of the following format:
 
 <pre>
     "desired": {
@@ -18,19 +33,26 @@ The operator can specify the list of desired wifi profiles to be installed. When
           "wifi": {
             "applyProperties": {
               "WifiProfile1": {
-                "profile": "container/fileName01.xml",
+                "profile": "<i>see below</i>",
                 "disableInternetConnectivityChecks": "true",
               },
               "WifiProfile2": "uninstall"
-            }
+            },
+            "reportProperties" : &lt;<i>see below</i>&gt;
           }
         }
       }
     }
 </pre>
 
+- `"profile": "container\profile.xml"`
+  - The wifi profile file name in the Azure blob storage. The access to the blob storage is performed as described [here](blob-storage.md). The value of this property cannot be empty or null if the profile is to be installed on the device.  The file must follow the [WLAN_profile Schema](http://go.microsoft.com/fwlink/p/?LinkId=325608) on MSDN.
+- The ```"reportProperties"``` can be set to one of the following values:
+  - ```"yes"```: tells the DM client to report the Windows Update Policy state of the device.
+  - ```"no"```: tells the DM client to not report the Wifi section in the reported properties. This can be useful to free some room in the Device Twin.
+
 ## List Installed Wifi Profiles
-The DM client reports the names of installed wifi profiles. 
+The device current state of the **Wifi** can be inspected through the ```"wifi"``` node in the reported properties section as follows:
 
 <pre>
     "reported": {
@@ -77,18 +99,14 @@ Possible `"response"` values are:
 `"reason"` is used to communicate why an App Install request was rejected if possible.
 
 ### Uploaded File Format
-<pre>
-{
-    <TBD>
-}
-</pre>
+The XML that describes the network configuration and follows the [WLAN_profile Schema](http://go.microsoft.com/fwlink/p/?LinkId=325608) on MSDN.
 
 ## Examples:
 
 ### Install Profile
 
 If the operator wants to install a new wifi profile (home-wifi.xml), the following steps should be followed:
-- Upload the wifi profile xml file to the default Azure blob storage. Let's assume the profile name is 'HomeWifi'.
+- Upload the wifi profile xml file to Azure blob storage. The access to the blob storage is performed as described [here](blob-storage.md). To ensure uniqueness and optimize downloading, the name specified here (in this example 'HomeWifi'), must be the SSID\Name specified in the profile XML.  The XML must follow the [WLAN_profile Schema](http://go.microsoft.com/fwlink/p/?LinkId=325608) on MSDN.
 - Set the desired properties to:
 <pre>
     "desired": {
