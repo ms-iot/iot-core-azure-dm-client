@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Windows.Storage;
 using IoTDMClient;
+using DMDataContract;
 
 namespace Microsoft.Devices.Management
 {
@@ -98,47 +99,49 @@ namespace Microsoft.Devices.Management
             string connectionString,
             Message.WifiConfiguration desiredConfiguration)
         {
-
-            // Get installed wifi profiles
-            var getInstalledResponse = await GetWifiConfigurationAsync();
-            var reportedConfigurationProfiles = getInstalledResponse.Configuration.Profiles;
-            var desiredConfigurationProfiles = desiredConfiguration.Profiles;
-
-            // Only profiles that don't already exist need to be installed
-            var needToAdd = desiredConfigurationProfiles.Where((config) => { return !config.Uninstall; }).Except(reportedConfigurationProfiles, new WifiProfileConfigurationComparer());
-            // Only profiles that already exist need to be uninstalled
-            var needToRemove = desiredConfigurationProfiles.Where((config) => { return config.Uninstall; }).Intersect(reportedConfigurationProfiles, new WifiProfileConfigurationComparer());
-            // Create list of profiles for SystemConfigurator based on what NEEDS to be done
-            var adjustedConfig = new WifiConfiguration() { ApplyFromDeviceTwin = desiredConfiguration.ApplyFromDeviceTwin, ReportToDeviceTwin = desiredConfiguration.ReportToDeviceTwin };
-            adjustedConfig.Profiles = needToRemove.Union(needToAdd).ToList();
-
-            // Only make changes if needed
-            if (adjustedConfig.Profiles.Count != 0)
+            bool desireReported = desiredConfiguration.ReportToDeviceTwin == DMJSonConstants.YesString;
+            IEnumerable<WifiProfileConfiguration> needToRemove;
+            if (desiredConfiguration.ApplyFromDeviceTwin == DMJSonConstants.YesString)
             {
-                // Download profiles needed for adding from Azure and load XML into WifiProfileConfiguration.Xml
-                await UpdateConfigWithProfileXmlAsync(connectionString, needToAdd);
+                // Get installed wifi profiles
+                var getInstalledResponse = await GetWifiConfigurationAsync();
+                var reportedConfigurationProfiles = getInstalledResponse.Configuration.Profiles;
+                var desiredConfigurationProfiles = desiredConfiguration.Profiles;
 
-                // Let SystemConfigurator do the actual work
-                var request = new Message.SetWifiConfigurationRequest(adjustedConfig);
-                var response = await _systemConfiguratorProxy.SendCommandAsync(request);
+                // Only profiles that don't already exist need to be installed
+                var needToAdd = desiredConfigurationProfiles.Where((config) => { return !config.Uninstall; }).Except(reportedConfigurationProfiles, new WifiProfileConfigurationComparer());
+                // Only profiles that already exist need to be uninstalled
+                needToRemove = desiredConfigurationProfiles.Where((config) => { return config.Uninstall; }).Intersect(reportedConfigurationProfiles, new WifiProfileConfigurationComparer());
+                // Create list of profiles for SystemConfigurator based on what NEEDS to be done
+                var adjustedConfig = new WifiConfiguration() { ApplyFromDeviceTwin = desiredConfiguration.ApplyFromDeviceTwin, ReportToDeviceTwin = desiredConfiguration.ReportToDeviceTwin };
+                adjustedConfig.Profiles = needToRemove.Union(needToAdd).ToList();
 
-                if (response.Status == ResponseStatus.Success)
+                // Only make changes if needed
+                if (adjustedConfig.Profiles.Count != 0)
                 {
-//Message.GetWindowsUpdatePolicyResponse reportedProperties = await GetWindowsUpdatePolicyAsync();
-//if (reportedProperties.ReportToDeviceTwin == DMJSonConstants.YesString)
-//{
-//    // ToDo: Need to avoid serializing activeFields since it is internal implementation details.
-//    await this._callback.ReportPropertiesAsync(JsonSectionName, JObject.FromObject(reportedProperties.data));
-//}
-//else
-//{
-//    await this._callback.ReportPropertiesAsync(JsonSectionName, DMJSonConstants.NoReportString);
-//}
+                    // Download profiles needed for adding from Azure and load XML into WifiProfileConfiguration.Xml
+                    await UpdateConfigWithProfileXmlAsync(connectionString, needToAdd);
+
+                    // Let SystemConfigurator do the actual work
+                    var request = new Message.SetWifiConfigurationRequest(adjustedConfig);
+                    var response = await _systemConfiguratorProxy.SendCommandAsync(request);
+
+                    if (response.Status != ResponseStatus.Success)
+                    {
+                        return;
+                    }
+                }
+
+                if (desireReported)
+                {
                     var configToUpdateTwin = await GetWifiConfigurationAsync();
                     var profilesToReport = configToUpdateTwin.Configuration.Profiles;
-                    foreach (var removed in needToRemove)
+                    if (needToRemove != null)
                     {
-                        configToUpdateTwin.Configuration.Profiles.Add(removed);
+                        foreach (var removed in needToRemove)
+                        {
+                            configToUpdateTwin.Configuration.Profiles.Add(removed);
+                        }
                     }
 
                     var jsonToReport = configToUpdateTwin.Configuration.ToJson(ConfigurationType.Reported);
