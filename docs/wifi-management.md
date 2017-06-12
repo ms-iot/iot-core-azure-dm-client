@@ -101,8 +101,6 @@ Possible `"response"` values are:
 ### Uploaded File Format
 The XML that describes the network configuration and follows the [WLAN_profile Schema](http://go.microsoft.com/fwlink/p/?LinkId=325608) on MSDN.
 
-## Examples:
-
 ### Install Profile
 
 If the operator wants to install a new wifi profile (home-wifi.xml), the following steps should be followed:
