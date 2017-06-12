@@ -32,6 +32,11 @@ namespace DMDashboard.Wifi
             InitializeComponent();
             DesiredList = new ObservableCollection<WifiProfileConfiguration>();
             this.desiredList.ItemsSource = DesiredList;
+
+            DesiredList.CollectionChanged += (source, e) => {
+                itemsPanel.Visibility = (DesiredList.Count > 0) ? Visibility.Visible : Visibility.Collapsed;
+                emptyIndicator.Visibility = (DesiredList.Count == 0) ? Visibility.Visible : Visibility.Collapsed;
+            };
         }
 
         private ObservableCollection<WifiProfileConfiguration> DesiredList { get; set; }
@@ -48,7 +53,7 @@ namespace DMDashboard.Wifi
 
         public string ToJson()
         {
-            return WifiProfileConfiguration.ToJsonString(DesiredList);
+            return WifiProfileConfiguration.ToJsonString(DesiredList, this.ApplyPropertiesCombo.PropertyValue, this.reportPropertiesCombo.PropertyValue);
         }
     }
 }

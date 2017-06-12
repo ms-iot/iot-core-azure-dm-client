@@ -32,6 +32,11 @@ namespace DMDashboard.Wifi
 
             ReportedList = new ObservableCollection<WifiProfileConfiguration>();
             this.reportedList.ItemsSource = ReportedList;
+
+            ReportedList.CollectionChanged += (source, e) => {
+                viewPanel.Visibility = (ReportedList.Count > 0) ? Visibility.Visible : Visibility.Collapsed;
+                emptyIndicator.Visibility = (ReportedList.Count == 0) ? Visibility.Visible : Visibility.Collapsed;
+            };
         }
 
         private ObservableCollection<WifiProfileConfiguration> ReportedList { get; set; }

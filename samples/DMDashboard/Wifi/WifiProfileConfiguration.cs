@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using DMDataContract;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,18 +11,6 @@ namespace DMDashboard.Wifi
 {
     public class WifiProfileConfiguration
     {
-        // TODO: replace after rebase w/ George's code
-        public const string ApplyPropertiesString = "applyProperties";
-        public const string ReportPropertiesString = "reportProperties";
-        public const string YesString = "yes";
-        public const string NoString = "no";
-        public const string NoApplyYesReportString = "no-apply-yes-report";
-        public const string NoApplyNoReportString = "no-apply-no-report";
-        public const string NoReportString = "no-report";
-        public const string NotFoundString = "<not found>";
-        public const string NAString = "n/a";
-
-
         public string Name { get; set; }
         public string Profile { get; set; }
         public bool Uninstall { get; set; }
@@ -40,15 +29,19 @@ namespace DMDashboard.Wifi
             return sb.ToString();
         }
 
-        public static string ToJsonString(ICollection<WifiProfileConfiguration> profiles)
+        public static string ToJsonString(ICollection<WifiProfileConfiguration> profiles, string applyPropertiesValue, string reportPropertiesValue)
         {
             StringBuilder sb = new StringBuilder("\"wifi\": ");
 
-            if (profiles.Count == 0) sb.Append($"\"{NoApplyNoReportString}\"\n");
+            bool reporting = DMJSonConstants.YesString.Equals(reportPropertiesValue);
+            bool applying = DMJSonConstants.YesString.Equals(applyPropertiesValue);
+
+            if (!applying && !reporting) sb.Append($"\"{DMJSonConstants.NoApplyNoReportString}\"\n");
+            else if (!applying && reporting) sb.Append($"\"{DMJSonConstants.NoApplyYesReportString}\"\n");
             else
             {
                 bool first = true;
-                sb.Append($"{{\n\"{ApplyPropertiesString}\": {{");
+                sb.Append($"{{\n\"{DMJSonConstants.ApplyPropertiesString}\": {{");
                 foreach (var profile in profiles)
                 {
                     if (!first)
@@ -61,7 +54,8 @@ namespace DMDashboard.Wifi
                     sb.Append(profile.ToJsonString());
                 }
                 sb.Append("\n},\n");
-                sb.Append($"\"{ReportPropertiesString}\": \"{YesString}\"\n}}");
+                if (reporting) sb.Append($"\"{DMJSonConstants.ReportPropertiesString}\": \"{DMJSonConstants.YesString}\"\n}}");
+                else sb.Append($"\"{DMJSonConstants.ReportPropertiesString}\": \"{DMJSonConstants.NoString}\"\n}}");
             }
 
             return sb.ToString();

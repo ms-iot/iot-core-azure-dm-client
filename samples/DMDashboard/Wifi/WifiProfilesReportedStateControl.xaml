@@ -7,15 +7,16 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
 
-    <Grid>
-        <Grid.RowDefinitions> <RowDefinition Height="Auto" /> </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions> <ColumnDefinition Width="Auto"/> </Grid.ColumnDefinitions>
-        <ListView Grid.Row="0" Grid.Column="0" Margin="3" x:Name="reportedList">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <local:WifiReportedStateControl />
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-    </Grid>
+    <StackPanel>
+        <StackPanel x:Name="viewPanel" Visibility="Collapsed" >
+            <ListView Margin="3" x:Name="reportedList" BorderThickness="0" HorizontalContentAlignment="Stretch">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <local:WifiReportedStateControl />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
+        <TextBlock Text="&lt;none found&gt;" Visibility="Visible" x:Name="emptyIndicator" />
+    </StackPanel>
 </UserControl>

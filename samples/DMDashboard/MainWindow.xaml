@@ -851,6 +851,8 @@
                                 <RowDefinition Height="30"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="300"/>
@@ -863,7 +865,7 @@
                             <Wifi:WifiProfilesDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="WifiDesiredState"/>
                             <Wifi:WifiProfilesReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="WifiReportedState"/>
 
-                            <Button Grid.Row="3" Grid.Column="1" Margin="3" Content="Set Wifi Configuration" Click="OnSetWifiConfiguration" />
+                            <Button Grid.Row="4" Grid.Column="1" Margin="10,0,10,3" Content="Set Wifi Configuration" Click="OnSetWifiConfiguration" />
                         </Grid>
 
                         <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
