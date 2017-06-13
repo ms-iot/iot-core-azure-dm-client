@@ -31,6 +31,7 @@ namespace DHA_test
     [TestClass]
     public class DeviceHealthAttestationServerTest
     {
+        static string IotHubName = "<Your IotHub name>";
         static string IotHubOwnerConnectionString = "<Your IotHubOwner Connection string>";
         static string TestDeviceId = "DHA-testClient";
 
@@ -131,8 +132,7 @@ namespace DHA_test
             }
 
             // Return DeviceClient
-            var iotHubName = "alanch-test-iothub";
-            var connectionString = $"HostName={iotHubName}.azure-devices.net;DeviceId={device.Id};SharedAccessKey={device.Authentication.SymmetricKey.PrimaryKey}";
+            var connectionString = $"HostName={IotHubName}.azure-devices.net;DeviceId={device.Id};SharedAccessKey={device.Authentication.SymmetricKey.PrimaryKey}";
             return connectionString;
         }
 

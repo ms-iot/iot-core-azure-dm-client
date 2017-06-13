@@ -42,7 +42,7 @@ public class NonceRequestHandler
         var cloudToDeviceMethod = new CloudToDeviceMethod(DeviceHealthAttestationDataContract.GetReportMethodName, MethodCallTimeOut);
         cloudToDeviceMethod.SetPayloadJson(json);
 
-        var result = await serviceClient.InvokeDeviceMethodAsync(deviceId, cloudToDeviceMethod);
+        var result = await _iotHubServiceClient.InvokeDeviceMethodAsync(deviceId, cloudToDeviceMethod);
         _log.Info($"InvokeDeviceMethodAsync status: {result.Status}");
     }
 
