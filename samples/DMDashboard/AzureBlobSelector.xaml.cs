@@ -12,6 +12,7 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -45,25 +46,34 @@ namespace DMDashboard
 
         private void PopulateBlobList(IEnumerable<string> fileNames, string connectionString, string containerName, string extensionFilter)
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference(containerName);
-
-            _blobInfoList = new List<BlobData>();
-            foreach (IListBlobItem item in container.ListBlobs(null, false))
+            CloudStorageAccount storageAccount;
+            try
             {
-                if (item.GetType() == typeof(CloudBlockBlob))
+                storageAccount = CloudStorageAccount.Parse(connectionString);
+                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                CloudBlobContainer container = blobClient.GetContainerReference(containerName);
+
+                _blobInfoList = new List<BlobData>();
+                foreach (IListBlobItem item in container.ListBlobs(null, false))
                 {
-                    CloudBlockBlob blob = (CloudBlockBlob)item;
-                    string extension = Path.GetExtension(blob.Name);
-                    if (string.IsNullOrEmpty(extensionFilter) || extension.Equals(extensionFilter, System.StringComparison.OrdinalIgnoreCase))
+                    if (item.GetType() == typeof(CloudBlockBlob))
                     {
-                        bool selected = fileNames.Any(x => x == blob.Name);
-                        _blobInfoList.Add(new BlobData(selected, blob.Name));
+                        CloudBlockBlob blob = (CloudBlockBlob)item;
+                        string extension = Path.GetExtension(blob.Name);
+                        if (string.IsNullOrEmpty(extensionFilter) || extension.Equals(extensionFilter, System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            bool selected = fileNames.Any(x => x == blob.Name);
+                            _blobInfoList.Add(new BlobData(selected, blob.Name));
+                        }
                     }
                 }
+                BlobList.ItemsSource = _blobInfoList;
             }
-            BlobList.ItemsSource = _blobInfoList;
+            catch (Exception e)
+            {
+                MessageBox.Show("Failed to enumerate blobs. Make sure the connection string is valid.");
+                return;
+            }
         }
 
         private void OnApply(object sender, RoutedEventArgs e)
