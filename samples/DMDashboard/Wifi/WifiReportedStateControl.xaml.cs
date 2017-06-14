@@ -69,14 +69,20 @@ namespace DMDashboard.Wifi
                     string blobName = $"exported_{wifiProfile.Name}";
 
                     string tempPath = Path.GetTempPath();
-                    LoadFromAzureBlob(storageConnectionString, storageContainerName, blobName, $"{tempPath}wifi");
+                    string wifiString = LoadFromAzureBlob(storageConnectionString, storageContainerName, blobName, $"{tempPath}wifi");
+
+                    WifiDetails details = new WifiDetails();
+                    details.Owner = mainWindow;
+                    details.Xml = wifiString;
+                    details.ShowDialog();
+
                     return;
                 }
                 parent = System.Windows.Media.VisualTreeHelper.GetParent(parent);
             }
         }
 
-        private void LoadFromAzureBlob(string connectionString, string containerName, string blobName, string targetFolder)
+        private string LoadFromAzureBlob(string connectionString, string containerName, string blobName, string targetFolder)
         {
             AzureStorageHelpers.DownloadAzureFile(connectionString, containerName, blobName, targetFolder);
 
@@ -87,6 +93,8 @@ namespace DMDashboard.Wifi
             }
 
             string wifiString = File.ReadAllText(fullFileName);
+            File.Delete(fullFileName);
+            return wifiString;
         }
     }
 }

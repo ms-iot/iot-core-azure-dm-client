@@ -177,6 +177,9 @@
     <Compile Include="DeviceHealthAttestation\DeviceHealthAttestationReportedStateControl.xaml.cs">
       <DependentUpon>DeviceHealthAttestationReportedStateControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Wifi\WifiDetails.xaml.cs">
+      <DependentUpon>WifiDetails.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Wifi\WifiDesiredStateControl.xaml.cs">
       <DependentUpon>WifiDesiredStateControl.xaml</DependentUpon>
     </Compile>
@@ -254,6 +257,10 @@
     <Page Include="DeviceHealthAttestation\DeviceHealthAttestationReportedStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wifi\WifiDetails.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Wifi\WifiDesiredStateControl.xaml">
       <SubType>Designer</SubType>
