@@ -122,13 +122,16 @@ namespace Microsoft.Devices.Management
                     // Download profiles needed for adding from Azure and load XML into WifiProfileConfiguration.Xml
                     await UpdateConfigWithProfileXmlAsync(connectionString, needToAdd);
 
-                    // Let SystemConfigurator do the actual work
-                    var request = new Message.SetWifiConfigurationRequest(adjustedConfig);
-                    var response = await _systemConfiguratorProxy.SendCommandAsync(request);
-
-                    if (response.Status != ResponseStatus.Success)
+                    try
                     {
-                        return;
+                        // Let SystemConfigurator do the actual work
+                        var request = new Message.SetWifiConfigurationRequest(adjustedConfig);
+                        await _systemConfiguratorProxy.SendCommandAsync(request);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"SetWifiConfigurationRequest failed: {e}");
+                        // response = new { response = "rejected:", reason = e.Message };
                     }
                 }
 
