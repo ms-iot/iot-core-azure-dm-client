@@ -19,7 +19,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace DMDashboard.Wifi
+namespace DMDashboard
 {
     /// <summary>
     /// Interaction logic for WifiProfilesReportedStateControl.xaml

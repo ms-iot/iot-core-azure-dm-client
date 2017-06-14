@@ -21,7 +21,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace DMDashboard.Wifi
+namespace DMDashboard
 {
     /// <summary>
     /// Interaction logic for WifiReportedStateControl.xaml

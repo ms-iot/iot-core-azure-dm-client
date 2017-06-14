@@ -20,7 +20,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace DMDashboard.Wifi
+namespace DMDashboard
 {
     /// <summary>
     /// Interaction logic for WifiProfilesDesiredStateControl.xaml
@@ -48,7 +48,7 @@ namespace DMDashboard.Wifi
 
         private void OnAddProfile(object sender, RoutedEventArgs e)
         {
-            AddProfile(new Wifi.WifiProfileConfiguration());
+            AddProfile(new WifiProfileConfiguration());
         }
 
         public string ToJson()

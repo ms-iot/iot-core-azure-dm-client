@@ -5,7 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DMDashboard"
         xmlns:DeviceHealthAttestation="clr-namespace:DMDashboard.DeviceHealthAttestation"
-        xmlns:Wifi="clr-namespace:DMDashboard.Wifi"
         mc:Ignorable="d"
         Title="MainWindow" Height="700" Width="1400">
     <Grid>
@@ -862,8 +861,8 @@
                             <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                             <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
 
-                            <Wifi:WifiProfilesDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="WifiDesiredState"/>
-                            <Wifi:WifiProfilesReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="WifiReportedState"/>
+                            <local:WifiProfilesDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="WifiDesiredState"/>
+                            <local:WifiProfilesReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="WifiReportedState"/>
 
                             <Button Grid.Row="4" Grid.Column="1" Margin="10,0,10,3" Content="Set Wifi Configuration" Click="OnSetWifiConfiguration" />
                         </Grid>
