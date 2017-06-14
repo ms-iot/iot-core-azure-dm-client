@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017 Microsoft
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
 and associated documentation files (the "Software"), to deal in the Software without restriction, 
@@ -12,27 +12,22 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
 
-#include <vector>
-#include <string>
+using Microsoft.Devices.Management.DMDataContract;
+using Newtonsoft.Json;
+using System.Text;
+using System.Windows.Controls;
 
-class WifiCSP
+namespace DMDashboard
 {
-public:
-    static std::vector<std::wstring> GetProfiles();
-
-    static void AddProfile(const std::wstring& profileName, const std::wstring& profileXml);
-    static void DeleteProfile(const std::wstring& profileName);
-    static std::wstring GetProfile(const std::wstring& profileName);
-    static void SetProfile(const std::wstring& profileName, const std::wstring& profileXml);
-
-    // DisableInternetConnectivityChecks
-    // Per composition, this is only supported on Mobile, Desktop
-
-    // Proxy
-    // ProxyPacUrl
-    // ProxyWPAD
-    // From MSDN: These configurations are only supported in Windows 10 Mobile.
-    // https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/wifi-csp
-};
+    /// <summary>
+    /// Interaction logic for WifiDesiredStateControl.xaml
+    /// </summary>
+    public partial class WifiDesiredStateControl : UserControl
+    {
+        public WifiDesiredStateControl()
+        {
+            InitializeComponent();
+        }
+    }
+}

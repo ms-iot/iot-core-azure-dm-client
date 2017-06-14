@@ -91,6 +91,7 @@ int main(Platform::Array<Platform::String^>^ args)
         TRACE("Reading request from stdin...");
 
         Blob^ request = Blob::ReadFromNativeHandle(stdinHandle.Get64());
+        
 
         try
         {

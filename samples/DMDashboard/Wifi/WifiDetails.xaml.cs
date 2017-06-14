@@ -12,27 +12,32 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
-#include <vector>
-#include <string>
-
-class WifiCSP
+namespace DMDashboard
 {
-public:
-    static std::vector<std::wstring> GetProfiles();
+    /// <summary>
+    /// Interaction logic for WifiDetails.xaml
+    /// </summary>
+    public partial class WifiDetails : Window
+    {
+        public WifiDetails()
+        {
+            InitializeComponent();
+        }
 
-    static void AddProfile(const std::wstring& profileName, const std::wstring& profileXml);
-    static void DeleteProfile(const std::wstring& profileName);
-    static std::wstring GetProfile(const std::wstring& profileName);
-    static void SetProfile(const std::wstring& profileName, const std::wstring& profileXml);
-
-    // DisableInternetConnectivityChecks
-    // Per composition, this is only supported on Mobile, Desktop
-
-    // Proxy
-    // ProxyPacUrl
-    // ProxyWPAD
-    // From MSDN: These configurations are only supported in Windows 10 Mobile.
-    // https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/wifi-csp
-};
+        public string Xml {  set { this.xml.Text = value; } }
+    }
+}

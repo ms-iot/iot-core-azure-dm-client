@@ -17,19 +17,42 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "MdmProvision.h"
 #include "..\SharedUtilities\Logger.h"
 
+using namespace Windows::Data::Json;
 using namespace std;
 
-const wchar_t* WifeProfilePath = L"./Vendor/MSFT/WiFi/Profile/";
+#define WIFI_PROFILE_PATH L"./Vendor/MSFT/WiFi/Profile"
 
 // Wifi CSP docs
 // https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/wifi-csp
 //
 
+vector<wstring> WifiCSP::GetProfiles()
+{
+    TRACE(__FUNCTION__);
+
+    vector<wstring> data;
+    // use std::function to pass lambda that captures something
+    std::function<void(std::vector<std::wstring>&, std::wstring&)> valueHandler =
+        [&data](vector<wstring>& uriTokens, wstring& value) {
+            if (uriTokens.size() == 6)
+            {
+                // 0/__1____/_2_/__3__/__4___/______5______
+                // ./Vendor/MSFT/WiFi/Profile/connector701
+                data.push_back(uriTokens[5]);
+            }
+        };
+
+    wstring path = WIFI_PROFILE_PATH L"?list=StructData";
+    MdmProvision::RunGetStructData(path, valueHandler);
+
+    return data;
+}
+
 void WifiCSP::AddProfile(const wstring& profileName, const wstring& profileXml)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
+    wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
     path += L"/WlanXml";
 
@@ -40,7 +63,7 @@ void WifiCSP::DeleteProfile(const wstring& profileName)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
+    wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
 
     MdmProvision::RunDelete(path);
@@ -50,8 +73,9 @@ wstring WifiCSP::GetProfile(const wstring& profileName)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
+    wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
+    path += L"/WlanXml";
 
     wstring profileXml = MdmProvision::RunGetString(path);
     TRACEP(L" profile xml = ", profileXml.c_str());
@@ -62,147 +86,10 @@ void WifiCSP::SetProfile(const wstring& profileName, const wstring& profileXml)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = WifeProfilePath;
+    wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
     path += L"/WlanXml";
 
     MdmProvision::RunSet(path, profileXml);
 }
 
-void WifiCSP::AddProxy(const wstring& profileName, const wstring& proxy)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/Proxy";
-
-    MdmProvision::RunAddData(path, proxy);
-}
-
-void WifiCSP::DeleteProxy(const wstring& profileName)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/Proxy";
-
-    MdmProvision::RunDelete(path);
-}
-
-wstring WifiCSP::GetProxy(const wstring& profileName)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/Proxy";
-
-    wstring proxy = MdmProvision::RunGetString(path);
-    TRACEP(L" proxy = ", proxy.c_str());
-    return proxy;
-}
-
-void WifiCSP::SetProxy(const wstring& profileName, const wstring& proxy)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/Proxy";
-
-    MdmProvision::RunSet(path, proxy);
-}
-
-void WifiCSP::AddDisableInternetConnectivityChecks(const wstring& profileName, bool disable)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/DisableInternetConnectivityChecks";
-
-    MdmProvision::RunAddData(path, disable);
-}
-
-void WifiCSP::DeleteDisableInternetConnectivityChecks(const wstring& profileName)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/DisableInternetConnectivityChecks";
-
-    MdmProvision::RunDelete(path);
-}
-
-bool WifiCSP::GetDisableInternetConnectivityChecks(const wstring& profileName)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/DisableInternetConnectivityChecks";
-
-    wstring proxy = MdmProvision::RunGetString(path);
-    TRACEP(L" proxy = ", proxy.c_str());
-    return 0 == _wcsicmp(proxy.c_str(), L"True");
-}
-
-void WifiCSP::SetDisableInternetConnectivityChecks(const wstring& profileName, bool disable)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/DisableInternetConnectivityChecks";
-
-    MdmProvision::RunSet(path, disable);
-}
-
-void AddProxyPacUrl(const wstring& profileName, const wstring& proxyPacUrl)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/ProxyPacUrl";
-
-    MdmProvision::RunAddData(path, proxyPacUrl);
-}
-
-void WifiCSP::DeleteProxyPacUrl(const wstring& profileName)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/ProxyPacUrl";
-
-    MdmProvision::RunDelete(path);
-}
-
-wstring WifiCSP::GetProxyPacUrl(const wstring& profileName)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/ProxyPacUrl";
-
-    wstring proxyPacUrl = MdmProvision::RunGetString(path);
-    TRACEP(L" proxyPacUrl = ", proxyPacUrl.c_str());
-    return proxyPacUrl;
-}
-
-void WifiCSP::SetProxyPacUrl(const wstring& profileName, const wstring& proxyPacUrl)
-{
-    TRACE(__FUNCTION__);
-
-    wstring path = WifeProfilePath;
-    path += profileName;
-    path += L"/ProxyPacUrl";
-
-    MdmProvision::RunSet(path, proxyPacUrl);
-}

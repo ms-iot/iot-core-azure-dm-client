@@ -44,6 +44,19 @@ namespace IoTDMClient
             await AzureBlobFileTransfer.TransferFileAsync(info, client);
             return path;
         }
+        public static BlobInfo BlobInfoFromSource(string connectionString, string containerAndFile)
+        {
+            string[] sourceParts = containerAndFile.Split('\\');
+            if (sourceParts.Length != 2)
+            {
+                throw new Exception("container name is missing in: " + containerAndFile);
+            }
+            IoTDMClient.BlobInfo info = new IoTDMClient.BlobInfo();
+            info.ConnectionString = connectionString;
+            info.ContainerName = sourceParts[0];
+            info.BlobName = sourceParts[1];
+            return info;
+        }
     }
 
     internal static class AzureBlobFileTransfer

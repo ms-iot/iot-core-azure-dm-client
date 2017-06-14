@@ -110,11 +110,32 @@ namespace Microsoft.Devices.Management
             this._systemConfiguratorProxy = systemConfiguratorProxy;
             this._externalStorage = new ExternalStorage();
             this._desiredPropertyMap = new Dictionary<string, IClientPropertyHandler>();
+            this._desiredPropertyDependencyMap = new Dictionary<string, List<IClientPropertyDependencyHandler>>();
         }
 
         private void AddPropertyHandler(IClientPropertyHandler handler)
         {
             this._desiredPropertyMap.Add(handler.PropertySectionName, handler);
+
+            var handlerWithDependencies = handler as IClientPropertyDependencyHandler;
+            if (handlerWithDependencies != null)
+            {
+                foreach (var dependencySection in handlerWithDependencies.PropertySectionDependencyNames)
+                {
+                    AddPropertyDependencyHandler(dependencySection, handlerWithDependencies);
+                }
+            }
+        }
+
+        private void AddPropertyDependencyHandler(string sectionName, IClientPropertyDependencyHandler handler)
+        {
+            List<IClientPropertyDependencyHandler> handlerList;
+            if (!this._desiredPropertyDependencyMap.TryGetValue(sectionName, out handlerList))
+            {
+                handlerList = new List<IClientPropertyDependencyHandler>();
+                this._desiredPropertyDependencyMap.Add(sectionName, handlerList);
+            }
+            handlerList.Add(handler);
         }
 
         private async Task AddDirectMethodHandlerAsync(IClientDirectMethodHandler handler)
@@ -144,6 +165,10 @@ namespace Microsoft.Devices.Management
 
             deviceManagementClient._windowsUpdatePolicyHandler = new WindowsUpdatePolicyHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsUpdatePolicyHandler);
+
+            var wifiHandler = new WifiHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(wifiHandler);
+            deviceManagementClient.AddDirectMethodHandlerAsync(wifiHandler);
 
             return deviceManagementClient;
         }
@@ -600,6 +625,29 @@ namespace Microsoft.Devices.Management
 
             foreach (var managementProperty in dmNode.Children().OfType<JProperty>())
             {
+                // Handle any dependencies first
+                List<IClientPropertyDependencyHandler> handlers;
+                if (this._desiredPropertyDependencyMap.TryGetValue(managementProperty.Name, out handlers))
+                {
+                    handlers.ForEach((handler) =>
+                    {
+                        try
+                        {
+                            Debug.WriteLine($"{managementProperty.Name} = {managementProperty.Value.ToString()}");
+                            handler.OnDesiredPropertyDependencyChange(managementProperty.Name, (JObject)managementProperty.Value);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine($"Exception caught while handling desired property - {managementProperty.Name}");
+                            Debug.WriteLine(e);
+                            throw;
+                        }
+                    });
+                }
+            }
+
+            foreach (var managementProperty in dmNode.Children().OfType<JProperty>())
+            {
                 IClientPropertyHandler handler;
                 if (this._desiredPropertyMap.TryGetValue(managementProperty.Name, out handler))
                 {
@@ -780,6 +828,7 @@ namespace Microsoft.Devices.Management
 
             foreach (var handler in this._desiredPropertyMap.Values)
             {
+                // TODO: how do we ensure that only Reported=yes sections report results?
                 managementObj[handler.PropertySectionName] = await handler.GetReportedPropertyAsync();
             }
 
@@ -791,6 +840,7 @@ namespace Microsoft.Devices.Management
                 management = managementObj
             };
 
+            Debug.WriteLine($"Report properties: {managementObj.ToString()}");
             _deviceTwin.ReportProperties(collection);
         }
 
@@ -802,6 +852,7 @@ namespace Microsoft.Devices.Management
 
             return JsonConvert.SerializeObject(new { response = "success" });
         }
+
 
         //
         // Private utilities
@@ -824,6 +875,7 @@ namespace Microsoft.Devices.Management
         IDeviceTwin _deviceTwin;
         ExternalStorage _externalStorage;
         Dictionary<string, IClientPropertyHandler> _desiredPropertyMap;
+        Dictionary<string, List<IClientPropertyDependencyHandler>> _desiredPropertyDependencyMap;
     }
 
 }

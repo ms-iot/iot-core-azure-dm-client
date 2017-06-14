@@ -177,6 +177,22 @@
     <Compile Include="DeviceHealthAttestation\DeviceHealthAttestationReportedStateControl.xaml.cs">
       <DependentUpon>DeviceHealthAttestationReportedStateControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Wifi\WifiDetails.xaml.cs">
+      <DependentUpon>WifiDetails.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wifi\WifiDesiredStateControl.xaml.cs">
+      <DependentUpon>WifiDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wifi\WifiProfileConfiguration.cs" />
+    <Compile Include="Wifi\WifiProfilesDesiredStateControl.xaml.cs">
+      <DependentUpon>WifiProfilesDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wifi\WifiReportedStateControl.xaml.cs">
+      <DependentUpon>WifiReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wifi\WifiProfilesReportedStateControl.xaml.cs">
+      <DependentUpon>WifiProfilesReportedStateControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TimeSettings\TimeDesiredStateControl.xaml.cs">
       <DependentUpon>TimeDesiredStateControl.xaml</DependentUpon>
     </Compile>
@@ -239,6 +255,26 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="DeviceHealthAttestation\DeviceHealthAttestationReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wifi\WifiDetails.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Wifi\WifiDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wifi\WifiProfilesDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wifi\WifiReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wifi\WifiProfilesReportedStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -155,4 +155,11 @@ namespace Microsoft.Devices.Management
         public string IssuedTo;
         public string IssuedBy;
     }
+    class GetWifiProfileDetailsParams
+    {
+        public string profileName;
+        public string connectionString;
+        public string containerName;
+        public string blobName;
+    }
 }

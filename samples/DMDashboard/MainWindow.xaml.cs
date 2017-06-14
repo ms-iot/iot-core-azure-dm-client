@@ -377,6 +377,11 @@ namespace DMDashboard
                     var jobj = JObject.Parse(jsonProp.Value.ToString());
                     DeviceHealthAttestationReportedState.FromJson(jobj);
                 }
+                else if (jsonProp.Name == "wifi")
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    this.WifiReportedState.FromJson(jsonProp.Value);
+                }
             }
         }
 
@@ -595,9 +600,9 @@ namespace DMDashboard
         {
             StringBuilder json = new StringBuilder();
 
-            json.Append(TimeDesiredState.ToJson());
-            json.Append(",");
             json.Append(UIToExternalStorageModel().ToJson());
+            json.Append(",");
+            json.Append(TimeDesiredState.ToJson());
             json.Append(",");
             json.Append(UIToCertificateConfiguration().ToJson());
             json.Append(",");
@@ -608,6 +613,8 @@ namespace DMDashboard
             json.Append(UIToWindowsUpdatesConfiguration().ToJson());
             json.Append(",");
             json.Append(DeviceHealthAttestationDesiredState.ToJson());
+            json.Append(",");
+            json.Append(WifiDesiredState.ToJson());
 
             SetDesired(json.ToString());
         }
@@ -723,6 +730,33 @@ namespace DMDashboard
         private void ExportCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
         {
             ExportCertificateDetailsAsync(sender, certificateData);
+        }
+
+        private void OnExpandWifi(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(WifiGrid);
+        }
+
+        private void OnSetWifiConfiguration(object sender, RoutedEventArgs e)
+        {
+            SetDesired(WifiDesiredState.ToJson());
+        }
+
+        public async void ExportWifiProfileDetails(string profileName, string storageConnectionString, string storageContainer, string blobName)
+        {
+            var details = new GetWifiProfileDetailsParams();
+            {
+                details.profileName = profileName;
+                details.connectionString = storageConnectionString;
+                details.containerName = storageContainer;
+                details.blobName = blobName;
+            }
+            var parametersJson = JsonConvert.SerializeObject(details);
+            Debug.WriteLine(parametersJson);
+
+            var cancellationToken = new CancellationToken();
+            DeviceMethodReturnValue result = await this._deviceTwin.CallDeviceMethod("microsoft.management.getWifiDetails", parametersJson, new TimeSpan(0, 0, 30), cancellationToken);
+            MessageBox.Show("Get Wifi Profile Details Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
         private DeviceTwinAndMethod _deviceTwin;

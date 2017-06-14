@@ -103,6 +103,7 @@ public:
         {
             DeserializeProperties(jApplyProperties, configObject);
         }
+
         return configObject;
     }
 };
@@ -171,6 +172,7 @@ public:
         {
             DeserializeProperties(jReportProperties, configObject);
         }
+
         return configObject;
     }
 };

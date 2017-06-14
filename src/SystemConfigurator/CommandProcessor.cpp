@@ -21,6 +21,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CSPs\CertificateManagement.h"
 #include "CSPs\RebootCSP.h"
 #include "CSPs\EnterpriseModernAppManagementCSP.h"
+#include "CSPs\WifiCsp.h"
 #include "CSPs\CustomDeviceUiCsp.h"
 #include "CSPs\DeviceHealthAttestationCSP.h"
 #include "AppCfg.h"
@@ -295,6 +296,93 @@ IResponse^ HandleGetCertificateDetails(IRequest^ request)
     catch (const DMException& e)
     {
         TRACEP("ERROR DMCommand::HandleGetCertificateDetails: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
+IResponse^ HandleGetWifiConfiguration(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        auto profiles = WifiCSP::GetProfiles();
+
+        auto configuration = ref new WifiConfiguration();
+        configuration->ReportToDeviceTwin = ref new Platform::String(L"yes");
+        for each (auto profile in profiles)
+        {
+            auto profileConfig = ref new WifiProfileConfiguration();
+            profileConfig->Name = ref new Platform::String(profile.c_str());
+            TRACEP(L"Wifi profile found: ", profileConfig->Name->Data());
+            configuration->Profiles->Append(profileConfig);
+        }
+        auto response = ref new GetWifiConfigurationResponse(ResponseStatus::Success, configuration);
+        return response;
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleGetWifiConfiguration: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
+IResponse^ HandleSetWifiConfiguration(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        auto wifiRequest = dynamic_cast<SetWifiConfigurationRequest^>(request);
+        auto configuration = wifiRequest->Configuration;
+
+        if (configuration != nullptr)
+        {
+            for each (auto profile in configuration->Profiles)
+            {
+                std::wstring profileName = profile->Name->Data();
+                TRACEP(L"DMCommand::HandleSetWifiConfiguration handle profile: ", profileName);
+                TRACEP("DMCommand::HandleSetWifiConfiguration uninstall? ", profile->Uninstall);
+                if (profile->Uninstall)
+                {
+                    WifiCSP::DeleteProfile(profileName);
+                }
+                else
+                {
+                    std::wstring profileXml = profile->Xml->Data();
+                    WifiCSP::AddProfile(profileName, profileXml);
+                }
+            }
+        }
+
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleSetWifiConfiguration: ", e.what());
+        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+    }
+}
+
+IResponse^ HandleGetWifiDetails(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        auto getWifiDetailsRequest = dynamic_cast<GetWifiDetailsRequest^>(request);
+        wstring profileName = getWifiDetailsRequest->profileName->Data();
+        auto xml = WifiCSP::GetProfile(profileName);
+
+        GetWifiDetailsResponse^ getWifiDetailsResponse = ref new GetWifiDetailsResponse(ResponseStatus::Success);
+        getWifiDetailsResponse->Name = getWifiDetailsRequest->profileName;
+        getWifiDetailsResponse->Xml = ref new Platform::String(xml.c_str());
+
+        return getWifiDetailsResponse;
+    }
+    catch (const DMException& e)
+    {
+        TRACEP("ERROR DMCommand::HandleGetWifiDetails: ", e.what());
         return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
     }
 }

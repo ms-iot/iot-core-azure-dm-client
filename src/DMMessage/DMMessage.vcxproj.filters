@@ -90,6 +90,15 @@
     <ClInclude Include="Models\ModelHelper.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="Models\WifiConfiguration.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\WifiDetails.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\ModelHelper.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Models\ModelsInfo.dat" />
