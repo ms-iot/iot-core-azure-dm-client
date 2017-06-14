@@ -52,5 +52,6 @@ The specification for each operation is provided below.
 - [Device Factory Reset](device-factory-reset.md)
 - [Reboot Management](reboot-management.md)
 - [Time Management](time-management.md)
+- [WiFi](wifi-management.md)
 - [Windows Update Management](windows-update-management.md)
 - [Report All Device Properties](report-all-device-properties.md)
