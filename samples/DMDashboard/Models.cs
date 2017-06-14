@@ -105,7 +105,6 @@ namespace Microsoft.Devices.Management
     class ExternalStorage
     {
         public string connectionString;
-        public string container;
 
         public string ToJson()
         {

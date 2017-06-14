@@ -57,9 +57,6 @@
     <ClInclude Include="TimeCfg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CSPs\CustomDeviceUiCsp.h">
-      <Filter>Source Files\CSPs</Filter>
-    </ClInclude>
     <ClInclude Include="CSPs\WifiCSP.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
@@ -88,6 +85,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\DeviceHealthAttestationCSP.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\CustomDeviceUiCsp.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
   </ItemGroup>

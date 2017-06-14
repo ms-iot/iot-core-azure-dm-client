@@ -47,7 +47,7 @@ Each app is identified by its `"packageFamilyId"` - which is its package family 
         - `"?"` : This indicates that the status of this application is to be reported.
         - `"not installed"` : This indicates that the specified application should not be installed on the device. If it is already installed, the DM client will uninstall it.
     - `"appxSource": "container\appPackage.appx"`
-       - The appx package file name in the Azure blob storage. The access to the blob storage is performed as described [here](blob-storage.md). The value of this property cannot be empty or null if the app is to be installed on the device.
+       - The appx package file name in the Azure blob storage. The access to the blob storage is performed as described [here](external-storage.md). The value of this property cannot be empty or null if the app is to be installed on the device.
     - `"depsSources": "container\dep0.appx;container\dep1.appx"`
        - The semi-colon separated relative paths (in Azure Storage) of dependencies.
     - `"certSource" : "container\certificate.cer"`
@@ -93,7 +93,7 @@ The reported `"version"` value can take one of several forms:
 
 The reported `"installDate"` property is not present if the value of `"version"` is `"not installed"`.
 
-Only the apps that are reported in `"desired.microsoft.management.apps"` are listed in `"reported.microsoft.management.apps"`. 
+Only the apps that are included in `"desired.microsoft.management.apps"` are listed in `"reported.microsoft.management.apps"`. 
 
 #### Unsuccessful Case
 

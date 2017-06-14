@@ -50,6 +50,7 @@ wstring CustomDeviceUiCSP::GetStartupAppId()
         L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData");
     return appId;
 }
+
 wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
 {
     TRACE(__FUNCTION__);
@@ -94,6 +95,7 @@ wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
         valueHandler);
     return data->Stringify()->Data();
 }
+
 void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add)
 {
     TRACE(__FUNCTION__);
@@ -153,16 +155,18 @@ void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add
     MdmProvision::RunSyncML(sid, buff.data(), output);
 
 }
+
 void CustomDeviceUiCSP::AddAsStartupApp(const wstring& appId, bool backgroundApplication)
 {
     TRACE(__FUNCTION__);
 
-    HandleStartupApp(appId, backgroundApplication, true);
+    HandleStartupApp(appId, backgroundApplication, true /*add*/);
 }
+
 void CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(const wstring& appId)
 {
     TRACE(__FUNCTION__);
 
-    HandleStartupApp(appId, true, false);
+    HandleStartupApp(appId, true, false /*replace/delete*/);
 }
 

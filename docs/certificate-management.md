@@ -6,6 +6,9 @@ The **Certificate Management** functionality allows the operator to perform the 
 - List installed certificates.
 - Get detailed information about an installed certificate.
 
+To install new certificates, the operator will have to upload the certificate files to an Azure Storage account and save them in a container named ```certificates```.
+The external Azure is specified by the node [externalStorage](external-storage.md) in the desired properties. If this node is not set or not present, the certificate installation will fail.
+
 Those tasks can be performed on a pre-defined set of CSP paths. Below is a list of those CSPs path along with the corresponding json property name for each.
 
 - ./Device/Vendor/MSFT/RootCATrustedCertificates/Root **<-->** rootCATrustedCertificates_Root

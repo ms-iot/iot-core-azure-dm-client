@@ -233,6 +233,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             });
         }
 
+        [Windows::Foundation::Metadata::DefaultOverloadAttribute]
         static IDataPayload^ Deserialize(Blob^ blob)
         {
             assert(blob->Tag == DMMessageKind::SetWindowsUpdatePolicy);
@@ -301,6 +302,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             });
         }
 
+        [Windows::Foundation::Metadata::DefaultOverloadAttribute]
         static IDataPayload^ Deserialize(Blob^ blob)
         {
             return Deserialize(SerializationHelper::GetStringFromBlob(blob));

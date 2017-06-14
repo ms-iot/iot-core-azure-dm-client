@@ -528,7 +528,6 @@ namespace DMDashboard
         {
             ExternalStorage externalStorage = new ExternalStorage();
             externalStorage.connectionString = AzureStorageConnectionString.Text;
-            externalStorage.container = AzureStorageContainerName.Text;
             return externalStorage;
         }
 
