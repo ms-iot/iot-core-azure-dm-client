@@ -742,7 +742,7 @@ namespace DMDashboard
             SetDesired(WifiDesiredState.ToJson());
         }
 
-        public void ExportWifiProfileDetails(string profileName, string storageConnectionString, string storageContainer, string blobName)
+        public async void ExportWifiProfileDetails(string profileName, string storageConnectionString, string storageContainer, string blobName)
         {
             var details = new GetWifiProfileDetailsParams();
             {
@@ -755,7 +755,8 @@ namespace DMDashboard
             Debug.WriteLine(parametersJson);
 
             var cancellationToken = new CancellationToken();
-            this._deviceTwin.CallDeviceMethod("microsoft.management.getWifiDetails", parametersJson, new TimeSpan(0, 0, 30), cancellationToken);
+            DeviceMethodReturnValue result = await this._deviceTwin.CallDeviceMethod("microsoft.management.getWifiDetails", parametersJson, new TimeSpan(0, 0, 30), cancellationToken);
+            MessageBox.Show("Get Wifi Profile Details Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
         private DeviceTwinAndMethod _deviceTwin;

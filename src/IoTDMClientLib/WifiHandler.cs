@@ -24,10 +24,11 @@ using Newtonsoft.Json;
 using Windows.Storage;
 using IoTDMClient;
 using DMDataContract;
+using System.IO;
 
 namespace Microsoft.Devices.Management
 {
-    class WifiHandler : IClientPropertyHandler, IClientPropertyDependencyHandler
+    class WifiHandler : IClientPropertyHandler, IClientPropertyDependencyHandler, IClientDirectMethodHandler
     {
         const string JsonSectionName = "wifi";
         string [] JsonSectionDependencyNames = { "externalStorage" };
@@ -36,6 +37,15 @@ namespace Microsoft.Devices.Management
         {
             this._systemConfiguratorProxy = systemConfiguratorProxy;
             this._callback = callback;
+        }
+
+        // IClientDirectMethodHandler
+        public IReadOnlyDictionary<string, Func<string, Task<string>>> GetDirectMethodHandler()
+        {
+            return new Dictionary<string, Func<string, Task<string>>>()
+                {
+                    { "microsoft.management.getWifiDetails" , GetWifiProfileDetailsAsync },
+                };
         }
 
         // IClientPropertyHandler
@@ -188,6 +198,58 @@ namespace Microsoft.Devices.Management
                 // externalStorage
                 this._connectionString = (string)value.Property("connectionString").Value;
             }
+        }
+
+        public struct GetWifiProfileDetailsParams
+        {
+            public string profileName;
+            public string connectionString;
+            public string containerName;
+            public string blobName;
+        }
+
+        private async Task DoGetWifiProfileDetailsAsync(string jsonParam)
+        {
+            GetWifiProfileDetailsParams parameters = JsonConvert.DeserializeObject<GetWifiProfileDetailsParams>(jsonParam);
+
+            var request = new Message.GetWifiDetailsRequest();
+            request.profileName = parameters.profileName;
+
+            Message.GetWifiDetailsResponse response = await _systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWifiDetailsResponse;
+
+            var info = new Message.AzureFileTransferInfo()
+            {
+                ConnectionString = parameters.connectionString,
+                ContainerName = parameters.containerName,
+                BlobName = parameters.blobName,
+                Upload = true,
+                LocalPath = ""
+            };
+
+            var appLocalDataFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(parameters.blobName, CreationCollisionOption.ReplaceExisting);
+            using (StreamWriter writer = new StreamWriter(await appLocalDataFile.OpenStreamForWriteAsync()))
+            {
+                await writer.WriteAsync(response.Xml);
+            }
+            await IoTDMClient.AzureBlobFileTransfer.UploadFile(info, appLocalDataFile);
+
+            await appLocalDataFile.DeleteAsync();
+        }
+
+        private Task<string> GetWifiProfileDetailsAsync(string jsonParam)
+        {
+            var response = new { response = "succeeded", reason = "" };
+            try
+            {
+                // Submit the work and return immediately.
+                DoGetWifiProfileDetailsAsync(jsonParam);
+            }
+            catch (Exception e)
+            {
+                response = new { response = "rejected:", reason = e.Message };
+            }
+
+            return Task.FromResult(JsonConvert.SerializeObject(response));
         }
 
         private string _connectionString;
