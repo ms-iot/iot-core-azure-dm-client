@@ -45,7 +45,7 @@ The operator can specify the list of desired wifi profiles to be installed or un
 </pre>
 
 - `"profile": "container\profile.xml"`
-  - The wifi profile file name in the Azure blob storage. The access to the blob storage is performed as described [here](blob-storage.md). The value of this property cannot be empty or null if the profile is to be installed on the device.  The file must follow the [WLAN_profile Schema](http://go.microsoft.com/fwlink/p/?LinkId=325608) on MSDN.
+  - The wifi profile file name in the Azure blob storage. The access to the blob storage is performed as described [here](external-storage.md). The value of this property cannot be empty or null if the profile is to be installed on the device.  The file must follow the [WLAN_profile Schema](http://go.microsoft.com/fwlink/p/?LinkId=325608) on MSDN.
 - The ```"reportProperties"``` can be set to one of the following values:
   - ```"yes"```: tells the DM client to report the Windows Update Policy state of the device.
   - ```"no"```: tells the DM client to not report the Wifi section in the reported properties. This can be useful to free some room in the Device Twin.
