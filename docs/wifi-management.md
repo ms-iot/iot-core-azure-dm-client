@@ -146,7 +146,7 @@ If the operator wants to uninstall a wifi profile (home-wifi.xml), the following
     "desired": {
       "microsoft": {
         "management": {
-          "wifi": "no-no"
+          "wifi": "no-apply-no-report"
         }
       }
     }
@@ -172,7 +172,7 @@ If the operator wants to uninstall a wifi profile (home-wifi.xml), the following
     "desired": {
       "microsoft": {
         "management": {
-          "wifi": "no-yes"
+          "wifi": "no-apply-yes-report"
         }
       }
     }

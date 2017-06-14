@@ -82,9 +82,9 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto getWifiDetailsResponse = ref new GetWifiDetailsResponse(ResponseStatus::Success);
-            getWifiDetailsResponse->Name = jsonObject->GetNamedString("Name");
-            getWifiDetailsResponse->Xml = jsonObject->GetNamedString("Xml");
-            getWifiDetailsResponse->DisableInternetConnectivityChecks = jsonObject->GetNamedBoolean("DisableInternetConnectivityChecks");
+            getWifiDetailsResponse->Name = jsonObject->GetNamedString("name");
+            getWifiDetailsResponse->Xml = jsonObject->GetNamedString("xml");
+            getWifiDetailsResponse->DisableInternetConnectivityChecks = jsonObject->GetNamedBoolean("disableInternetConnectivityChecks");
 
             return getWifiDetailsResponse;
         }

@@ -15,7 +15,9 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Microsoft.Devices.Management.DMDataContract;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -30,6 +32,61 @@ namespace DMDashboard.Wifi
         {
             InitializeComponent();
         }
+        private void OnWifiProfileDetails_Upload(object sender, RoutedEventArgs e)
+        {
+            var parent = System.Windows.Media.VisualTreeHelper.GetParent(sender as DependencyObject);
+            while (parent != null)
+            {
+                var mainWindow = parent as MainWindow;
+                if (mainWindow != null)
+                {
+                    var storageConnectionString = mainWindow.AzureStorageConnectionString.Text;
+                    var storageContainerName = mainWindow.AzureStorageContainerName.Text;
+                    var wifiProfile = DataContext as WifiProfileConfiguration;
+                    string blobName = $"exported_{wifiProfile.Name}";
+                    mainWindow.ExportWifiProfileDetails(
+                        wifiProfile.Name, 
+                        storageConnectionString, 
+                        storageContainerName,
+                        blobName);
+                    return;
+                }
+                parent = System.Windows.Media.VisualTreeHelper.GetParent(parent);
+            }
+        }
+        private void OnWifiProfileDetails_View(object sender, RoutedEventArgs e)
+        {
+            var parent = System.Windows.Media.VisualTreeHelper.GetParent(sender as DependencyObject);
+            while (parent != null)
+            {
+                var mainWindow = parent as MainWindow;
+                if (mainWindow != null)
+                {
+                    var storageConnectionString = mainWindow.AzureStorageConnectionString.Text;
+                    var storageContainerName = mainWindow.AzureStorageContainerName.Text;
 
+                    var wifiProfile = DataContext as WifiProfileConfiguration;
+                    string blobName = $"exported_{wifiProfile.Name}";
+
+                    string tempPath = Path.GetTempPath();
+                    LoadFromAzureBlob(storageConnectionString, storageContainerName, blobName, $"{tempPath}wifi");
+                    return;
+                }
+                parent = System.Windows.Media.VisualTreeHelper.GetParent(parent);
+            }
+        }
+
+        private void LoadFromAzureBlob(string connectionString, string containerName, string blobName, string targetFolder)
+        {
+            AzureStorageHelpers.DownloadAzureFile(connectionString, containerName, blobName, targetFolder);
+
+            string fullFileName = targetFolder + "\\" + blobName;
+            if (!File.Exists(fullFileName))
+            {
+                throw new Exception("Error: failed to download wifi xml file!");
+            }
+
+            string wifiString = File.ReadAllText(fullFileName);
+        }
     }
 }

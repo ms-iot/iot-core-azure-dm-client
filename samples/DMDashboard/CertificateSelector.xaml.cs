@@ -238,7 +238,8 @@ namespace DMDashboard
                 if (!certificateData.DetailsAvailable)
                 {
                     string blobName = certificateData.Hash + ".json";
-                    certificateData.LoadFromJsonAzureBlob(ConnectionString, ContainerName, blobName, @"c:\temp\certificates");
+                    string tempPath = Path.GetTempPath();
+                    certificateData.LoadFromJsonAzureBlob(ConnectionString, ContainerName, blobName, $"{tempPath}certificates");
                 }
                 ShowCertificateDetails(this, certificateData);
             }

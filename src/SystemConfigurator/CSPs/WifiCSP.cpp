@@ -75,6 +75,7 @@ wstring WifiCSP::GetProfile(const wstring& profileName)
 
     wstring path = WIFI_PROFILE_PATH L"/";
     path += profileName;
+    path += L"/WlanXml";
 
     wstring profileXml = MdmProvision::RunGetString(path);
     TRACEP(L" profile xml = ", profileXml.c_str());

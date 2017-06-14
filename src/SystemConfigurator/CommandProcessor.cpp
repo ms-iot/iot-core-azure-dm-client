@@ -371,10 +371,12 @@ IResponse^ HandleGetWifiDetails(IRequest^ request)
     try
     {
         auto getWifiDetailsRequest = dynamic_cast<GetWifiDetailsRequest^>(request);
-        //TODO: fill in details
+        wstring profileName = getWifiDetailsRequest->profileName->Data();
+        auto xml = WifiCSP::GetProfile(profileName);
 
         GetWifiDetailsResponse^ getWifiDetailsResponse = ref new GetWifiDetailsResponse(ResponseStatus::Success);
-        //TODO: fill in details
+        getWifiDetailsResponse->Name = getWifiDetailsRequest->profileName;
+        getWifiDetailsResponse->Xml = ref new Platform::String(xml.c_str());
 
         return getWifiDetailsResponse;
     }
