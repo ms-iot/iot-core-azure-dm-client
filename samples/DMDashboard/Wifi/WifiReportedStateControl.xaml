@@ -4,22 +4,24 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:DMDashboard.Wifi"
-             mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
+             mc:Ignorable="d">
+    
+    <Grid Margin="3">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="100"/>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
+        
         <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Profile Name"/>
         <Border Grid.Row="0" Grid.Column="1" Background="#F8F8F8" Margin="3">
-            <TextBlock Width="200" Margin="3" x:Name="ProfileName" HorizontalAlignment="Left" Text="{Binding Name}" />
+            <TextBlock Margin="3" x:Name="ProfileName" HorizontalAlignment="Stretch" Text="{Binding Name}"/>
         </Border>
+        
         <Button Grid.Row="0" Grid.Column="2" Margin="3" Content="Upload" Click="OnWifiProfileDetails_Upload" />
         <Button Grid.Row="0" Grid.Column="3" Margin="3" Content="Details" Click="OnWifiProfileDetails_View" />
     </Grid>

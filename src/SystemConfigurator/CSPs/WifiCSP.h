@@ -27,10 +27,8 @@ public:
     static std::wstring GetProfile(const std::wstring& profileName);
     static void SetProfile(const std::wstring& profileName, const std::wstring& profileXml);
 
-    static void AddDisableInternetConnectivityChecks(const std::wstring& profileName, bool disable);
-    static void DeleteDisableInternetConnectivityChecks(const std::wstring& profileName);
-    static bool GetDisableInternetConnectivityChecks(const std::wstring& profileName);
-    static void SetDisableInternetConnectivityChecks(const std::wstring& profileName, bool disable);
+    // DisableInternetConnectivityChecks
+    // Per composition, this is only supported on Mobile, Desktop
 
     // Proxy
     // ProxyPacUrl

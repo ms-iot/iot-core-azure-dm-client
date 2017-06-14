@@ -47,7 +47,7 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        private class WifiProfileConfigurationComparer : IEqualityComparer<WifiProfileConfiguration>
+        private class WifiProfileConfigurationNameComparer : IEqualityComparer<WifiProfileConfiguration>
         {
             public bool Equals(WifiProfileConfiguration x, WifiProfileConfiguration y)
             {
@@ -109,9 +109,9 @@ namespace Microsoft.Devices.Management
                 var desiredConfigurationProfiles = desiredConfiguration.Profiles;
 
                 // Only profiles that don't already exist need to be installed
-                var needToAdd = desiredConfigurationProfiles.Where((config) => { return !config.Uninstall; }).Except(reportedConfigurationProfiles, new WifiProfileConfigurationComparer());
+                var needToAdd = desiredConfigurationProfiles.Where((config) => { return !config.Uninstall; }).Except(reportedConfigurationProfiles, new WifiProfileConfigurationNameComparer());
                 // Only profiles that already exist need to be uninstalled
-                needToRemove = desiredConfigurationProfiles.Where((config) => { return config.Uninstall; }).Intersect(reportedConfigurationProfiles, new WifiProfileConfigurationComparer());
+                needToRemove = desiredConfigurationProfiles.Where((config) => { return config.Uninstall; }).Intersect(reportedConfigurationProfiles, new WifiProfileConfigurationNameComparer());
                 // Create list of profiles for SystemConfigurator based on what NEEDS to be done
                 var adjustedConfig = new WifiConfiguration() { ApplyFromDeviceTwin = desiredConfiguration.ApplyFromDeviceTwin, ReportToDeviceTwin = desiredConfiguration.ReportToDeviceTwin };
                 adjustedConfig.Profiles = needToRemove.Union(needToAdd).ToList();

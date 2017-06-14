@@ -33,8 +33,7 @@ The operator can specify the list of desired wifi profiles to be installed or un
           "wifi": {
             "applyProperties": {
               "WifiProfile1": {
-                "profile": "<i>see below</i>",
-                "disableInternetConnectivityChecks": "true",
+                "profile": "<i>see below</i>"
               },
               "WifiProfile2": "uninstall"
             },
@@ -68,7 +67,7 @@ The device current state of the **Wifi** can be inspected through the ```"wifi"`
 </pre>
 
 ## Retrieve Wifi Details
-To get more details about any of the installed wifi profiles, the request can be initiated by calling the asynchronous `microsoft.management.getProfileDetails` method.
+To get more details about any of the installed wifi profiles, the request can be initiated by calling the asynchronous `microsoft.management.getWifiDetails` method.
 The method will schedule a job on the device to capture the wifi profile details in a json file and upload it to the specified blob in Azure Storage.
 The method returns immediately and indicates that it has accepted or rejected the job.
 

@@ -14,7 +14,6 @@ namespace DMDashboard.Wifi
         public string Name { get; set; }
         public string Profile { get; set; }
         public bool Uninstall { get; set; }
-        public bool DisableInternetConnectivityChecks { get; set; }
 
         public string ToJsonString()
         {
@@ -23,8 +22,7 @@ namespace DMDashboard.Wifi
             if (this.Uninstall) sb.Append("\"uninstall\"");
             else
             {
-                var disable = DisableInternetConnectivityChecks ? "true" : "false";
-                sb.Append($"{{\"profile\": \"{Profile}\",\n\"disableInternetConnectivityChecks\": {disable}}}");
+                sb.Append($"{{\"profile\": \"{Profile}\"}}");
             };
             return sb.ToString();
         }

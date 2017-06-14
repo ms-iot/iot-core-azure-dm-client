@@ -32,6 +32,9 @@ namespace DMDashboard.Wifi
         {
             InitializeComponent();
         }
+
+        private static string GetBlobName(string profileName) => $"exported_{profileName}.xml";
+
         private void OnWifiProfileDetails_Upload(object sender, RoutedEventArgs e)
         {
             var parent = System.Windows.Media.VisualTreeHelper.GetParent(sender as DependencyObject);
@@ -40,15 +43,13 @@ namespace DMDashboard.Wifi
                 var mainWindow = parent as MainWindow;
                 if (mainWindow != null)
                 {
-                    var storageConnectionString = mainWindow.AzureStorageConnectionString.Text;
-                    var storageContainerName = mainWindow.AzureStorageContainerName.Text;
                     var wifiProfile = DataContext as WifiProfileConfiguration;
-                    string blobName = $"exported_{wifiProfile.Name}";
+                    var profileName = wifiProfile.Name;
                     mainWindow.ExportWifiProfileDetails(
-                        wifiProfile.Name, 
-                        storageConnectionString, 
-                        storageContainerName,
-                        blobName);
+                        profileName,
+                        mainWindow.AzureStorageConnectionString.Text,
+                        mainWindow.AzureStorageContainerName.Text,
+                        GetBlobName(profileName));
                     return;
                 }
                 parent = System.Windows.Media.VisualTreeHelper.GetParent(parent);
@@ -64,12 +65,10 @@ namespace DMDashboard.Wifi
                 {
                     var storageConnectionString = mainWindow.AzureStorageConnectionString.Text;
                     var storageContainerName = mainWindow.AzureStorageContainerName.Text;
-
                     var wifiProfile = DataContext as WifiProfileConfiguration;
-                    string blobName = $"exported_{wifiProfile.Name}";
+                    string blobName = GetBlobName(wifiProfile.Name);
 
-                    string tempPath = Path.GetTempPath();
-                    string wifiString = LoadFromAzureBlob(storageConnectionString, storageContainerName, blobName, $"{tempPath}wifi");
+                    string wifiString = LoadFromAzureBlob(storageConnectionString, storageContainerName, blobName);
 
                     WifiDetails details = new WifiDetails();
                     details.Owner = mainWindow;
@@ -82,19 +81,24 @@ namespace DMDashboard.Wifi
             }
         }
 
-        private string LoadFromAzureBlob(string connectionString, string containerName, string blobName, string targetFolder)
+        private string LoadFromAzureBlob(string connectionString, string containerName, string blobName)
         {
-            AzureStorageHelpers.DownloadAzureFile(connectionString, containerName, blobName, targetFolder);
-
-            string fullFileName = targetFolder + "\\" + blobName;
+            string tempPath = Path.GetTempPath();
+            AzureStorageHelpers.DownloadAzureFile(connectionString, containerName, blobName, tempPath);
+            string fullFileName = tempPath + blobName;
             if (!File.Exists(fullFileName))
             {
                 throw new Exception("Error: failed to download wifi xml file!");
             }
-
-            string wifiString = File.ReadAllText(fullFileName);
-            File.Delete(fullFileName);
-            return wifiString;
+            try
+            {
+                string wifiString = File.ReadAllText(fullFileName);
+                return wifiString;
+            }
+            finally
+            {
+                File.Delete(fullFileName);
+            }
         }
     }
 }

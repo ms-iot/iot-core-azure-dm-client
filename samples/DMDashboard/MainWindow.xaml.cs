@@ -744,9 +744,18 @@ namespace DMDashboard
 
         public void ExportWifiProfileDetails(string profileName, string storageConnectionString, string storageContainer, string blobName)
         {
-            CancellationToken cancellationToken = new CancellationToken();
-            string parametersString = $"{{ \"profileName\":\"{profileName}\", \"connectionString\": \"{storageConnectionString}\", \"containerName\": \"{storageContainer}\", \"blobName\": \"{blobName}\" }}";
-            this._deviceTwin.CallDeviceMethod("microsoft.management.getWifiDetails", parametersString, new TimeSpan(0, 0, 30), cancellationToken);
+            var details = new GetWifiProfileDetailsParams();
+            {
+                details.profileName = profileName;
+                details.connectionString = storageConnectionString;
+                details.containerName = storageContainer;
+                details.blobName = blobName;
+            }
+            var parametersJson = JsonConvert.SerializeObject(details);
+            Debug.WriteLine(parametersJson);
+
+            var cancellationToken = new CancellationToken();
+            this._deviceTwin.CallDeviceMethod("microsoft.management.getWifiDetails", parametersJson, new TimeSpan(0, 0, 30), cancellationToken);
         }
 
         private DeviceTwinAndMethod _deviceTwin;

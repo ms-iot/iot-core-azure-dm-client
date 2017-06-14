@@ -12,7 +12,6 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -25,8 +24,6 @@
             <TextBox Grid.Row="1" Grid.Column="1" Margin="3" x:Name="Profile" HorizontalAlignment="Stretch" Text="{Binding Profile}"/>
             <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Uninstall"/>
             <CheckBox Grid.Row="2" Grid.Column="1" Margin="3" x:Name="Uninstall" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding  Path=Uninstall}"/>
-            <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Disable Checks" Visibility="Collapsed"/>
-            <CheckBox Grid.Row="3" Grid.Column="1" Margin="3" x:Name="DisableInternetConnectivityChecks" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Path=DisableInternetConnectivityChecks}"  Visibility="Collapsed"/>
         </Grid>
     </Border>
 </UserControl>
