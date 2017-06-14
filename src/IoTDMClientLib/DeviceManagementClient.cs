@@ -41,12 +41,6 @@ namespace Microsoft.Devices.Management
             public string response;
         }
 
-        public struct ExternalStorage
-        {
-            public string connectionString;
-            public string containerName;
-        }
-
         public struct GetCertificateDetailsParams
         {
             public string path;
@@ -108,7 +102,6 @@ namespace Microsoft.Devices.Management
             this._deviceTwin = deviceTwin;
             this._requestHandler = requestHandler;
             this._systemConfiguratorProxy = systemConfiguratorProxy;
-            this._externalStorage = new ExternalStorage();
             this._desiredPropertyMap = new Dictionary<string, IClientPropertyHandler>();
             this._desiredPropertyDependencyMap = new Dictionary<string, List<IClientPropertyDependencyHandler>>();
         }
@@ -693,9 +686,7 @@ namespace Microsoft.Devices.Management
                                 Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
 
                                 JObject subProperties = (JObject)managementProperty.Value;
-
-                                _externalStorage.connectionString = (string)subProperties.Property("connectionString").Value;
-                                _externalStorage.containerName = (string)subProperties.Property("container").Value;
+                                _externalStorageConnectionString = (string)subProperties.Property("connectionString").Value;
                             }
                             break;
                         case "certificates":
@@ -743,20 +734,16 @@ namespace Microsoft.Devices.Management
             // Now, handle the operations that depend on others in the necessary order.
             // By now, Azure storage information should have been captured.
 
-            if (!String.IsNullOrEmpty(_externalStorage.connectionString))
+            if (!String.IsNullOrEmpty(_externalStorageConnectionString))
             {
                 if (appsConfiguration != null)
                 {
-                    AppxManagement.ApplyDesiredAppsConfiguration(this, _externalStorage.connectionString, appsConfiguration);
+                    AppxManagement.ApplyDesiredAppsConfiguration(this, _externalStorageConnectionString, appsConfiguration);
                 }
 
-                // Some operations require the default container to be specified...
-                if (!String.IsNullOrEmpty(_externalStorage.containerName))
+                if (certificateConfiguration != null)
                 {
-                    if (certificateConfiguration != null)
-                    {
-                        ProcessDesiredCertificateConfiguration(this, _externalStorage.connectionString, _externalStorage.containerName, certificateConfiguration);
-                    }
+                    ProcessDesiredCertificateConfiguration(this, _externalStorageConnectionString, "certificates", certificateConfiguration);
                 }
             }
         }
@@ -853,7 +840,6 @@ namespace Microsoft.Devices.Management
             return JsonConvert.SerializeObject(new { response = "success" });
         }
 
-
         //
         // Private utilities
         //
@@ -873,7 +859,7 @@ namespace Microsoft.Devices.Management
         WindowsUpdatePolicyHandler _windowsUpdatePolicyHandler;
         IDeviceManagementRequestHandler _requestHandler;
         IDeviceTwin _deviceTwin;
-        ExternalStorage _externalStorage;
+        string _externalStorageConnectionString;
         Dictionary<string, IClientPropertyHandler> _desiredPropertyMap;
         Dictionary<string, List<IClientPropertyDependencyHandler>> _desiredPropertyDependencyMap;
     }
