@@ -163,6 +163,9 @@ namespace Microsoft.Devices.Management
             deviceManagementClient.AddPropertyHandler(wifiHandler);
             deviceManagementClient.AddDirectMethodHandlerAsync(wifiHandler);
 
+            var appxHandler = new AppxManagement(clientCallback, systemConfiguratorProxy, deviceManagementClient._desiredCache);
+            deviceManagementClient.AddPropertyHandler(appxHandler);
+
             return deviceManagementClient;
         }
 
@@ -180,8 +183,8 @@ namespace Microsoft.Devices.Management
             if (desiredProperties.TryGetValue("microsoft", out node) && node != null && node is JObject)
             {
                 JObject microsoftNode = (JObject)node;
-                JToken token = microsoftNode.GetValue("management");
-                if (token != null && token is JObject)
+                JToken token = null;
+                if (microsoftNode.TryGetValue("management", out token) && token != null && token is JObject)
                 {
                     // We won't await on this call to let it happen in the background...
                     ApplyDesiredStateAsync((JObject)token);
@@ -214,68 +217,6 @@ namespace Microsoft.Devices.Management
             var request = new Message.CheckForUpdatesRequest();
             var response = await this._systemConfiguratorProxy.SendCommandAsync(request);
             return (response as Message.CheckForUpdatesResponse).UpdatesAvailable;
-        }
-
-        internal async Task TransferFileAsync(Message.AzureFileTransferInfo transferInfo)
-        {
-            // use C++ service to copy file to/from App LocalData
-            var request = new Message.AzureFileTransferRequest(transferInfo);
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-        }
-
-        internal async Task<IDictionary<string, Message.AppInfo>> ListAppsAsync()
-        {
-            var request = new Message.ListAppsRequest();
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return (result as Message.ListAppsResponse).Apps;
-        }
-
-        internal async Task<Message.AppInstallResponse> InstallAppAsync(Message.AppInstallRequestData requestData)
-        {
-            Debug.WriteLine("Installing: " + requestData.PackageFamilyName);
-
-            var request = new Message.AppInstallRequest(requestData);
-            return await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.AppInstallResponse;
-        }
-
-        internal async Task<Message.AppUninstallResponse> UninstallAppAsync(Message.AppUninstallRequestData requestData)
-        {
-            Debug.WriteLine("Uninstalling: " + requestData.PackageFamilyName);
-
-            var request = new Message.AppUninstallRequest(requestData);
-            return await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.AppUninstallResponse;
-        }
-
-        internal async Task<string> GetStartupForegroundAppAsync()
-        {
-            var request = new Message.GetStartupForegroundAppRequest();
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return (result as Message.GetStartupForegroundAppResponse).StartupForegroundApp;
-        }
-
-        internal async Task<IList<string>> ListStartupBackgroundAppsAsync()
-        {
-            var request = new Message.ListStartupBackgroundAppsRequest();
-            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return (result as Message.ListStartupBackgroundAppsResponse).StartupBackgroundApps;
-        }
-
-        internal async Task AddStartupAppAsync(Message.StartupAppInfo startupAppInfo)
-        {
-            var request = new Message.AddStartupAppRequest(startupAppInfo);
-            await this._systemConfiguratorProxy.SendCommandAsync(request);
-        }
-
-        internal async Task RemoveStartupAppAsync(Message.StartupAppInfo startupAppInfo)
-        {
-            var request = new Message.RemoveStartupAppRequest(startupAppInfo);
-            await this._systemConfiguratorProxy.SendCommandAsync(request);
-        }
-
-        internal async Task AppLifecycleAsync(Message.AppLifecycleInfo appInfo)
-        {
-            var request = new Message.AppLifecycleRequest(appInfo);
-            await this._systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         public enum RebootRequestStatus
@@ -554,15 +495,15 @@ namespace Microsoft.Devices.Management
         }
 
         private static async void ProcessDesiredCertificateConfiguration(
-            DeviceManagementClient client,
+            ISystemConfiguratorProxy systemConfiguratorProxy,
             string connectionString,
             string containerName,
             Message.CertificateConfiguration certificateConfiguration)
         {
 
-            await IoTDMClient.CertificateManagement.DownloadCertificates(client, connectionString, containerName, certificateConfiguration);
+            await IoTDMClient.CertificateManagement.DownloadCertificates(systemConfiguratorProxy, connectionString, containerName, certificateConfiguration);
             var request = new Message.SetCertificateConfigurationRequest(certificateConfiguration);
-            client._systemConfiguratorProxy.SendCommandAsync(request);
+            systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         public async Task AllowReboots(bool allowReboots)
@@ -710,12 +651,6 @@ namespace Microsoft.Devices.Management
                                 this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
                             }
                             break;
-                        case "apps":
-                            {
-                                Debug.WriteLine("apps = " + managementProperty.Value.ToString());
-                                appsConfiguration = (JObject)managementProperty.Value;
-                            }
-                            break;
                         case "startupApps":
                             {
                                 Debug.WriteLine("startupApps = " + managementProperty.Value.ToString());
@@ -736,14 +671,9 @@ namespace Microsoft.Devices.Management
 
             if (!String.IsNullOrEmpty(_externalStorageConnectionString))
             {
-                if (appsConfiguration != null)
-                {
-                    AppxManagement.ApplyDesiredAppsConfiguration(this, _externalStorageConnectionString, appsConfiguration);
-                }
-
                 if (certificateConfiguration != null)
                 {
-                    ProcessDesiredCertificateConfiguration(this, _externalStorageConnectionString, "certificates", certificateConfiguration);
+                    ProcessDesiredCertificateConfiguration(_systemConfiguratorProxy, _externalStorageConnectionString, "certificates", certificateConfiguration);
                 }
             }
         }
@@ -855,6 +785,7 @@ namespace Microsoft.Devices.Management
         }
 
         // Data members
+        JObject _desiredCache = new JObject();
         ISystemConfiguratorProxy _systemConfiguratorProxy;
         WindowsUpdatePolicyHandler _windowsUpdatePolicyHandler;
         IDeviceManagementRequestHandler _requestHandler;
