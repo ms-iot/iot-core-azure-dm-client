@@ -24,7 +24,7 @@ namespace IoTDMClient
 {
     class CertificateManagement
     {
-        private static async Task DownloadCertificates(DeviceManagementClient client, string connectionString, string containerName, HashSet<string> certificateFilesSet)
+        private static async Task DownloadCertificates(ISystemConfiguratorProxy systemConfiguratorProxy, string connectionString, string containerName, HashSet<string> certificateFilesSet)
         {
             // ToDo: since our cache is temporary, we might have to download those files everytime to verify the hashes.
             Debug.Assert(certificateFilesSet != null);
@@ -36,7 +36,7 @@ namespace IoTDMClient
                 blobInfo.ContainerName = containerName;
                 blobInfo.BlobName = fileName;
                 Debug.WriteLine("Downloading " + blobInfo.BlobName);
-                await blobInfo.DownloadToTempAsync(client);
+                await blobInfo.DownloadToTempAsync(systemConfiguratorProxy);
             }
         }
 
@@ -53,7 +53,7 @@ namespace IoTDMClient
         }
 
         public static async Task DownloadCertificates(
-            DeviceManagementClient client,
+            ISystemConfiguratorProxy systemConfiguratorProxy,
             string connectionString,
             string containerName,
             CertificateConfiguration certificateConfiguration)
@@ -70,7 +70,7 @@ namespace IoTDMClient
             MergeCertificateFileNames(certificateConfiguration.certificateStore_My_User, certificateFilesSet);
             MergeCertificateFileNames(certificateConfiguration.certificateStore_My_System, certificateFilesSet);
 
-            await DownloadCertificates(client, connectionString, containerName, certificateFilesSet);
+            await DownloadCertificates(systemConfiguratorProxy, connectionString, containerName, certificateFilesSet);
         }
 
     }

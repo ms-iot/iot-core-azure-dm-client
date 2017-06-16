@@ -121,9 +121,47 @@ namespace Microsoft.Devices.Management
         }
     }
 
-    class AppxManagement
+    class AppxManagement : IClientPropertyHandler, IClientPropertyDependencyHandler
     {
+        const string JsonSectionName = "apps";
+        string[] JsonSectionDependencyNames = { "externalStorage" };
+
         private static string VersionNotInstalled = "not installed";
+
+        public AppxManagement(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy, JObject desiredCache)
+        {
+            this._systemConfiguratorProxy = systemConfiguratorProxy;
+            this._callback = callback;
+            this._desiredCache = desiredCache;
+        }
+
+        // IClientPropertyDependencyHandler
+        public string[] PropertySectionDependencyNames
+        {
+            get
+            {
+                return JsonSectionDependencyNames; // todo: constant in data contract?
+            }
+        }
+
+        // IClientPropertyDependencyHandler
+        public void OnDesiredPropertyDependencyChange(string section, JObject value)
+        {
+            if (section.Equals(JsonSectionDependencyNames[0]))
+            {
+                // externalStorage
+                this._connectionString = (string)value.Property("connectionString").Value;
+            }
+        }
+
+        // IClientPropertyHandler
+        public string PropertySectionName
+        {
+            get
+            {
+                return JsonSectionName;
+            }
+        }
 
         private static void DumpInstalledApps(IDictionary<string, AppInfo> data)
         {
@@ -144,22 +182,15 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        private static async Task ReportAppStatus(DeviceManagementClient client, AppReportedState appReportedState)
+        private async Task ReportAppStatus(AppReportedState appReportedState)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("{\n");
-            sb.Append("    \"management\" : {\n");
-            sb.Append("        \"apps\" : {\n");
-            sb.Append("            " + appReportedState.ToJson());
-            sb.Append("        }\n");
-            sb.Append("    }\n");
+            sb.Append("    " + appReportedState.ToJson());
             sb.Append("}\n");
 
             Debug.WriteLine("Report:\n" + sb.ToString());
-
-            Dictionary<string, object> collection = new Dictionary<string, object>();
-            collection["microsoft"] = JsonConvert.DeserializeObject(sb.ToString());
-            await client.DeviceTwin.ReportProperties(collection);
+            await this._callback.ReportPropertiesAsync(JsonSectionName, (JToken)JsonConvert.DeserializeObject(sb.ToString()));
         }
 
         private static IEnumerable<AppDesiredState> JsonToDesiredStates(JObject appsNode)
@@ -267,13 +298,36 @@ namespace Microsoft.Devices.Management
                 JsonReport.Report);
         }
 
-        private static async Task UninstallAppAsync(DeviceManagementClient client, AppInfo appInfo, string packageFamilyId, string packageFamilyName)
+        private async Task<IDictionary<string, Message.AppInfo>> ListAppsAsync()
+        {
+            var request = new Message.ListAppsRequest();
+            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
+            return (result as Message.ListAppsResponse).Apps;
+        }
+
+        private async Task<Message.AppInstallResponse> InstallAppAsync(Message.AppInstallRequestData requestData)
+        {
+            Debug.WriteLine("Installing: " + requestData.PackageFamilyName);
+
+            var request = new Message.AppInstallRequest(requestData);
+            return await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.AppInstallResponse;
+        }
+
+        private async Task<Message.AppUninstallResponse> UninstallAppAsync(Message.AppUninstallRequestData requestData)
+        {
+            Debug.WriteLine("Uninstalling: " + requestData.PackageFamilyName);
+
+            var request = new Message.AppUninstallRequest(requestData);
+            return await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.AppUninstallResponse;
+        }
+
+        private async Task UninstallAppAsync(AppInfo appInfo, string packageFamilyId, string packageFamilyName)
         {
             AppReportedState reportedState = null;
             try
             {
                 // ToDo: We need to handle store and system apps too.
-                AppUninstallResponse response = await client.UninstallAppAsync(new AppUninstallRequestData(packageFamilyName, false /*non-store app*/));
+                AppUninstallResponse response = await UninstallAppAsync(new AppUninstallRequestData(packageFamilyName, false /*non-store app*/));
                 if (response.Status == ResponseStatus.Success)
                 {
                     reportedState = new AppReportedState(packageFamilyId,
@@ -282,7 +336,7 @@ namespace Microsoft.Devices.Management
                                                          null,   // no install date
                                                          null,   // no error
                                                          JsonReport.Report);
-                    await ReportAppStatus(client, reportedState);
+                    await ReportAppStatus(reportedState);
                     return;
                 }
                 else
@@ -308,11 +362,11 @@ namespace Microsoft.Devices.Management
                                                      new Error(e.HResult, e.Message),
                                                      JsonReport.Report);
             }
-            await ReportAppStatus(client, reportedState);
+            await ReportAppStatus(reportedState);
             throw new Exception("Failed to uninstall " + packageFamilyName);
         }
 
-        private static async Task InstallAppFromAzureAsync(DeviceManagementClient client, AppInfo currentState, string connectionString, AppDesiredState desiredState)
+        private async Task InstallAppFromAzureAsync(AppInfo currentState, string connectionString, AppDesiredState desiredState)
         {
             // Is this a fresh installation?
             if (currentState == null)
@@ -346,7 +400,7 @@ namespace Microsoft.Devices.Management
                         IoTDMClient.BlobInfo dependencyBlob = IoTDMClient.BlobInfo.BlobInfoFromSource(connectionString, depsSources[i]);
                         Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Downloading " + dependencyBlob.BlobName);
 
-                        var dependencyPath = await dependencyBlob.DownloadToTempAsync(client);
+                        var dependencyPath = await dependencyBlob.DownloadToTempAsync(this._systemConfiguratorProxy);
                         Debug.WriteLine(dependencyPath);
                         requestData.Dependencies.Add(dependencyPath);
                     }
@@ -355,17 +409,17 @@ namespace Microsoft.Devices.Management
                 // Downloading certificates...
                 Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Downloading appx certificate...");
                 IoTDMClient.BlobInfo certificateBlob = IoTDMClient.BlobInfo.BlobInfoFromSource(connectionString, desiredState.certSource);
-                requestData.CertFile = await certificateBlob.DownloadToTempAsync(client);
+                requestData.CertFile = await certificateBlob.DownloadToTempAsync(this._systemConfiguratorProxy);
                 requestData.CertStore = desiredState.certStore;
 
                 // Downloading appx...
                 Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Downloading appx...");
                 IoTDMClient.BlobInfo appxBlob = IoTDMClient.BlobInfo.BlobInfoFromSource(connectionString, desiredState.appxSource);
-                requestData.AppxPath = await appxBlob.DownloadToTempAsync(client);
+                requestData.AppxPath = await appxBlob.DownloadToTempAsync(this._systemConfiguratorProxy);
 
                 // Installing appx...
                 Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Installing appx...");
-                AppInstallResponse response = await client.InstallAppAsync(requestData);
+                AppInstallResponse response = await InstallAppAsync(requestData);
                 Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Done installing appx...");
 
                 Error e = null;
@@ -389,7 +443,7 @@ namespace Microsoft.Devices.Management
                                                          response.data.installDate,
                                                          e,
                                                          JsonReport.Report);
-                    await ReportAppStatus(client, reportedState);
+                    await ReportAppStatus(reportedState);
                     return;
                 }
                 else
@@ -415,11 +469,11 @@ namespace Microsoft.Devices.Management
                                                      new Error(e.HResult, e.Message),
                                                      JsonReport.Report);
             }
-            await ReportAppStatus(client, reportedState);
+            await ReportAppStatus(reportedState);
             throw new Exception("Failed to install " + desiredState.packageFamilyName);
         }
 
-        private static async Task ApplyAppDesiredState(DeviceManagementClient client, string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
+        private async Task ApplyAppDesiredState(string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
         {
             AppInfo installedAppInfo = null;
             Version installedAppVersion = null;
@@ -446,7 +500,7 @@ namespace Microsoft.Devices.Management
                         {
                             // It is a new application.
                             Debug.WriteLine("    Can't find an installed version... Installing a fresh copy...");
-                            await InstallAppFromAzureAsync(client, installedAppInfo, connectionString, desiredState);
+                            await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);
                         }
                         else
                         {
@@ -465,7 +519,7 @@ namespace Microsoft.Devices.Management
                                     null,                 // no error
                                     JsonReport.Report);
 
-                                await ReportAppStatus(client, appReportedState);
+                                await ReportAppStatus(appReportedState);
                             }
                             else if (desiredState.version > installedAppVersion)
                             {
@@ -473,7 +527,7 @@ namespace Microsoft.Devices.Management
 
                                 if (!String.IsNullOrEmpty(desiredState.appxSource))
                                 {
-                                    await InstallAppFromAzureAsync(client, installedAppInfo, connectionString, desiredState);
+                                    await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);
                                 }
                                 else
                                 {
@@ -495,15 +549,15 @@ namespace Microsoft.Devices.Management
                                         new Error(ErrorCodes.INVALID_DESIRED_APPX_SRC, "Cannot install appx without a source."),
                                         JsonReport.Report);
 
-                                    await ReportAppStatus(client, appReportedState);
+                                    await ReportAppStatus(appReportedState);
 
                                     throw new Exception("Failed to roll back application version.");
                                 }
                                 else
                                 {
                                     // Note that UninstallAppAsync will throw if it fails - and correctly avoid launching the install...
-                                    await UninstallAppAsync(client, installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);
-                                    await InstallAppFromAzureAsync(client, installedAppInfo, connectionString, desiredState);
+                                    await UninstallAppAsync(installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);
+                                    await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);
                                 }
                             }
                         }
@@ -512,7 +566,7 @@ namespace Microsoft.Devices.Management
                 case AppDesiredAction.Uninstall:
                     {
                         Debug.WriteLine("Processing uninstall request...");
-                        await UninstallAppAsync(client, installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);
+                        await UninstallAppAsync(installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);
                     }
                     break;
                 case AppDesiredAction.Query:
@@ -544,7 +598,7 @@ namespace Microsoft.Devices.Management
                                 null,
                                 JsonReport.Report);
                         }
-                        await ReportAppStatus(client, appReportedState);
+                        await ReportAppStatus(appReportedState);
                     }
                     break;
                 case AppDesiredAction.Unreport:
@@ -559,7 +613,7 @@ namespace Microsoft.Devices.Management
                             null,   // no error
                             JsonReport.Unreport);
 
-                        await ReportAppStatus(client, appReportedState);
+                        await ReportAppStatus(appReportedState);
                     }
                     break;
                 case AppDesiredAction.Undefined:
@@ -574,15 +628,15 @@ namespace Microsoft.Devices.Management
                             new Error(ErrorCodes.INVALID_DESIRED_APPX_OPERATION, "Invalid application operation."),
                             JsonReport.Report);
 
-                        await ReportAppStatus(client, appReportedState);
+                        await ReportAppStatus(appReportedState);
                     }
                     break;
             }
         }
 
-        public static async Task ApplyDesiredAppsConfiguration(DeviceManagementClient client, string connectionString, JObject appsNode)
+        private async Task ApplyDesiredAppsConfiguration(JObject appsNode)
         {
-            IDictionary<string, AppInfo> installedApps = await client.ListAppsAsync();
+            IDictionary<string, AppInfo> installedApps = await ListAppsAsync();
 
             DumpInstalledApps(installedApps);
 
@@ -591,7 +645,7 @@ namespace Microsoft.Devices.Management
             {
                 try
                 {
-                    await ApplyAppDesiredState(client, connectionString, installedApps, desiredState);
+                    await ApplyAppDesiredState(this._connectionString, installedApps, desiredState);
                 }
                 catch(Exception)
                 {
@@ -600,5 +654,77 @@ namespace Microsoft.Devices.Management
                 }
             }
         }
+
+        private async Task<string> GetStartupForegroundAppAsync()
+        {
+            var request = new Message.GetStartupForegroundAppRequest();
+            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
+            return (result as Message.GetStartupForegroundAppResponse).StartupForegroundApp;
+        }
+
+        private async Task<IList<string>> ListStartupBackgroundAppsAsync()
+        {
+            var request = new Message.ListStartupBackgroundAppsRequest();
+            var result = await this._systemConfiguratorProxy.SendCommandAsync(request);
+            return (result as Message.ListStartupBackgroundAppsResponse).StartupBackgroundApps;
+        }
+
+        private async Task AddStartupAppAsync(Message.StartupAppInfo startupAppInfo)
+        {
+            var request = new Message.AddStartupAppRequest(startupAppInfo);
+            await this._systemConfiguratorProxy.SendCommandAsync(request);
+        }
+
+        private async Task RemoveStartupAppAsync(Message.StartupAppInfo startupAppInfo)
+        {
+            var request = new Message.RemoveStartupAppRequest(startupAppInfo);
+            await this._systemConfiguratorProxy.SendCommandAsync(request);
+        }
+
+        private async Task AppLifecycleAsync(Message.AppLifecycleInfo appInfo)
+        {
+            var request = new Message.AppLifecycleRequest(appInfo);
+            await this._systemConfiguratorProxy.SendCommandAsync(request);
+        }
+
+        private void UpdateCache(JToken desiredValue)
+        {
+            JToken cachedToken = _desiredCache.SelectToken(JsonSectionName);
+            if (cachedToken != null)
+            {
+                if (cachedToken is JObject)
+                {
+                    JObject cachedObject = (JObject)cachedToken;
+                    cachedObject.Merge(desiredValue);
+                }
+            }
+            else
+            {
+                _desiredCache[JsonSectionName] = desiredValue;
+            }
+        }
+
+        // IClientPropertyHandler
+        public void OnDesiredPropertyChange(JToken desiredValue)
+        {
+            UpdateCache(desiredValue);
+
+            if (desiredValue is JObject)
+            {
+                ApplyDesiredAppsConfiguration((JObject)desiredValue);
+            }
+        }
+
+        // IClientPropertyHandler
+        public async Task<JObject> GetReportedPropertyAsync()
+        {
+            // ToDo: we need to use the cached status to know what to report back.
+            return (JObject)JsonConvert.DeserializeObject("{ \"state\" : \"not implemented\" }");
+        }
+
+        private string _connectionString;
+        private ISystemConfiguratorProxy _systemConfiguratorProxy;
+        private IClientHandlerCallBack _callback;
+        private JObject _desiredCache;
     }
 }

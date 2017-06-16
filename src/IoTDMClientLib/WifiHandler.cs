@@ -183,6 +183,7 @@ namespace Microsoft.Devices.Management
             return JObject.FromObject(reportedProperties);
         }
 
+        // IClientPropertyDependencyHandler
         public string[] PropertySectionDependencyNames
         {
             get
@@ -191,6 +192,7 @@ namespace Microsoft.Devices.Management
             }
         }
 
+        // IClientPropertyDependencyHandler
         public void OnDesiredPropertyDependencyChange(string section, JObject value)
         {
             if (section.Equals(JsonSectionDependencyNames[0]))
