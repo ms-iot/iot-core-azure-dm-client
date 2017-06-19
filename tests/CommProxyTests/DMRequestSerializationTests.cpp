@@ -23,6 +23,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Models\AppInstall.h"
 #include "Models\CheckForUpdates.h"
 #include "Models\StatusCodeResponse.h"
+#include "Models\WifiConfiguration.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace Microsoft::Devices::Management::Message;
@@ -32,6 +33,141 @@ namespace CommProxyTests
 {
     TEST_CLASS(DMRequestSerializationTests)
     {
+        TEST_METHOD(TestWifiConfigRequestResponseSerializeDeserialize_CommProxy)
+        {
+            // validate GetWifiConfigurationRequest serial/deserial round trip
+            {
+                auto wifiConfigRequest = ref new GetWifiConfigurationRequest();
+                auto blob = wifiConfigRequest->Serialize();
+                auto wifiConfigRequestRehydrated = 
+                    dynamic_cast<GetWifiConfigurationRequest^>(GetWifiConfigurationRequest::Deserialize(blob));
+
+                Assert::IsTrue(wifiConfigRequestRehydrated != nullptr);
+                Assert::IsTrue(wifiConfigRequestRehydrated->Tag == DMMessageKind::GetWifiConfiguration);
+            }
+
+            // validate SetWifiConfigurationRequest serial/deserial round trip with Apply='no'
+            {
+                auto abc = ref new WifiProfileConfiguration(); { abc->Name = "abc"; abc->Path = "ade"; abc->Uninstall = false; abc->Xml = "<afg/>"; }
+                auto lmn = ref new WifiProfileConfiguration(); { lmn->Name = "lmn"; lmn->Path = "lop"; lmn->Uninstall = false; lmn->Xml = "<lqr/>"; }
+                auto wxy = ref new WifiProfileConfiguration(); { wxy->Name = "wxy"; wxy->Path = "wzz"; wxy->Uninstall = true; wxy->Xml = "<zzz/>"; }
+                auto config = ref new WifiConfiguration();
+                config->Profiles->Append(abc);
+                config->Profiles->Append(lmn);
+                config->Profiles->Append(wxy);
+                config->ApplyFromDeviceTwin = L"no";
+
+                auto wifiConfigRequest = ref new SetWifiConfigurationRequest(config);
+                auto blob = wifiConfigRequest->Serialize();
+                auto wifiConfigRequestRehydrated = 
+                    dynamic_cast<SetWifiConfigurationRequest^>(SetWifiConfigurationRequest::Deserialize(blob));
+
+                Assert::IsTrue(wifiConfigRequestRehydrated != nullptr);
+                Assert::IsTrue(wifiConfigRequestRehydrated->Tag == DMMessageKind::SetWifiConfiguration);
+                Assert::IsTrue(wifiConfigRequestRehydrated->Configuration != nullptr);
+                Assert::IsTrue(wifiConfigRequestRehydrated->Configuration->Profiles != nullptr);
+                Assert::IsTrue(wifiConfigRequestRehydrated->Configuration->Profiles->Size == 0);
+                Assert::AreEqual(wifiConfigRequestRehydrated->Configuration->ApplyFromDeviceTwin, "no");
+            }
+
+            // validate SetWifiConfigurationRequest serial/deserial round trip with Apply='yes'
+            {
+                auto abc = ref new WifiProfileConfiguration(); { abc->Name = "abc"; abc->Path = "ade"; abc->Uninstall = false; abc->Xml = "<afg/>"; }
+                auto lmn = ref new WifiProfileConfiguration(); { lmn->Name = "lmn"; lmn->Path = "lop"; lmn->Uninstall = false; lmn->Xml = "<lqr/>"; }
+                auto wxy = ref new WifiProfileConfiguration(); { wxy->Name = "wxy"; wxy->Path = "wzz"; wxy->Uninstall = true; wxy->Xml = "<zzz/>"; }
+                auto config = ref new WifiConfiguration();
+                config->Profiles->Append(abc);
+                config->Profiles->Append(lmn);
+                config->Profiles->Append(wxy);
+                config->ApplyFromDeviceTwin = L"yes";
+
+                auto wifiConfigRequest = ref new SetWifiConfigurationRequest(config);
+                auto blob = wifiConfigRequest->Serialize();
+                auto wifiConfigRequestRehydrated =
+                    dynamic_cast<SetWifiConfigurationRequest^>(SetWifiConfigurationRequest::Deserialize(blob));
+
+                Assert::IsTrue(wifiConfigRequestRehydrated != nullptr);
+                Assert::IsTrue(wifiConfigRequestRehydrated->Tag == DMMessageKind::SetWifiConfiguration);
+                Assert::IsTrue(wifiConfigRequestRehydrated->Configuration != nullptr);
+                Assert::IsTrue(wifiConfigRequestRehydrated->Configuration->Profiles != nullptr);
+                Assert::IsTrue(wifiConfigRequestRehydrated->Configuration->Profiles->Size == 3);
+                Assert::AreEqual(wifiConfigRequestRehydrated->Configuration->ApplyFromDeviceTwin, "yes");
+
+                auto profiles = wifiConfigRequestRehydrated->Configuration->Profiles;
+                std::for_each(begin(profiles), end(profiles), [abc, lmn, wxy](WifiProfileConfiguration^ profile) {
+                    WifiProfileConfiguration^ compare = nullptr;
+                    if (profile->Name == "abc") compare = abc;
+                    else if (profile->Name == "lmn") compare = lmn;
+                    else if (profile->Name == "wxy") compare = wxy;
+                    else Assert::Fail(L"unknown wifi profile name");
+
+                    Assert::AreEqual(profile->Name, compare->Name);
+                    Assert::AreEqual(profile->Uninstall, compare->Uninstall);
+                    if (profile->Uninstall)
+                    {
+                        Assert::IsTrue(profile->Path == nullptr);
+                        Assert::IsTrue(profile->Xml == nullptr);
+                    }
+                    else
+                    {
+                        Assert::AreEqual(profile->Path, compare->Path);
+                        Assert::AreEqual(profile->Xml, compare->Xml);
+                    }
+                });
+            }
+
+            // validate GetWifiConfigurationResponse serial/deserial round trip w/ Report='no'
+            {
+                //
+                // When Report=no, no profiles are serialized
+                //
+                auto abc = ref new WifiProfileConfiguration(); { abc->Name = "foo"; abc->Path = "bar"; abc->Uninstall = false; abc->Xml = "<abc/>"; }
+                auto config = ref new WifiConfiguration();
+                config->Profiles->Append(abc);
+                config->ReportToDeviceTwin = L"no";
+
+                auto wifiConfigResponse = ref new GetWifiConfigurationResponse(ResponseStatus::Success, config);
+                auto blob = wifiConfigResponse->Serialize();
+                auto wifiConfigResponseRehydrated = 
+                    dynamic_cast<GetWifiConfigurationResponse^>(GetWifiConfigurationResponse::Deserialize(blob));
+
+                Assert::IsTrue(wifiConfigResponseRehydrated != nullptr);
+                Assert::IsTrue(wifiConfigResponseRehydrated->Tag == DMMessageKind::GetWifiConfiguration);
+                Assert::IsTrue(wifiConfigResponseRehydrated->Configuration != nullptr);
+                Assert::IsTrue(wifiConfigResponseRehydrated->Configuration->Profiles != nullptr);
+                Assert::IsTrue(wifiConfigResponseRehydrated->Configuration->Profiles->Size == 0);
+                Assert::AreEqual(wifiConfigResponseRehydrated->Configuration->ReportToDeviceTwin, "no");
+            }
+
+            // validate GetWifiConfigurationResponse serial/deserial round trip
+            {
+                //
+                // GetWifiConfiguration only returns name, reflecting which profiles are installed ... none of 
+                // the other details are serialized.
+                //
+                auto abc = ref new WifiProfileConfiguration(); { abc->Name = "foo"; abc->Path = "bar"; abc->Uninstall = false; abc->Xml = "<abc/>"; }
+                auto config = ref new WifiConfiguration();
+                config->Profiles->Append(abc);
+                config->ReportToDeviceTwin = L"yes";
+
+                auto wifiConfigResponse = ref new GetWifiConfigurationResponse(ResponseStatus::Success, config);
+                auto blob = wifiConfigResponse->Serialize();
+                auto wifiConfigResponseRehydrated =
+                    dynamic_cast<GetWifiConfigurationResponse^>(GetWifiConfigurationResponse::Deserialize(blob));
+
+                Assert::IsTrue(wifiConfigResponseRehydrated != nullptr);
+                Assert::IsTrue(wifiConfigResponseRehydrated->Tag == DMMessageKind::GetWifiConfiguration);
+                Assert::IsTrue(wifiConfigResponseRehydrated->Configuration != nullptr);
+                Assert::IsTrue(wifiConfigResponseRehydrated->Configuration->Profiles != nullptr);
+                Assert::IsTrue(wifiConfigResponseRehydrated->Configuration->Profiles->Size == 1);
+                auto foo = wifiConfigResponseRehydrated->Configuration->Profiles->First();
+                Assert::AreEqual(foo->Current->Name, "foo");
+                Assert::AreEqual(foo->Current->Uninstall, false);
+                Assert::IsTrue(foo->Current->Path == nullptr);
+                Assert::IsTrue(foo->Current->Xml == nullptr);
+            }
+        }
+
         TEST_METHOD(TestIRequestSerialization)
         {
             auto deps = ref new Vector<String^>();
