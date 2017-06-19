@@ -186,6 +186,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestUtils.h" />
+    <ClInclude Include="WifiManagementTest.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\SharedUtilities\Logger.cpp" />
@@ -204,6 +205,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TestUtils.cpp" />
+    <ClCompile Include="WifiManagementTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
