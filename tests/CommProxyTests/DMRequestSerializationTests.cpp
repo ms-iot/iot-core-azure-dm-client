@@ -33,8 +33,28 @@ namespace CommProxyTests
 {
     TEST_CLASS(DMRequestSerializationTests)
     {
+        template<class T>
+        void TestBlob(T blob, DMMessageKind kind)
+        {
+            Assert::IsTrue(blob != nullptr);
+            Assert::IsTrue(blob->Tag == kind);
+        }
+
+        template<class T>
+        void TestBlobAndConfig(T blob, DMMessageKind kind, uint32 size)
+        {
+            TestBlob(blob, kind);
+            Assert::IsTrue(blob->Configuration != nullptr);
+            Assert::IsTrue(blob->Configuration->Profiles != nullptr);
+            Assert::IsTrue(blob->Configuration->Profiles->Size == size);
+        }
+
         TEST_METHOD(TestWifiConfigRequestResponseSerializeDeserialize_CommProxy)
         {
+            auto abc = ref new WifiProfileConfiguration(); { abc->Name = "abc"; abc->Path = "ade"; abc->Uninstall = false; abc->Xml = "<afg/>"; }
+            auto lmn = ref new WifiProfileConfiguration(); { lmn->Name = "lmn"; lmn->Path = "lop"; lmn->Uninstall = false; lmn->Xml = "<lqr/>"; }
+            auto rem = ref new WifiProfileConfiguration(); { rem->Name = "remove"; rem->Path = "wzz"; rem->Uninstall = true; rem->Xml = "<zzz/>"; }
+
             // validate GetWifiConfigurationRequest serial/deserial round trip
             {
                 auto wifiConfigRequest = ref new GetWifiConfigurationRequest();
@@ -42,19 +62,13 @@ namespace CommProxyTests
                 auto wifiConfigRequestRehydrated = 
                     dynamic_cast<GetWifiConfigurationRequest^>(GetWifiConfigurationRequest::Deserialize(blob));
 
-                Assert::IsTrue(wifiConfigRequestRehydrated != nullptr);
-                Assert::IsTrue(wifiConfigRequestRehydrated->Tag == DMMessageKind::GetWifiConfiguration);
+                TestBlob(wifiConfigRequestRehydrated, DMMessageKind::GetWifiConfiguration);
             }
 
             // validate SetWifiConfigurationRequest serial/deserial round trip with Apply='no'
             {
-                auto abc = ref new WifiProfileConfiguration(); { abc->Name = "abc"; abc->Path = "ade"; abc->Uninstall = false; abc->Xml = "<afg/>"; }
-                auto lmn = ref new WifiProfileConfiguration(); { lmn->Name = "lmn"; lmn->Path = "lop"; lmn->Uninstall = false; lmn->Xml = "<lqr/>"; }
-                auto wxy = ref new WifiProfileConfiguration(); { wxy->Name = "wxy"; wxy->Path = "wzz"; wxy->Uninstall = true; wxy->Xml = "<zzz/>"; }
                 auto config = ref new WifiConfiguration();
                 config->Profiles->Append(abc);
-                config->Profiles->Append(lmn);
-                config->Profiles->Append(wxy);
                 config->ApplyFromDeviceTwin = L"no";
 
                 auto wifiConfigRequest = ref new SetWifiConfigurationRequest(config);
@@ -62,23 +76,16 @@ namespace CommProxyTests
                 auto wifiConfigRequestRehydrated = 
                     dynamic_cast<SetWifiConfigurationRequest^>(SetWifiConfigurationRequest::Deserialize(blob));
 
-                Assert::IsTrue(wifiConfigRequestRehydrated != nullptr);
-                Assert::IsTrue(wifiConfigRequestRehydrated->Tag == DMMessageKind::SetWifiConfiguration);
-                Assert::IsTrue(wifiConfigRequestRehydrated->Configuration != nullptr);
-                Assert::IsTrue(wifiConfigRequestRehydrated->Configuration->Profiles != nullptr);
-                Assert::IsTrue(wifiConfigRequestRehydrated->Configuration->Profiles->Size == 0);
+                TestBlobAndConfig(wifiConfigRequestRehydrated, DMMessageKind::SetWifiConfiguration, 0);
                 Assert::AreEqual(wifiConfigRequestRehydrated->Configuration->ApplyFromDeviceTwin, "no");
             }
 
             // validate SetWifiConfigurationRequest serial/deserial round trip with Apply='yes'
             {
-                auto abc = ref new WifiProfileConfiguration(); { abc->Name = "abc"; abc->Path = "ade"; abc->Uninstall = false; abc->Xml = "<afg/>"; }
-                auto lmn = ref new WifiProfileConfiguration(); { lmn->Name = "lmn"; lmn->Path = "lop"; lmn->Uninstall = false; lmn->Xml = "<lqr/>"; }
-                auto wxy = ref new WifiProfileConfiguration(); { wxy->Name = "wxy"; wxy->Path = "wzz"; wxy->Uninstall = true; wxy->Xml = "<zzz/>"; }
                 auto config = ref new WifiConfiguration();
                 config->Profiles->Append(abc);
                 config->Profiles->Append(lmn);
-                config->Profiles->Append(wxy);
+                config->Profiles->Append(rem);
                 config->ApplyFromDeviceTwin = L"yes";
 
                 auto wifiConfigRequest = ref new SetWifiConfigurationRequest(config);
@@ -86,19 +93,15 @@ namespace CommProxyTests
                 auto wifiConfigRequestRehydrated =
                     dynamic_cast<SetWifiConfigurationRequest^>(SetWifiConfigurationRequest::Deserialize(blob));
 
-                Assert::IsTrue(wifiConfigRequestRehydrated != nullptr);
-                Assert::IsTrue(wifiConfigRequestRehydrated->Tag == DMMessageKind::SetWifiConfiguration);
-                Assert::IsTrue(wifiConfigRequestRehydrated->Configuration != nullptr);
-                Assert::IsTrue(wifiConfigRequestRehydrated->Configuration->Profiles != nullptr);
-                Assert::IsTrue(wifiConfigRequestRehydrated->Configuration->Profiles->Size == 3);
+                TestBlobAndConfig(wifiConfigRequestRehydrated, DMMessageKind::SetWifiConfiguration, 3);
                 Assert::AreEqual(wifiConfigRequestRehydrated->Configuration->ApplyFromDeviceTwin, "yes");
 
                 auto profiles = wifiConfigRequestRehydrated->Configuration->Profiles;
-                std::for_each(begin(profiles), end(profiles), [abc, lmn, wxy](WifiProfileConfiguration^ profile) {
+                std::for_each(begin(profiles), end(profiles), [abc, lmn, rem](WifiProfileConfiguration^ profile) {
                     WifiProfileConfiguration^ compare = nullptr;
                     if (profile->Name == "abc") compare = abc;
                     else if (profile->Name == "lmn") compare = lmn;
-                    else if (profile->Name == "wxy") compare = wxy;
+                    else if (profile->Name == "remove") compare = rem;
                     else Assert::Fail(L"unknown wifi profile name");
 
                     Assert::AreEqual(profile->Name, compare->Name);
@@ -121,7 +124,6 @@ namespace CommProxyTests
                 //
                 // When Report=no, no profiles are serialized
                 //
-                auto abc = ref new WifiProfileConfiguration(); { abc->Name = "foo"; abc->Path = "bar"; abc->Uninstall = false; abc->Xml = "<abc/>"; }
                 auto config = ref new WifiConfiguration();
                 config->Profiles->Append(abc);
                 config->ReportToDeviceTwin = L"no";
@@ -131,11 +133,7 @@ namespace CommProxyTests
                 auto wifiConfigResponseRehydrated = 
                     dynamic_cast<GetWifiConfigurationResponse^>(GetWifiConfigurationResponse::Deserialize(blob));
 
-                Assert::IsTrue(wifiConfigResponseRehydrated != nullptr);
-                Assert::IsTrue(wifiConfigResponseRehydrated->Tag == DMMessageKind::GetWifiConfiguration);
-                Assert::IsTrue(wifiConfigResponseRehydrated->Configuration != nullptr);
-                Assert::IsTrue(wifiConfigResponseRehydrated->Configuration->Profiles != nullptr);
-                Assert::IsTrue(wifiConfigResponseRehydrated->Configuration->Profiles->Size == 0);
+                TestBlobAndConfig(wifiConfigResponseRehydrated, DMMessageKind::GetWifiConfiguration, 0);
                 Assert::AreEqual(wifiConfigResponseRehydrated->Configuration->ReportToDeviceTwin, "no");
             }
 
@@ -145,7 +143,6 @@ namespace CommProxyTests
                 // GetWifiConfiguration only returns name, reflecting which profiles are installed ... none of 
                 // the other details are serialized.
                 //
-                auto abc = ref new WifiProfileConfiguration(); { abc->Name = "foo"; abc->Path = "bar"; abc->Uninstall = false; abc->Xml = "<abc/>"; }
                 auto config = ref new WifiConfiguration();
                 config->Profiles->Append(abc);
                 config->ReportToDeviceTwin = L"yes";
@@ -155,13 +152,9 @@ namespace CommProxyTests
                 auto wifiConfigResponseRehydrated =
                     dynamic_cast<GetWifiConfigurationResponse^>(GetWifiConfigurationResponse::Deserialize(blob));
 
-                Assert::IsTrue(wifiConfigResponseRehydrated != nullptr);
-                Assert::IsTrue(wifiConfigResponseRehydrated->Tag == DMMessageKind::GetWifiConfiguration);
-                Assert::IsTrue(wifiConfigResponseRehydrated->Configuration != nullptr);
-                Assert::IsTrue(wifiConfigResponseRehydrated->Configuration->Profiles != nullptr);
-                Assert::IsTrue(wifiConfigResponseRehydrated->Configuration->Profiles->Size == 1);
+                TestBlobAndConfig(wifiConfigResponseRehydrated, DMMessageKind::GetWifiConfiguration, 1);
                 auto foo = wifiConfigResponseRehydrated->Configuration->Profiles->First();
-                Assert::AreEqual(foo->Current->Name, "foo");
+                Assert::AreEqual(foo->Current->Name, abc->Name);
                 Assert::AreEqual(foo->Current->Uninstall, false);
                 Assert::IsTrue(foo->Current->Path == nullptr);
                 Assert::IsTrue(foo->Current->Xml == nullptr);
