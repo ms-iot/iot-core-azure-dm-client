@@ -19,25 +19,83 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
+    struct AppListQuery
+    {
+        public bool store;
+        public bool nonStore;
+    }
+
+    struct DesiredActions
+    {
+        public IEnumerable<AppDesiredState> appDesiredStates;
+        public AppListQuery appListQuery;
+
+        public DesiredActions(IEnumerable<AppDesiredState> states, AppListQuery query)
+        {
+            this.appDesiredStates = states;
+            this.appListQuery = query;
+        }
+    }
+
+    class AppUtils
+    {
+        public const string JsonStartUpNone = "none";
+        public const string JsonStartUpForeground = "foreground";
+        public const string JsonStartUpBackground = "background";
+
+        public static StartUpType StartUpTypeFromString(string value)
+        {
+            StartUpType startUp = StartUpType.None;
+            switch (value)
+            {
+                case JsonStartUpForeground:
+                    startUp = StartUpType.Foreground;
+                    break;
+                case JsonStartUpBackground:
+                    startUp = StartUpType.Background;
+                    break;
+            }
+            return startUp;
+        }
+
+        public static string StringFromStartUpType(StartUpType value)
+        {
+            string startUp = JsonStartUpNone;
+            switch (value)
+            {
+                case StartUpType.Foreground:
+                    startUp = JsonStartUpForeground;
+                    break;
+                case StartUpType.Background:
+                    startUp = JsonStartUpBackground;
+                    break;
+            }
+            return startUp;
+        }
+    }
+
     class AppReportedState
     {
         public string packageFamilyId;
         public string packageFamilyName;
         public string version;
+        public StartUpType startUp;
         public string installDate;
         public Error error;
         public JsonReport report;
 
-        public AppReportedState(string packageFamilyId, string packageFamilyName, string version, string installDate, Error error, JsonReport report)
+        public AppReportedState(string packageFamilyId, string packageFamilyName, string version, StartUpType startUp, string installDate, Error error, JsonReport report)
         {
             this.packageFamilyId = packageFamilyId;
             this.packageFamilyName = packageFamilyName;
             this.version = version;
+            this.startUp = startUp;
             this.installDate = installDate;
             this.error = error;
             this.report = report;
@@ -52,6 +110,7 @@ namespace Microsoft.Devices.Management
                 sb.Append("{\n");
                 sb.Append("                \"pkgFamilyName\" : \"" + packageFamilyName + "\",\n");
                 sb.Append("                \"version\" : \"" + version + "\",\n");
+                sb.Append("                \"startUp\" : \"" + AppUtils.StringFromStartUpType(startUp) + "\",\n");
                 sb.Append("                \"installDate\" : \"" + installDate + "\",\n");
                 if (error != null)
                 {
@@ -89,6 +148,7 @@ namespace Microsoft.Devices.Management
         public string packageFamilyName;
         public AppDesiredAction action;
         public Version version;
+        public Message.StartUpType startUp;
         public string appxSource;
         public string depsSources;
         public string certSource;
@@ -108,6 +168,7 @@ namespace Microsoft.Devices.Management
             Debug.WriteLine("packageFamilyName   = " + packageFamilyName);
             Debug.WriteLine("action              = " + action.ToString());
             Debug.WriteLine("version             = " + version?.ToString());
+            Debug.WriteLine("startUp             = " + startUp.ToString());
             Debug.WriteLine("appxSource          = " + appxSource);
             Debug.WriteLine("depsSources         = " + depsSources);
             Debug.WriteLine("certSource          = " + certSource);
@@ -178,6 +239,7 @@ namespace Microsoft.Devices.Management
                 Debug.WriteLine("Publisher         = " + p.Value.Publisher);
                 Debug.WriteLine("Version           = " + p.Value.Version);
                 Debug.WriteLine("Users             = " + p.Value.Users);
+                Debug.WriteLine("StartUp           = " + p.Value.StartUp);
                 Debug.WriteLine("-------------------------------------------------------------");
             }
         }
@@ -193,97 +255,172 @@ namespace Microsoft.Devices.Management
             await this._callback.ReportPropertiesAsync(JsonSectionName, (JToken)JsonConvert.DeserializeObject(sb.ToString()));
         }
 
-        private static IEnumerable<AppDesiredState> JsonToDesiredStates(JObject appsNode)
+        private async Task NullifyReported()
         {
-            List<AppDesiredState> desiredStates = new List<AppDesiredState>();
+            Debug.WriteLine("NullifyReported\n");
+            await this._callback.ReportPropertiesAsync(JsonSectionName, new JValue("refreshing"));
+        }
 
-            foreach (JProperty property in appsNode.Properties())
+        private void Reorder(List<AppDesiredState> appDesiredStates)
+        {
+            // If we are switching the foreground app from App1 to App2, App2 must be processed first.
+            // For example:
+            // - Startup is set to App1.
+            // - Desired state is:
+            //   - App1 : none
+            //   - App2 : foreground
+            // We have to process App2 first and that will implicitly apply App1 : none.
+
+            // Note that appDesiredStates are not only the just-changed ones - but all the desired states for all apps.
+            // This covers the case where the user sets a new foreground app and forgets to set the old one to 'none'.
+
+            AppDesiredState foregroundApp = null;
+            var result = from state in appDesiredStates
+                         where state.startUp == StartUpType.Foreground
+                         select state;
+
+            foreach (AppDesiredState state in result)
             {
+                Debug.WriteLine("Found foreground app: " + state.packageFamilyName);
+                foregroundApp = state;
+            }
+
+            if (result.Count<AppDesiredState>() > 1)
+            {
+                throw new Error(ErrorCodes.INVALID_DESIRED_MULTIPLE_FOREGROUND_APPS, "Cannot set more than application to be the foreground application!");
+            }
+
+            if (foregroundApp != null)
+            {
+                // Move to the front.
+                appDesiredStates.Remove(foregroundApp);
+                appDesiredStates.Insert(0, foregroundApp);
+            }
+
+            Debug.WriteLine("Ordered:");
+            foreach (AppDesiredState state in appDesiredStates)
+            {
+                Debug.WriteLine("App: " + state.packageFamilyName + " " + state.startUp.ToString());
+            }
+        }
+
+        private AppDesiredState JsonToAppDesiredState(string packageFamilyId, JToken jToken)
+        {
+            AppDesiredState desiredState = new AppDesiredState(packageFamilyId);
+
+            if (jToken is JObject)
+            {
+                JObject appPropertiesObject = (JObject)jToken;
+
+                foreach (JProperty appProperty in appPropertiesObject.Properties())
+                {
+                    // We expect non-null non-object values.
+                    if (appProperty == null || appProperty.Value == null || !(appProperty.Value is JValue))
+                    {
+                        continue;
+                    }
+
+                    if (appProperty.Name == "pkgFamilyName")
+                    {
+                        desiredState.packageFamilyName = appProperty.Value.ToString();
+                    }
+                    else if (appProperty.Name == "startUp")
+                    {
+                        desiredState.startUp = AppUtils.StartUpTypeFromString(appProperty.Value.ToString());
+                    }
+                    else if (appProperty.Name == "version")
+                    {
+                        string value = appProperty.Value.ToString();
+                        if (value == "?")
+                        {
+                            desiredState.action = AppDesiredAction.Query;
+                        }
+                        else if (value == VersionNotInstalled)
+                        {
+                            desiredState.action = AppDesiredAction.Uninstall;
+                        }
+                        else
+                        {
+                            Version result = null;
+                            if (Version.TryParse(value, out result))
+                            {
+                                desiredState.action = AppDesiredAction.Install;
+                                desiredState.version = result;
+                            }
+                            else
+                            {
+                                desiredState.action = AppDesiredAction.Undefined;
+                                desiredState.error = new Error(ErrorCodes.INVALID_DESIRED_VERSION, "Invalid desired version format!");
+                            }
+                        }
+                    }
+                    else if (appProperty.Name == "appxSource")
+                    {
+                        desiredState.appxSource = appProperty.Value.ToString();
+                    }
+                    else if (appProperty.Name == "depsSources")
+                    {
+                        desiredState.depsSources = appProperty.Value.ToString();
+                    }
+                    else if (appProperty.Name == "certSource")
+                    {
+                        desiredState.certSource = appProperty.Value.ToString();
+                    }
+                    else if (appProperty.Name == "certStore")
+                    {
+                        desiredState.certStore = appProperty.Value.ToString();
+                    }
+                }
+
+                if (desiredState.startUp == StartUpType.Foreground && desiredState.action == AppDesiredAction.Uninstall)
+                {
+                    throw new Error(ErrorCodes.INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP, "Cannot configure an application to the foreground application and uninstall it.");
+                }
+            }
+            else
+            {
+                JValue value = (JValue)jToken;
+                if (value == null || value.Value == null)
+                {
+                    desiredState.action = AppDesiredAction.Unreport;
+                }
+                else
+                {
+                    desiredState.action = AppDesiredAction.Undefined;
+                    desiredState.error = new Error(ErrorCodes.INVALID_DESIRED_PKG_FAMILY_ID, "Invalid desired package family id value!");
+                }
+            }
+
+            desiredState.Dump();
+            return desiredState;
+        }
+
+        private DesiredActions JsonToDesiredActions(JObject appsNode)
+        {
+            List<AppDesiredState> appDesiredStates = new List<AppDesiredState>();
+            AppListQuery appListQuery = new AppListQuery();
+
+            foreach (JProperty property in appsNode.Children())
+            {
+                Debug.WriteLine("Property Name = " + property.Name);
                 if (String.IsNullOrEmpty(property.Name))
                 {
                     continue;
                 }
 
-                AppDesiredState desiredState = new AppDesiredState(property.Name);
-
-                if (property.Value is JObject)
+                if (property.Name == "?")
                 {
-                    JObject appPropertiesObject = (JObject)property.Value;
-
-                    foreach (JProperty appProperty in appPropertiesObject.Properties())
-                    {
-                        // We expect non-null non-object values.
-                        if (appProperty == null || appProperty.Value == null || !(appProperty.Value is JValue))
-                        {
-                            continue;
-                        }
-
-                        if (appProperty.Name == "pkgFamilyName")
-                        {
-                            desiredState.packageFamilyName = appProperty.Value.ToString();
-                        }
-                        else if (appProperty.Name == "version")
-                        {
-                            string value = appProperty.Value.ToString();
-                            if (value == "?")
-                            {
-                                desiredState.action = AppDesiredAction.Query;
-                            }
-                            else if (value == VersionNotInstalled)
-                            {
-                                desiredState.action = AppDesiredAction.Uninstall;
-                            }
-                            else
-                            {
-                                Version result = null;
-                                if (Version.TryParse(value, out result))
-                                {
-                                    desiredState.action = AppDesiredAction.Install;
-                                    desiredState.version = result;
-                                }
-                                else
-                                {
-                                    desiredState.action = AppDesiredAction.Undefined;
-                                    desiredState.error = new Error(ErrorCodes.INVALID_DESIRED_VERSION, "Invalid desired version format!");
-                                }
-                            }
-                        }
-                        else if (appProperty.Name == "appxSource")
-                        {
-                            desiredState.appxSource = appProperty.Value.ToString();
-                        }
-                        else if (appProperty.Name == "depsSources")
-                        {
-                            desiredState.depsSources = appProperty.Value.ToString();
-                        }
-                        else if (appProperty.Name == "certSource")
-                        {
-                            desiredState.certSource = appProperty.Value.ToString();
-                        }
-                        else if (appProperty.Name == "certStore")
-                        {
-                            desiredState.certStore = appProperty.Value.ToString();
-                        }
-                    }
+                    appListQuery = JsonConvert.DeserializeObject<AppListQuery>(property.Value.ToString());
                 }
                 else
                 {
-                    JValue value = (JValue)property.Value;
-                    if (value == null || value.Value == null)
-                    {
-                        desiredState.action = AppDesiredAction.Unreport;
-                    }
-                    else
-                    {
-                        desiredState.action = AppDesiredAction.Undefined;
-                        desiredState.error = new Error(ErrorCodes.INVALID_DESIRED_PKG_FAMILY_ID, "Invalid desired package family id value!");
-                    }
+                    appDesiredStates.Add(JsonToAppDesiredState(property.Name, property.Value));
                 }
-
-                desiredState.Dump();
-                desiredStates.Add(desiredState);
             }
-            return desiredStates;
+
+            Reorder(appDesiredStates);
+
+            return new DesiredActions(appDesiredStates, appListQuery);
         }
 
         private static async Task<AppReportedState> UpdateAppFromStore(AppDesiredState desiredState)
@@ -293,6 +430,7 @@ namespace Microsoft.Devices.Management
                 desiredState.packageFamilyId,
                 desiredState.packageFamilyName,
                 desiredState.version.ToString(),
+                desiredState.startUp,
                 "",
                 new Error(ErrorCodes.E_NOTIMPL, "Updating app from the store has not been implemented yet."),
                 JsonReport.Report);
@@ -323,6 +461,8 @@ namespace Microsoft.Devices.Management
 
         private async Task UninstallAppAsync(AppInfo appInfo, string packageFamilyId, string packageFamilyName)
         {
+            Debug.WriteLine("Processing uninstall request...");
+
             AppReportedState reportedState = null;
             try
             {
@@ -333,6 +473,7 @@ namespace Microsoft.Devices.Management
                     reportedState = new AppReportedState(packageFamilyId,
                                                          packageFamilyName,
                                                          VersionNotInstalled,
+                                                         StartUpType.None,
                                                          null,   // no install date
                                                          null,   // no error
                                                          JsonReport.Report);
@@ -349,7 +490,8 @@ namespace Microsoft.Devices.Management
                 reportedState = new AppReportedState(packageFamilyId,
                                                      packageFamilyName,
                                                      appInfo.Version,
-                                                     appInfo.InstallDate,   // install date
+                                                     appInfo.StartUp,
+                                                     appInfo.InstallDate,
                                                      e,
                                                      JsonReport.Report);
             }
@@ -358,7 +500,8 @@ namespace Microsoft.Devices.Management
                 reportedState = new AppReportedState(packageFamilyId,
                                                      packageFamilyName,
                                                      appInfo.Version,
-                                                     appInfo.InstallDate,   // install date
+                                                     appInfo.StartUp,
+                                                     appInfo.InstallDate,
                                                      new Error(e.HResult, e.Message),
                                                      JsonReport.Report);
             }
@@ -388,6 +531,7 @@ namespace Microsoft.Devices.Management
 
                 var requestData = new AppInstallRequestData();
                 requestData.PackageFamilyName = desiredState.packageFamilyName;
+                requestData.StartUp = desiredState.startUp;
 
                 // Downloading dependencies...
                 Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Downloading...");
@@ -440,6 +584,7 @@ namespace Microsoft.Devices.Management
                     reportedState = new AppReportedState(desiredState.packageFamilyId,
                                                          desiredState.packageFamilyName,
                                                          response.data.version,
+                                                         response.data.startUp,
                                                          response.data.installDate,
                                                          e,
                                                          JsonReport.Report);
@@ -456,6 +601,7 @@ namespace Microsoft.Devices.Management
                 reportedState = new AppReportedState(desiredState.packageFamilyId,
                                                      desiredState.packageFamilyName,
                                                      currentState.Version,
+                                                     currentState.StartUp,
                                                      currentState.InstallDate,   // install date
                                                      e,
                                                      JsonReport.Report);
@@ -465,12 +611,185 @@ namespace Microsoft.Devices.Management
                 reportedState = new AppReportedState(desiredState.packageFamilyId,
                                                      desiredState.packageFamilyName,
                                                      currentState.Version,
+                                                     currentState.StartUp,
                                                      currentState.InstallDate,   // install date
                                                      new Error(e.HResult, e.Message),
                                                      JsonReport.Report);
             }
             await ReportAppStatus(reportedState);
             throw new Exception("Failed to install " + desiredState.packageFamilyName);
+        }
+
+        private async Task<StartUpType> GetAppStartup(string appId)
+        {
+            string foregroundApp = await GetStartupForegroundAppAsync();
+            if (appId == foregroundApp)
+            {
+                return StartUpType.Foreground;
+            }
+
+            IList<string> backgroundApps = await ListStartupBackgroundAppsAsync();
+            var result = from backgroundApp in backgroundApps where backgroundApp == appId select backgroundApp;
+            if (result.Count<string>() > 0)
+            {
+                return StartUpType.Background;
+            }
+
+            return StartUpType.None;
+        }
+
+        private async Task InstallAppAsync(AppInfo installedAppInfo, Version installedAppVersion, string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
+        {
+            Debug.WriteLine("Processing install request for " + desiredState.packageFamilyId);
+
+            if (installedAppInfo == null)
+            {
+                // It is a new application.
+                Debug.WriteLine("    Can't find an installed version... Installing a fresh copy...");
+                await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);       // ---> InstallAppFromAzureAsync
+            }
+            else
+            {
+                // A version of this application is installed.
+                Debug.WriteLine("    Found an installed version...");
+
+                if (desiredState.version == installedAppVersion)
+                {
+                    Debug.WriteLine("        Same version is installed...");
+                    AppReportedState appReportedState = null;
+
+                    if (desiredState.startUp == installedAppInfo.StartUp)
+                    {
+                        Debug.WriteLine("        App StartUp is the same: desired = " + desiredState.startUp);
+
+                        appReportedState = new AppReportedState(
+                            desiredState.packageFamilyId,
+                            desiredState.packageFamilyName,
+                            installedAppVersion.ToString(),
+                            installedAppInfo.StartUp,
+                            installedAppInfo.InstallDate,
+                            null,                 // no error
+                            JsonReport.Report);
+                    }
+                    else
+                    {
+                        Debug.WriteLine("        App StartUp is different: desired = " + desiredState.startUp.ToString() + ", current = " + installedAppInfo.StartUp.ToString());
+
+                        switch (desiredState.startUp)
+                        {
+                            case StartUpType.None:
+                                {
+                                    Debug.WriteLine("            Removing app from background apps.");
+                                    StartupAppInfo startupAppInfo = new StartupAppInfo(desiredState.packageFamilyName, true /*background*/);
+                                    await RemoveStartupAppAsync(startupAppInfo);
+                                }
+                                break;
+                            case StartUpType.Foreground:
+                                {
+                                    Debug.WriteLine("            Setting app to be the foreground app.");
+                                    StartupAppInfo startupAppInfo = new StartupAppInfo(desiredState.packageFamilyName, false /*background*/);
+                                    await AddStartupAppAsync(startupAppInfo);
+                                }
+                                break;
+                            case StartUpType.Background:
+                                {
+                                    Debug.WriteLine("            Adding app to the background apps.");
+                                    StartupAppInfo startupAppInfo = new StartupAppInfo(desiredState.packageFamilyName, true /*background*/);
+                                    await AddStartupAppAsync(startupAppInfo);
+                                }
+                                break;
+                        }
+
+                        StartUpType appStartUp = await GetAppStartup(desiredState.packageFamilyName);
+                        Debug.WriteLine("            Querying returned app startup: " + appStartUp.ToString());
+
+                        appReportedState = new AppReportedState(
+                            desiredState.packageFamilyId,
+                            desiredState.packageFamilyName,
+                            installedAppVersion.ToString(),
+                            appStartUp,
+                            installedAppInfo.InstallDate,
+                            null,                 // no error
+                            JsonReport.Report);
+                    }
+
+                    _stateToReport[desiredState.packageFamilyId] = appReportedState;
+                }
+                else if (desiredState.version > installedAppVersion)
+                {
+                    Debug.WriteLine("        Older version is installed...");
+
+                    if (!String.IsNullOrEmpty(desiredState.appxSource))
+                    {
+                        await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);
+                    }
+                    else
+                    {
+                        await UpdateAppFromStore(desiredState);
+                    }
+                }
+                else
+                {
+                    // desiredState.version < installedAppVersion
+                    Debug.WriteLine("       Newer version is installed...rolling back.");
+
+                    if (String.IsNullOrEmpty(desiredState.appxSource))
+                    {
+                        AppReportedState appReportedState = new AppReportedState(
+                            desiredState.packageFamilyId,
+                            desiredState.packageFamilyName,
+                            installedAppVersion.ToString(),
+                            installedAppInfo.StartUp,
+                            installedAppInfo.InstallDate,
+                            new Error(ErrorCodes.INVALID_DESIRED_APPX_SRC, "Cannot install appx without a source."),
+                            JsonReport.Report);
+
+                        _stateToReport[desiredState.packageFamilyId] = appReportedState;
+
+                        throw new Exception("Failed to roll back application version.");
+                    }
+                    else
+                    {
+                        // Note that UninstallAppAsync will throw if it fails - and correctly avoid launching the install...
+                        await UninstallAppAsync(installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);
+                        await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);
+                    }
+                }
+            }
+        }
+
+        private async Task QueryAppAsync(AppInfo installedAppInfo, AppDesiredState desiredState)
+        {
+            Debug.WriteLine("Processing query request...");
+
+            AppReportedState appReportedState;
+            if (installedAppInfo == null)
+            {
+                Debug.WriteLine("    Couldn't find an installed version...");
+
+                appReportedState = new AppReportedState(
+                    desiredState.packageFamilyId,
+                    desiredState.packageFamilyName,
+                    VersionNotInstalled,
+                    StartUpType.None,
+                    null,
+                    null,
+                    JsonReport.Report);
+            }
+            else
+            {
+                Debug.WriteLine("    Found an installed version...");
+
+                appReportedState = new AppReportedState(
+                    desiredState.packageFamilyId,
+                    desiredState.packageFamilyName,
+                    installedAppInfo.Version,
+                    installedAppInfo.StartUp,
+                    installedAppInfo.InstallDate,
+                    null,
+                    JsonReport.Report);
+            }
+            _stateToReport[desiredState.packageFamilyId] = appReportedState;
         }
 
         private async Task ApplyAppDesiredState(string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
@@ -494,111 +813,17 @@ namespace Microsoft.Devices.Management
             {
                 case AppDesiredAction.Install:
                     {
-                        Debug.WriteLine("Processing install request...");
-
-                        if (installedAppInfo == null)
-                        {
-                            // It is a new application.
-                            Debug.WriteLine("    Can't find an installed version... Installing a fresh copy...");
-                            await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);
-                        }
-                        else
-                        {
-                            // A version of this application is installed.
-                            Debug.WriteLine("    Found an installed version...");
-
-                            if (desiredState.version == installedAppVersion)
-                            {
-                                Debug.WriteLine("        Same version is installed...");
-
-                                AppReportedState appReportedState = new AppReportedState(
-                                    desiredState.packageFamilyId,
-                                    desiredState.packageFamilyName,
-                                    installedAppVersion.ToString(),
-                                    installedAppInfo.InstallDate,
-                                    null,                 // no error
-                                    JsonReport.Report);
-
-                                await ReportAppStatus(appReportedState);
-                            }
-                            else if (desiredState.version > installedAppVersion)
-                            {
-                                Debug.WriteLine("        Older version is installed...");
-
-                                if (!String.IsNullOrEmpty(desiredState.appxSource))
-                                {
-                                    await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);
-                                }
-                                else
-                                {
-                                    await UpdateAppFromStore(desiredState);
-                                }
-                            }
-                            else
-                            {
-                                // desiredState.version < installedAppVersion
-                                Debug.WriteLine("       Newer version is installed...rolling back.");
-
-                                if (String.IsNullOrEmpty(desiredState.appxSource))
-                                {
-                                    AppReportedState appReportedState = new AppReportedState(
-                                        desiredState.packageFamilyId,
-                                        desiredState.packageFamilyName,
-                                        installedAppVersion.ToString(),
-                                        installedAppInfo.InstallDate,
-                                        new Error(ErrorCodes.INVALID_DESIRED_APPX_SRC, "Cannot install appx without a source."),
-                                        JsonReport.Report);
-
-                                    await ReportAppStatus(appReportedState);
-
-                                    throw new Exception("Failed to roll back application version.");
-                                }
-                                else
-                                {
-                                    // Note that UninstallAppAsync will throw if it fails - and correctly avoid launching the install...
-                                    await UninstallAppAsync(installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);
-                                    await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);
-                                }
-                            }
-                        }
+                        await InstallAppAsync(installedAppInfo, installedAppVersion, connectionString, installedApps, desiredState);
                     }
                     break;
                 case AppDesiredAction.Uninstall:
                     {
-                        Debug.WriteLine("Processing uninstall request...");
                         await UninstallAppAsync(installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);
                     }
                     break;
                 case AppDesiredAction.Query:
                     {
-                        Debug.WriteLine("Processing query request...");
-
-                        AppReportedState appReportedState;
-                        if (installedAppInfo == null)
-                        {
-                            Debug.WriteLine("    Couldn't find an installed version...");
-
-                            appReportedState = new AppReportedState(
-                                desiredState.packageFamilyId,
-                                desiredState.packageFamilyName,
-                                VersionNotInstalled,
-                                null,
-                                null,
-                                JsonReport.Report);
-                        }
-                        else
-                        {
-                            Debug.WriteLine("    Found an installed version...");
-
-                            appReportedState = new AppReportedState(
-                                desiredState.packageFamilyId,
-                                desiredState.packageFamilyName,
-                                installedAppInfo.Version,
-                                installedAppInfo.InstallDate,
-                                null,
-                                JsonReport.Report);
-                        }
-                        await ReportAppStatus(appReportedState);
+                        await QueryAppAsync(installedAppInfo, desiredState);
                     }
                     break;
                 case AppDesiredAction.Unreport:
@@ -609,11 +834,12 @@ namespace Microsoft.Devices.Management
                             desiredState.packageFamilyId,
                             desiredState.packageFamilyName,
                             null,   // no version
+                            StartUpType.None,
                             null,   // no install date
                             null,   // no error
                             JsonReport.Unreport);
 
-                        await ReportAppStatus(appReportedState);
+                        _stateToReport[desiredState.packageFamilyId] = appReportedState;
                     }
                     break;
                 case AppDesiredAction.Undefined:
@@ -624,34 +850,80 @@ namespace Microsoft.Devices.Management
                             desiredState.packageFamilyId,
                             desiredState.packageFamilyName,
                             null,   // no version
+                            StartUpType.None,
                             null,   // no install date
                             new Error(ErrorCodes.INVALID_DESIRED_APPX_OPERATION, "Invalid application operation."),
                             JsonReport.Report);
 
-                        await ReportAppStatus(appReportedState);
+                        _stateToReport[desiredState.packageFamilyId] = appReportedState;
                     }
                     break;
             }
         }
 
-        private async Task ApplyDesiredAppsConfiguration(JObject appsNode)
+        private async Task ApplyDesiredAppsConfiguration(JToken jAppsToken)
         {
-            IDictionary<string, AppInfo> installedApps = await ListAppsAsync();
+            if (!(jAppsToken is JObject))
+            {
+                return;
+            }
+            JObject appsNode = (JObject)jAppsToken;
 
+            // Reset the nodes to report...
+            _stateToReport = new Dictionary<string, AppReportedState>();
+
+            IDictionary<string, AppInfo> installedApps = await ListAppsAsync();
             DumpInstalledApps(installedApps);
 
-            IEnumerable<AppDesiredState> desiredStates = JsonToDesiredStates(appsNode);
-            foreach (AppDesiredState desiredState in desiredStates)
+            DesiredActions desiredActions = JsonToDesiredActions(appsNode);
+            foreach (AppDesiredState appDesiredState in desiredActions.appDesiredStates)
             {
                 try
                 {
-                    await ApplyAppDesiredState(this._connectionString, installedApps, desiredState);
+                   await ApplyAppDesiredState(this._connectionString, installedApps, appDesiredState);
                 }
                 catch(Exception)
                 {
-                    // Catch everything here so that we may continue processing other desiredStates.
+                    // Catch everything here so that we may continue processing other appDesiredStates.
                     // No reporting to the IoT Hub is needed here because it has already taken place.
                 }
+            }
+
+            // Process the "?"
+            if (desiredActions.appListQuery.nonStore || desiredActions.appListQuery.store)
+            {
+                foreach (var pair in installedApps)
+                {
+                    AppReportedState dummyAppReportedState;
+                    if (_stateToReport.TryGetValue(pair.Value.PackageFamilyName, out dummyAppReportedState))
+                    {
+                        // Already queued to be reported, no need to consider adding it to _stateToReport.
+                        continue;
+                    }
+                    if ( (pair.Value.AppSource == "AppStore" && desiredActions.appListQuery.store) ||
+                         (pair.Value.AppSource == "NonStore" && desiredActions.appListQuery.nonStore) )
+                    {
+                        AppReportedState appReportedState = new AppReportedState(
+                            pair.Value.PackageFamilyName.Replace('.', '_'),
+                            pair.Value.PackageFamilyName,
+                            pair.Value.Version,
+                            pair.Value.StartUp,
+                            pair.Value.InstallDate,
+                            null,
+                            JsonReport.Report);
+
+                        _stateToReport[pair.Value.PackageFamilyName] = appReportedState;
+                    }
+                }
+            }
+
+            // Reset the apps reported node...
+            await NullifyReported();
+
+            // Report all collected values...
+            foreach (var pair in _stateToReport)
+            {
+                await ReportAppStatus(pair.Value);
             }
         }
 
@@ -709,10 +981,8 @@ namespace Microsoft.Devices.Management
         {
             UpdateCache(desiredValue);
 
-            if (desiredValue is JObject)
-            {
-                ApplyDesiredAppsConfiguration((JObject)desiredValue);
-            }
+            // Need to revisit all the desired nodes (not only the changed ones) so that we can re-construct the correct reported list.
+            ApplyDesiredAppsConfiguration(_desiredCache[JsonSectionName]);
         }
 
         // IClientPropertyHandler
@@ -726,5 +996,7 @@ namespace Microsoft.Devices.Management
         private ISystemConfiguratorProxy _systemConfiguratorProxy;
         private IClientHandlerCallBack _callback;
         private JObject _desiredCache;
+        private Dictionary<string, AppReportedState> _stateToReport;
+        
     }
 }

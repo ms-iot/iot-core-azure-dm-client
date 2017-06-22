@@ -101,19 +101,6 @@ namespace DMDashboard
             Reported_CertificateStore_Root_System.ShowCertificateDetails += ShowCertificateDetails;
             Reported_CertificateStore_My_User.ShowCertificateDetails += ShowCertificateDetails;
             Reported_CertificateStore_My_System.ShowCertificateDetails += ShowCertificateDetails;
-
-            AppDesiredState[] appsConfigurations = {
-                new AppDesiredState("samplePackageFamilyName",
-                                    AppDesiredState.DesiredState.Installed,
-                                    "1.0.0.0",
-                                    "container\\sample.appx",
-                                    "container\\sampleDep0.appx",
-                                    "container\\sampleDep1.appx",
-                                    "container\\sampleCertificate.cer",
-                                    "./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople")
-            };
-
-            TheAppsConfigurator.AppsConfigurations = appsConfigurations;
         }
 
         private void ToggleUIElementVisibility(UIElement element)
@@ -756,6 +743,27 @@ namespace DMDashboard
             var cancellationToken = new CancellationToken();
             DeviceMethodReturnValue result = await this._deviceTwin.CallDeviceMethod("microsoft.management.getWifiDetails", parametersJson, new TimeSpan(0, 0, 30), cancellationToken);
             MessageBox.Show("Get Wifi Profile Details Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
+        }
+
+        private void OnLoadProfile(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            dlg.DefaultExt = ".json";
+            dlg.Filter = "json files (*.json)|*.json|All files (*.*)|*.*";
+            bool? result = dlg.ShowDialog();
+            if (result != true)
+            {
+                return;
+            }
+
+            object rootObject = JsonConvert.DeserializeObject(File.ReadAllText(dlg.FileName));
+            if (!(rootObject is JObject))
+            {
+                MessageBox.Show("Invalid json file content!");
+            }
+
+            JObject jRoot = (JObject)rootObject;
+            TheAppsConfigurator.PopulateFromJson(jRoot);
         }
 
         private DeviceTwinAndMethod _deviceTwin;

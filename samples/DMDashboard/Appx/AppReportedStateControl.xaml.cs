@@ -21,15 +21,17 @@ namespace DMDashboard
         public string PackageFamilyName { get; set; }
         public string Version { get; set; }
         public string InstallDate { get; set; }
+        public string StartUp { get; set; }
         public string Error { get; set; }
 
         public AppReportedState() { }
 
-        public AppReportedState(string packageFamilyName, string version, string installDate, string error)
+        public AppReportedState(string packageFamilyName, string version, string installDate, string startUp, string error)
         {
             PackageFamilyName = packageFamilyName;
             Version = version;
             InstallDate = installDate;
+            StartUp = startUp;
             Error = error;
         }
     }

@@ -113,7 +113,7 @@ void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add
             </Meta>
             <Data>%s</Data>
         </Item>
-        </Replace>        
+        </%s>
      <Final/>
   </SyncBody>
 )";
@@ -143,12 +143,13 @@ void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add
     const wchar_t *action = (backgroundApplication) ? ((add) ? L"Add" : L"Delete") : L"Replace";
     const wchar_t *syncML = (backgroundApplication) ? syncML_forBackgroundApp : syncML_forApp;
 
-    size_t bufsize = _scwprintf(syncML, action, appId.c_str(), action);
+    wstring cspAppId = appId + L"!App";
+    size_t bufsize = _scwprintf(syncML, action, cspAppId.c_str(), action);
 
     bufsize += 1; // need null-termintator
     vector<wchar_t> buff(bufsize);
 
-    _snwprintf_s(buff.data(), bufsize, bufsize, syncML, action, appId.c_str(), action);
+    _snwprintf_s(buff.data(), bufsize, bufsize, syncML, action, cspAppId.c_str(), action);
 
     wstring output;
     wstring sid = Utils::GetSidForAccount(L"DefaultAccount");
@@ -170,3 +171,20 @@ void CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(const wstring& a
     HandleStartupApp(appId, true, false /*replace/delete*/);
 }
 
+bool CustomDeviceUiCSP::IsForeground(const std::wstring& appId)
+{
+    TRACE(__FUNCTION__);
+
+    wstring forgroundAppId = CustomDeviceUiCSP::GetStartupAppId();
+    wstring cspAppId = appId + L"!App";
+    return forgroundAppId == cspAppId;
+}
+
+bool CustomDeviceUiCSP::IsBackground(const std::wstring& appId)
+{
+    TRACE(__FUNCTION__);
+
+    wstring backgroundTasks = CustomDeviceUiCSP::GetBackgroundTasksToLaunch();
+    wstring cspAppId = appId + L"!App";
+    return wstring::npos != backgroundTasks.find(appId);
+}
