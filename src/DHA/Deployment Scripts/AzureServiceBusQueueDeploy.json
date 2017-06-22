@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "serviceBusNamespaceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Service Bus Namespace"
+      }
+    },
+    "serviceBusQueueName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Service Bus Queue"
+      }
+    }
+  },
+  "variables": {
+    "serviceBusQueueName": "[concat(parameters('serviceBusNamespaceName'), '/', parameters('serviceBusQueueName'))]",
+    "serviceBusNamespaceName": "[parameters('serviceBusNamespaceName')]"
+  },
+  "resources": [
+    {
+        "type": "Microsoft.ServiceBus/namespaces/queues",
+        "name": "[variables('serviceBusQueueName')]",
+        "apiVersion": "2015-08-01",
+        "location": "[resourceGroup().location]",
+        "properties": {
+            "path": "[parameters('serviceBusQueueName')]"
+        }
+    }
+  ]
+}
