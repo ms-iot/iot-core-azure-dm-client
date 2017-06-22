@@ -18,6 +18,31 @@ using Microsoft.ServiceBus.Messaging;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 
+class HealthReport
+{
+    public HealthReport(string deviceId, 
+                        string correlationId, 
+                        string healthCertificate, 
+                        Dictionary<string, string> healthCertificateProperties)
+    {
+        if (string.IsNullOrWhiteSpace(deviceId)) throw new ArgumentException("deviceId");
+        if (string.IsNullOrWhiteSpace(correlationId)) throw new ArgumentException("correlationId");
+        if (string.IsNullOrWhiteSpace(healthCertificate)) throw new ArgumentException("healthCertificate");
+        if (healthCertificateProperties == null) throw new ArgumentNullException("healthCertificateProperties");
+
+        this.DeviceId = deviceId;
+        this.CorrelationId = correlationId;
+        this.HealthCertificate = healthCertificate;
+        this.HealthCertificateProperties = healthCertificateProperties;
+    }
+
+    public string DeviceId { get; private set; }
+    public string CorrelationId { get; private set; }
+    public string HealthCertificate { get; private set; }
+    public IReadOnlyDictionary<string, string> HealthCertificateProperties { get; private set; }
+
+}
+
 class ReportRequestHandler
 {
     static readonly string DefaultEndpoint = "https://has.spserv.microsoft.com";
@@ -32,7 +57,7 @@ class ReportRequestHandler
         _registryManager = registryManager;
     }
     
-    public async Task Process(BrokeredMessage dhaMsg)
+    public async Task<HealthReport> ProcessAsync(BrokeredMessage dhaMsg)
     {
         var deviceId = dhaMsg.Properties["iothub-connection-device-id"].ToString();
         _log.Info($"deviceId: {deviceId}");
@@ -68,16 +93,30 @@ class ReportRequestHandler
         _log.Info($"HasServerUrl: {url}");
 
         // Validate HealthCertificate with HAS server
-        var report = await PostHttpRequestToServer(url, xml.InnerXml);
-        _log.Info($"report: {report}");
+        var reportString = await PostHttpRequestToServerAsync(url, xml.InnerXml);
+        _log.Info($"report: {reportString}");
 
-        // Translate DHA-report to Azure table entity
-        var entity = ParseHealthCertificateValidationResponse(report);
-        entity.PartitionKey = GetPartitionKeyForDeviceId(deviceId);
-        entity.RowKey = string.Format("{0}-{1}", deviceId, DateTime.UtcNow.ToString("o"));
-        entity.Properties.Add("DeviceId", new EntityProperty(deviceId));
-        entity.Properties.Add("CorrelationId", new EntityProperty(request.CorrelationId));
-        entity.Properties.Add("HealthCertificate", new EntityProperty(request.HealthCertificate));
+        // Translate xml into HealthReport
+        var properties = ParseHealthCertificateValidationResponse(reportString);
+        var report = new HealthReport(deviceId, request.CorrelationId, request.HealthCertificate, properties);
+
+        await WriteReportAsync(report);
+        return report;
+    }
+
+    private async Task WriteReportAsync(HealthReport report)
+    {
+        // Create table entity for insertion
+        var entity = new DynamicTableEntity();
+        entity.PartitionKey = GetPartitionKeyForDeviceId(report.DeviceId);
+        entity.RowKey = string.Format("{0}-{1}", report.DeviceId, DateTime.UtcNow.ToString("o"));
+        entity.Properties.Add("DeviceId", new EntityProperty(report.DeviceId));
+        entity.Properties.Add("CorrelationId", new EntityProperty(report.CorrelationId));
+        entity.Properties.Add("HealthCertificate", new EntityProperty(report.HealthCertificate));
+        foreach (var pair in report.HealthCertificateProperties)
+        {
+            entity.Properties.Add($"HealthCertificateProperties_{pair.Key}", new EntityProperty(pair.Value));
+        }
 
         // Insert report into the table
         var insertOperation = TableOperation.Insert(entity);
@@ -113,7 +152,7 @@ class ReportRequestHandler
         }
     }
 
-    private DynamicTableEntity ParseHealthCertificateValidationResponse(string report)
+    private Dictionary<string, string> ParseHealthCertificateValidationResponse(string report)
     {
         var xml = new XmlDocument();
         xml.LoadXml(report);
@@ -124,17 +163,15 @@ class ReportRequestHandler
         var healthCertificatePropertiesNode = root.FirstChild;
         ValidateNodeName(healthCertificatePropertiesNode, "HealthCertificateProperties");
 
-        var entity = new DynamicTableEntity();
+        var properties = new Dictionary<string, string>();
         foreach (XmlNode node in healthCertificatePropertiesNode.ChildNodes)
         {
-            var name = $"HealthCertificateProperties_{node.Name}";
-            var value = node.InnerText;
-            entity.Properties.Add(name, new EntityProperty(value));
+            properties.Add(node.Name, node.InnerText);
         }
-        return entity;
+        return properties;
     }
 
-    private static async Task<string> PostHttpRequestToServer(string url, string xml)
+    private static async Task<string> PostHttpRequestToServerAsync(string url, string xml)
     {
         byte[] data = Encoding.UTF8.GetBytes(xml);
         WebRequest request = WebRequest.Create(url);

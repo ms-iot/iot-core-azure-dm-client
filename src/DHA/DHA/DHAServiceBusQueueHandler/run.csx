@@ -6,6 +6,7 @@
 #load "NonceTable.csx"
 #load "NonceRequestHandler.csx"
 #load "ReportRequestHandler.csx"
+#load "HealthInspector.csx"
 
 using System;
 using System.IO;
@@ -35,12 +36,15 @@ public static async Task Run(BrokeredMessage dhaMsg, CloudTable nonceTable, Clou
         if (string.Compare(messageType, DeviceHealthAttestationDataContract.NonceRequestTag) == 0)
         {
             var handler = new NonceRequestHandler(nonceTable, serviceClient, log);
-            await handler.Process(dhaMsg);
+            await handler.ProcessAsync(dhaMsg);
         }
         else if (string.Compare(messageType, DeviceHealthAttestationDataContract.HealthReportTag) == 0)
         {
             var handler = new ReportRequestHandler(nonceTable, dhaReportTable, serviceClient, registryManager, log);
-            await handler.Process(dhaMsg);
+            var report = await handler.ProcessAsync(dhaMsg);
+
+            var healthInspector = new HealthInspector(serviceClient, log);
+            await healthInspector.ProcessHealthReportAsync(report);
         }
         else
         {

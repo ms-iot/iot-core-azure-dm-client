@@ -26,7 +26,7 @@ public class NonceRequestHandler
         _iotHubServiceClient = iotHubServiceClient;
     }
 
-    public async Task Process(BrokeredMessage dhaEventData)
+    public async Task ProcessAsync(BrokeredMessage dhaEventData)
     {
         var deviceId = dhaEventData.Properties["iothub-connection-device-id"].ToString();
         _log.Info($"deviceId: {deviceId}");
