@@ -31,28 +31,12 @@ namespace DMDashboard
                     appReportedStateControl.DataContext = state;
                     ControlList.Children.Add(appReportedStateControl);
                 }
-                //AppReportedState[] states = (AppReportedState[])value;
-                //for (int i = 0; i < states.Length && i < _controls.Count; ++i)
-                //{
-                //    _controls[i].DataContext = states[i];
-                //}
-                //for (int i = states.Length; i < _controls.Count; ++i)
-                //{
-                //    _controls[i].DataContext = new AppReportedState();
-                //}
             }
         }
 
         public AppsReportedStateControl()
         {
             InitializeComponent();
-            //_controls = new List<AppReportedStateControl>();
-            //_controls.Add(App0);
-            //_controls.Add(App1);
-            //_controls.Add(App2);
-            //_controls.Add(App3);
-            //_controls.Add(App4);
-            //_controls.Add(App5);
         }
 
         public void AppsStatusJsonToUI(JToken token)

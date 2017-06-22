@@ -650,7 +650,7 @@ IResponse^ HandleAddRemoveAppForStartup(StartupAppInfo^ info, DMMessageKind tag,
     {
         auto pkgFamilyName = (wstring)info->AppId->Data();
 
-        TRACEP(L"app id = ", pkgFamilyName.c_str());
+        TRACEP(L"pkgFamilyName = ", pkgFamilyName.c_str());
 
         auto isBackgroundApp = info->IsBackgroundApplication;
 
