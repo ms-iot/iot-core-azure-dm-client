@@ -62,6 +62,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
     };
 
+    [Windows::Foundation::Metadata::WebHostHidden]
     public ref class WifiConfiguration sealed
     {
     public:
@@ -173,6 +174,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
     };
 
+    [Windows::Foundation::Metadata::WebHostHidden]
     public ref class SetWifiConfigurationRequest sealed : public IRequest
     {
     public:
@@ -219,6 +221,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
     };
 
+    [Windows::Foundation::Metadata::WebHostHidden]
     public ref class GetWifiConfigurationResponse sealed : public IResponse
     {
         StatusCodeResponse statusCodeResponse;

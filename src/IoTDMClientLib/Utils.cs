@@ -28,6 +28,8 @@ namespace Microsoft.Devices.Management
         public static int INVALID_DESIRED_APPX_OPERATION = unchecked((int)0xA0000003);
         public static int INVALID_INSTALLED_APP_VERSION_UNCHANGED = unchecked((int)0xA0000004);
         public static int INVALID_INSTALLED_APP_VERSION_UNEXPECTED = unchecked((int)0xA0000005);
+        public static int INVALID_DESIRED_MULTIPLE_FOREGROUND_APPS = unchecked((int)0xA0000006);
+        public static int INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP = unchecked((int)0xA0000007);
     }
 
     class Error : Exception

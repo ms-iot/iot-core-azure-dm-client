@@ -49,6 +49,7 @@
             <Grid Grid.Row="0" Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0" Grid.Column="0" Height="40">
@@ -57,7 +58,8 @@
                         <TextBlock Margin="3" FontWeight="Bold" FontSize="18" Text="?" x:Name="SelectedDeviceName"/>
                     </StackPanel>
                 </Border>
-                <ScrollViewer Grid.Row="1" Grid.Column="0">
+                <Button Grid.Row="1" Grid.Column="0" Margin="3" Width="150" HorizontalAlignment="Left" Content="Load Desired Profile" Click="OnLoadProfile"/>
+                <ScrollViewer Grid.Row="2" Grid.Column="0">
                     <StackPanel Orientation="Vertical" x:Name="ConnectedProperties" IsEnabled="False" Grid.RowSpan="2">
 
                         <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />

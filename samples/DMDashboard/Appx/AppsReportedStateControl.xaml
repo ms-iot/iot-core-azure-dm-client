@@ -7,9 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="400">
     <StackPanel Orientation="Vertical">
-        <local:AppReportedStateControl Grid.Row="1" Grid.Column="0" x:Name="App0"/>
-        <local:AppReportedStateControl Grid.Row="1" Grid.Column="0" x:Name="App1"/>
-        <local:AppReportedStateControl Grid.Row="1" Grid.Column="0" x:Name="App2"/>
-        <local:AppReportedStateControl Grid.Row="1" Grid.Column="0" x:Name="App3"/>
+        <Border Height="90" Width="10"/>
+        <StackPanel Orientation="Vertical" x:Name="ControlList"/>
     </StackPanel>
 </UserControl>

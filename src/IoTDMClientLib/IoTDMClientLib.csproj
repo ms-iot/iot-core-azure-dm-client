@@ -94,13 +94,14 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AppxManagement.cs" />
+    <Compile Include="Handlers\AppxManagement.cs" />
     <Compile Include="AzureBlobFileTransfer.cs" />
     <Compile Include="AzureIoTHubDeviceTwinProxy.cs" />
     <Compile Include="CertificateManagement.cs" />
-    <Compile Include="DeviceHealthAttestationHandler.cs" />
+    <Compile Include="Handlers\DeviceHealthAttestationHandler.cs" />
     <Compile Include="DeviceManagementClient.cs" />
     <Compile Include="DirectMethodGuard.cs" />
+    <Compile Include="Handlers\ExternalStorageHandler.cs" />
     <Compile Include="IDeviceManagementClientHandler.cs" />
     <Compile Include="ISystemConfiguratorProxy.cs" />
     <Compile Include="SystemConfiguratorProxy.cs" />
@@ -110,8 +111,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TpmDevice.cs" />
     <Compile Include="Utils.cs" />
-    <Compile Include="WindowsUpdatePolicyHandler.cs" />
-    <Compile Include="WifiHandler.cs" />
+    <Compile Include="Handlers\WindowsUpdatePolicyHandler.cs" />
+    <Compile Include="Handlers\WifiHandler.cs" />
     <EmbeddedResource Include="Properties\IoTDMClient.rd.xml" />
   </ItemGroup>
   <ItemGroup>

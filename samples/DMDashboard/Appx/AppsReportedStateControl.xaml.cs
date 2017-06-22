@@ -25,15 +25,11 @@ namespace DMDashboard
         {
             set
             {
-                AppReportedState[] states = (AppReportedState[])value;
-                AppReportedStateControl[] controls = { App0, App1, App2, App3 };
-                for (int i = 0; i < states.Length; ++i)
+                foreach (AppReportedState state in (AppReportedState[])value)
                 {
-                    controls[i].DataContext = states[i];
-                }
-                for (int i = states.Length; i < 4; ++i)
-                {
-                    controls[i].DataContext = new AppReportedState();
+                    AppReportedStateControl appReportedStateControl = new AppReportedStateControl();
+                    appReportedStateControl.DataContext = state;
+                    ControlList.Children.Add(appReportedStateControl);
                 }
             }
         }
@@ -64,7 +60,7 @@ namespace DMDashboard
                 string packageFamilyJsonId = property.Name;
                 if (property.Value == null)
                 {
-                    data.Add(new AppReportedState(packageFamilyJsonId, null, null, null));
+                    data.Add(new AppReportedState(packageFamilyJsonId, null, null, null, null));
                 }
                 else if (property.Value is JObject)
                 {
@@ -76,22 +72,26 @@ namespace DMDashboard
                         {
                             continue;
                         }
-                        JProperty property1 = (JProperty)p1;
-                        if (property1.Name == "pkgFamilyName")
+                        JProperty childProperty = (JProperty)p1;
+                        if (childProperty.Name == "pkgFamilyName")
                         {
-                            appStatusData.PackageFamilyName = property1.Value.ToString();
+                            appStatusData.PackageFamilyName = childProperty.Value.ToString();
                         }
-                        else if (property1.Name == "version")
+                        else if (childProperty.Name == "version")
                         {
-                            appStatusData.Version = property1.Value.ToString();
+                            appStatusData.Version = childProperty.Value.ToString();
                         }
-                        else if (property1.Name == "installDate")
+                        else if (childProperty.Name == "installDate")
                         {
-                            appStatusData.InstallDate = property1.Value.ToString();
+                            appStatusData.InstallDate = childProperty.Value.ToString();
                         }
-                        else if (property1.Name == "error")
+                        else if (childProperty.Name == "startUp")
                         {
-                            appStatusData.Error = property1.Value.ToString();
+                            appStatusData.StartUp = childProperty.Value.ToString();
+                        }
+                        else if (childProperty.Name == "error")
+                        {
+                            appStatusData.Error = childProperty.Value.ToString();
                         }
                     }
                     data.Add(appStatusData);
@@ -99,5 +99,7 @@ namespace DMDashboard
             }
             AppsStatusData = data.ToArray();
         }
+
+        private List<AppReportedStateControl> _controls;
     }
 }

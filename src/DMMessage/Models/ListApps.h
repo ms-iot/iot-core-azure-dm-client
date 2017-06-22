@@ -55,6 +55,9 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, ResourceID);
             SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, Users);
             SET_STRING_PROPERTY_FROM_JSON(jsonApp, this, Version);
+
+            // Macros cannot be used with the casting easily.
+            StartUp = static_cast<StartUpType>(static_cast<int>(jsonApp->Lookup("StartUp")->GetNumber()));
         }
         JsonObject^ ToJson()
         {
@@ -74,6 +77,10 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, ResourceID);
             INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, Users);
             INSERT_STRING_PROPERTY_INTO_JSON(jsonApp, this, Version);
+
+            // Macros cannot be used with the casting easily.
+            jsonApp->Insert("StartUp", JsonValue::CreateNumberValue(static_cast<int>(StartUp)));
+
             return jsonApp;
         }
 
@@ -93,6 +100,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         property String^ ResourceID;
         property String^ Users;
         property String^ Version;
+        property StartUpType StartUp;
     };
 
     public ref class ListAppsResponse sealed : public IResponse
