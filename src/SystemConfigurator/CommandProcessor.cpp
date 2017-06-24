@@ -453,7 +453,7 @@ IResponse^ HandleCheckUpdates(IRequest^ request)
     return ref new CheckForUpdatesResponse(ResponseStatus::Success, true);
 }
 
-void SetAppStartup(const wstring& pkgFamilyName, StartUpType startUpType)
+void SetAppStartUpType(const wstring& pkgFamilyName, StartUpType startUpType)
 {
     TRACE(__FUNCTION__);
     TRACEP(L"Package Family Name: ", pkgFamilyName.c_str());
@@ -483,7 +483,7 @@ void SetAppStartup(const wstring& pkgFamilyName, StartUpType startUpType)
     }
 }
 
-StartUpType GetAppStartUp(const wstring& pkgFamilyName)
+StartUpType GetAppStartUpType(const wstring& pkgFamilyName)
 {
     TRACE(__FUNCTION__);
 
@@ -529,8 +529,8 @@ IResponse^ HandleInstallApp(IRequest^ request)
         responseData->errorMessage = ref new String(applicationInfo.errorMessage.c_str());
 
         // Handle the startup state...
-        SetAppStartup(packageFamilyName, info->StartUp);
-        responseData->startUp = GetAppStartUp(packageFamilyName);
+        SetAppStartUpType(packageFamilyName, info->StartUp);
+        responseData->startUp = GetAppStartUpType(packageFamilyName);
 
         return ref new AppInstallResponse(ResponseStatus::Success, responseData);
     }
@@ -558,7 +558,7 @@ IResponse^ HandleUninstallApp(IRequest^ request)
         auto requestData = appUninstallRequest->data;
         auto packageFamilyName = (wstring)requestData->PackageFamilyName->Data();
 
-        SetAppStartup(packageFamilyName, StartUpType::None);
+        SetAppStartUpType(packageFamilyName, StartUpType::None);
 
         // ToDo: Need to either fix the CSP api, or just stick with the WinRT interface.
         // auto storeApp = info->StoreApp;
@@ -654,8 +654,14 @@ IResponse^ HandleAddRemoveAppForStartup(StartupAppInfo^ info, DMMessageKind tag,
 
         auto isBackgroundApp = info->IsBackgroundApplication;
 
-        if (add) { CustomDeviceUiCSP::AddAsStartupApp(pkgFamilyName, isBackgroundApp); }
-        else { CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(pkgFamilyName); }
+        if (add)
+        {
+            CustomDeviceUiCSP::AddAsStartupApp(pkgFamilyName, isBackgroundApp);
+        }
+        else
+        {
+            CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(pkgFamilyName);
+        }
         return ref new StatusCodeResponse(ResponseStatus::Success, tag);
     }
     catch (Platform::Exception^ e)
@@ -725,7 +731,7 @@ IResponse^ HandleListApps(IRequest^ request)
         auto pfn = pair->Key;
         auto properties = jsonMap->GetNamedObject(pfn);
         wstring packageFamilyName = properties->GetNamedString("PackageFamilyName")->Data();
-        properties->Insert(L"StartUp", JsonValue::CreateNumberValue(static_cast<double>(GetAppStartUp(packageFamilyName))));
+        properties->Insert(L"StartUp", JsonValue::CreateNumberValue(static_cast<double>(GetAppStartUpType(packageFamilyName))));
     }
 
     return ref new ListAppsResponse(ResponseStatus::Success, jsonMap);

@@ -27,13 +27,12 @@ namespace DMDashboard
         {
             set
             {
-                for (int i = 0; i < value.Count && i < _controls.Count; ++i)
+                ControlList.Children.Clear();
+                for (int i = 0; i < value.Count; ++i)
                 {
-                    _controls[i].DataContext = value[i];
-                }
-                for (int i = value.Count; i < _controls.Count; ++i)
-                {
-                    _controls[i].DataContext = new AppDesiredState();
+                    AppDesiredStateControl appDesiredStateControl = new AppDesiredStateControl();
+                    appDesiredStateControl.DataContext = value[i];
+                    ControlList.Children.Add(appDesiredStateControl);
                 }
             }
         }
@@ -41,13 +40,6 @@ namespace DMDashboard
         public AppsDesiredStateControl()
         {
             InitializeComponent();
-            _controls = new List<AppDesiredStateControl>();
-            _controls.Add(App0);
-            _controls.Add(App1);
-            _controls.Add(App2);
-            _controls.Add(App3);
-            _controls.Add(App4);
-            _controls.Add(App5);
         }
 
         public string GetJSon()
@@ -62,7 +54,7 @@ namespace DMDashboard
             sb.Append("    \"nonStore\": " + reportAllNonStoreAppsString + "\n");
             sb.Append("}\n");
 
-            foreach (AppDesiredStateControl control in _controls)
+            foreach (AppDesiredStateControl control in ControlList.Children)
             {
                 string s = control.GetJSon();
                 if (!String.IsNullOrEmpty(s))
@@ -159,6 +151,9 @@ namespace DMDashboard
             AppsConfigurations = apps;
         }
 
-        private List<AppDesiredStateControl> _controls;
+        private void OnAddAppConfiguration(object sender, System.Windows.RoutedEventArgs e)
+        {
+            ControlList.Children.Add(new AppDesiredStateControl());
+        }
     }
 }

@@ -77,7 +77,7 @@ Each app is identified by its `"packageFamilyId"` - which is its package family 
 
 ### Desired Properties - Reporting Store/Non-Store Applications
 
-The `"desired.microsoft.management.apps"` property is defined like this:
+By default, only the application explicitly specified by the packageFamilyId in the desired sections will have their state reported. To report other applications that are already installed, use the `"?"` as described below.
 
 <pre>
 "desired" : {
@@ -122,8 +122,6 @@ If the DM client is able to bring the actual state in compliance with the desire
                     "version" : "<i>see below</i>",
                     "startUp" : "none|foreground|background",
                     "installDate" : "<i>Datetime in ISO 8601 format, UTC</i>"
-                    "errorCode" : "<i>see below</i>",
-                    "errorMessage" : "<i>see below</i>",
                 }
                 <i>[,...]</i>
             }
@@ -185,7 +183,7 @@ However, if the app cannot be installed at all, the `"version"` will be set to `
 
 #### Example 1
 
-The operator wishes to ensure that the Toaster app (with package family name `23983CETAthensQuality.IoTToasterSample`) and the GardenSprinkler app (`GardenSprinkler_kay8908908`) are installed on the device. Additionally, the operator wants to have the DogFeeder app (`DogFeeder_80615fge`) uninstalled from the device:
+The operator wishes to ensure that the Toaster app (with package family name `23983CETAthensQuality.IoTToasterSample`) and the GardenSprinkler app (`GardenSprinkler_kay8908908`) are installed on the device. Additionally, the operator wants to have the DogFeeder app (`DogFeeder_80615fge`) uninstalled from the device and all installed store applications reported:
 
 <pre>
 "desired" : {
@@ -222,6 +220,7 @@ The operator wishes to ensure that the Toaster app (with package family name `23
 </pre>
 
 Note that for the `"GardenSprinkler_kay8908908"` application no sources were specified. This indicates that the target action is to update from the store if the currently installed version is older than 2.0.0.0.
+Also note that BirdFeeder_80615fge is included in the reported list because the user has `"?"` in the desired list.
 
 The client determines the required set of actions, performs them and updates the `"reported.microsoft.management.apps"` property as follows:
 
@@ -262,7 +261,7 @@ The client determines the required set of actions, performs them and updates the
 
 #### Example 2
 
-In the following example, the operator wishes to stop tracking the state of the DogFeeder app, which has been decommissioned. This is expressed as follows:
+In the following example, the operator wishes to stop tracking the state of the DogFeeder app, which has been decommissioned but still wants to list all the store applications. This is expressed as follows:
 
 <pre>
 "desired" : {

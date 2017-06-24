@@ -33,10 +33,10 @@ namespace Microsoft.Devices.Management
 
     struct DesiredActions
     {
-        public IEnumerable<AppDesiredState> appDesiredStates;
+        public List<AppDesiredState> appDesiredStates;
         public AppListQuery appListQuery;
 
-        public DesiredActions(IEnumerable<AppDesiredState> states, AppListQuery query)
+        public DesiredActions(List<AppDesiredState> states, AppListQuery query)
         {
             this.appDesiredStates = states;
             this.appListQuery = query;
@@ -116,11 +116,6 @@ namespace Microsoft.Devices.Management
                 {
                     sb.Append("                \"errorCode\" : \"" + (error.HResult.ToString()) + "\",\n");
                     sb.Append("                \"errorMessage\" : \"" + (error.Message) + "\"\n");
-                }
-                else
-                {
-                    sb.Append("                \"errorCode\" : null,\n");
-                    sb.Append("                \"errorMessage\" : null\n");
                 }
                 sb.Append("            }\n");
             }
@@ -261,7 +256,7 @@ namespace Microsoft.Devices.Management
             await this._callback.ReportPropertiesAsync(JsonSectionName, new JValue("refreshing"));
         }
 
-        private void Reorder(List<AppDesiredState> appDesiredStates)
+        private void ReorderAndValidate(List<AppDesiredState> appDesiredStates, IDictionary<string, AppInfo> installedApps)
         {
             // If we are switching the foreground app from App1 to App2, App2 must be processed first.
             // For example:
@@ -275,19 +270,53 @@ namespace Microsoft.Devices.Management
             // This covers the case where the user sets a new foreground app and forgets to set the old one to 'none'.
 
             AppDesiredState foregroundApp = null;
-            var result = from state in appDesiredStates
+            var foregroundApps = from state in appDesiredStates
                          where state.startUp == StartUpType.Foreground
                          select state;
 
-            foreach (AppDesiredState state in result)
+            foreach (AppDesiredState state in foregroundApps)
             {
                 Debug.WriteLine("Found foreground app: " + state.packageFamilyName);
                 foregroundApp = state;
             }
 
-            if (result.Count<AppDesiredState>() > 1)
+            if (foregroundApps.Count<AppDesiredState>() > 1)
             {
-                throw new Error(ErrorCodes.INVALID_DESIRED_MULTIPLE_FOREGROUND_APPS, "Cannot set more than application to be the foreground application!");
+                StringBuilder sb = new StringBuilder();
+                foreach(AppDesiredState s in foregroundApps)
+                {
+                    if (sb.Length > 0)
+                    {
+                        sb.Append(", ");
+                    }
+                    sb.Append(s.packageFamilyName);
+                }
+
+                throw new Error(ErrorCodes.INVALID_DESIRED_MULTIPLE_FOREGROUND_APPS, "Cannot set more than one application to be the foreground application! Package Family Names = " + sb.ToString());
+            }
+
+            // Make sure the foreground application is not being uninstalled.
+            if (foregroundApp.startUp == StartUpType.Foreground && foregroundApp.action == AppDesiredAction.Uninstall)
+            {
+                // This means that no other application has been set to replace the one about to be uninstalled.
+                throw new Error(ErrorCodes.INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP, "Cannot configure an application to the foreground application and uninstall it. Package Family Name = " + foregroundApp.packageFamilyName);
+            }
+
+            // Make sure that the application being uninstalled is not the foreground app as marked by the system (i.e. installedApps).
+            // This is to catch the case where the desired state does not say anything about foreground apps - but the system does.
+            // So, we want to make sure the desired state does not conflict with the system state.
+            var uninstallForegroundApps = from desiredState in appDesiredStates
+                                          join installedState in installedApps on desiredState.packageFamilyName equals installedState.Value.PackageFamilyName
+                                          where desiredState.action == AppDesiredAction.Uninstall && installedState.Value.StartUp == StartUpType.Foreground
+                                          select desiredState;
+
+            if (uninstallForegroundApps.Count<AppDesiredState>() > 0)
+            {
+                // There should be at most one application matching since the foreground setting on the system allows only one foreground application.
+                string foregroundAppToUninstall = uninstallForegroundApps.First<AppDesiredState>().packageFamilyName;
+
+                // This means that an application is marked for uninstallation, and 
+                throw new Error(ErrorCodes.INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP, "Cannot uninstall a foreground application. Package Family Name = " + foregroundAppToUninstall);
             }
 
             if (foregroundApp != null)
@@ -371,11 +400,6 @@ namespace Microsoft.Devices.Management
                         desiredState.certStore = appProperty.Value.ToString();
                     }
                 }
-
-                if (desiredState.startUp == StartUpType.Foreground && desiredState.action == AppDesiredAction.Uninstall)
-                {
-                    throw new Error(ErrorCodes.INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP, "Cannot configure an application to the foreground application and uninstall it.");
-                }
             }
             else
             {
@@ -417,8 +441,6 @@ namespace Microsoft.Devices.Management
                     appDesiredStates.Add(JsonToAppDesiredState(property.Name, property.Value));
                 }
             }
-
-            Reorder(appDesiredStates);
 
             return new DesiredActions(appDesiredStates, appListQuery);
         }
@@ -876,6 +898,9 @@ namespace Microsoft.Devices.Management
             DumpInstalledApps(installedApps);
 
             DesiredActions desiredActions = JsonToDesiredActions(appsNode);
+
+            ReorderAndValidate(desiredActions.appDesiredStates, installedApps);
+
             foreach (AppDesiredState appDesiredState in desiredActions.appDesiredStates)
             {
                 try
