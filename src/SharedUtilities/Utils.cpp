@@ -102,6 +102,18 @@ namespace Utils
         return wstring(wideString.data());
     }
 
+    wstring TrimString(const std::wstring& s, const std::wstring& suffix)
+    {
+        wstring trimmed = s;
+
+        size_t pos = s.find(suffix);
+        if (wstring::npos != pos && pos == s.length() - suffix.length())
+        {
+            trimmed = s.substr(0, s.length() - suffix.length());
+        }
+        return trimmed;
+    }
+
     wstring GetCurrentDateTimeString()
     {
         SYSTEMTIME systemTime;

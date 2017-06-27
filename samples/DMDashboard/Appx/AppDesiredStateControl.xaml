@@ -9,11 +9,13 @@
         <ResourceDictionary>
             <local:NullableBooleanToBoolean x:Key="nullableBooleanToBoolean"/>
             <local:DesiredStateToInt x:Key="desiredStateToInt"/>
+            <local:StartupStateToInt x:Key="startupStateToInt"/>
         </ResourceDictionary>
     </UserControl.Resources>
     <StackPanel Orientation="Vertical">
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
                 <RowDefinition Height="30" />
                 <RowDefinition Height="30" />
                 <RowDefinition Height="30" />
@@ -58,40 +60,51 @@
                                 Converter={StaticResource nullableBooleanToBoolean},
                                 Mode=TwoWay}"/>
 
-            <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" Text="Appx" />
-            <TextBox Grid.Row="3" Grid.Column="2" Margin="3" x:Name="DesiredAppxSource"
+            <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" Text="Startup" />
+            <ComboBox Grid.Row="3" Grid.Column="2" Margin="3" x:Name="StartupState"
+                    SelectedIndex="{Binding Path=StartUp, Converter={StaticResource startupStateToInt}}"
+                    IsEnabled="{Binding ElementName=SlotUsed,
+                                Path=IsChecked,
+                                Converter={StaticResource nullableBooleanToBoolean}}">
+                <ComboBoxItem>None</ComboBoxItem>
+                <ComboBoxItem>Foreground</ComboBoxItem>
+                <ComboBoxItem>Background</ComboBoxItem>
+            </ComboBox>
+
+            <TextBlock Grid.Row="4" Grid.Column="1" Margin="3" Text="Appx" />
+            <TextBox Grid.Row="4" Grid.Column="2" Margin="3" x:Name="DesiredAppxSource"
                     Text="{Binding Path=AppxSource}"
                     IsEnabled="{Binding ElementName=SlotUsed,
                                 Path=IsChecked,
                                 Converter={StaticResource nullableBooleanToBoolean},
                                 Mode=TwoWay}"/>
 
-            <TextBlock Grid.Row="4" Grid.Column="1" Margin="3" Text="Dep 0" />
-            <TextBox Grid.Row="4" Grid.Column="2" Margin="3" x:Name="DesiredDep0Source"
+            <TextBlock Grid.Row="5" Grid.Column="1" Margin="3" Text="Dep 0" />
+            <TextBox Grid.Row="5" Grid.Column="2" Margin="3" x:Name="DesiredDep0Source"
                     Text="{Binding Path=Dep0Source}"
                     IsEnabled="{Binding ElementName=SlotUsed,
                                 Path=IsChecked,
                                 Converter={StaticResource nullableBooleanToBoolean},
                                 Mode=TwoWay}"/>
 
-            <TextBlock Grid.Row="5" Grid.Column="1" Margin="3" Text="Dep 1" />
-            <TextBox Grid.Row="5" Grid.Column="2" Margin="3" x:Name="DesiredDep1Source"
+            <TextBlock Grid.Row="6" Grid.Column="1" Margin="3" Text="Dep 1" />
+            <TextBox Grid.Row="6" Grid.Column="2" Margin="3" x:Name="DesiredDep1Source"
                     Text="{Binding Path=Dep1Source}"
                     IsEnabled="{Binding ElementName=SlotUsed,
                                 Path=IsChecked,
                                 Converter={StaticResource nullableBooleanToBoolean},
                                 Mode=TwoWay}"/>
 
-            <TextBlock Grid.Row="6" Grid.Column="1" Margin="3" Text="Certificate Source" />
-            <TextBox Grid.Row="6" Grid.Column="2" Margin="3" x:Name="DesiredCertificateSource"
+            <TextBlock Grid.Row="7" Grid.Column="1" Margin="3" Text="Certificate Source" />
+            <TextBox Grid.Row="7" Grid.Column="2" Margin="3" x:Name="DesiredCertificateSource"
                     Text="{Binding Path=CertificateSource}"
                     IsEnabled="{Binding ElementName=SlotUsed,
                                 Path=IsChecked,
                                 Converter={StaticResource nullableBooleanToBoolean},
                                 Mode=TwoWay}"/>
 
-            <TextBlock Grid.Row="7" Grid.Column="1" Margin="3" Text="Certificate Target" />
-            <TextBox Grid.Row="7" Grid.Column="2" Margin="3" x:Name="DesiredCertificateTarget"
+            <TextBlock Grid.Row="8" Grid.Column="1" Margin="3" Text="Certificate Target" />
+            <TextBox Grid.Row="8" Grid.Column="2" Margin="3" x:Name="DesiredCertificateTarget"
                     Text="{Binding Path=CertificateTarget}"
                     IsEnabled="{Binding ElementName=SlotUsed,
                                 Path=IsChecked,

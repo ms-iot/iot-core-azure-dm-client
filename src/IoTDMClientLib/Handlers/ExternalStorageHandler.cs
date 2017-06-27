@@ -12,33 +12,41 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-using System.Windows.Controls;
 
-namespace DMDashboard
+using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
+
+namespace Microsoft.Devices.Management
 {
-    public class AppReportedState
+    class ExternalStorageHandler : IClientPropertyHandler
     {
-        public string PackageFamilyName { get; set; }
-        public string Version { get; set; }
-        public string InstallDate { get; set; }
-        public string Error { get; set; }
+        const string JsonSectionName = "externalStorage";
 
-        public AppReportedState() { }
-
-        public AppReportedState(string packageFamilyName, string version, string installDate, string error)
+        // IClientPropertyHandler
+        public string PropertySectionName
         {
-            PackageFamilyName = packageFamilyName;
-            Version = version;
-            InstallDate = installDate;
-            Error = error;
+            get
+            {
+                return JsonSectionName; // todo: constant in data contract?
+            }
         }
-    }
 
-    public partial class AppReportedStateControl : UserControl
-    {
-        public AppReportedStateControl()
+        // IClientPropertyHandler
+        public void OnDesiredPropertyChange(JToken desiredValue)
         {
-            InitializeComponent();
+            if (desiredValue is JObject)
+            {
+                JObject jObject = (JObject)desiredValue;
+                _connectionString = (string)jObject.Property("connectionString").Value;
+            }
         }
+
+        // IClientPropertyHandler
+        public async Task<JObject> GetReportedPropertyAsync()
+        {
+            return null;
+        }
+
+        private string _connectionString;
     }
 }

@@ -15,7 +15,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using DMDataContract;
 using Newtonsoft.Json.Linq;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management

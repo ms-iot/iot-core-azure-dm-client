@@ -6,12 +6,14 @@
              xmlns:local="clr-namespace:DMDashboard"
              mc:Ignorable="d">
     <StackPanel Orientation="Vertical">
-        <Grid Height="240">
+        <Grid Height="270">
             <Grid.RowDefinitions>
-                <RowDefinition Height="30"/>
-                <RowDefinition Height="30"/>
-                <RowDefinition Height="30"/>
-                <RowDefinition Height="30"/>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="100" />
@@ -32,8 +34,13 @@
                 <TextBlock x:Name="InstallDate" Text="{Binding Path=InstallDate}" TextTrimming="CharacterEllipsis"/>
             </Border>
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Error" />
+            <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Start up" />
             <Border Grid.Row="3" Grid.Column="1" Margin="3" Background="#F8F8F8">
+                <TextBlock x:Name="StartUp" Text="{Binding Path=StartUp}" TextTrimming="CharacterEllipsis"/>
+            </Border>
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Error" />
+            <Border Grid.Row="4" Grid.Column="1" Margin="3" Background="#F8F8F8">
                 <TextBlock x:Name="Error" Text="{Binding Path=Error}" TextTrimming="CharacterEllipsis"/>
             </Border>
         </Grid>

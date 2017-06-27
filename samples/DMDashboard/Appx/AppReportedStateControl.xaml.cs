@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017 Microsoft
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
 and associated documentation files (the "Software"), to deal in the Software without restriction, 
@@ -12,18 +12,35 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
+using System.Windows.Controls;
 
-#include <string>
-#include <vector>
-
-class CustomDeviceUiCSP
+namespace DMDashboard
 {
-public:
-    static std::wstring GetStartupAppId();
-    static std::wstring GetBackgroundTasksToLaunch();
-    static bool IsForeground(const std::wstring& appId);
-    static bool IsBackground(const std::wstring& appId);
-    static void AddAsStartupApp(const std::wstring& appId, bool backgroundApplication);
-    static void RemoveBackgroundApplicationAsStartupApp(const std::wstring& appId);
-};
+    public class AppReportedState
+    {
+        public string PackageFamilyName { get; set; }
+        public string Version { get; set; }
+        public string InstallDate { get; set; }
+        public string StartUp { get; set; }
+        public string Error { get; set; }
+
+        public AppReportedState() { }
+
+        public AppReportedState(string packageFamilyName, string version, string installDate, string startUp, string error)
+        {
+            PackageFamilyName = packageFamilyName;
+            Version = version;
+            InstallDate = installDate;
+            StartUp = startUp;
+            Error = error;
+        }
+    }
+
+    public partial class AppReportedStateControl : UserControl
+    {
+        public AppReportedStateControl()
+        {
+            InitializeComponent();
+        }
+    }
+}

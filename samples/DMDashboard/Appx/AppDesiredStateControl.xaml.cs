@@ -32,9 +32,17 @@ namespace DMDashboard
             NotReported = 3
         };
 
+        public enum StartupState : int
+        {
+            None = 0,
+            Foreground = 1,
+            Background = 2
+        }
+
         public string PackageFamilyName { get; set; }
         public DesiredState State { get; set; }
         public string Version { get; set; }
+        public StartupState StartUp { get; set; }
         public string AppxSource { get; set; }
         public string Dep0Source { get; set; }
         public string Dep1Source { get; set; }
@@ -44,11 +52,12 @@ namespace DMDashboard
         public AppDesiredState()
         { }
 
-        public AppDesiredState(string packageFamilyName, DesiredState state, string version, string appxSource, string dep0Source, string dep1Source, string certificateSource, string certificateTarget)
+        public AppDesiredState(string packageFamilyName, DesiredState state, string version, StartupState startUp, string appxSource, string dep0Source, string dep1Source, string certificateSource, string certificateTarget)
         {
             PackageFamilyName = packageFamilyName;
             State = state;
             Version = version;
+            StartUp = startUp;
             AppxSource = appxSource;
             Dep0Source = dep0Source;
             Dep1Source = dep1Source;
@@ -61,7 +70,7 @@ namespace DMDashboard
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!(value is AppDesiredState.DesiredState?))
+            if (!(value is AppDesiredState.DesiredState))
                 return DependencyProperty.UnsetValue;
 
             return (int)((AppDesiredState.DesiredState)value);
@@ -76,6 +85,24 @@ namespace DMDashboard
         }
     }
 
+    class StartupStateToInt : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (!(value is AppDesiredState.StartupState))
+                return DependencyProperty.UnsetValue;
+
+            return (int)((AppDesiredState.StartupState)value);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (!(value is int))
+                return DependencyProperty.UnsetValue;
+
+            return (AppDesiredState.StartupState)((int)value);
+        }
+    }
     public partial class AppDesiredStateControl : UserControl
     {
         public AppDesiredStateControl()
@@ -101,6 +128,7 @@ namespace DMDashboard
                     sb.Append("{\n");
                     sb.Append("\"pkgFamilyName\" : \"" + PkgFamilyName.Text + "\",\n");
                     sb.Append("\"version\" : \"" + DesiredVersion.Text + "\",\n");
+                    sb.Append("\"startUp\" : \"" + StartupStateToString((AppDesiredState.StartupState)StartupState.SelectedIndex) + "\",\n");
                     if (!String.IsNullOrEmpty(DesiredAppxSource.Text))
                     {
                         sb.Append("\"appxSource\" : \"" + DesiredAppxSource.Text + "\",\n");
@@ -141,6 +169,7 @@ namespace DMDashboard
                     sb.Append("{\n");
                     sb.Append("\"pkgFamilyName\" : \"" + PkgFamilyName.Text + "\",\n");
                     sb.Append("\"version\" : \"not installed\",\n");
+                    sb.Append("\"startUp\" : \"" + StartupStateToString((AppDesiredState.StartupState)StartupState.SelectedIndex) + "\",\n");
                     sb.Append("\"appxSource\" : null,\n");
                     sb.Append("\"depsSources\" : null,\n");
                     sb.Append("\"certSource\" : null,\n");
@@ -156,6 +185,7 @@ namespace DMDashboard
                     sb.Append("{\n");
                     sb.Append("\"pkgFamilyName\" : \"" + PkgFamilyName.Text + "\",\n");
                     sb.Append("\"version\" : \"?\",\n");
+                    sb.Append("\"startUp\" : \"" + StartupStateToString((AppDesiredState.StartupState)StartupState.SelectedIndex) + "\",\n");
                     sb.Append("\"appxSource\" : null,\n");
                     sb.Append("\"depsSources\" : null,\n");
                     sb.Append("\"certSource\" : null,\n");
@@ -177,6 +207,24 @@ namespace DMDashboard
             Debug.WriteLine("AppDesiredStateControl json = \n" + sb.ToString());
 
             return sb.ToString();
+        }
+
+        private string StartupStateToString(AppDesiredState.StartupState startupState)
+        {
+            string s = "<unknown>";
+            switch (startupState)
+            {
+                case AppDesiredState.StartupState.None:
+                    s = "none";
+                    break;
+                case AppDesiredState.StartupState.Foreground:
+                    s = "foreground";
+                    break;
+                case AppDesiredState.StartupState.Background:
+                    s = "background";
+                    break;
+            }
+            return s;
         }
     }
 }

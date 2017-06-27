@@ -145,16 +145,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AppDesiredStateControl.xaml.cs">
+    <Compile Include="Appx\AppDesiredStateControl.xaml.cs">
       <DependentUpon>AppDesiredStateControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="AppsDesiredStateControl.xaml.cs">
+    <Compile Include="Appx\AppsDesiredStateControl.xaml.cs">
       <DependentUpon>AppsDesiredStateControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="AppsReportedStateControl.xaml.cs">
+    <Compile Include="Appx\AppsReportedStateControl.xaml.cs">
       <DependentUpon>AppsReportedStateControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="AppReportedStateControl.xaml.cs">
+    <Compile Include="Appx\AppReportedStateControl.xaml.cs">
       <DependentUpon>AppReportedStateControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="CertificateExportDetails.xaml.cs">
@@ -206,19 +206,19 @@
       <DependentUpon>WindowsUpdatePolicyReportedStateControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="WPFUtils.cs" />
-    <Page Include="AppDesiredStateControl.xaml">
+    <Page Include="Appx\AppDesiredStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="AppsDesiredStateControl.xaml">
+    <Page Include="Appx\AppsDesiredStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="AppsReportedStateControl.xaml">
+    <Page Include="Appx\AppsReportedStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="AppReportedStateControl.xaml">
+    <Page Include="Appx\AppReportedStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

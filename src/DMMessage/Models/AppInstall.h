@@ -29,26 +29,30 @@ using namespace Windows::Foundation::Collections;
 
 namespace Microsoft { namespace Devices { namespace Management { namespace Message
 {
+    public enum class StartUpType { None, Foreground, Background };
+
     public ref class AppInstallRequestData sealed
     {
     public:
         AppInstallRequestData()
         {
-            PackageFamilyName = ref new Platform::String();
-            AppxPath = ref new Platform::String();
+            PackageFamilyName = ref new String();
+            AppxPath = ref new String();
             Dependencies = ref new Vector<String^>();
-            CertFile = ref new Platform::String();
-            CertStore = ref new Platform::String();
+            CertFile = ref new String();
+            CertStore = ref new String();
         }
-        AppInstallRequestData(String^ packageFamilyName, String^ appxPath, IVector<String^>^ dependencies, String^ certFile, String^ certStore)
+        AppInstallRequestData(String^ packageFamilyName, StartUpType startUp, String^ appxPath, IVector<String^>^ dependencies, String^ certFile, String^ certStore)
         {
             PackageFamilyName = packageFamilyName;
+            StartUp = startUp;
             AppxPath = appxPath;
             Dependencies = dependencies;
             CertFile = certFile;
             CertStore = certStore;
         }
         property String^ PackageFamilyName;
+        property StartUpType StartUp;
         property String^ AppxPath;
         property IVector<String^>^ Dependencies;
         property String^ CertFile;
@@ -68,6 +72,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         virtual Blob^ Serialize() {
             JsonObject^ jsonObject = ref new JsonObject();
             jsonObject->Insert("PackageFamilyName", JsonValue::CreateStringValue(data->PackageFamilyName));
+            jsonObject->Insert("StartUp", JsonValue::CreateNumberValue(static_cast<int>(data->StartUp)));
             jsonObject->Insert("AppxPath", JsonValue::CreateStringValue(data->AppxPath));
             JsonArray^ jsonArray = ref new JsonArray();
             for each (auto dep in data->Dependencies)
@@ -84,17 +89,18 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         static IDataPayload^ Deserialize(Blob^ bytes) {
             String^ str = SerializationHelper::GetStringFromBlob(bytes);
             JsonObject^ jsonObject = JsonObject::Parse(str);
-            auto packageFamilyName = jsonObject->Lookup("PackageFamilyName")->GetString();
-            auto appxPath = jsonObject->Lookup("AppxPath")->GetString();
-            auto dependencies = jsonObject->Lookup("Dependencies")->GetArray();
+            auto packageFamilyName = jsonObject->GetNamedString("PackageFamilyName");
+            auto startUp = static_cast<StartUpType>(static_cast<int>(jsonObject->GetNamedNumber("StartUp")));
+            auto appxPath = jsonObject->GetNamedString("AppxPath");
+            auto dependencies = jsonObject->GetNamedArray("Dependencies");
             auto depsVector = ref new Vector<String^>();
             for each (auto dep in dependencies)
             {
                 depsVector->Append(dep->GetString());
             }
-            auto certFile = jsonObject->Lookup("CertFile")->GetString();
-            auto certStore = jsonObject->Lookup("CertStore")->GetString();
-            auto d = ref new Microsoft::Devices::Management::Message::AppInstallRequestData(packageFamilyName, appxPath, depsVector, certFile, certStore);
+            auto certFile = jsonObject->GetNamedString("CertFile");
+            auto certStore = jsonObject->GetNamedString("CertStore");
+            auto d = ref new Microsoft::Devices::Management::Message::AppInstallRequestData(packageFamilyName, startUp, appxPath, depsVector, certFile, certStore);
             return ref new AppInstallRequest(d);
         }
 
@@ -109,6 +115,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         property String^ pkgFamilyName;
         property String^ name;
         property String^ version;
+        property StartUpType startUp;
         property String^ installDate;
         property int errorCode;
         property String^ errorMessage;
@@ -119,6 +126,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             jsonObject->Insert("pkgFamilyName", JsonValue::CreateStringValue(pkgFamilyName));
             jsonObject->Insert("name", JsonValue::CreateStringValue(name));
             jsonObject->Insert("version", JsonValue::CreateStringValue(version));
+            jsonObject->Insert("startUp", JsonValue::CreateNumberValue(static_cast<int>(startUp)));
             jsonObject->Insert("installDate", JsonValue::CreateStringValue(installDate));
             jsonObject->Insert("errorCode", JsonValue::CreateNumberValue(errorCode));
             jsonObject->Insert("errorMessage", JsonValue::CreateStringValue(errorMessage));
@@ -131,12 +139,13 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto result = ref new AppInstallResponseData();
 
-            result->pkgFamilyName = jsonObject->Lookup("pkgFamilyName")->GetString();
-            result->name = jsonObject->Lookup("name")->GetString();
-            result->version = jsonObject->Lookup("version")->GetString();
-            result->installDate = jsonObject->Lookup("installDate")->GetString();
-            result->errorCode = static_cast<int>(jsonObject->Lookup("errorCode")->GetNumber());
-            result->errorMessage = jsonObject->Lookup("errorMessage")->GetString();
+            result->pkgFamilyName = jsonObject->GetNamedString("pkgFamilyName");
+            result->name = jsonObject->GetNamedString("name");
+            result->version = jsonObject->GetNamedString("version");
+            result->startUp = static_cast<StartUpType>(static_cast<int>(jsonObject->GetNamedNumber("startUp")));
+            result->installDate = jsonObject->GetNamedString("installDate");
+            result->errorCode = static_cast<int>(jsonObject->GetNamedNumber("errorCode"));
+            result->errorMessage = jsonObject->GetNamedString("errorMessage");
 
             return result;
         }

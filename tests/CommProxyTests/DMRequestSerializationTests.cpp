@@ -164,7 +164,7 @@ namespace CommProxyTests
         TEST_METHOD(TestIRequestSerialization)
         {
             auto deps = ref new Vector<String^>();
-            auto appInstallInfo = ref new AppInstallRequestData("abc", "def", deps, "ghi", "jkl");
+            auto appInstallInfo = ref new AppInstallRequestData("abc", StartUpType::None, "def", deps, "ghi", "jkl");
             auto ireg = ref new AppInstallRequest(appInstallInfo);
             auto blob = ireg->Serialize();
             auto req = dynamic_cast<AppInstallRequest^>(AppInstallRequest::Deserialize(blob));
@@ -187,7 +187,7 @@ namespace CommProxyTests
         TEST_METHOD(TestIRequestSerializationThroughBlob)
         {
             auto deps = ref new Vector<String^>();
-            auto appInstallInfo = ref new AppInstallRequestData("abc", "def", deps, "ghi" , "jkl");
+            auto appInstallInfo = ref new AppInstallRequestData("abc", StartUpType::None, "def", deps, "ghi" , "jkl");
             auto ireg = ref new AppInstallRequest(appInstallInfo);
             auto blob = ireg->Serialize();
             auto payload = blob->MakeIRequest();
@@ -232,7 +232,7 @@ namespace CommProxyTests
         TEST_METHOD(TestRequestRoundTripThroughNativeHandle)
         {
             auto deps = ref new Vector<String^>();
-            auto appInstallInfo = ref new AppInstallRequestData("abc", "def", deps, "ghi", "jkl");
+            auto appInstallInfo = ref new AppInstallRequestData("abc", StartUpType::None, "def", deps, "ghi", "jkl");
             auto req = ref new AppInstallRequest(appInstallInfo);
             auto blob = RoundTripThroughNativeHandle(req->Serialize());
             auto req2 = dynamic_cast<AppInstallRequest^>(AppInstallRequest::Deserialize(blob));
