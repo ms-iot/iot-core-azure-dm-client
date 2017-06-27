@@ -461,9 +461,8 @@ void SetAppStartUpType(const wstring& pkgFamilyName, StartUpType startUpType)
     switch (startUpType)
     {
     case StartUpType::None:
-        if (CustomDeviceUiCSP::IsBackground(pkgFamilyName))   // ToDo: do we need to parse backgroundTasks first? Test with multiple apps.
+        if (CustomDeviceUiCSP::IsBackground(pkgFamilyName))
         {
-            // CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(L"BackgroundApplication2-uwp_h70s91gmznnxg!App");
             CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(pkgFamilyName);
         }
 
@@ -478,7 +477,7 @@ void SetAppStartUpType(const wstring& pkgFamilyName, StartUpType startUpType)
         CustomDeviceUiCSP::AddAsStartupApp(pkgFamilyName, false /*!background*/);
         break;
     case StartUpType::Background:
-        CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(pkgFamilyName);
+        CustomDeviceUiCSP::AddAsStartupApp(pkgFamilyName, true /*background*/);
         break;
     }
 }

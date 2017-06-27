@@ -48,6 +48,8 @@ wstring CustomDeviceUiCSP::GetStartupAppId()
     auto appId = MdmProvision::RunGetString(
         sid.c_str(),
         L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData");
+
+    appId = Utils::TrimString(appId, L"!App");
     return appId;
 }
 
@@ -86,7 +88,8 @@ wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
         {
             // 0/__1___/__2__/____3________/___________4___________/___5_
             // ./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch/Aumid
-            auto aumid = ref new Platform::String(uriTokens[5].c_str());
+            wstring pkgFamilyName = Utils::TrimString(uriTokens[5], L"!App");
+            auto aumid = ref new Platform::String(pkgFamilyName.c_str());
             data->Append(JsonValue::CreateStringValue(aumid));
         }
     };
@@ -171,20 +174,18 @@ void CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(const wstring& a
     HandleStartupApp(appId, true, false /*replace/delete*/);
 }
 
-bool CustomDeviceUiCSP::IsForeground(const std::wstring& appId)
+bool CustomDeviceUiCSP::IsForeground(const std::wstring& pkgFamilyName)
 {
     TRACE(__FUNCTION__);
 
     wstring forgroundAppId = CustomDeviceUiCSP::GetStartupAppId();
-    wstring cspAppId = appId + L"!App";
-    return forgroundAppId == cspAppId;
+    return forgroundAppId == pkgFamilyName;
 }
 
-bool CustomDeviceUiCSP::IsBackground(const std::wstring& appId)
+bool CustomDeviceUiCSP::IsBackground(const std::wstring& pkgFamilyName)
 {
     TRACE(__FUNCTION__);
 
     wstring backgroundTasks = CustomDeviceUiCSP::GetBackgroundTasksToLaunch();
-    wstring cspAppId = appId + L"!App";
-    return wstring::npos != backgroundTasks.find(appId);
+    return wstring::npos != backgroundTasks.find(pkgFamilyName);
 }

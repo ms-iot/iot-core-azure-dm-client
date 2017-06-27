@@ -256,6 +256,26 @@ namespace Microsoft.Devices.Management
             await this._callback.ReportPropertiesAsync(JsonSectionName, new JValue("refreshing"));
         }
 
+        private async Task ReportGeneralError(int errorCode, string errorMessage)
+        {
+            Debug.WriteLine("ReportGeneralError\n");
+
+            /*
+            StringBuilder sb = new StringBuilder();
+            sb.Append("{\n");
+            sb.Append("  \"generalError\" : {\n");
+            sb.Append("    \"code\" : " + errorCode + ",\n");
+            sb.Append("    \"message\" : \"" + errorMessage + "\",\n");
+            sb.Append("  }\n");
+            sb.Append("}\n");
+            JObject jObject = (JObject)JsonConvert.DeserializeObject(sb.ToString());
+            */
+            JObject jObject = new JObject();
+            jObject["code"] = errorCode;
+            jObject["message"] = errorMessage;
+            await this._callback.ReportPropertiesAsync(JsonSectionName, jObject);
+        }
+
         private void ReorderAndValidate(List<AppDesiredState> appDesiredStates, IDictionary<string, AppInfo> installedApps)
         {
             // If we are switching the foreground app from App1 to App2, App2 must be processed first.
@@ -269,7 +289,7 @@ namespace Microsoft.Devices.Management
             // Note that appDesiredStates are not only the just-changed ones - but all the desired states for all apps.
             // This covers the case where the user sets a new foreground app and forgets to set the old one to 'none'.
 
-            AppDesiredState foregroundApp = null;
+            AppDesiredState desiredForegroundApp = null;
             var foregroundApps = from state in appDesiredStates
                          where state.startUp == StartUpType.Foreground
                          select state;
@@ -277,7 +297,7 @@ namespace Microsoft.Devices.Management
             foreach (AppDesiredState state in foregroundApps)
             {
                 Debug.WriteLine("Found foreground app: " + state.packageFamilyName);
-                foregroundApp = state;
+                desiredForegroundApp = state;
             }
 
             if (foregroundApps.Count<AppDesiredState>() > 1)
@@ -296,10 +316,10 @@ namespace Microsoft.Devices.Management
             }
 
             // Make sure the foreground application is not being uninstalled.
-            if (foregroundApp.startUp == StartUpType.Foreground && foregroundApp.action == AppDesiredAction.Uninstall)
+            if (desiredForegroundApp != null && desiredForegroundApp.startUp == StartUpType.Foreground && desiredForegroundApp.action == AppDesiredAction.Uninstall)
             {
                 // This means that no other application has been set to replace the one about to be uninstalled.
-                throw new Error(ErrorCodes.INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP, "Cannot configure an application to the foreground application and uninstall it. Package Family Name = " + foregroundApp.packageFamilyName);
+                throw new Error(ErrorCodes.INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP, "Cannot configure an application to the foreground application and uninstall it. Package Family Name = " + desiredForegroundApp.packageFamilyName);
             }
 
             // Make sure that the application being uninstalled is not the foreground app as marked by the system (i.e. installedApps).
@@ -315,15 +335,19 @@ namespace Microsoft.Devices.Management
                 // There should be at most one application matching since the foreground setting on the system allows only one foreground application.
                 string foregroundAppToUninstall = uninstallForegroundApps.First<AppDesiredState>().packageFamilyName;
 
-                // This means that an application is marked for uninstallation, and 
-                throw new Error(ErrorCodes.INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP, "Cannot uninstall a foreground application. Package Family Name = " + foregroundAppToUninstall);
+                // Note that it is okay to uninstall the foreground app if another one is being set as the foreground in the same transaction.
+                if (desiredForegroundApp.packageFamilyName == foregroundAppToUninstall)
+                {
+                    // This means that an application is marked for uninstallation, and 
+                    throw new Error(ErrorCodes.INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP, "Cannot uninstall a foreground application. Package Family Name = " + foregroundAppToUninstall);
+                }
             }
 
-            if (foregroundApp != null)
+            if (desiredForegroundApp != null)
             {
                 // Move to the front.
-                appDesiredStates.Remove(foregroundApp);
-                appDesiredStates.Insert(0, foregroundApp);
+                appDesiredStates.Remove(desiredForegroundApp);
+                appDesiredStates.Insert(0, desiredForegroundApp);
             }
 
             Debug.WriteLine("Ordered:");
@@ -499,7 +523,7 @@ namespace Microsoft.Devices.Management
                                                          null,   // no install date
                                                          null,   // no error
                                                          JsonReport.Report);
-                    await ReportAppStatus(reportedState);
+                    _stateToReport[packageFamilyId] = reportedState;
                     return;
                 }
                 else
@@ -527,7 +551,7 @@ namespace Microsoft.Devices.Management
                                                      new Error(e.HResult, e.Message),
                                                      JsonReport.Report);
             }
-            await ReportAppStatus(reportedState);
+            _stateToReport[packageFamilyId] = reportedState;
             throw new Exception("Failed to uninstall " + packageFamilyName);
         }
 
@@ -610,7 +634,7 @@ namespace Microsoft.Devices.Management
                                                          response.data.installDate,
                                                          e,
                                                          JsonReport.Report);
-                    await ReportAppStatus(reportedState);
+                    _stateToReport[desiredState.packageFamilyId] = reportedState;
                     return;
                 }
                 else
@@ -638,7 +662,7 @@ namespace Microsoft.Devices.Management
                                                      new Error(e.HResult, e.Message),
                                                      JsonReport.Report);
             }
-            await ReportAppStatus(reportedState);
+            _stateToReport[desiredState.packageFamilyId] = reportedState;
             throw new Exception("Failed to install " + desiredState.packageFamilyName);
         }
 
@@ -651,6 +675,10 @@ namespace Microsoft.Devices.Management
             }
 
             IList<string> backgroundApps = await ListStartupBackgroundAppsAsync();
+            foreach(string s in backgroundApps)
+            {
+                Debug.WriteLine("Found background app: " + s);
+            }
             var result = from backgroundApp in backgroundApps where backgroundApp == appId select backgroundApp;
             if (result.Count<string>() > 0)
             {
@@ -889,66 +917,75 @@ namespace Microsoft.Devices.Management
             {
                 return;
             }
-            JObject appsNode = (JObject)jAppsToken;
 
-            // Reset the nodes to report...
-            _stateToReport = new Dictionary<string, AppReportedState>();
-
-            IDictionary<string, AppInfo> installedApps = await ListAppsAsync();
-            DumpInstalledApps(installedApps);
-
-            DesiredActions desiredActions = JsonToDesiredActions(appsNode);
-
-            ReorderAndValidate(desiredActions.appDesiredStates, installedApps);
-
-            foreach (AppDesiredState appDesiredState in desiredActions.appDesiredStates)
+            try
             {
-                try
-                {
-                   await ApplyAppDesiredState(this._connectionString, installedApps, appDesiredState);
-                }
-                catch(Exception)
-                {
-                    // Catch everything here so that we may continue processing other appDesiredStates.
-                    // No reporting to the IoT Hub is needed here because it has already taken place.
-                }
-            }
+                JObject appsNode = (JObject)jAppsToken;
 
-            // Process the "?"
-            if (desiredActions.appListQuery.nonStore || desiredActions.appListQuery.store)
-            {
-                foreach (var pair in installedApps)
+                // Reset the nodes to report...
+                _stateToReport = new Dictionary<string, AppReportedState>();
+
+                IDictionary<string, AppInfo> installedApps = await ListAppsAsync();
+                DumpInstalledApps(installedApps);
+
+                DesiredActions desiredActions = JsonToDesiredActions(appsNode);
+
+                ReorderAndValidate(desiredActions.appDesiredStates, installedApps);
+
+                foreach (AppDesiredState appDesiredState in desiredActions.appDesiredStates)
                 {
-                    AppReportedState dummyAppReportedState;
-                    if (_stateToReport.TryGetValue(pair.Value.PackageFamilyName, out dummyAppReportedState))
+                    try
                     {
-                        // Already queued to be reported, no need to consider adding it to _stateToReport.
-                        continue;
+                        await ApplyAppDesiredState(this._connectionString, installedApps, appDesiredState);
                     }
-                    if ( (pair.Value.AppSource == "AppStore" && desiredActions.appListQuery.store) ||
-                         (pair.Value.AppSource == "NonStore" && desiredActions.appListQuery.nonStore) )
+                    catch (Exception)
                     {
-                        AppReportedState appReportedState = new AppReportedState(
-                            pair.Value.PackageFamilyName.Replace('.', '_'),
-                            pair.Value.PackageFamilyName,
-                            pair.Value.Version,
-                            pair.Value.StartUp,
-                            pair.Value.InstallDate,
-                            null,
-                            JsonReport.Report);
-
-                        _stateToReport[pair.Value.PackageFamilyName] = appReportedState;
+                        // Catch everything here so that we may continue processing other appDesiredStates.
+                        // No reporting to the IoT Hub is needed here because it has already taken place.
                     }
                 }
+
+                // Process the "?"
+                if (desiredActions.appListQuery.nonStore || desiredActions.appListQuery.store)
+                {
+                    foreach (var pair in installedApps)
+                    {
+                        AppReportedState dummyAppReportedState;
+                        if (_stateToReport.TryGetValue(pair.Value.PackageFamilyName, out dummyAppReportedState))
+                        {
+                            // Already queued to be reported, no need to consider adding it to _stateToReport.
+                            continue;
+                        }
+                        if ((pair.Value.AppSource == "AppStore" && desiredActions.appListQuery.store) ||
+                             (pair.Value.AppSource == "NonStore" && desiredActions.appListQuery.nonStore))
+                        {
+                            AppReportedState appReportedState = new AppReportedState(
+                                pair.Value.PackageFamilyName.Replace('.', '_'),
+                                pair.Value.PackageFamilyName,
+                                pair.Value.Version,
+                                pair.Value.StartUp,
+                                pair.Value.InstallDate,
+                                null,
+                                JsonReport.Report);
+
+                            _stateToReport[pair.Value.PackageFamilyName] = appReportedState;
+                        }
+                    }
+                }
+
+                // Reset the apps reported node...
+                await NullifyReported();
+
+                // Report all collected values...
+                foreach (var pair in _stateToReport)
+                {
+                    await ReportAppStatus(pair.Value);
+                }
             }
-
-            // Reset the apps reported node...
-            await NullifyReported();
-
-            // Report all collected values...
-            foreach (var pair in _stateToReport)
+            catch(Exception e)
             {
-                await ReportAppStatus(pair.Value);
+                await NullifyReported();
+                await ReportGeneralError(e.HResult, e.Message);
             }
         }
 

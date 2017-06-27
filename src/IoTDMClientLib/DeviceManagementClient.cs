@@ -152,6 +152,9 @@ namespace Microsoft.Devices.Management
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.factoryReset", deviceManagementClient.FactoryResetHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.manageAppLifeCycle", deviceManagementClient.ManageAppLifeCycleHandlerAsync);
 
+            deviceManagementClient._externalStorageHandler = new ExternalStorageHandler();
+            deviceManagementClient.AddPropertyHandler(deviceManagementClient._externalStorageHandler);
+
             var deviceHealthAttestationHandler = new DeviceHealthAttestationHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceHealthAttestationHandler);
             await deviceManagementClient.AddDirectMethodHandlerAsync(deviceHealthAttestationHandler);
@@ -788,6 +791,7 @@ namespace Microsoft.Devices.Management
         JObject _desiredCache = new JObject();
         ISystemConfiguratorProxy _systemConfiguratorProxy;
         WindowsUpdatePolicyHandler _windowsUpdatePolicyHandler;
+        ExternalStorageHandler _externalStorageHandler;
         IDeviceManagementRequestHandler _requestHandler;
         IDeviceTwin _deviceTwin;
         string _externalStorageConnectionString;

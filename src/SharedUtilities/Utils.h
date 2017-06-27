@@ -74,6 +74,8 @@ namespace Utils
         return trimmedString;
     }
 
+    std::wstring TrimString(const std::wstring& s, const std::wstring& suffix);
+
     template<class CharType, class ParamType>
     std::basic_string<CharType> ConcatString(const CharType* s, ParamType param)
     {

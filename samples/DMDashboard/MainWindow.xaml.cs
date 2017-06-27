@@ -745,6 +745,16 @@ namespace DMDashboard
             MessageBox.Show("Get Wifi Profile Details Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
+        private void PopulateExternalStorageFromJson(JObject jRoot)
+        {
+            JToken jToken = jRoot.SelectToken("properties.desired.microsoft.management.externalStorage.connectionString");
+            if (jToken != null && jToken is JValue)
+            {
+                JValue jConnectionString = (JValue)jToken;
+                AzureStorageConnectionString.Text = (string)jConnectionString;
+            }
+        }
+
         private void OnLoadProfile(object sender, RoutedEventArgs e)
         {
             OpenFileDialog dlg = new OpenFileDialog();
@@ -763,6 +773,7 @@ namespace DMDashboard
             }
 
             JObject jRoot = (JObject)rootObject;
+            PopulateExternalStorageFromJson(jRoot);
             TheAppsConfigurator.PopulateFromJson(jRoot);
         }
 
