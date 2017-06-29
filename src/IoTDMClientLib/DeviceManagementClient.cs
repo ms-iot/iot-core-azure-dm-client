@@ -13,6 +13,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using DMDataContract;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management.Message;
 using Newtonsoft.Json;
@@ -20,6 +21,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Windows.Foundation.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,6 +34,13 @@ namespace Microsoft.Devices.Management
     // This is the main entry point into DM
     public class DeviceManagementClient
     {
+        const string MethodImmediateReboot = DMJSonConstants.DTWindowsIoTNameSpace + ".immediateReboot";
+        const string MethodReportAllDeviceProperties = DMJSonConstants.DTWindowsIoTNameSpace + ".reportAllDeviceProperties";
+        const string MethodStartAppSelfUpdate = DMJSonConstants.DTWindowsIoTNameSpace + ".startAppSelfUpdate";
+        const string MethodGetCertificateDetails = DMJSonConstants.DTWindowsIoTNameSpace + ".getCertificateDetails";
+        const string MethodFactoryReset = DMJSonConstants.DTWindowsIoTNameSpace + ".factoryReset";
+        const string MethodManageAppLifeCycle = DMJSonConstants.DTWindowsIoTNameSpace + ".manageAppLifeCycle";
+
         public IDeviceTwin DeviceTwin { get { return _deviceTwin; } }
 
         // Types
@@ -68,29 +77,29 @@ namespace Microsoft.Devices.Management
                 _deviceTwin = deviceTwin;
             }
 
-            public async Task ReportPropertiesAsync(string propertyName, JToken properties)
+            public async Task ReportPropertiesAsync(string sectionName, JToken properties)
             {
+                Logger.Log("HandlerCallback.ReportPropertiesAsync", LoggingLevel.Information);
                 try
                 {
-                    JObject managementObj = new JObject();
-                    managementObj[propertyName] = properties;
+                    JObject windowsNodeValue = new JObject();
+                    windowsNodeValue[sectionName] = properties;
 
                     Dictionary<string, object> collection = new Dictionary<string, object>();
-                    collection["microsoft"] = new
-                    {
-                        management = managementObj
-                    };
+                    collection[DMJSonConstants.DTWindowsIoTNameSpace] = windowsNodeValue;
 
                     await _deviceTwin.ReportProperties(collection);
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine($"Failed to report property {propertyName} : \n {e}");
+                    Debug.WriteLine($"Failed to report property {sectionName} : \n {e}");
                 }
             }
 
             public async Task SendMessageAsync(string message, IDictionary<string, string> properties)
             {
+                Logger.Log("HandlerCallback.SendMessageAsync", LoggingLevel.Information);
+
                 await _deviceTwin.SendMessageAsync(message, properties);
             }
 
@@ -99,6 +108,8 @@ namespace Microsoft.Devices.Management
 
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
+            Logger.Log("Entering DeviceManagementClient constructor.", LoggingLevel.Verbose);
+
             this._deviceTwin = deviceTwin;
             this._requestHandler = requestHandler;
             this._systemConfiguratorProxy = systemConfiguratorProxy;
@@ -108,6 +119,8 @@ namespace Microsoft.Devices.Management
 
         private void AddPropertyHandler(IClientPropertyHandler handler)
         {
+            Logger.Log("Adding property handler.", LoggingLevel.Verbose);
+
             this._desiredPropertyMap.Add(handler.PropertySectionName, handler);
 
             var handlerWithDependencies = handler as IClientPropertyDependencyHandler;
@@ -122,6 +135,8 @@ namespace Microsoft.Devices.Management
 
         private void AddPropertyDependencyHandler(string sectionName, IClientPropertyDependencyHandler handler)
         {
+            Logger.Log("Adding property dependency handler.", LoggingLevel.Verbose);
+
             List<IClientPropertyDependencyHandler> handlerList;
             if (!this._desiredPropertyDependencyMap.TryGetValue(sectionName, out handlerList))
             {
@@ -133,6 +148,8 @@ namespace Microsoft.Devices.Management
 
         private async Task AddDirectMethodHandlerAsync(IClientDirectMethodHandler handler)
         {
+            Logger.Log("Adding direct method handler async.", LoggingLevel.Verbose);
+
             foreach (var pair in handler.GetDirectMethodHandler())
             {
                 var guard = new DirectMethodGuard(pair.Key, pair.Value);
@@ -142,15 +159,17 @@ namespace Microsoft.Devices.Management
 
         public static async Task<DeviceManagementClient> CreateAsync(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
         {
+            Logger.Log("Creating Device Management objects.", LoggingLevel.Verbose);
+
             var systemConfiguratorProxy = new SystemConfiguratorProxy();
             var clientCallback = new HandlerCallback(deviceTwin);
             DeviceManagementClient deviceManagementClient = Create(deviceTwin, requestHandler, systemConfiguratorProxy);
-            await deviceTwin.SetMethodHandlerAsync("microsoft.management.immediateReboot", deviceManagementClient.ImmediateRebootMethodHandlerAsync);
-            await deviceTwin.SetMethodHandlerAsync("microsoft.management.reportAllDeviceProperties", deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
-            await deviceTwin.SetMethodHandlerAsync("microsoft.management.startAppSelfUpdate", deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
-            await deviceTwin.SetMethodHandlerAsync("microsoft.management.getCertificateDetails", deviceManagementClient.GetCertificateDetailsHandlerAsync);
-            await deviceTwin.SetMethodHandlerAsync("microsoft.management.factoryReset", deviceManagementClient.FactoryResetHandlerAsync);
-            await deviceTwin.SetMethodHandlerAsync("microsoft.management.manageAppLifeCycle", deviceManagementClient.ManageAppLifeCycleHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync(MethodImmediateReboot, deviceManagementClient.ImmediateRebootMethodHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync(MethodReportAllDeviceProperties, deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
+            await deviceTwin.SetMethodHandlerAsync(MethodStartAppSelfUpdate, deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync(MethodGetCertificateDetails, deviceManagementClient.GetCertificateDetailsHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync(MethodFactoryReset, deviceManagementClient.FactoryResetHandlerAsync);
+            await deviceTwin.SetMethodHandlerAsync(MethodManageAppLifeCycle, deviceManagementClient.ManageAppLifeCycleHandlerAsync);
 
             deviceManagementClient._externalStorageHandler = new ExternalStorageHandler();
             deviceManagementClient.AddPropertyHandler(deviceManagementClient._externalStorageHandler);
@@ -164,10 +183,16 @@ namespace Microsoft.Devices.Management
 
             var wifiHandler = new WifiHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(wifiHandler);
-            deviceManagementClient.AddDirectMethodHandlerAsync(wifiHandler);
+            await deviceManagementClient.AddDirectMethodHandlerAsync(wifiHandler);
 
             var appxHandler = new AppxManagement(clientCallback, systemConfiguratorProxy, deviceManagementClient._desiredCache);
             deviceManagementClient.AddPropertyHandler(appxHandler);
+
+            var eventTracingHandler = new EventTracingHandler(clientCallback, systemConfiguratorProxy, deviceManagementClient._desiredCache);
+            deviceManagementClient.AddPropertyHandler(eventTracingHandler);
+
+            var storageHandler = new StorageHandler(clientCallback, systemConfiguratorProxy);
+            await deviceManagementClient.AddDirectMethodHandlerAsync(storageHandler);
 
             return deviceManagementClient;
         }
@@ -179,42 +204,31 @@ namespace Microsoft.Devices.Management
 
         public async Task ApplyDesiredStateAsync()
         {
-            Debug.WriteLine("Applying desired state...");
+            Logger.Log("Retrieving desired state from device twin...", LoggingLevel.Verbose);
 
             Dictionary<string, object> desiredProperties = await this._deviceTwin.GetDesiredPropertiesAsync();
-            object node = null;
-            if (desiredProperties.TryGetValue("microsoft", out node) && node != null && node is JObject)
+            object windowsPropValue = null;
+            if (desiredProperties.TryGetValue(DMJSonConstants.DTWindowsIoTNameSpace, out windowsPropValue) && windowsPropValue != null && windowsPropValue is JObject)
             {
-                JObject microsoftNode = (JObject)node;
-                JToken token = null;
-                if (microsoftNode.TryGetValue("management", out token) && token != null && token is JObject)
-                {
-                    // We won't await on this call to let it happen in the background...
-                    ApplyDesiredStateAsync((JObject)token);
-                }
+                ApplyDesiredStateAsync((JObject)windowsPropValue);
             }
         }
 
         public void ApplyDesiredStateAsync(TwinCollection desiredProperties)
         {
-            Debug.WriteLine("Applying desired state...");
+            Logger.Log("Applying desired state...", LoggingLevel.Verbose);
 
             try
             {
-                JObject dmNode = (JObject)desiredProperties["microsoft"]["management"];
-                ApplyDesiredStateAsync(dmNode);
+                JObject windowsPropValue = (JObject)desiredProperties[DMJSonConstants.DTWindowsIoTNameSpace];
+                ApplyDesiredStateAsync(windowsPropValue);
             }
             catch (Exception)
             {
-                Debug.WriteLine("No properties.desired.microsoft.management is found.");
+                Debug.WriteLine("No properties.desired." + DMJSonConstants.DTWindowsIoTNameSpace + " is found.");
             }
         }
 
-        //
-        // Commands:
-        //
-        // This command checks if updates are available. 
-        // TODO: work out complete protocol (find updates, apply updates etc.)
         public async Task<bool> CheckForUpdatesAsync()
         {
             var request = new Message.CheckForUpdatesRequest();
@@ -245,15 +259,12 @@ namespace Microsoft.Devices.Management
         private void ReportImmediateRebootStatus(RebootRequestStatus rebootRequestStatus, string rebootCmdTime)
         {
             Dictionary<string, object> collection = new Dictionary<string, object>();
-            collection["microsoft"] = new
+            collection[DMJSonConstants.DTWindowsIoTNameSpace] = new
             {
-                management = new
+                rebootInfo = new
                 {
-                    rebootInfo = new
-                    {
-                        lastRebootCmdTime = rebootCmdTime,
-                        lastRebootCmdStatus = (rebootRequestStatus == RebootRequestStatus.Allowed ? "accepted" : RebootRequestStatusString(rebootRequestStatus))
-                    }
+                    lastRebootCmdTime = rebootCmdTime,
+                    lastRebootCmdStatus = (rebootRequestStatus == RebootRequestStatus.Allowed ? "accepted" : RebootRequestStatusString(rebootRequestStatus))
                 }
             };
 
@@ -270,10 +281,13 @@ namespace Microsoft.Devices.Management
             }
 
             Message.GetWindowsUpdatePolicyResponse updatePolicy = await _windowsUpdatePolicyHandler.GetWindowsUpdatePolicyAsync();
-            uint nowHour = (uint)DateTime.Now.Hour;
-            if (updatePolicy.data.activeHoursStart <= nowHour && nowHour < updatePolicy.data.activeHoursEnd)
+            if (updatePolicy.data != null)
             {
-                return RebootRequestStatus.InActiveHours;
+                uint nowHour = (uint)DateTime.Now.Hour;
+                if (updatePolicy.data.activeHoursStart <= nowHour && nowHour < updatePolicy.data.activeHoursEnd)
+                {
+                    return RebootRequestStatus.InActiveHours;
+                }
             }
 
             return RebootRequestStatus.Allowed;
@@ -334,15 +348,12 @@ namespace Microsoft.Devices.Management
         private void ReportSelfUpdateStatus(string lastCheckValue, string statusValue)
         {
             Dictionary<string, object> collection = new Dictionary<string, object>();
-            collection["microsoft"] = new
+            collection[DMJSonConstants.DTWindowsIoTNameSpace] = new
             {
-                management = new
+                appUpdate = new
                 {
-                    appUpdate = new
-                    {
-                        lastCheck = lastCheckValue,
-                        status = statusValue,
-                    }
+                    lastCheck = lastCheckValue,
+                    status = statusValue,
                 }
             };
             _deviceTwin.ReportProperties(collection);
@@ -554,28 +565,30 @@ namespace Microsoft.Devices.Management
             await ReportTimeInfoAsync();
         }
 
-        public void ApplyDesiredStateAsync(JObject dmNode)
+        public void ApplyDesiredStateAsync(JObject windowsPropValue)
         {
+            Logger.Log("Applying " + DMJSonConstants.DTWindowsIoTNameSpace + " node desired state...", LoggingLevel.Verbose);
+
             // ToDo: We should not throw here. All problems need to be logged.
             Message.CertificateConfiguration certificateConfiguration = null;
             JObject appsConfiguration = null;
 
-            foreach (var managementProperty in dmNode.Children().OfType<JProperty>())
+            foreach (var sectionProp in windowsPropValue.Children().OfType<JProperty>())
             {
                 // Handle any dependencies first
                 List<IClientPropertyDependencyHandler> handlers;
-                if (this._desiredPropertyDependencyMap.TryGetValue(managementProperty.Name, out handlers))
+                if (this._desiredPropertyDependencyMap.TryGetValue(sectionProp.Name, out handlers))
                 {
                     handlers.ForEach((handler) =>
                     {
                         try
                         {
-                            Debug.WriteLine($"{managementProperty.Name} = {managementProperty.Value.ToString()}");
-                            handler.OnDesiredPropertyDependencyChange(managementProperty.Name, (JObject)managementProperty.Value);
+                            Debug.WriteLine($"{sectionProp.Name} = {sectionProp.Value.ToString()}");
+                            handler.OnDesiredPropertyDependencyChange(sectionProp.Name, (JObject)sectionProp.Value);
                         }
                         catch (Exception e)
                         {
-                            Debug.WriteLine($"Exception caught while handling desired property - {managementProperty.Name}");
+                            Debug.WriteLine($"Exception caught while handling desired property - {sectionProp.Name}");
                             Debug.WriteLine(e);
                             throw;
                         }
@@ -583,53 +596,64 @@ namespace Microsoft.Devices.Management
                 }
             }
 
-            foreach (var managementProperty in dmNode.Children().OfType<JProperty>())
+            foreach (var sectionProp in windowsPropValue.Children().OfType<JProperty>())
             {
                 IClientPropertyHandler handler;
-                if (this._desiredPropertyMap.TryGetValue(managementProperty.Name, out handler))
+                if (this._desiredPropertyMap.TryGetValue(sectionProp.Name, out handler))
                 {
                     try
                     {
-                        Debug.WriteLine($"{managementProperty.Name} = {managementProperty.Value.ToString()}");
-                        handler.OnDesiredPropertyChange(managementProperty.Value);
+                        Debug.WriteLine($"{sectionProp.Name} = {sectionProp.Value.ToString()}");
+                        if (sectionProp.Value is JValue && sectionProp.Value.Type == JTokenType.String && (string)sectionProp.Value == "refreshing")
+                        {
+                            continue;
+                        }
+
+                        handler.OnDesiredPropertyChange(sectionProp.Value);
                     }
                     catch (Exception e)
                     {
-                        Debug.WriteLine($"Exception caught while handling desired property - {managementProperty.Name}");
+                        Debug.WriteLine($"Exception caught while handling desired property - {sectionProp.Name}");
                         Debug.WriteLine(e);
                         throw;
                     }
                 }
                 else
                 {
-                    if (managementProperty.Value.Type != JTokenType.Object)
+                    if (sectionProp.Value.Type != JTokenType.Object)
                     {
                         continue;
                     }
-                    switch (managementProperty.Name)
+                    switch (sectionProp.Name)
                     {
                         case "scheduledReboot":
                             {
-                                Debug.WriteLine("scheduledReboot = " + managementProperty.Value.ToString());
+                                Debug.WriteLine("scheduledReboot = " + sectionProp.Value.ToString());
 
-                                JObject subProperties = (JObject)managementProperty.Value;
+                                JObject subProperties = (JObject)sectionProp.Value;
 
                                 var request = new Message.SetRebootInfoRequest();
 
-                                DateTime singleRebootTime = DateTime.Parse(subProperties.Property("singleRebootTime").Value.ToString());
-                                request.singleRebootTime = singleRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                                string singleRebootTimeString = Utils.GetString(subProperties, "singleRebootTime", "");
+                                if (!String.IsNullOrEmpty(singleRebootTimeString))
+                                {
+                                    request.singleRebootTime = DateTime.Parse(singleRebootTimeString).ToString("yyyy-MM-ddTHH:mm:ssZ");
+                                }
 
-                                DateTime dailyRebootTime = DateTime.Parse(subProperties.Property("dailyRebootTime").Value.ToString());
-                                request.dailyRebootTime = dailyRebootTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                                string dailyRebootTimeString = Utils.GetString(subProperties, "dailyRebootTime", "");
+                                if (!String.IsNullOrEmpty(dailyRebootTimeString))
+                                {
+                                    request.dailyRebootTime = DateTime.Parse(dailyRebootTimeString).ToString("yyyy-MM-ddTHH:mm:ssZ");
+                                }
 
                                 this._systemConfiguratorProxy.SendCommandAsync(request);
                             }
                             break;
                         case "externalStorage":
                             {
-                                Debug.WriteLine("externalStorage = " + managementProperty.Value.ToString());
+                                Debug.WriteLine("externalStorage = " + sectionProp.Value.ToString());
 
-                                JObject subProperties = (JObject)managementProperty.Value;
+                                JObject subProperties = (JObject)sectionProp.Value;
                                 _externalStorageConnectionString = (string)subProperties.Property("connectionString").Value;
                             }
                             break;
@@ -637,27 +661,27 @@ namespace Microsoft.Devices.Management
                             {
                                 // Capture the configuration here.
                                 // To apply the configuration we need to wait until externalStorage has been configured too.
-                                Debug.WriteLine("CertificateConfiguration = " + managementProperty.Value.ToString());
-                                certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(managementProperty.Value.ToString());
+                                Debug.WriteLine("CertificateConfiguration = " + sectionProp.Value.ToString());
+                                certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(sectionProp.Value.ToString());
                             }
                             break;
                         case "timeInfo":
                             {
-                                Debug.WriteLine("timeInfo = " + managementProperty.Value.ToString());
-                                ApplyDesiredTimeSettings(managementProperty.Value);
+                                Debug.WriteLine("timeInfo = " + sectionProp.Value.ToString());
+                                ApplyDesiredTimeSettings(sectionProp.Value);
                             }
                             break;
                         case "windowsUpdates":
                             {
-                                Debug.WriteLine("windowsUpdates = " + managementProperty.Value.ToString());
-                                var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(managementProperty.Value.ToString());
+                                Debug.WriteLine("windowsUpdates = " + sectionProp.Value.ToString());
+                                var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(sectionProp.Value.ToString());
                                 this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
                             }
                             break;
                         case "startupApps":
                             {
-                                Debug.WriteLine("startupApps = " + managementProperty.Value.ToString());
-                                var startupApps = JsonConvert.DeserializeObject<StartupApps>(managementProperty.Value.ToString());
+                                Debug.WriteLine("startupApps = " + sectionProp.Value.ToString());
+                                var startupApps = JsonConvert.DeserializeObject<StartupApps>(sectionProp.Value.ToString());
                                 StartupAppInfo foregroundApp = new StartupAppInfo(startupApps.foreground, false /*!background*/);
                                 this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
                             }
@@ -717,12 +741,9 @@ namespace Microsoft.Devices.Management
 
             Message.GetTimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
             Dictionary<string, object> collection = new Dictionary<string, object>();
-            collection["microsoft"] = new
+            collection[DMJSonConstants.DTWindowsIoTNameSpace] = new
             {
-                management = new
-                {
-                    timeInfo = timeInfoResponse.data,
-                }
+                timeInfo = timeInfoResponse.data,
             };
 
             _deviceTwin.ReportProperties(collection);
@@ -730,8 +751,9 @@ namespace Microsoft.Devices.Management
 
         private async Task ReportAllDeviceProperties()
         {
-            Debug.WriteLine("ReportAllDeviceProperties");
-            Debug.WriteLine("Querying start: " + DateTime.Now.ToString());
+            Logger.Log("Reporting all device properties to device twin...", LoggingLevel.Information);
+
+            Logger.Log("Querying device state...", LoggingLevel.Information);
 
             Message.GetTimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
             Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await GetCertificateConfigurationAsync();
@@ -739,52 +761,34 @@ namespace Microsoft.Devices.Management
             Message.GetDeviceInfoResponse deviceInfoResponse = await GetDeviceInfoAsync();
             Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
 
-            JObject managementObj = new JObject();
-            managementObj["timeInfo"] = JObject.FromObject(timeInfoResponse.data);
-            managementObj["certificates"] = JObject.FromObject(certificateConfigurationResponse);
-            managementObj["rebootInfo"] = JObject.FromObject(rebootInfoResponse);
-            managementObj["deviceInfo"] = JObject.FromObject(deviceInfoResponse);
-            managementObj["windowsUpdates"] = JObject.FromObject(windowsUpdatesResponse.configuration);
+            Logger.Log("Done querying device state.", LoggingLevel.Information);
 
+            JObject windowsObj = new JObject();
             foreach (var handler in this._desiredPropertyMap.Values)
             {
                 // TODO: how do we ensure that only Reported=yes sections report results?
-                managementObj[handler.PropertySectionName] = await handler.GetReportedPropertyAsync();
+                windowsObj[handler.PropertySectionName] = await handler.GetReportedPropertyAsync();
             }
-
-            Debug.WriteLine("Querying end: " + DateTime.Now.ToString());
+            windowsObj["timeInfo"] = JObject.Parse(JsonConvert.SerializeObject(timeInfoResponse));
+            windowsObj["certificates"] = JObject.Parse(JsonConvert.SerializeObject(certificateConfigurationResponse));
+            windowsObj["rebootInfo"] = JObject.Parse(JsonConvert.SerializeObject(rebootInfoResponse));
+            windowsObj["deviceInfo"] = JObject.Parse(JsonConvert.SerializeObject(deviceInfoResponse));
+            windowsObj["windowsUpdates"] = JObject.Parse(JsonConvert.SerializeObject(windowsUpdatesResponse));
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
-            collection["microsoft"] = new
-            {
-                management = managementObj
-            };
+            collection[DMJSonConstants.DTWindowsIoTNameSpace] = windowsObj;
 
-            Debug.WriteLine($"Report properties: {managementObj.ToString()}");
+            Debug.WriteLine($"Report properties: {collection[DMJSonConstants.DTWindowsIoTNameSpace].ToString()}");
             _deviceTwin.ReportProperties(collection);
         }
 
         private async Task<string> ReportAllDevicePropertiesMethodHandler(string jsonParam)
         {
-            Debug.WriteLine("ReportAllDevicePropertiesMethodHandler");
+            Logger.Log("Handling direct method " + MethodReportAllDeviceProperties + " ...", LoggingLevel.Verbose);
 
             ReportAllDeviceProperties();
 
             return JsonConvert.SerializeObject(new { response = "success" });
-        }
-
-        //
-        // Private utilities
-        //
-
-        private async Task SetPropertyAsync(Message.DMMessageKind command, string valueString)
-        {
-            throw new NotImplementedException();
-        }
-
-        private async Task<string> GetPropertyAsync(Message.DMMessageKind command)
-        {
-            throw new NotImplementedException();
         }
 
         // Data members

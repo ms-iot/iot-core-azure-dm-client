@@ -18,7 +18,8 @@ namespace DMDashboard
 {
     public partial class DMComboBox : DMControl
     {
-        public static readonly DependencyProperty ValuesListProperty = DependencyProperty.Register("ValuesList", typeof(string[]), typeof(DMTextBox));
+        public static readonly DependencyProperty ValuesListProperty = DependencyProperty.Register("ValuesList", typeof(string[]), typeof(DMComboBox));
+        public static readonly DependencyProperty SelectedIndexProperty = DependencyProperty.Register("SelectedIndex", typeof(int), typeof(DMComboBox));
 
         public string [] ValuesList
         {
@@ -53,6 +54,19 @@ namespace DMDashboard
                     }
                     ++i;
                 }
+            }
+        }
+
+        public int SelectedIndex
+        {
+            get
+            {
+                return (int)GetValue(SelectedIndexProperty);
+            }
+
+            set
+            {
+                SetValue(SelectedIndexProperty, (int)value);
             }
         }
     }

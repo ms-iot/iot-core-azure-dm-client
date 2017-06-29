@@ -136,6 +136,32 @@ void MdmProvision::RunAddData(const wstring& sid, const wstring& path, const wst
     RunSyncML(sid, requestSyncML, resultSyncML);
 }
 
+void MdmProvision::RunAddTyped(const wstring& sid, const wstring& path, const wstring& type)
+{
+    wstring requestSyncML = LR"(
+        <SyncBody>
+            <Add>
+                <CmdID>1</CmdID>
+                <Item>
+                    <Target>
+                        <LocURI>)";
+    requestSyncML += path;
+    requestSyncML += LR"(</LocURI>
+                    </Target>
+                    <Meta>
+                        <Format xmlns="syncml:metinf">)";
+    requestSyncML += type;
+    requestSyncML += LR"(</Format>
+                    </Meta>
+                </Item>
+            </Add>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    RunSyncML(sid, requestSyncML, resultSyncML);
+}
+
 void MdmProvision::RunAddDataBase64(const wstring& sid, const std::wstring& path, const std::wstring& value)
 {
     RunAddData(sid, path, value, L"b64");
@@ -430,6 +456,33 @@ void MdmProvision::RunExec(const wstring& sid, const wstring& path)
     RunSyncML(sid, requestSyncML, resultSyncML);
 }
 
+void MdmProvision::RunExecWithParameters(const wstring& sid, const wstring& path, const wstring& params)
+{
+    wstring requestSyncML = LR"(
+    <SyncBody>
+        <Exec>
+            <CmdID>1</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>)";
+    requestSyncML += path;
+    requestSyncML += LR"(</LocURI>
+                </Target>
+                <Meta>
+                    <Format xmlns="syncml:metinf">chr</Format>
+                </Meta>
+                <Data>)";
+    requestSyncML += params;
+    requestSyncML += LR"(</Data>
+            </Item>
+        </Exec>
+    </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    RunSyncML(sid, requestSyncML, resultSyncML);
+}
+
 void MdmProvision::RunAdd(const wstring& path, const wstring& value)
 {
     // empty sid is okay for device-wide CSPs.
@@ -440,6 +493,11 @@ void MdmProvision::RunAddData(const std::wstring& path, int value)
 {
     // empty sid is okay for device-wide CSPs.
     RunAddData(L"", path, Utils::MultibyteToWide(to_string(value).c_str()), L"int");
+}
+
+void MdmProvision::RunAddTyped(const wstring& path, const wstring& type)
+{
+    RunAddTyped(L"", path, type);
 }
 
 void MdmProvision::RunAddData(const std::wstring& path, bool value)
@@ -534,6 +592,11 @@ void MdmProvision::RunExec(const wstring& path)
 {
     // empty sid is okay for device-wide CSPs.
     RunExec(L"", path);
+}
+
+void MdmProvision::RunExecWithParameters(const std::wstring& path, const std::wstring& params)
+{
+    RunExecWithParameters(L"", path, params);
 }
 
 void MdmProvision::ReportError(const wstring& syncMLRequest, const wstring& syncMLResponse, int errorCode)

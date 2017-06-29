@@ -12,11 +12,12 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #include "stdafx.h"
 #include "Models\AllModels.h"
 #include "Blob.h"
-
 #include "DMMessageSerialization.h"
+#include "../SharedUtilities/Logger.h"
 
 using namespace Platform;
 using namespace concurrency;
@@ -37,7 +38,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         if (messageType == MessageType::Request) {
             return (*serialization->second.first)(this);
         }
-        else {
+        else
+        {
             return (*serialization->second.second)(this);
         }
     }
@@ -49,20 +51,26 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     Blob^ Blob::ReadFromNativeHandle(uint64_t handle)
     {
-        HANDLE pipeHandle = (HANDLE)handle;
+        TRACE(__FUNCTION__);
 
+        HANDLE pipeHandle = (HANDLE)handle;
         DWORD readByteCount = 0;
         uint32_t totalSizInBytes = 0;
-        if (!ReadFile(pipeHandle, &totalSizInBytes, sizeof(uint32_t), &readByteCount, NULL) || readByteCount != sizeof(uint32_t))
+        if (!ReadFile(pipeHandle, &totalSizInBytes, sizeof(uint32_t), &readByteCount, NULL))
         {
-            throw ref new Exception(E_FAIL, "Cannot read buffer size from pipe");
+            throw ref new Exception(GetLastError(), "ReadFile() failed to read payload size from pipe.");
+        }
+
+        if (readByteCount != sizeof(uint32_t))
+        {
+            throw ref new Exception(E_FAIL, "Payload size could not be read.");
         }
 
         auto bytes = ref new Array<uint8_t>(totalSizInBytes);
 
         if (!ReadFile(pipeHandle, bytes->Data, totalSizInBytes, &readByteCount, NULL))
         {
-            throw ref new Exception(E_FAIL, "Cannot read data from pipe");
+            throw ref new Exception(GetLastError(), "ReadFile() failed to read payload from pipe");
         }
 
         FlushFileBuffers(pipeHandle);
@@ -79,6 +87,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     IAsyncOperation<Blob^>^ Blob::ReadFromIInputStreamAsync(Windows::Storage::Streams::IInputStream^ iistream)
     {
+        TRACE(__FUNCTION__);
+
         DataReader^ reader = ref new DataReader(iistream);
         return create_async([=]() {
             return create_task(reader->LoadAsync(sizeof(uint32_t))).then([=](uint32_t bytesLoaded) {
@@ -101,19 +111,22 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     void Blob::WriteToNativeHandle(uint64_t handle)
     {
+        TRACE(__FUNCTION__);
+
         HANDLE pipeHandle = (HANDLE)handle;
 
         DWORD byteWrittenCount = 0;
         uint32_t totalSizInBytes = this->bytes->Length;
+
         if (!WriteFile(pipeHandle, &totalSizInBytes, sizeof(uint32_t), &byteWrittenCount, NULL) || byteWrittenCount != sizeof(uint32_t))
         {
-            throw ref new Exception(E_FAIL, "Cannot write buffer size to pipe");
+            throw ref new Exception(GetLastError(), "WriteFile() failed to write payload size to pipe.");
         }
 
         byteWrittenCount = 0;
         if (!WriteFile(pipeHandle, this->bytes->Data, totalSizInBytes, &byteWrittenCount, NULL))
         {
-            throw ref new Exception(E_FAIL, "Cannot write blob to pipe");
+            throw ref new Exception(GetLastError(), "WriteFile() failed to write payload to pipe.");
         }
 
         FlushFileBuffers(pipeHandle);
@@ -121,6 +134,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     IAsyncAction^ Blob::WriteToIOutputStreamAsync(IOutputStream^ iostream)
     {
+        TRACE(__FUNCTION__);
+
         DataWriter^ writer = ref new DataWriter(iostream);
         return create_async([=]() {
             auto dataSizeArry = ref new Array<byte>(sizeof(uint32_t));

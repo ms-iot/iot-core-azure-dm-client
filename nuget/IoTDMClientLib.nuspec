@@ -24,28 +24,37 @@
     
     <!-- Design-time -->
     <file src="..\src\IoTDMClientLib\bin\x86\Release\IoTDMClient.dll" target="lib\uap10.0" />
+    <file src="..\src\IoTDMClientLib\bin\x86\Release\DMDataContract.dll" target="lib\uap10.0" />
 
     <!-- Build-time -->
     <file src="IoTDMClientLib.targets" target="build\uap10.0" />
+    
     <file src="..\src\IoTDMClientLib\bin\ARM\Release\IoTDMClient.dll" target="build\uap10.0\arm" />
     <file src="..\src\IoTDMClientLib\bin\x64\Release\IoTDMClient.dll" target="build\uap10.0\x64" />
     <file src="..\src\IoTDMClientLib\bin\x86\Release\IoTDMClient.dll" target="build\uap10.0\x86" />
+
+    <file src="..\src\IoTDMClientLib\bin\ARM\Release\DMDataContract.dll" target="build\uap10.0\arm" />
+    <file src="..\src\IoTDMClientLib\bin\x64\Release\DMDataContract.dll" target="build\uap10.0\x64" />
+    <file src="..\src\IoTDMClientLib\bin\x86\Release\DMDataContract.dll" target="build\uap10.0\x86" />
 
     <!-- Run-time -->
       
     <!-- ARM -->
     <file src="..\src\IoTDMClientLib\bin\ARM\Release\IoTDMClient.dll" target="runtimes\win10-arm\lib\uap10.0" />
     <file src="..\src\IoTDMClientLib\bin\ARM\Release\Microsoft.Devices.Management.Message.winmd" target="runtimes\win10-arm\lib\uap10.0" />
+    <file src="..\src\IoTDMClientLib\bin\ARM\Release\DMDataContract.dll" target="runtimes\win10-arm\lib\uap10.0" />
     <file src="..\src\ARM\Release\DMMessage\Microsoft.Devices.Management.Message.dll" target="runtimes\win10-arm\native" />
 
     <!-- x64 -->
     <file src="..\src\IoTDMClientLib\bin\x64\Release\IoTDMClient.dll" target="runtimes\win10-x64\lib\uap10.0" />
     <file src="..\src\IoTDMClientLib\bin\x64\Release\Microsoft.Devices.Management.Message.winmd" target="runtimes\win10-x64\lib\uap10.0" />
+    <file src="..\src\IoTDMClientLib\bin\x64\Release\DMDataContract.dll" target="runtimes\win10-x64\lib\uap10.0" />
     <file src="..\src\x64\Release\DMMessage\Microsoft.Devices.Management.Message.dll" target="runtimes\win10-x64\native" />
 
     <!-- x86 -->
     <file src="..\src\IoTDMClientLib\bin\x86\Release\IoTDMClient.dll" target="runtimes\win10-x86\lib\uap10.0" />
     <file src="..\src\IoTDMClientLib\bin\x86\Release\Microsoft.Devices.Management.Message.winmd" target="runtimes\win10-x86\lib\uap10.0" />
+    <file src="..\src\IoTDMClientLib\bin\x86\Release\DMDataContract.dll" target="runtimes\win10-x86\lib\uap10.0" />
     <file src="..\src\Release\DMMessage\Microsoft.Devices.Management.Message.dll" target="runtimes\win10-x86\native" />
 
   </files>

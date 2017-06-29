@@ -33,7 +33,6 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         property String^ profileName;
 
         virtual Blob^ Serialize() {
-
             JsonObject^ jsonObject = ref new JsonObject();
             jsonObject->Insert("profileName", JsonValue::CreateStringValue(profileName));
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);

@@ -29,13 +29,13 @@ using System.Windows;
 
 namespace DMDashboard
 {
-    struct DeviceMethodReturnValue
+    public struct DeviceMethodReturnValue
     {
         public string Status;
         public string Payload;
     }
 
-    struct DeviceTwinData
+    public struct DeviceTwinData
     {
         public string deviceJson;
         public string tagsJson;
@@ -43,7 +43,7 @@ namespace DMDashboard
         public string desiredPropertiesJson;
     }
 
-    class DeviceTwinAndMethod
+    public class DeviceTwinAndMethod
     {
         private string messageDeviceTwinFunctionalityNotFound = "Device Twin functionality not found." + Environment.NewLine + "Make sure you are using the latest Microsoft.Azure.Devices package.";
         private string connString;
