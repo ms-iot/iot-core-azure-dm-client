@@ -12,6 +12,9 @@
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="DMMessage.cpp" />
+    <ClCompile Include="..\SharedUtilities\Logger.cpp" />
+    <ClCompile Include="..\SharedUtilities\StringUtils.cpp" />
+    <ClCompile Include="..\SharedUtilities\ETWLogger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SerializationHelper.h" />
@@ -97,6 +100,15 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="Models\ModelHelper.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\EventTracingConfiguration.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\DeviceDMStorage.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\StringListResponse.h">
       <Filter>Models</Filter>
     </ClInclude>
   </ItemGroup>

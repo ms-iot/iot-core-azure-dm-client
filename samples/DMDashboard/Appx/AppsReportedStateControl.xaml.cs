@@ -99,7 +99,5 @@ namespace DMDashboard
             }
             AppsStatusData = data.ToArray();
         }
-
-        private List<AppReportedStateControl> _controls;
     }
 }

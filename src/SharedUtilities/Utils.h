@@ -22,11 +22,15 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <time.h>
 #include <sstream>
 #include <windows.h>
+#include "StringUtils.h"
 
 #define IoTDMRegistryRoot L"Software\\Microsoft\\IoTDM"
 #define IoTDMRegistryLastRebootCmd L"LastRebootCmd"
 #define IoTDMRegistryWindowsUpdateRebootAllowed L"WindowsUpdateRebootAllowed"
 #define IoTDMRegistryWindowsUpdatePolicySectionReporting L"WindowsUpdatePolicySectionReporting"
+#define IoTDMRegistryEventTracing IoTDMRegistryRoot L"\\EventTracingConfiguration";
+#define IoTDMRegistryEventTracingLogFileFolder L"LogFileFolder"
+#define IoTDMRegistryReportToDeviceTwin L"ReportToDeviceTwin"
 #define IoTDMRegistryTrue L"True"
 #define IoTDMRegistryFalse L"False"
 
@@ -36,53 +40,6 @@ namespace Utils
 
     // Sid helper
     std::wstring GetSidForAccount(const wchar_t* userAccount);
-
-    // String helpers
-    std::string WideToMultibyte(const wchar_t* s);
-    std::wstring MultibyteToWide(const char* s);
-
-    template<class T>
-    void SplitString(const std::basic_string<T> &s, T delim, std::vector<std::basic_string<T>>& tokens)
-    {
-        std::basic_stringstream<T> ss;
-        ss.str(s);
-        std::basic_string<T> item;
-        while (getline<T>(ss, item, delim))
-        {
-            tokens.push_back(item);
-        }
-    }
-
-    template<class T>
-    T TrimString(const T& s, const T& chars)
-    {
-        T trimmedString;
-
-        // trim leading characters
-        size_t startpos = s.find_first_not_of(chars);
-        if (T::npos != startpos)
-        {
-            trimmedString = s.substr(startpos);
-        }
-
-        // trim trailing characters
-        size_t endpos = trimmedString.find_last_not_of(chars);
-        if (T::npos != endpos)
-        {
-            trimmedString = trimmedString.substr(0, endpos + 1);
-        }
-        return trimmedString;
-    }
-
-    std::wstring TrimString(const std::wstring& s, const std::wstring& suffix);
-
-    template<class CharType, class ParamType>
-    std::basic_string<CharType> ConcatString(const CharType* s, ParamType param)
-    {
-        std::basic_ostringstream<CharType> messageStream;
-        messageStream << s << param;
-        return messageStream.str();
-    }
 
     // Replaces invalid characters (like .) with _ so that the string can be used
     // as a json property name.
@@ -104,6 +61,7 @@ namespace Utils
     void WriteRegistryValue(const std::wstring& subKey, const std::wstring& propName, const std::wstring& propValue);
     LSTATUS TryReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, std::wstring& propValue);
     std::wstring ReadRegistryValue(const std::wstring& subKey, const std::wstring& propName);
+    std::wstring ReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, const std::wstring& propDefaultValue);
 
     // File helpers
     bool FileExists(const std::wstring& fullFileName);
@@ -233,6 +191,7 @@ namespace Utils
     };
 
     void LoadFile(const std::wstring& fileName, std::vector<char>& buffer);
+    void Base64ToBinary(const std::wstring& encrypted, std::vector<char>& decrypted);
     std::wstring ToBase64(std::vector<char>& buffer);
     std::wstring FileToBase64(const std::wstring& fileName);
 }

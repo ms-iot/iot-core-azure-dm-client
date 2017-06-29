@@ -17,7 +17,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "MdmProvision.h"
 #include "CertificateInfo.h"
 #include "..\SharedUtilities\Logger.h"
-#include "..\DMMessage\DMGarbageCollectorTempFolder.h"
 
 using namespace std;
 

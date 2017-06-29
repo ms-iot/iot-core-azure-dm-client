@@ -1,0 +1,27 @@
+﻿<Window x:Class="DMDashboard.StorageManagement.DeviceDeleteFile"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DMDashboard.StorageManagement"
+        mc:Ignorable="d"
+        Title="Device Delete File" Height="300" Width="500">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <local:DeviceFileSelectionControl Grid.Row="0" Grid.Column="0" x:Name="FileSelectionControl"/>
+        <Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="140"/>
+                <ColumnDefinition Width="140"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Row="0" Grid.Column="0" Margin="3" Width="130" VerticalAlignment="Center" Content="Delete" Click="OnDelete"/>
+            <Button Grid.Row="0" Grid.Column="1" Margin="3" Width="130" VerticalAlignment="Center" Content="Close" Click="OnClose"/>
+        </Grid>
+    </Grid>
+</Window>

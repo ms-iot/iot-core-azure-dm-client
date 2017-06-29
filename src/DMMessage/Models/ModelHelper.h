@@ -77,7 +77,7 @@ public:
         return jApplyProperties;
     }
 
-    static Blob^ Serialize(BaseClass^ configObject, uint32_t tag, SerializePropertiesFxn SerializeProperties)
+    static JsonObject^ ToJson(BaseClass^ configObject, SerializePropertiesFxn SerializeProperties)
     {
         JsonObject^ jConfigObject = ref new JsonObject();
         if (configObject->ApplyFromDeviceTwin == JsonYes)
@@ -92,6 +92,12 @@ public:
         }
         jConfigObject->Insert(JsonReportProperties, JsonValue::CreateStringValue(configObject->ReportToDeviceTwin));
 
+        return jConfigObject;
+    }
+
+    static Blob^ Serialize(BaseClass^ configObject, uint32_t tag, SerializePropertiesFxn SerializeProperties)
+    {
+        JsonObject^ jConfigObject = ToJson(configObject, SerializeProperties);
         return SerializationHelper::CreateBlobFromJson(tag, jConfigObject);
     }
 

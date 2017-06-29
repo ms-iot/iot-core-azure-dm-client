@@ -10,14 +10,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300"/>
-            <ColumnDefinition Width="100"/>
-        </Grid.ColumnDefinitions>
-        <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" x:Name="NameBox"
+        <TextBlock Grid.Row="0" Margin="3" x:Name="NameBox" HorizontalAlignment="Left"
                    Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:DMControl}},
                           Path=Title}"/>
-        <Border Grid.Row="0" Grid.Column="1" Background="#F8F8F8" Margin="3">
+        <Border Grid.Row="0" Background="#F8F8F8" Margin="3" HorizontalAlignment="Right" Width="100">
             <TextBlock Margin="3" x:Name="ValueBox"
                    Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:DMControl}},
                           Path=PropertyValue}"/>

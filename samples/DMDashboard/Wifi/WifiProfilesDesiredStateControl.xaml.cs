@@ -27,6 +27,14 @@ namespace DMDashboard
     /// </summary>
     public partial class WifiProfilesDesiredStateControl : UserControl
     {
+        public string SectionName
+        {
+            get
+            {
+                return "wifi";
+            }
+        }
+
         public WifiProfilesDesiredStateControl()
         {
             InitializeComponent();

@@ -12,25 +12,26 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #include "stdafx.h"
+#include <fstream>
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMRequest.h"
 #include "..\SharedUtilities\SecurityAttributes.h"
 #include "CSPs\MdmProvision.h"
 #include "CSPs\CertificateInfo.h"
 #include "CSPs\CertificateManagement.h"
-#include "CSPs\RebootCSP.h"
-#include "CSPs\EnterpriseModernAppManagementCSP.h"
-#include "CSPs\WifiCsp.h"
 #include "CSPs\CustomDeviceUiCsp.h"
 #include "CSPs\DeviceHealthAttestationCSP.h"
+#include "CSPs\EnterpriseModernAppManagementCSP.h"
+#include "CSPs\DiagnosticLogCSP.h"
+#include "CSPs\RebootCSP.h"
+#include "CSPs\WifiCsp.h"
 #include "AppCfg.h"
+#include "DMStorage.h"
 #include "TimeCfg.h"
-#include "AppCfg.h"
 #include "TpmSupport.h"
 #include "Permissions\PermissionsManager.h"
-
-#include <fstream>
 
 #include "Models\AllModels.h"
 
@@ -41,6 +42,15 @@ using namespace Windows::Foundation::Collections;
 
 const wchar_t* WURingRegistrySubKey = L"SYSTEM\\Platform\\DeviceTargetingInfo";
 const wchar_t* WURingPropertyName = L"TargetRing";
+
+StringResponse^ ReportError(const string& context, const DMException& e)
+{
+    string debugMessage = "Error: " + context;
+    TRACEP(debugMessage.c_str(), e.what());
+    auto errorMessageCStr = Utils::MultibyteToWide(e.what());
+    auto responseMessage = ref new String(errorMessageCStr.c_str(), errorMessageCStr.length());
+    return ref new StringResponse(ResponseStatus::Failure, responseMessage, DMMessageKind::ErrorResponse);
+}
 
 IResponse^ HandleFactoryReset(IRequest^ request)
 {
@@ -588,6 +598,8 @@ IResponse^ HandleUninstallApp(IRequest^ request)
 
 IResponse^ HandleTransferFile(IRequest^ request)
 {
+    TRACE(__FUNCTION__);
+
     try
     {
         auto transferRequest = dynamic_cast<AzureFileTransferRequest^>(request);
@@ -595,6 +607,9 @@ IResponse^ HandleTransferFile(IRequest^ request)
         auto upload = info->Upload;
         auto localPath = (wstring)info->LocalPath->Data();
         auto appLocalDataPath = (wstring)info->AppLocalDataPath->Data();
+
+        TRACEP(L"Local path     = ", localPath.c_str());
+        TRACEP(L"App local path = ", appLocalDataPath.c_str());
 
         std::ifstream  src((upload) ? localPath : appLocalDataPath, std::ios::binary);
         std::ofstream  dst((!upload) ? localPath : appLocalDataPath, std::ios::binary);
@@ -1015,6 +1030,8 @@ IResponse^ HandleGetWindowsUpdates(IRequest^ request)
 
 IResponse^ HandleSetWindowsUpdates(IRequest^ request)
 {
+    TRACE(__FUNCTION__);
+
     try
     {
         auto windowsUpdatesRequest = dynamic_cast<SetWindowsUpdatesRequest^>(request);
@@ -1033,6 +1050,8 @@ IResponse^ HandleSetWindowsUpdates(IRequest^ request)
 
 IResponse^ HandleDeviceHealthAttestationVerifyHealth(IRequest^ request)
 {
+    TRACE(__FUNCTION__);
+
     try
     {
         auto verifyHealthRequest = dynamic_cast<DeviceHealthAttestationVerifyHealthRequest^>(request);
@@ -1071,6 +1090,8 @@ IResponse^ HandleDeviceHealthAttestationVerifyHealth(IRequest^ request)
 
 IResponse^ HandleDeviceHealthAttestationGetReport(IRequest^ request)
 {
+    TRACE(__FUNCTION__);
+
     try
     {
         auto certificateRequest = dynamic_cast<DeviceHealthAttestationGetReportRequest^>(request);
@@ -1090,6 +1111,76 @@ IResponse^ HandleDeviceHealthAttestationGetReport(IRequest^ request)
         auto errorMessageCStr = Utils::MultibyteToWide(e.what());
         auto errorMessage = ref new String(errorMessageCStr.c_str(), errorMessageCStr.length());
         return ref new StringResponse(ResponseStatus::Failure, errorMessage, DMMessageKind::ErrorResponse);
+    }
+}
+
+IResponse^ HandleGetEventTracingConfiguration(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        return DiagnosticLogCSP::HandleGetEventTracingConfiguration(request);
+    }
+    catch (const DMException& e)
+    {
+        return ReportError("DMCommand::HandleGetEventTracingConfiguration: ", e);
+    }
+}
+
+IResponse^ HandleSetEventTracingConfiguration(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        return DiagnosticLogCSP::HandleSetEventTracingConfiguration(request);
+    }
+    catch (const DMException& e)
+    {
+        return ReportError("DMCommand::HandleSetEventTracingConfiguration: ", e);
+    }
+}
+
+IResponse^ HandleGetDMFolders(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        return DMStorage::HandleGetDMFolders(request);
+    }
+    catch (const DMException& e)
+    {
+        return ReportError("DMCommand::HandleGetDMFolders: ", e);
+    }
+}
+
+IResponse^ HandleGetDMFiles(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        return DMStorage::HandleGetDMFiles(request);
+    }
+    catch (const DMException& e)
+    {
+        return ReportError("DMCommand::HandleGetDMFiles: ", e);
+    }
+}
+
+IResponse^ HandleDeleteDMFile(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        return DMStorage::HandleDeleteDMFile(request);
+    }
+    catch (const DMException& e)
+    {
+        return ReportError("DMCommand::HandleDeleteDMFile: ", e);
     }
 }
 
@@ -1169,7 +1260,7 @@ void Listen()
 
     if (pipeHandle.Get() == INVALID_HANDLE_VALUE)
     {
-        throw DMExceptionWithErrorCode("CreateNamedPipe Error", GetLastError());
+        throw DMExceptionWithErrorCode("CreateNamedPipe Error: ", GetLastError());
     }
 
     while (true)
@@ -1188,6 +1279,7 @@ void Listen()
         {
             IResponse^ response = ProcessCommand(request->MakeIRequest());
             response->Serialize()->WriteToNativeHandle(pipeHandle.Get64());
+            TRACE(L"WriteToNativeHandle() completed successfully.");
         }
         catch (const DMException& ex)
         {

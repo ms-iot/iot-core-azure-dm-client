@@ -12,9 +12,10 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
+using Newtonsoft.Json.Linq;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -82,6 +83,8 @@ namespace Microsoft.Devices.Management
 
         async Task<Dictionary<string, object>> IDeviceTwin.GetDesiredPropertiesAsync()
         {
+            Logger.Log("AzureIoTHubDeviceTwinProxy.GetDesiredPropertiesAsync", LoggingLevel.Information);
+
             var desiredProperties = new Dictionary<string, object>();
             try
             {
@@ -106,6 +109,7 @@ namespace Microsoft.Devices.Management
 
         async Task<string> IDeviceTwin.GetDeviceTwinPropertiesAsync()
         {
+            Logger.Log("AzureIoTHubDeviceTwinProxy.GetDeviceTwinPropertiesAsync", LoggingLevel.Information);
             StringBuilder sb = new StringBuilder();
             try
             {
@@ -138,9 +142,20 @@ namespace Microsoft.Devices.Management
 
         async Task IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
         {
+            Logger.Log("AzureIoTHubDeviceTwinProxy.ReportProperties", LoggingLevel.Information);
+
             TwinCollection azureCollection = new TwinCollection();
             foreach (KeyValuePair<string, object> p in collection)
             {
+                Logger.Log("  Reporting: " + p.Key, LoggingLevel.Information);
+                if (p.Value is JObject)
+                {
+                    JObject jObject = (JObject)p.Value;
+                    foreach (JProperty property in jObject.Children())
+                    {
+                        Logger.Log("    Reporting: " + property.Name, LoggingLevel.Information);
+                    }
+                }
                 azureCollection[p.Key] = p.Value;
             }
 
@@ -161,6 +176,8 @@ namespace Microsoft.Devices.Management
 
         async Task IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)
         {
+            Logger.Log("AzureIoTHubDeviceTwinProxy.SetMethodHandlerAsync", LoggingLevel.Information);
+
             try
             {
                 await this.deviceClient.SetMethodHandlerAsync(methodName, async (MethodRequest methodRequest, object userContext) =>
@@ -222,6 +239,8 @@ namespace Microsoft.Devices.Management
 
         async Task IDeviceTwin.SendMessageAsync(string messageContent, IDictionary<string, string> properties)
         {
+            Logger.Log("AzureIoTHubDeviceTwinProxy.SendMessageAsync", LoggingLevel.Information);
+
             var message = new Microsoft.Azure.Devices.Client.Message(Encoding.UTF8.GetBytes(messageContent));
             foreach(var pair in properties)
             {

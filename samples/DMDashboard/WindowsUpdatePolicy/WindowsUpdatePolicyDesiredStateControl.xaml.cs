@@ -20,7 +20,15 @@ namespace DMDashboard
 {
     public partial class WindowsUpdatePolicyDesiredStateControl : DMSectionControl
     {
-        static string SectionName = "windowsUpdatePolicy";
+        static string SectionNameString = "windowsUpdatePolicy";
+
+        public override string SectionName
+        {
+            get
+            {
+                return SectionNameString;
+            }
+        }
 
         public WindowsUpdatePolicyDesiredStateControl()
         {
@@ -49,11 +57,6 @@ namespace DMDashboard
             {
                 return ReportPropertiesCombo.PropertyValue == DMJSonConstants.YesString;
             }
-        }
-
-        public string ToJson()
-        {
-            return base.ToJson(SectionName);
         }
     }
 }

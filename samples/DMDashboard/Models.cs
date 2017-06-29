@@ -30,6 +30,14 @@ namespace Microsoft.Devices.Management
 
         public class SetParams
         {
+            public string SectionName
+            {
+                get
+                {
+                    return "scheduledReboot";
+                }
+            }
+
             public DateTime singleRebootTime;
             public DateTime dailyRebootTime;
 
@@ -87,6 +95,14 @@ namespace Microsoft.Devices.Management
 
         public class SetParams
         {
+            public string SectionName
+            {
+                get
+                {
+                    return "windowsUpdates";
+                }
+            }
+
             public string approved;
 
             public string ToJson()
@@ -104,6 +120,14 @@ namespace Microsoft.Devices.Management
 
     class ExternalStorage
     {
+        public string SectionName
+        {
+            get
+            {
+                return "externalStorage";
+            }
+        }
+
         public string connectionString;
 
         public string ToJson()
@@ -116,6 +140,14 @@ namespace Microsoft.Devices.Management
     {
         public class CertificateConfiguration
         {
+            public string SectionName
+            {
+                get
+                {
+                    return "certificates";
+                }
+            }
+
             public string rootCATrustedCertificates_Root;
             public string rootCATrustedCertificates_CA;
             public string rootCATrustedCertificates_TrustedPublisher;
@@ -131,8 +163,6 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public uint Tag;
-        public uint Status;
         public CertificateConfiguration Configuration;
     }
 

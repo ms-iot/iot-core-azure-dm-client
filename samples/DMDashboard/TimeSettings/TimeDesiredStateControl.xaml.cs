@@ -23,6 +23,14 @@ namespace DMDashboard
 {
     public partial class TimeDesiredStateControl : UserControl
     {
+        public string SectionName
+        {
+            get
+            {
+                return "timeInfo";
+            }
+        }
+
         private class TimeZoneData
         {
             public string DisplayName { get; set; }

@@ -110,7 +110,7 @@ namespace DMDashboard
             InitializeComponent();
         }
 
-        public string GetJSon()
+        public string ToJson()
         {
             if (SlotUsed.IsChecked != true || String.IsNullOrEmpty(PkgFamilyName.Text))
             {

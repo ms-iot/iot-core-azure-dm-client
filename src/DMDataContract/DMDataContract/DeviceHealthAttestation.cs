@@ -62,7 +62,7 @@ namespace Microsoft.Devices.Management.DMDataContract
         /// <summary>
         /// GetCertificate Direct Method Name
         /// </summary>
-        public static readonly string GetReportMethodName = "microsoft.management.deviceHealthAttestationGetReport";
+        public static readonly string GetReportMethodName = "windows.deviceHealthAttestationGetReport";
         /// <summary>
         /// Data Structure for GetReport direct method.
         /// </summary>
@@ -77,7 +77,7 @@ namespace Microsoft.Devices.Management.DMDataContract
         /// <summary>
         /// ReportNow Direct Method Name
         /// </summary>
-        public static readonly string ReportNowMethodName = "microsoft.management.deviceHealthAttestationReportNow";
+        public static readonly string ReportNowMethodName = "windows.deviceHealthAttestationReportNow";
         // Parameter not used
 
         //
