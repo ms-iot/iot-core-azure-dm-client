@@ -50,6 +50,7 @@ The specification for each operation is provided below.
 - [Certificates Management](certificate-management.md)
 - [Device Information](device-info.md)
 - [Device Factory Reset](device-factory-reset.md)
+- [Device Health Attestation](device-health-attestation.md)
 - [Reboot Management](reboot-management.md)
 - [Time Management](time-management.md)
 - [WiFi](wifi-management.md)

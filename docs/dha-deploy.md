@@ -1,5 +1,4 @@
-# DM Hello World Application
-## Deploy Cloud Resources
+# Deploy Azure Resources for Device Health Attestation
 
 Additional Azure resources are required to support Device Health Attestation.  Please see [Device Health Attestation Architecture](dha-architecture.md) for more details.  If Device Health Attestation is not required, this step can be skipped.
 
@@ -60,7 +59,3 @@ For example, if you want to change account type of the Azure Storage account whe
       }
     }
 ```
-
-**Next Step**:
-
-- Managing the [Coding](dm-hello-world-coding.md).

@@ -16,7 +16,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 <#
 .SYNOPSIS
 
-This script deploy the necessary Azure resources for device health attestation.  The following resources will be created in the specified resource group:
+This script deploys the necessary Azure resources for device health attestation.  The following resources will be created in the specified resource group:
     - an Azure Storage Account named "$StorageName" 
     - an Azure Service Bus namespace named "$ServiceBusName" 
     - an Azure Service Bus Queue named "DHA" in the service bus namespace above

@@ -1,5 +1,9 @@
 # Device Health Attestation
 
+Modern malware is getting more and more sophisticated.  Some of them, specifically bootkits, are capable of starting before Windows.  **Device Health Attestation** can be used to detect and remediate in the unlikely event where a device is infected.  The device's firmware logs the boot process, and Windows can send it to a trusted Health Attestation Server that can objectively assess the device's health.  See [Device Health Attestation architecture](dha-architecture.md) for more details.
+
+Before this functionality can be used, additional Azure resources need to be deploy.  See the [deployment page](dha-deploy.md) for more details.
+
 The **Device Health Attestation** functionality allows the operator to perform the following tasks:
 
 - Schedule health attestation
@@ -29,7 +33,7 @@ The format of the `"desired.microsoft.management.deviceHealthAttestation"` desir
 </pre>
 
 - ```"Endpoint"``` : Health Attestation Server URI.  When set to an empty string, the default Microsoft Health Attestation Server will be used.  See [this page](https://technet.microsoft.com/en-us/library/mt750346.aspx) on how to setup a custom Health Attestation Server.
-- ```"ReportIntervalInSeconds"``` : Interval in seconds to perform health attestation.  When set to ```"0"```, health attestation will be perform during startup.  When set to ```"-1"```, health attestation will be disabled.
+- ```"ReportIntervalInSeconds"``` : Interval in seconds to perform health attestation.  When set to ```"0"```, health attestation will be perform only once during startup.  When set to ```"-1"```, health attestation will be disabled.
 
 **Examples**
 
@@ -100,17 +104,17 @@ Successful response:
 ```
 ## Retrieve Health Attestation Report
 
-*After* the device attested successfully, a health report is generated.  This report is stored in the Azure storage table, ```dhaReportTable```.  Each row represent a single health report.  The ```rowkey``` is generated using the format ```<device name>-<timestamp of report>```.  For example, ```DHA-client-2017-06-03T00:25:38.0240880Z```.  This table can access via GUI using [Azure Storage Explorer](http://storageexplorer.com/) or programmatically through [Azure table storage APIs](https://docs.microsoft.com/en-us/azure/storage/storage-dotnet-how-to-use-tables#retrieve-a-range-of-entities-in-a-partition).  
+*After* the device attested successfully, a health report is generated.  This report is stored in the Azure storage table, ```dhaReportTable```.  Each row represent a single health report.  The ```rowkey``` is generated using the format ```<device name>-<timestamp of report>```.  For example, ```DHA-client-2017-06-03T00:25:38.0240880Z```.  This table can be accessed via GUI using [Azure Storage Explorer](http://storageexplorer.com/) or programmatically through [Azure table storage APIs](https://docs.microsoft.com/en-us/azure/storage/storage-dotnet-how-to-use-tables#retrieve-a-range-of-entities-in-a-partition).
 
 Here is a screen shot of a sample report viewed through the Azure Storage Explorer.
 
 <img src="dha-report-sample.png"/>
 
-Please see [Device HealthAttestation CSP](https://docs.microsoft.com/en-us/windows/client-management/mdm/healthattestation-csp#a-href-idtake-policy-actionastep-8-take-appropriate-policy-action-based-on-evaluation-results) for more details about each field.
+Please, see [Device HealthAttestation CSP](https://docs.microsoft.com/en-us/windows/client-management/mdm/healthattestation-csp#a-href-idtake-policy-actionastep-8-take-appropriate-policy-action-based-on-evaluation-results) for more details about each field.
 
 ## Take remedial actions
 
-After a health report has been generated, the operator can optionally take remedial actions if the device's health is not compliance.
+After a health report has been generated, the operator can optionally take remedial actions if the device's health is not compliant.
 
 For example, the operator can perform a "factory reset" to bring the device back to a known state.
 
