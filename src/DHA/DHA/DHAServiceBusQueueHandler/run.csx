@@ -1,4 +1,19 @@
-﻿#r "Newtonsoft.Json"
+﻿/*
+Copyright 2017 Microsoft
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
+and associated documentation files (the "Software"), to deal in the Software without restriction, 
+including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, 
+subject to the following conditions:
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT 
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
+THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+#r "Newtonsoft.Json"
 #r "Microsoft.ServiceBus"
 #r "Microsoft.WindowsAzure.Storage"
 #r "System.Xml"
@@ -6,6 +21,7 @@
 #load "NonceTable.csx"
 #load "NonceRequestHandler.csx"
 #load "ReportRequestHandler.csx"
+#load "HealthInspector.csx"
 
 using System;
 using System.IO;
@@ -35,12 +51,15 @@ public static async Task Run(BrokeredMessage dhaMsg, CloudTable nonceTable, Clou
         if (string.Compare(messageType, DeviceHealthAttestationDataContract.NonceRequestTag) == 0)
         {
             var handler = new NonceRequestHandler(nonceTable, serviceClient, log);
-            await handler.Process(dhaMsg);
+            await handler.ProcessAsync(dhaMsg);
         }
         else if (string.Compare(messageType, DeviceHealthAttestationDataContract.HealthReportTag) == 0)
         {
             var handler = new ReportRequestHandler(nonceTable, dhaReportTable, serviceClient, registryManager, log);
-            await handler.Process(dhaMsg);
+            var report = await handler.ProcessAsync(dhaMsg);
+
+            var healthInspector = new HealthInspector(serviceClient, log);
+            await healthInspector.ProcessHealthReportAsync(report);
         }
         else
         {
