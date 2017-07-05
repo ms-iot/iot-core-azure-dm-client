@@ -93,11 +93,12 @@ namespace IoTDMBackground
             return connectionString;
         }
 
-        public async void Run(IBackgroundTaskInstance taskInstance)
+        private void DoNothing(ConnectionStatus status, ConnectionStatusChangeReason reason)
         {
-            _deferral = taskInstance.GetDeferral();
 
-
+        }
+        private async Task ResetConnectionAsync()
+        {
             try
             {
                 string deviceConnectionString = await GetConnectionStringAsync();
@@ -105,6 +106,39 @@ namespace IoTDMBackground
                 // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
                 // as well as device management
                 DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
+
+                deviceClient.SetConnectionStatusChangesHandler(async (ConnectionStatus status, ConnectionStatusChangeReason reason) => {
+                    switch (reason)
+                    {
+                        case ConnectionStatusChangeReason.Bad_Credential:
+                            DoNothing(status, reason);
+                            break;
+                        case ConnectionStatusChangeReason.Client_Close:
+                            await ResetConnectionAsync();
+                            break;
+                        case ConnectionStatusChangeReason.Communication_Error:
+                            await ResetConnectionAsync();
+                            break;
+                        case ConnectionStatusChangeReason.Connection_Ok:
+                            DoNothing(status, reason);
+                            break;
+                        case ConnectionStatusChangeReason.Device_Disabled:
+                            await ResetConnectionAsync();
+                            break;
+                        case ConnectionStatusChangeReason.Expired_SAS_Token:
+                            await ResetConnectionAsync();
+                            break;
+                        case ConnectionStatusChangeReason.No_Network:
+                            await ResetConnectionAsync();
+                            break;
+                        case ConnectionStatusChangeReason.Retry_Expired:
+                            await ResetConnectionAsync();
+                            break;
+                        default:
+                            DoNothing(status, reason);
+                            break;
+                    }
+                });
 
                 // IDeviceTwin abstracts away communication with the back-end.
                 // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
@@ -123,12 +157,20 @@ namespace IoTDMBackground
                 await deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, null);
 
                 // Tell the deviceManagementClient to sync the device with the current desired state.
-                // await this._dmClient.ApplyDesiredStateAsync();
+                //await this._dmClient.ApplyDesiredStateAsync();
             }
             catch
             {
                 LogError();
             }
+        }
+
+        public async void Run(IBackgroundTaskInstance taskInstance)
+        {
+            _deferral = taskInstance.GetDeferral();
+
+            await ResetConnectionAsync();
+
         }
 
         private async Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
