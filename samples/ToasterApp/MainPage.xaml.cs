@@ -16,6 +16,7 @@ using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -25,14 +26,18 @@ namespace Toaster
 {
     public sealed partial class MainPage : Page
     {
+        DeviceClient deviceClient;
         DeviceManagementClient deviceManagementClient;
 
         private readonly string DeviceConnectionString = ConnectionStringProvider.Value;
 
-        private void EnableDeviceManagementUI(bool enable)
+        private async Task EnableDeviceManagementUiAsync(bool enable)
         {
-            this.buttonRestart.IsEnabled = enable;
-            this.buttonReset.IsEnabled = enable;
+            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                this.buttonRestart.IsEnabled = enable;
+                this.buttonReset.IsEnabled = enable;
+            });
         }
 
         public MainPage()
@@ -41,43 +46,125 @@ namespace Toaster
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
 
+#pragma warning disable 4014
             // DM buttons will be enabled when we have created the DM client
-            EnableDeviceManagementUI(false);
+            this.EnableDeviceManagementUiAsync(false);
             this.imageHot.Visibility = Visibility.Collapsed;
 
-#pragma warning disable 4014
             this.InitializeDeviceClientAsync();
 #pragma warning restore 4014
 
         }
 
+        private async Task<string> GetConnectionStringAsync()
+        {
+            var tpmDevice = new TpmDevice(0);
+
+            string connectionString = "";
+
+            do
+            {
+                try
+                {
+                    connectionString = await tpmDevice.GetConnectionStringAsync();
+                    break;
+                }
+                catch (Exception)
+                {
+                    // We'll just keep trying.
+                }
+                Debug.WriteLine("Waiting...");
+                await Task.Delay(1000);
+
+            } while (true);
+
+            return connectionString;
+        }
+
         private async Task InitializeDeviceClientAsync()
         {
-            // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
-            // as well as device management
-            DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, TransportType.Mqtt);
+            try
+            {
+                // Attempt to close any existing connections before
+                // creating a new one
+                if (this.deviceClient != null)
+                {
+                    await this.deviceClient.CloseAsync().ContinueWith(async (t) =>
+                    {
+                        var e = t.Exception;
+                        if (e != null)
+                        {
+                            var msg = "this.deviceClient.CloseAsync exception: " + e.Message + "\n" + e.StackTrace;
+                            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => { StatusText.Text = msg; });
+                        }
+                    });
+                }
 
-            // IDeviceTwin abstracts away communication with the back-end.
-            // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
-            IDeviceTwin deviceTwinProxy = new AzureIoTHubDeviceTwinProxy(deviceClient);
+                // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
+                // as well as device management
+                this.deviceClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, TransportType.Mqtt);
 
-            // IDeviceManagementRequestHandler handles device management-specific requests to the app,
-            // such as whether it is OK to perform a reboot at any givem moment, according the app business logic
-            // ToasterDeviceManagementRequestHandler is the Toaster app implementation of the interface
-            IDeviceManagementRequestHandler appRequestHandler = new ToasterDeviceManagementRequestHandler(this);
+                // Handle connection status changes by recreating the connection as needed
+                this.deviceClient.SetConnectionStatusChangesHandler(async (ConnectionStatus status, ConnectionStatusChangeReason reason) =>
+                {
+                    string msg = "Connection changed: " + status.ToString() + " " + reason.ToString();
+                    await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => { StatusText.Text = msg; });
 
-            // Create the DeviceManagementClient, the main entry point into device management
-            this.deviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwinProxy, appRequestHandler);
+                    switch (reason)
+                    {
+                        case ConnectionStatusChangeReason.Connection_Ok:
+                            // No need to do anything, this is the expecation
+                            break;
 
-            EnableDeviceManagementUI(true);
+                        case ConnectionStatusChangeReason.Retry_Expired:
+                            await InitializeDeviceClientAsync();
+                            break;
 
-            // Set the callback for desired properties update. The callback will be invoked
-            // for all desired properties -- including those specific to device management
-            await deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, null);
+                        case ConnectionStatusChangeReason.Bad_Credential:
+                        case ConnectionStatusChangeReason.Client_Close:
+                        case ConnectionStatusChangeReason.Communication_Error:
+                        case ConnectionStatusChangeReason.Device_Disabled:
+                        case ConnectionStatusChangeReason.Expired_SAS_Token:
+                        // TODO: do these need to reset the connection???
 
-            // Tell the deviceManagementClient to sync the device with the current desired state.
-            // Disabled due to: https://github.com/ms-iot/iot-core-azure-dm-client/issues/105
-            await this.deviceManagementClient.ApplyDesiredStateAsync();
+                        case ConnectionStatusChangeReason.No_Network:
+                        // This seems to lead to Retry_Expired, so we can 
+                        // ignore this ... maybe log the error.
+
+                        default:
+                            break;
+                    }
+                });
+
+
+                // IDeviceTwin abstracts away communication with the back-end.
+                // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
+                IDeviceTwin deviceTwinProxy = new AzureIoTHubDeviceTwinProxy(this.deviceClient);
+
+                // IDeviceManagementRequestHandler handles device management-specific requests to the app,
+                // such as whether it is OK to perform a reboot at any givem moment, according the app business logic
+                // ToasterDeviceManagementRequestHandler is the Toaster app implementation of the interface
+                IDeviceManagementRequestHandler appRequestHandler = new ToasterDeviceManagementRequestHandler(this);
+
+                // Create the DeviceManagementClient, the main entry point into device management
+                this.deviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwinProxy, appRequestHandler);
+
+                await EnableDeviceManagementUiAsync(true);
+
+                // Set the callback for desired properties update. The callback will be invoked
+                // for all desired properties -- including those specific to device management
+                await this.deviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdate, null);
+
+                // Tell the deviceManagementClient to sync the device with the current desired state.
+                // Disabled due to: https://github.com/ms-iot/iot-core-azure-dm-client/issues/105
+                await this.deviceManagementClient.ApplyDesiredStateAsync();
+            }
+            catch (Exception e)
+            {
+                var msg = "InitializeDeviceClientAsync exception: " + e.Message + "\n";
+                foreach (var st in e.StackTrace) msg += (st + "\n");
+                await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => { StatusText.Text = msg; });
+            }
         }
 
         public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
@@ -187,6 +274,11 @@ namespace Toaster
         private void OnFactoryReset(object sender, RoutedEventArgs e)
         {
             FactoryReset();
+        }
+
+        private async void RefreshConnectionButton_Click(object sender, RoutedEventArgs e)
+        {
+            await InitializeDeviceClientAsync();
         }
     }
 }
