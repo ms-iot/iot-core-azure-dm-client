@@ -16,7 +16,6 @@ using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management;
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -28,8 +27,6 @@ namespace Toaster
     {
         DeviceClient deviceClient;
         DeviceManagementClient deviceManagementClient;
-
-        private readonly string DeviceConnectionString = ConnectionStringProvider.Value;
 
         private async Task EnableDeviceManagementUiAsync(bool enable)
         {
@@ -73,7 +70,6 @@ namespace Toaster
                 {
                     // We'll just keep trying.
                 }
-                Debug.WriteLine("Waiting...");
                 await Task.Delay(1000);
 
             } while (true);
@@ -100,9 +96,11 @@ namespace Toaster
                     });
                 }
 
+                var deviceConnectionString = await GetConnectionStringAsync();
+
                 // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
                 // as well as device management
-                this.deviceClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, TransportType.Mqtt);
+                this.deviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
 
                 // Handle connection status changes by recreating the connection as needed
                 this.deviceClient.SetConnectionStatusChangesHandler(async (ConnectionStatus status, ConnectionStatusChangeReason reason) =>
@@ -274,11 +272,6 @@ namespace Toaster
         private void OnFactoryReset(object sender, RoutedEventArgs e)
         {
             FactoryReset();
-        }
-
-        private async void RefreshConnectionButton_Click(object sender, RoutedEventArgs e)
-        {
-            await InitializeDeviceClientAsync();
         }
     }
 }
