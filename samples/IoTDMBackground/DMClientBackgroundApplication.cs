@@ -169,7 +169,8 @@ namespace IoTDMBackground
                 await this._deviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdate, null);
 
                 // Tell the deviceManagementClient to sync the device with the current desired state.
-                await this._dmClient.ApplyDesiredStateAsync();
+                // Disabled due to: https://github.com/ms-iot/iot-core-azure-dm-client/issues/105
+                // await this.deviceManagementClient.ApplyDesiredStateAsync();
             }
             catch
             {
