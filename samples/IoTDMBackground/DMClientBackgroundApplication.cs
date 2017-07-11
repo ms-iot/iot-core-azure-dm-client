@@ -128,7 +128,7 @@ namespace IoTDMBackground
                     switch (reason)
                     {
                         case ConnectionStatusChangeReason.Connection_Ok:
-                            // No need to do anything, this is the expecation
+                            // No need to do anything, this is the expectation
                             break;
 
                         case ConnectionStatusChangeReason.Retry_Expired:
