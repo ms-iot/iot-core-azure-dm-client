@@ -65,8 +65,9 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             throw ref new Exception(E_FAIL, "Cannot read data from pipe");
         }
 
-        return CreateFromByteArray(bytes);
+        FlushFileBuffers(pipeHandle);
 
+        return CreateFromByteArray(bytes);
     }
 
     void ValidateDataSize(uint32_t minexpected, uint32_t actual)
@@ -114,6 +115,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         {
             throw ref new Exception(E_FAIL, "Cannot write blob to pipe");
         }
+
+        FlushFileBuffers(pipeHandle);
     }
 
     IAsyncAction^ Blob::WriteToIOutputStreamAsync(IOutputStream^ iostream)
