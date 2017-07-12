@@ -13,7 +13,7 @@
         <local:DMTextBlock Title="Active Hours Start (0-23)" PropertyName="activeHoursStart" IsNumeric="True" IsOptional="False"/>
         <local:DMTextBlock Title="Active Hours End (0-23)" PropertyName="activeHoursEnd" IsNumeric="True" IsOptional="False"/>
         <local:DMTextBlock Title="Allow Auto Update (0-5)" PropertyName="allowAutoUpdate" IsNumeric="True" IsOptional="False"/>
-        <local:DMTextBlock Title="Allow Auto Update (0-5)" PropertyName="allowUpdateService" IsNumeric="True" IsOptional="False"/>
+        <local:DMTextBlock Title="Allow Update Service (0-1)" PropertyName="allowUpdateService" IsNumeric="True" IsOptional="False"/>
         <local:DMTextBlock Title="Branch Readiness Level (0-1)" PropertyName="branchReadinessLevel" IsNumeric="True" IsOptional="False"/>
         <local:DMTextBlock Title="Defer Feature Updates Period (0-180 days)" PropertyName="deferFeatureUpdatesPeriod" IsNumeric="True" IsOptional="False"/>
         <local:DMTextBlock Title="Defer Quality Updates Period (0-30 days)" PropertyName="deferQualityUpdatesPeriod" IsNumeric="True" IsOptional="False"/>
