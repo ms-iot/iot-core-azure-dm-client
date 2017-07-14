@@ -145,6 +145,7 @@ namespace Microsoft.Devices.Management
             var systemConfiguratorProxy = new SystemConfiguratorProxy();
             var clientCallback = new HandlerCallback(deviceTwin);
             DeviceManagementClient deviceManagementClient = Create(deviceTwin, requestHandler, systemConfiguratorProxy);
+
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.immediateReboot", deviceManagementClient.ImmediateRebootMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.reportAllDeviceProperties", deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
             await deviceTwin.SetMethodHandlerAsync("microsoft.management.startAppSelfUpdate", deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
@@ -164,7 +165,7 @@ namespace Microsoft.Devices.Management
 
             var wifiHandler = new WifiHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(wifiHandler);
-            deviceManagementClient.AddDirectMethodHandlerAsync(wifiHandler);
+            await deviceManagementClient.AddDirectMethodHandlerAsync(wifiHandler);
 
             var appxHandler = new AppxManagement(clientCallback, systemConfiguratorProxy, deviceManagementClient._desiredCache);
             deviceManagementClient.AddPropertyHandler(appxHandler);

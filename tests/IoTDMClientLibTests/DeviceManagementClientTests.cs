@@ -27,7 +27,7 @@ namespace IoTDMClientLibTests
 
     class TwinMockup : IDeviceTwin
     {
-        void IDeviceTwin.RefreshConnection()
+        Task IDeviceTwin.RefreshConnectionAsync()
         {
             throw new NotImplementedException();
         }
