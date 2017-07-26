@@ -1,6 +1,6 @@
-## Report Adll Device Properties
+## Report All Device Properties
 
-The **Report Adll Device Properties** operation is initiated by the device receiving the `microsoft.management.reportAllDeviceProperties` method.
+The **Report All Device Properties** operation is initiated by the device receiving the `microsoft.management.reportAllDeviceProperties` method.
 
 ## Input Payload 
 Input payload is empty

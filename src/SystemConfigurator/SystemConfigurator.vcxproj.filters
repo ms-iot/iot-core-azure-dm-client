@@ -57,9 +57,6 @@
     <ClInclude Include="TimeCfg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CSPs\CustomDeviceUiCsp.h">
-      <Filter>Source Files\CSPs</Filter>
-    </ClInclude>
     <ClInclude Include="CSPs\WifiCSP.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
@@ -82,6 +79,21 @@
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="TpmSupport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AppInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\DeviceHealthAttestationCSP.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\CustomDeviceUiCsp.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\DiagnosticLogCSP.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="DMStorage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -136,6 +148,15 @@
     </ClCompile>
     <ClCompile Include="CSPs\CertificateManagement.cpp">
       <Filter>Source Files\CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\DeviceHealthAttestationCSP.cpp">
+      <Filter>Source Files\CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\DiagnosticLogCSP.cpp">
+      <Filter>Source Files\CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="DMStorage.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

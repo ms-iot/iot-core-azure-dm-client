@@ -24,11 +24,17 @@ namespace Microsoft.Devices.Management
     // The DM only needs an ability to send reported properties to DT
     public interface IDeviceTwin
     {
-        void ReportProperties(Dictionary<string, object> collection);
+        Task<string> GetDeviceTwinPropertiesAsync();
+
+        Task<Dictionary<string, object>> GetDesiredPropertiesAsync();
+
+        Task ReportProperties(Dictionary<string, object> collection);
 
         Task SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler);
 
         // This API is called when the connection has expired (such as when SAS token has expired)
         void RefreshConnection();
+
+        Task SendMessageAsync(string message, IDictionary<string, string> properties);
     }
 }

@@ -1,0 +1,38 @@
+﻿<local:DMControl x:Class="DMDashboard.DMTextBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DMDashboard"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <local:DMControl.Resources>
+        <ResourceDictionary>
+            <local:NullableBooleanToBoolean x:Key="nullableBooleanToBoolean"/>
+            <local:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
+        </ResourceDictionary>
+    </local:DMControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <TextBlock Margin="3" HorizontalAlignment="Left" x:Name="NameBox"
+                   Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:DMControl}},
+                          Path=Title}"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Grid Width="30" >
+                <CheckBox Margin="3" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="Included"
+                      IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:DMControl}},
+                                  Path=IsIncluded,
+                                  Mode=TwoWay}"
+                      Visibility="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:DMControl}},
+                                   Path=IsOptional, 
+                                   Converter={StaticResource booleanToVisibilityConverter}}"/>
+            </Grid>
+            <TextBox Margin="3" Width="100" x:Name="ValueBox"
+                   Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:DMControl}},
+                          Path=PropertyValue,
+                          Mode=TwoWay}"/>
+        </StackPanel>
+    </Grid>
+</local:DMControl>

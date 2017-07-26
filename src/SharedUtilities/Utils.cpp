@@ -74,34 +74,6 @@ namespace Utils
         return sidString;
     }
 
-    string WideToMultibyte(const wchar_t* s)
-    {
-        size_t length = s ? wcslen(s) : 0;
-        size_t requiredCharCount = WideCharToMultiByte(CP_UTF8, 0, s, static_cast<int>(length), nullptr, 0, nullptr, nullptr);
-
-        // add room for \0
-        ++requiredCharCount;
-
-        vector<char> multibyteString(requiredCharCount);
-        WideCharToMultiByte(CP_UTF8, 0, s, static_cast<int>(length), multibyteString.data(), static_cast<int>(multibyteString.size()), nullptr, nullptr);
-
-        return string(multibyteString.data());
-    }
-
-    wstring MultibyteToWide(const char* s)
-    {
-        size_t length = s ? strlen(s) : 0;
-        size_t requiredCharCount = MultiByteToWideChar(CP_UTF8, 0, s, static_cast<int>(length), nullptr, 0);
-
-        // add room for \0
-        ++requiredCharCount;
-
-        vector<wchar_t> wideString(requiredCharCount);
-        MultiByteToWideChar(CP_UTF8, 0, s, static_cast<int>(length), wideString.data(), static_cast<int>(wideString.size()));
-
-        return wstring(wideString.data());
-    }
-
     wstring GetCurrentDateTimeString()
     {
         SYSTEMTIME systemTime;
@@ -124,9 +96,9 @@ namespace Utils
 
     void ReadXmlStructData(IStream* resultSyncML, ELEMENT_HANDLER handler)
     {
-        wstring uriPath = L"Root\\Results\\Item\\Source\\LocURI\\";
-        wstring dataPath = L"Root\\Results\\Item\\Data\\";
-        wstring itemPath = L"Root\\Results\\Item\\";
+        wstring uriPath = L"SyncML\\SyncBody\\Results\\Item\\Source\\LocURI\\";
+        wstring dataPath = L"SyncML\\SyncBody\\Results\\Item\\Data\\";
+        wstring itemPath = L"SyncML\\SyncBody\\Results\\Item\\";
 
         wstring emptyString = L"";
         auto value = emptyString;
@@ -505,6 +477,16 @@ namespace Utils
         return propValue;
     }
 
+    wstring ReadRegistryValue(const wstring& subKey, const wstring& propName, const wstring& propDefaultValue)
+    {
+        wstring propValue;
+        if (ERROR_SUCCESS != Utils::TryReadRegistryValue(subKey, propName, propValue))
+        {
+            propValue = propDefaultValue;
+        }
+        return propValue;
+    }
+
     wstring GetOSVersionString()
     {
         AnalyticsVersionInfo^ info = AnalyticsInfo::VersionInfo;
@@ -634,48 +616,48 @@ namespace Utils
         siStartInfo.hStdError = stdOutWriteHandle.Get();
         siStartInfo.hStdOutput = stdOutWriteHandle.Get();
         siStartInfo.hStdInput = NULL;
-        siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
-        if (!CreateProcess(NULL,
-            const_cast<wchar_t*>(commandString.c_str()), // command line 
-            NULL,         // process security attributes 
-            NULL,         // primary thread security attributes 
-            TRUE,         // handles are inherited 
-            0,            // creation flags 
-            NULL,         // use parent's environment 
-            NULL,         // use parent's current directory 
-            &siStartInfo, // STARTUPINFO pointer 
-            &piProcInfo)) // receives PROCESS_INFORMATION
+if (!CreateProcess(NULL,
+    const_cast<wchar_t*>(commandString.c_str()), // command line 
+    NULL,         // process security attributes 
+    NULL,         // primary thread security attributes 
+    TRUE,         // handles are inherited 
+    0,            // creation flags 
+    NULL,         // use parent's environment 
+    NULL,         // use parent's current directory 
+    &siStartInfo, // STARTUPINFO pointer 
+    &piProcInfo)) // receives PROCESS_INFORMATION
+{
+    throw DMExceptionWithErrorCode(GetLastError());
+}
+TRACE("Child process has been launched.");
+
+bool doneWriting = false;
+while (!doneWriting)
+{
+    // Let the child process run for 1 second, and then check if there is anything to read...
+    DWORD waitStatus = WaitForSingleObject(piProcInfo.hProcess, 1000);
+    if (waitStatus == WAIT_OBJECT_0)
+    {
+        TRACE("Child process has exited.");
+        if (!GetExitCodeProcess(piProcInfo.hProcess, &returnCode))
         {
-            throw DMExceptionWithErrorCode(GetLastError());
+            TRACEP("Warning: Failed to get process exist code. GetLastError() = ", GetLastError());
+            // ToDo: do we ignore?
         }
-        TRACE("Child process has been launched.");
+        CloseHandle(piProcInfo.hProcess);
+        CloseHandle(piProcInfo.hThread);
 
-        bool doneWriting = false;
-        while (!doneWriting)
-        {
-            // Let the child process run for 1 second, and then check if there is anything to read...
-            DWORD waitStatus = WaitForSingleObject(piProcInfo.hProcess, 1000);
-            if (waitStatus == WAIT_OBJECT_0)
-            {
-                TRACE("Child process has exited.");
-                if (!GetExitCodeProcess(piProcInfo.hProcess, &returnCode))
-                {
-                    TRACEP("Warning: Failed to get process exist code. GetLastError() = ", GetLastError());
-                    // ToDo: do we ignore?
-                }
-                CloseHandle(piProcInfo.hProcess);
-                CloseHandle(piProcInfo.hThread);
-
-                // Child process has exited, no more writing will take place.
-                // Without closing the write channel, the ReadFile will keep waiting.
-                doneWriting = true;
-                stdOutWriteHandle.Close();
-            }
-            else
-            {
-                TRACE("Child process is still running...");
-            }
+        // Child process has exited, no more writing will take place.
+        // Without closing the write channel, the ReadFile will keep waiting.
+        doneWriting = true;
+        stdOutWriteHandle.Close();
+    }
+    else
+    {
+        TRACE("Child process is still running...");
+    }
 
             DWORD bytesAvailable = 0;
             if (PeekNamedPipe(stdOutReadHandle.Get(), NULL, 0, NULL, &bytesAvailable, NULL))
@@ -692,18 +674,18 @@ namespace Utils
                 }
             }
             else
-            {
-                DWORD retCode = GetLastError();
-                if (ERROR_PIPE_HAS_BEEN_ENDED != retCode)
-                {
-                    printf("error code = %d\n", retCode);
-                }
-                break;
-            }
+    {
+        DWORD retCode = GetLastError();
+        if (ERROR_PIPE_HAS_BEEN_ENDED != retCode)
+        {
+            printf("error code = %d\n", retCode);
         }
+        break;
+    }
+}
 
-        TRACEP("Command return Code: ", returnCode);
-        TRACEP("Command output : ", output.c_str());
+TRACEP("Command return Code: ", returnCode);
+TRACEP("Command output : ", output.c_str());
     }
 
     void LoadFile(const wstring& fileName, vector<char>& buffer)
@@ -716,35 +698,53 @@ namespace Utils
         string line;
         if (!file.is_open())
         {
-            throw new DMException("Error: failed to open binary file!");
+            throw DMException("Error: failed to open binary file!");
         }
 
         buffer.resize(static_cast<unsigned int>(file.tellg()));
         file.seekg(0, ios::beg);
         if (!file.read(buffer.data(), buffer.size()))
         {
-            throw new DMException("Error: failed to read file!");
+            throw DMException("Error: failed to read file!");
         }
         file.close();
     }
 
-    wstring ToBase64(std::vector<char>& buffer)
+    void Base64ToBinary(const wstring& encrypted, vector<char>& decrypted)
+    {
+        TRACE(__FUNCTION__);
+
+        DWORD destinationSize = 0;
+        if (!CryptStringToBinary(encrypted.c_str(), encrypted.size(), CRYPT_STRING_BASE64, nullptr, &destinationSize, nullptr, nullptr))
+        {
+            throw DMException("Error: cannot obtain the required size to decode buffer from base64.");
+        }
+
+        decrypted.resize(destinationSize);
+        if (!CryptStringToBinary(encrypted.c_str(), encrypted.size(), CRYPT_STRING_BASE64, reinterpret_cast<unsigned char*>(decrypted.data()), &destinationSize, nullptr, nullptr))
+        {
+            throw DMException("Error: cannot obtain the required size to decode buffer from base64.");
+        }
+    }
+
+    wstring ToBase64(vector<char>& buffer)
     {
         TRACE(__FUNCTION__);
 
         DWORD destinationSize = 0;
         if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), static_cast<DWORD>(buffer.size()), CRYPT_STRING_BASE64, nullptr, &destinationSize))
         {
-            throw new DMException("Error: cannot obtain the required size to encode buffer into base64.");
+            throw DMException("Error: cannot obtain the required size to encode buffer into base64.");
         }
 
         vector<wchar_t> destinationBuffer(destinationSize);
         if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), static_cast<DWORD>(buffer.size()), CRYPT_STRING_BASE64, destinationBuffer.data(), &destinationSize))
         {
-            throw new DMException("Error: cannot convert binary stream to base64.");
+            throw DMException("Error: cannot convert binary stream to base64.");
         }
 
-        return wstring(destinationBuffer.data(), destinationBuffer.size());
+        // Note that the size returned includes the null terminating character.
+        return wstring(destinationBuffer.data(), destinationBuffer.size() - 1);
     }
 
     wstring FileToBase64(const wstring& fileName)

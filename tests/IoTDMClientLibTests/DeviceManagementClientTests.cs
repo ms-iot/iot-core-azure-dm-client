@@ -23,6 +23,8 @@ using Microsoft.Devices.Management.Message;
 
 namespace IoTDMClientLibTests
 {
+#pragma warning disable 1998
+
     class TwinMockup : IDeviceTwin
     {
         void IDeviceTwin.RefreshConnection()
@@ -30,11 +32,27 @@ namespace IoTDMClientLibTests
             throw new NotImplementedException();
         }
 
-        void IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
+        async Task<Dictionary<string, object>> IDeviceTwin.GetDesiredPropertiesAsync()
         {
+            return null;
+        }
+
+        async Task<string> IDeviceTwin.GetDeviceTwinPropertiesAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        async Task IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
+        {
+            throw new NotImplementedException();
         }
 
         Task IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task IDeviceTwin.SendMessageAsync(string message, IDictionary<string, string> properties)
         {
             throw new NotImplementedException();
         }
@@ -90,6 +108,11 @@ namespace IoTDMClientLibTests
             else throw new Exception("Unsupported command");
         }
 
+        public Task<IResponse> SendCommand(IRequest request)
+        {
+            throw new Exception("Unsupported command");
+        }
+
         public IRequest ReceivedRequest => this.request;
         public IResponse ReturnedResponse => this.response;
     }
@@ -130,7 +153,7 @@ namespace IoTDMClientLibTests
             var twin = new TwinMockup();
             var proxy = new ConfigurationProxyMockup();
 
-            var appInstallRequest = new AppInstallRequest(new AppInstallInfo() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
+            var appInstallRequest = new AppInstallRequest(new AppInstallRequestData() { AppxPath = "abc", PackageFamilyName = "def", Dependencies = new List<String>() { "ghi", "jkl" } });
             var response = proxy.SendCommandAsync(appInstallRequest).Result;
 
             Assert.AreEqual(response.Status, ResponseStatus.Success);

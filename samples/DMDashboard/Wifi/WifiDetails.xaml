@@ -1,0 +1,11 @@
+﻿<Window x:Class="DMDashboard.WifiDetails"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DMDashboard"
+        mc:Ignorable="d"
+        Title="WifiDetails" Height="450" Width="450">
+
+    <TextBox x:Name="xml" IsReadOnly="True" TextWrapping="Wrap" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Margin="5" />
+</Window>

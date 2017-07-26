@@ -42,8 +42,8 @@ using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management;
 </pre>
 
-- The DM library needs a way to callback into the application to handle certain DM requests (like "is rebooting now okay?"). 
-  To do, the application needs to implement `IDeviceManagementRequestHandler`. Here's one possible implementation you can add to MainPage.xaml.cs:
+- The DM library needs a way to callback into the application to handle certain DM requests (like "is it okay to reboot now?"). 
+  To do that, the application needs to implement `IDeviceManagementRequestHandler`. Here's one possible implementation you can add to MainPage.xaml.cs:
 
 <pre>
     class DMRequestHandler : IDeviceManagementRequestHandler
@@ -119,7 +119,7 @@ using Microsoft.Devices.Management;
     public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
     {
         // Let the device management client process properties specific to device management
-        this.deviceManagementClient.ProcessDeviceManagementProperties(desiredProperties);
+        this.deviceManagementClient.ApplyDesiredStateAsync(desiredProperties);
 
         // Application developer can process all the top-level nodes here
         return Task.CompletedTask;

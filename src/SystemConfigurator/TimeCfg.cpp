@@ -94,43 +94,51 @@ void TimeCfg::Set(SetTimeInfoRequest^ setTimeInfoRequest)
 {
     TRACE(__FUNCTION__);
 
-    SetNtpServer(setTimeInfoRequest->ntpServer->Data());
+    SetTimeInfoRequestData^ data = setTimeInfoRequest->data;
+
+    SetNtpServer(data->ntpServer->Data());
 
     TIME_ZONE_INFORMATION tzi = { 0 };
 
     // Bias...
-    tzi.Bias = setTimeInfoRequest->timeZoneBias;
+    tzi.Bias = data->timeZoneBias;
 
-    TRACEP("Bias: ", to_string(setTimeInfoRequest->timeZoneBias).c_str());
+    TRACEP("Bias: ", to_string(data->timeZoneBias).c_str());
 
-    TRACEP("Standard Bias: ", to_string(setTimeInfoRequest->timeZoneStandardBias).c_str());
-    TRACEP(L"Standard Name: ", setTimeInfoRequest->timeZoneStandardName->Data());
-    TRACEP(L"Standard Date: ", setTimeInfoRequest->timeZoneStandardDate->Data());
+    TRACEP("Standard Bias: ", to_string(data->timeZoneStandardBias).c_str());
+    TRACEP(L"Standard Name: ", data->timeZoneStandardName->Data());
+    TRACEP(L"Standard Date: ", data->timeZoneStandardDate->Data());
+    TRACEP(L"Standard Day of Week: ", to_string(data->timeZoneStandardDayOfWeek).c_str());
 
-    TRACEP("Daytime Bias: ", to_string(setTimeInfoRequest->timeZoneDaylightBias).c_str());
-    TRACEP(L"Daytime Name: ", setTimeInfoRequest->timeZoneDaylightName->Data());
-    TRACEP(L"Daytime Date: ", setTimeInfoRequest->timeZoneDaylightDate->Data());
+    TRACEP("Daytime Bias: ", to_string(data->timeZoneDaylightBias).c_str());
+    TRACEP(L"Daytime Name: ", data->timeZoneDaylightName->Data());
+    TRACEP(L"Daytime Date: ", data->timeZoneDaylightDate->Data());
+    TRACEP(L"Daytime Day of Week: ", to_string(data->timeZoneDaylightDayOfWeek).c_str());
 
     // Standard...
-    wcsncpy_s(tzi.StandardName, setTimeInfoRequest->timeZoneStandardName->Data(), _TRUNCATE);
-    if (!SystemTimeFromISO8601(setTimeInfoRequest->timeZoneStandardDate->Data(), tzi.StandardDate))
+    wcsncpy_s(tzi.StandardName, data->timeZoneStandardName->Data(), _TRUNCATE);
+    if (!SystemTimeFromISO8601(data->timeZoneStandardDate->Data(), tzi.StandardDate))
     {
-        throw DMExceptionWithErrorCode("Error: invalid date/time format. Error Code = ", GetLastError());
+        throw DMExceptionWithErrorCode("Error: invalid date/time format.", GetLastError());
     }
-    tzi.StandardBias = setTimeInfoRequest->timeZoneStandardBias;
+    tzi.StandardDate.wYear = 0;
+    tzi.StandardDate.wDayOfWeek = static_cast<WORD>(data->timeZoneStandardDayOfWeek);
+    tzi.StandardBias = data->timeZoneStandardBias;
 
     // Daytime...
-    wcsncpy_s(tzi.DaylightName, setTimeInfoRequest->timeZoneDaylightName->Data(), _TRUNCATE);
-    if (!SystemTimeFromISO8601(setTimeInfoRequest->timeZoneDaylightDate->Data(), tzi.DaylightDate))
+    wcsncpy_s(tzi.DaylightName, data->timeZoneDaylightName->Data(), _TRUNCATE);
+    if (!SystemTimeFromISO8601(data->timeZoneDaylightDate->Data(), tzi.DaylightDate))
     {
-        throw DMExceptionWithErrorCode("Error: invalid date/time format. Error Code = ", GetLastError());
+        throw DMExceptionWithErrorCode("Error: invalid date/time format.", GetLastError());
     }
-    tzi.DaylightBias = setTimeInfoRequest->timeZoneDaylightBias;
+    tzi.DaylightDate.wYear = 0;
+    tzi.DaylightDate.wDayOfWeek = static_cast<WORD>(data->timeZoneDaylightDayOfWeek);
+    tzi.DaylightBias = data->timeZoneDaylightBias;
 
     // Set it...
     if (!SetTimeZoneInformation(&tzi))
     {
-        throw DMExceptionWithErrorCode("Error: failed to set time zone information. Error Code = ", GetLastError());
+        throw DMExceptionWithErrorCode("Error: failed to set time zone information.", GetLastError());
     }
 
     TRACE(L"Time settings have been applied successfully.");
@@ -163,20 +171,27 @@ GetTimeInfoResponse^ TimeCfg::Get()
     {
         TimeInfo info;
         Get(info);
-        response = ref new GetTimeInfoResponse(ResponseStatus::Success);
-        response->localTime = ref new String(info.localTime.c_str());
-        response->ntpServer = ref new String(info.ntpServer.c_str());
-        response->timeZoneBias = info.timeZoneInformation.Bias;
-        response->timeZoneStandardName = ref new String(info.timeZoneInformation.StandardName);
-        response->timeZoneStandardDate = ref new String(Utils::ISO8601FromSystemTime(info.timeZoneInformation.StandardDate).c_str());
-        response->timeZoneStandardBias = info.timeZoneInformation.StandardBias;
-        response->timeZoneDaylightName = ref new String(info.timeZoneInformation.DaylightName);
-        response->timeZoneDaylightDate = ref new String(Utils::ISO8601FromSystemTime(info.timeZoneInformation.DaylightDate).c_str());
-        response->timeZoneDaylightBias = info.timeZoneInformation.DaylightBias;
+
+        GetTimeInfoResponseData^ data = ref new GetTimeInfoResponseData();
+        data->localTime = ref new String(info.localTime.c_str());
+        data->ntpServer = ref new String(info.ntpServer.c_str());
+        data->timeZoneBias = info.timeZoneInformation.Bias;
+
+        data->timeZoneStandardName = ref new String(info.timeZoneInformation.StandardName);
+        data->timeZoneStandardDate = ref new String(Utils::ISO8601FromSystemTime(info.timeZoneInformation.StandardDate).c_str());
+        data->timeZoneStandardBias = info.timeZoneInformation.StandardBias;
+        data->timeZoneStandardDayOfWeek = info.timeZoneInformation.StandardDate.wDayOfWeek;
+
+        data->timeZoneDaylightName = ref new String(info.timeZoneInformation.DaylightName);
+        data->timeZoneDaylightDate = ref new String(Utils::ISO8601FromSystemTime(info.timeZoneInformation.DaylightDate).c_str());
+        data->timeZoneDaylightBias = info.timeZoneInformation.DaylightBias;
+        data->timeZoneDaylightDayOfWeek = info.timeZoneInformation.DaylightDate.wDayOfWeek;
+
+        response = ref new GetTimeInfoResponse(ResponseStatus::Success, data);
     }
     catch (...)
     {
-        response = ref new GetTimeInfoResponse(ResponseStatus::Failure);
+        response = ref new GetTimeInfoResponse(ResponseStatus::Failure, nullptr);
     }
     return response;
 }

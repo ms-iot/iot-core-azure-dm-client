@@ -14,7 +14,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 using System;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Devices.Management
 {
@@ -31,45 +30,20 @@ namespace Microsoft.Devices.Management
 
         public class SetParams
         {
+            public string SectionName
+            {
+                get
+                {
+                    return "scheduledReboot";
+                }
+            }
+
             public DateTime singleRebootTime;
             public DateTime dailyRebootTime;
 
             public string ToJson()
             {
                 return "\"scheduledReboot\" : " + JsonConvert.SerializeObject(this);
-            }
-        }
-    }
-
-    namespace TimeInfo
-    {
-        public class GetResponse
-        {
-            public long timeZoneDaylightBias;
-            public string timeZoneDaylightDate;
-            public string timeZoneDaylightName;
-            public long timeZoneStandardBias;
-            public string timeZoneStandardDate;
-            public string timeZoneStandardName;
-            public long timeZoneBias;
-            public string localTime;
-            public string ntpServer;
-        }
-
-        public class SetParams
-        {
-            public long timeZoneDaylightBias;
-            public string timeZoneDaylightDate;
-            public string timeZoneDaylightName;
-            public long timeZoneStandardBias;
-            public string timeZoneStandardDate;
-            public string timeZoneStandardName;
-            public long timeZoneBias;
-            public string ntpServer;
-
-            public string ToJson()
-            {
-                return "\"timeInfo\" : " + JsonConvert.SerializeObject(this);
             }
         }
     }
@@ -106,34 +80,6 @@ namespace Microsoft.Devices.Management
         public string batteryRuntime;
     }
 
-    public struct WindowsUpdatePolicyConfiguration
-    {
-        public uint activeHoursStart;
-        public uint activeHoursEnd;
-        public uint allowAutoUpdate;
-        public uint allowMUUpdateService;
-        public uint allowNonMicrosoftSignedUpdate;
-
-        public uint allowUpdateService;
-        public uint branchReadinessLevel;
-        public uint deferFeatureUpdatesPeriod;    // in days
-        public uint deferQualityUpdatesPeriod;    // in days
-        public uint excludeWUDrivers;
-
-        public uint pauseFeatureUpdates;
-        public uint pauseQualityUpdates;
-        public uint requireUpdateApproval;
-        public uint scheduledInstallDay;
-        public uint scheduledInstallTime;
-
-        public string updateServiceUrl;
-
-        public string ToJson()
-        {
-            return "\"windowsUpdatePolicy\" : " + JsonConvert.SerializeObject(this);
-        }
-    }
-
     namespace WindowsUpdates
     {
         public class GetResponse
@@ -149,6 +95,14 @@ namespace Microsoft.Devices.Management
 
         public class SetParams
         {
+            public string SectionName
+            {
+                get
+                {
+                    return "windowsUpdates";
+                }
+            }
+
             public string approved;
 
             public string ToJson()
@@ -166,8 +120,15 @@ namespace Microsoft.Devices.Management
 
     class ExternalStorage
     {
+        public string SectionName
+        {
+            get
+            {
+                return "externalStorage";
+            }
+        }
+
         public string connectionString;
-        public string container;
 
         public string ToJson()
         {
@@ -179,6 +140,14 @@ namespace Microsoft.Devices.Management
     {
         public class CertificateConfiguration
         {
+            public string SectionName
+            {
+                get
+                {
+                    return "certificates";
+                }
+            }
+
             public string rootCATrustedCertificates_Root;
             public string rootCATrustedCertificates_CA;
             public string rootCATrustedCertificates_TrustedPublisher;
@@ -194,8 +163,6 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public uint Tag;
-        public uint Status;
         public CertificateConfiguration Configuration;
     }
 
@@ -216,5 +183,12 @@ namespace Microsoft.Devices.Management
         public string ValidFrom;
         public string IssuedTo;
         public string IssuedBy;
+    }
+    class GetWifiProfileDetailsParams
+    {
+        public string profileName;
+        public string connectionString;
+        public string containerName;
+        public string blobName;
     }
 }

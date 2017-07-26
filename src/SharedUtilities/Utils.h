@@ -22,10 +22,15 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <time.h>
 #include <sstream>
 #include <windows.h>
+#include "StringUtils.h"
 
 #define IoTDMRegistryRoot L"Software\\Microsoft\\IoTDM"
 #define IoTDMRegistryLastRebootCmd L"LastRebootCmd"
 #define IoTDMRegistryWindowsUpdateRebootAllowed L"WindowsUpdateRebootAllowed"
+#define IoTDMRegistryWindowsUpdatePolicySectionReporting L"WindowsUpdatePolicySectionReporting"
+#define IoTDMRegistryEventTracing IoTDMRegistryRoot L"\\EventTracingConfiguration";
+#define IoTDMRegistryEventTracingLogFileFolder L"LogFileFolder"
+#define IoTDMRegistryReportToDeviceTwin L"ReportToDeviceTwin"
 #define IoTDMRegistryTrue L"True"
 #define IoTDMRegistryFalse L"False"
 
@@ -35,51 +40,6 @@ namespace Utils
 
     // Sid helper
     std::wstring GetSidForAccount(const wchar_t* userAccount);
-
-    // String helpers
-    std::string WideToMultibyte(const wchar_t* s);
-    std::wstring MultibyteToWide(const char* s);
-
-    template<class T>
-    void SplitString(const std::basic_string<T> &s, T delim, std::vector<std::basic_string<T>>& tokens)
-    {
-        std::basic_stringstream<T> ss;
-        ss.str(s);
-        std::basic_string<T> item;
-        while (getline<T>(ss, item, delim))
-        {
-            tokens.push_back(item);
-        }
-    }
-
-    template<class T>
-    T TrimString(const T& s, const T& chars)
-    {
-        T trimmedString;
-
-        // trim leading characters
-        size_t startpos = s.find_first_not_of(chars);
-        if (T::npos != startpos)
-        {
-            trimmedString = s.substr(startpos);
-        }
-
-        // trim trailing characters
-        size_t endpos = trimmedString.find_last_not_of(chars);
-        if (T::npos != endpos)
-        {
-            trimmedString = trimmedString.substr(0, endpos + 1);
-        }
-        return trimmedString;
-    }
-
-    template<class CharType, class ParamType>
-    std::basic_string<CharType> ConcatString(const CharType* s, ParamType param)
-    {
-        std::basic_ostringstream<CharType> messageStream;
-        messageStream << s << param;
-        return messageStream.str();
-    }
 
     // Replaces invalid characters (like .) with _ so that the string can be used
     // as a json property name.
@@ -101,6 +61,7 @@ namespace Utils
     void WriteRegistryValue(const std::wstring& subKey, const std::wstring& propName, const std::wstring& propValue);
     LSTATUS TryReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, std::wstring& propValue);
     std::wstring ReadRegistryValue(const std::wstring& subKey, const std::wstring& propName);
+    std::wstring ReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, const std::wstring& propDefaultValue);
 
     // File helpers
     bool FileExists(const std::wstring& fullFileName);
@@ -135,54 +96,102 @@ namespace Utils
         std::thread _thread;
     };
 
-    class AutoCloseHandle
+    template<class T>
+    class AutoCloseBase
     {
     public:
-        AutoCloseHandle() :
-            _handle(NULL)
-        {}
 
-        AutoCloseHandle(HANDLE&& handle) :
-            _handle(handle)
+        AutoCloseBase(T&& handle, const std::function<BOOL(T)>& cleanUp) :
+            _handle(handle),
+            _cleanUp(cleanUp)
         {
             handle = NULL;
         }
 
-        HANDLE operator=(HANDLE&& handle)
+        void SetHandle(T&& handle)
         {
             _handle = handle;
             handle = NULL;
-            return _handle;
         }
 
-        HANDLE Get() { return _handle; }
+        T Get() { return _handle; }
         uint64_t Get64() { return reinterpret_cast<uint64_t>(_handle); }
-        HANDLE* GetAddress() { return &_handle; }
+        T* GetAddress() { return &_handle; }
 
         BOOL Close()
         {
             BOOL result = TRUE;
-            if (_handle != NULL)
+            if (_handle != NULL && _cleanUp)
             {
-                result = CloseHandle(_handle);
+                result = _cleanUp(_handle);
                 _handle = NULL;
             }
             return result;
         }
 
-        ~AutoCloseHandle()
+        ~AutoCloseBase()
         {
             Close();
         }
 
     private:
+        AutoCloseBase(const AutoCloseBase &);            // prevent copy
+        AutoCloseBase& operator=(const AutoCloseBase&);  // prevent assignment
+
+        T _handle;
+        std::function<BOOL(T)> _cleanUp;
+    };
+
+    class AutoCloseHandle : public AutoCloseBase<HANDLE>
+    {
+    public:
+        AutoCloseHandle() :
+            AutoCloseBase(NULL, [](HANDLE h) { CloseHandle(h); return TRUE; })
+        {}
+
+        AutoCloseHandle(HANDLE&& handle) :
+            AutoCloseBase(std::move(handle), [](HANDLE h) { CloseHandle(h); return TRUE; })
+        {}
+
+    private:
         AutoCloseHandle(const AutoCloseHandle &);            // prevent copy
         AutoCloseHandle& operator=(const AutoCloseHandle&);  // prevent assignment
+    };
 
-        HANDLE _handle;
+    class AutoCloseSID : public AutoCloseBase<PSID>
+    {
+    public:
+        AutoCloseSID() :
+            AutoCloseBase(NULL, [](PSID h) { CloseHandle(h); return TRUE; })
+        {}
+
+        AutoCloseSID(PSID&& handle) :
+            AutoCloseBase(std::move(handle), [](PSID h) { FreeSid(h); return TRUE; })
+        {}
+
+    private:
+        AutoCloseSID(const AutoCloseSID &);            // prevent copy
+        AutoCloseSID& operator=(const AutoCloseSID&);  // prevent assignment
+    };
+
+    class AutoCloseACL : public AutoCloseBase<PACL>
+    {
+    public:
+        AutoCloseACL() :
+            AutoCloseBase(NULL, [](PSID h) { CloseHandle(h); return TRUE; })
+        {}
+
+        AutoCloseACL(PACL&& handle) :
+            AutoCloseBase(std::move(handle), [](PACL h) { LocalFree(h); return TRUE; })
+        {}
+
+    private:
+        AutoCloseACL(const AutoCloseACL &);            // prevent copy
+        AutoCloseACL& operator=(const AutoCloseACL&);  // prevent assignment
     };
 
     void LoadFile(const std::wstring& fileName, std::vector<char>& buffer);
+    void Base64ToBinary(const std::wstring& encrypted, std::vector<char>& decrypted);
     std::wstring ToBase64(std::vector<char>& buffer);
     std::wstring FileToBase64(const std::wstring& fileName);
 }

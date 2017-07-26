@@ -27,6 +27,8 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Platform::MTAThread]
 int wmain(int argc, wchar_t *argv[])
 {
+    Utils::EnsureFolderExists(SC_CLEANUP_FOLDER);
+
     TRACE("Entering wmain...");
 
     if ((argc > 1) && ((*argv[1] == L'-' || (*argv[1] == L'/'))))

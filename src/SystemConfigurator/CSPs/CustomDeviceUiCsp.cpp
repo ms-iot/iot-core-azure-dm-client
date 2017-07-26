@@ -48,8 +48,11 @@ wstring CustomDeviceUiCSP::GetStartupAppId()
     auto appId = MdmProvision::RunGetString(
         sid.c_str(),
         L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData");
+
+    appId = Utils::TrimString(appId, L"!App");
     return appId;
 }
+
 wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
 {
     TRACE(__FUNCTION__);
@@ -85,7 +88,8 @@ wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
         {
             // 0/__1___/__2__/____3________/___________4___________/___5_
             // ./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch/Aumid
-            auto aumid = ref new Platform::String(uriTokens[5].c_str());
+            wstring pkgFamilyName = Utils::TrimString(uriTokens[5], L"!App");
+            auto aumid = ref new Platform::String(pkgFamilyName.c_str());
             data->Append(JsonValue::CreateStringValue(aumid));
         }
     };
@@ -94,6 +98,7 @@ wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
         valueHandler);
     return data->Stringify()->Data();
 }
+
 void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add)
 {
     TRACE(__FUNCTION__);
@@ -111,7 +116,7 @@ void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add
             </Meta>
             <Data>%s</Data>
         </Item>
-        </Replace>        
+        </%s>
      <Final/>
   </SyncBody>
 )";
@@ -141,28 +146,46 @@ void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add
     const wchar_t *action = (backgroundApplication) ? ((add) ? L"Add" : L"Delete") : L"Replace";
     const wchar_t *syncML = (backgroundApplication) ? syncML_forBackgroundApp : syncML_forApp;
 
-    size_t bufsize = _scwprintf(syncML, action, appId.c_str(), action);
+    wstring cspAppId = appId + L"!App";
+    size_t bufsize = _scwprintf(syncML, action, cspAppId.c_str(), action);
 
     bufsize += 1; // need null-termintator
     vector<wchar_t> buff(bufsize);
 
-    _snwprintf_s(buff.data(), bufsize, bufsize, syncML, action, appId.c_str(), action);
+    _snwprintf_s(buff.data(), bufsize, bufsize, syncML, action, cspAppId.c_str(), action);
 
     wstring output;
     wstring sid = Utils::GetSidForAccount(L"DefaultAccount");
     MdmProvision::RunSyncML(sid, buff.data(), output);
 
 }
+
 void CustomDeviceUiCSP::AddAsStartupApp(const wstring& appId, bool backgroundApplication)
 {
     TRACE(__FUNCTION__);
 
-    HandleStartupApp(appId, backgroundApplication, true);
+    HandleStartupApp(appId, backgroundApplication, true /*add*/);
 }
+
 void CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(const wstring& appId)
 {
     TRACE(__FUNCTION__);
 
-    HandleStartupApp(appId, true, false);
+    HandleStartupApp(appId, true, false /*replace/delete*/);
 }
 
+bool CustomDeviceUiCSP::IsForeground(const std::wstring& pkgFamilyName)
+{
+    TRACE(__FUNCTION__);
+
+    wstring forgroundAppId = CustomDeviceUiCSP::GetStartupAppId();
+    return forgroundAppId == pkgFamilyName;
+}
+
+bool CustomDeviceUiCSP::IsBackground(const std::wstring& pkgFamilyName)
+{
+    TRACE(__FUNCTION__);
+
+    wstring backgroundTasks = CustomDeviceUiCSP::GetBackgroundTasksToLaunch();
+    return wstring::npos != backgroundTasks.find(pkgFamilyName);
+}

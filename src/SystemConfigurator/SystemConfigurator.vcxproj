@@ -106,12 +106,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppCfg.h" />
+    <ClInclude Include="AppInfo.h" />
     <ClInclude Include="CommandProcessor.h" />
     <ClInclude Include="CSPs\CertificateInfo.h" />
     <ClInclude Include="CSPs\CertificateManagement.h" />
     <ClInclude Include="CSPs\CertificateStoreCSP.h" />
     <ClInclude Include="CSPs\ClientCertificateInstallCSP.h" />
     <ClInclude Include="CSPs\CustomDeviceUiCsp.h" />
+    <ClInclude Include="CSPs\DeviceHealthAttestationCSP.h" />
+    <ClInclude Include="CSPs\DiagnosticLogCSP.h" />
     <ClInclude Include="CSPs\EnterpriseModernAppManagementCSP.h" />
     <ClInclude Include="CSPs\MdmProvision.h" />
     <ClInclude Include="CSPs\PrivateAPIs\WinSDKRS2.h" />
@@ -119,6 +122,7 @@
     <ClInclude Include="CSPs\RemoteWipeCSP.h" />
     <ClInclude Include="CSPs\WifiCSP.h" />
     <ClInclude Include="DMService.h" />
+    <ClInclude Include="DMStorage.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -132,12 +136,15 @@
     <ClCompile Include="CSPs\CertificateStoreCSP.cpp" />
     <ClCompile Include="CSPs\ClientCertificateInstallCSP.cpp" />
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp" />
+    <ClCompile Include="CSPs\DeviceHealthAttestationCSP.cpp" />
+    <ClCompile Include="CSPs\DiagnosticLogCSP.cpp" />
     <ClCompile Include="CSPs\EnterpriseModernAppManagementCSP.cpp" />
     <ClCompile Include="CSPs\MdmProvision.cpp" />
     <ClCompile Include="CSPs\RebootCSP.cpp" />
     <ClCompile Include="CSPs\RemoteWipeCSP.cpp" />
     <ClCompile Include="CSPs\WifiCSP.cpp" />
     <ClCompile Include="DMService.cpp" />
+    <ClCompile Include="DMStorage.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

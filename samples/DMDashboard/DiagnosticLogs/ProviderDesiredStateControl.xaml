@@ -1,0 +1,55 @@
+﻿<local:DMControlList x:Class="DMDashboard.ProviderDesiredStateControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:local="clr-namespace:DMDashboard"
+             mc:Ignorable="d">
+    <local:DMControlList.Resources>
+        <ResourceDictionary>
+            <local:YesNoStringToComboIndex x:Key="yesNoToInt"/>
+            <local:BooleanToComboIndex x:Key="booleanToInt"/>
+            <local:LogLevelToInt x:Key="logLevelToInt"/>
+        </ResourceDictionary>
+    </local:DMControlList.Resources>
+    <StackPanel Orientation="Vertical">
+        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="200" Height="1" />
+        <TextBlock Margin="3" FontSize="14" FontWeight="Bold" Text="Provider"/>
+        <local:DMTextBox Title="guid" PropertyName="guid" IsNumeric="False" IsOptional="False" x:Name="ProviderGuid"
+                         PropertyValue="{Binding Path=Name, Mode=TwoWay}"/>
+        <StackPanel Orientation="Vertical" x:Name="ControlsList">
+            <local:DMComboBox Title="Trace Level" PropertyName="traceLevel" IsNumeric="False" IsOptional="True" x:Name="TraceLevelCombo"
+                          SelectedIndex="{Binding Path=TraceLevel, Converter={StaticResource logLevelToInt}, Mode=TwoWay}">
+                <local:DMComboBox.ValuesList>
+                    <x:Array Type="sys:String">
+                        <sys:String>critical</sys:String>
+                        <sys:String>error</sys:String>
+                        <sys:String>warning</sys:String>
+                        <sys:String>information</sys:String>
+                        <sys:String>verbose</sys:String>
+                    </x:Array>
+                </local:DMComboBox.ValuesList>
+            </local:DMComboBox>
+            <local:DMTextBox Title="Key Words" PropertyName="keywords" IsNumeric="False" IsOptional="True"
+                             PropertyValue="{Binding Path=Keywords}" />
+            <local:DMComboBox Title="Enabled" PropertyName="enabled" IsNumeric="False" IsOptional="True" x:Name="EnabledCombo"
+                              SelectedIndex="{Binding Path=Enabled, Converter={StaticResource booleanToInt}, Mode=TwoWay}">
+                <local:DMComboBox.ValuesList>
+                    <x:Array Type="sys:String">
+                        <sys:String>no</sys:String>
+                        <sys:String>yes</sys:String>
+                    </x:Array>
+                </local:DMComboBox.ValuesList>
+            </local:DMComboBox>
+            <local:DMComboBox Title="Type" PropertyName="type" IsNumeric="False" IsOptional="True" x:Name="TypeCombo"
+                              SelectedIndex="0">
+                <local:DMComboBox.ValuesList>
+                    <x:Array Type="sys:String">
+                        <sys:String>provider</sys:String>
+                    </x:Array>
+                </local:DMComboBox.ValuesList>
+            </local:DMComboBox>
+        </StackPanel>
+    </StackPanel>
+</local:DMControlList>

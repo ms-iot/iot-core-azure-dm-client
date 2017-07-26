@@ -95,6 +95,7 @@
     <SDKReference Include="TestPlatform.Universal, Version=$(UnitTestPlatformVersion)" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DeviceHealthAttestationTest.cs" />
     <Compile Include="DeviceManagementClientTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UnitTestApp.xaml.cs">
@@ -124,6 +125,10 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\DMDataContract\DMDataContract\DMDataContract.csproj">
+      <Project>{94794bf1-4d16-46be-97c1-15f968cd433f}</Project>
+      <Name>DMDataContract</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\DMMessage\DMMessage.vcxproj">
       <Project>{241582cd-4861-4643-a7a2-21865b779aaf}</Project>
       <Name>DMMessage</Name>

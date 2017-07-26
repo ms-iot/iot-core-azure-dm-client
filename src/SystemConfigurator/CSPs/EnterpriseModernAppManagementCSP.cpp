@@ -17,6 +17,8 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "RebootCSP.h"
 #include "MdmProvision.h"
 #include "..\SharedUtilities\Logger.h"
+#include "..\SharedUtilities\DMException.h"
+#include "..\CSPs\CertificateInfo.h"
 
 using namespace std;
 using namespace Windows::Data::Json;
@@ -25,17 +27,77 @@ using namespace Windows::Data::Json;
 // https://msdn.microsoft.com/en-us/library/windows/hardware/dn904956(v=vs.85).aspx
 //
 
+std::wstring EnterpriseModernAppManagementCSP::AppSourceTypeToString(AppSourceType appSourceType)
+{
+    wstring s = L"";
+    switch (appSourceType)
+    {
+    case System:
+        s = L"System";
+        break;
+    case NonStore:
+        s = L"NonStore";
+        break;
+    case Store:
+        s = L"Store";
+        break;
+    default:
+        assert(false);
+    }
+    return s;
+}
+
+ApplicationInfo EnterpriseModernAppManagementCSP::GetInstalledAppInfo(const std::wstring& packageFamilyName, AppSourceType appSourceType)
+{
+    TRACE(__FUNCTION__);
+
+    ApplicationInfo applicationInfo(packageFamilyName);
+
+    wstring path;
+    path += L"./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/";
+    path += AppSourceTypeToString(appSourceType);
+    path += L"/";
+    path += packageFamilyName;
+    path += L"?list=StructData";
+
+    std::function<void(std::vector<std::wstring>&, std::wstring&)> valueHandler =
+        [&applicationInfo](vector<wstring>& uriTokens, wstring& value) {
+        if (uriTokens.size() == 10)
+        {
+            // 0/__1___/__2___/__3_/______________4______________/______5______/___6____/_________7_______/_______8_______/______9_____
+            // ./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/AppStore/PackageFamilyName/PackageFullName/PropertyName
+            if (uriTokens[9] == L"Name")
+            {
+                applicationInfo.name = value;
+            }
+            else if (uriTokens[9] == L"InstallDate")
+            {
+                applicationInfo.installDate = value;
+            }
+            else if (uriTokens[9] == L"Version")
+            {
+                applicationInfo.version = value;
+            }
+        }
+    };
+
+    MdmProvision::RunGetStructData(path, valueHandler);
+
+    return applicationInfo;
+}
+
 wstring EnterpriseModernAppManagementCSP::GetInstalledApps()
 {
-    TRACE(L"\n---- Get Installed Apps\n");
+    TRACE(__FUNCTION__);
+
     auto data = ref new JsonObject();
     // use std::function to pass lambda that captures something
     std::function<void(std::vector<std::wstring>&, std::wstring&)> valueHandler =
         [data](vector<wstring>& uriTokens, wstring& value) {
         if (uriTokens.size() == 10)
         {
-            // 0/__1___/__2___/__3_/______________4______________/______5______/___6____/_________7_______/_______8_______/____9___
-            // ./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/AppStore/PackageFamilyName/PackageFullName/Property
+            // 0/__1___/__2___/__3_/______________4______________/______5______/___6____/_________7_______/_______8_______/______9_____
+            // ./Device/Vendor/MSFT/EnterpriseModernAppManagement/AppManagement/AppStore/PackageFamilyName/PackageFullName/PropertyName
             auto pfn = ref new Platform::String(uriTokens[8].c_str());
             if (!data->HasKey(pfn))
             {
@@ -59,8 +121,10 @@ wstring EnterpriseModernAppManagementCSP::GetInstalledApps()
     return data->Stringify()->Data();
 }
 
-void EnterpriseModernAppManagementCSP::InstallApp(const std::wstring& packageFamilyName, const std::wstring& packageUri, const std::vector<std::wstring>& dependentPackages)
+ApplicationInfo EnterpriseModernAppManagementCSP::InstallApp(const std::wstring& packageFamilyName, const std::wstring& appxLocalPath, const std::vector<std::wstring>& dependentPackages)
 {
+    TRACE(__FUNCTION__);
+
     const wchar_t* syncML = LR"(
 <SyncBody>
     <!-- Add PackageFamilyName -->
@@ -112,20 +176,32 @@ void EnterpriseModernAppManagementCSP::InstallApp(const std::wstring& packageFam
         applicationContent += L"/>";
     }
 
-    size_t bufsize = _scwprintf(syncML, packageFamilyName.c_str(), packageFamilyName.c_str(), packageUri.c_str(), applicationContent.c_str());
+    size_t bufsize = _scwprintf(syncML, packageFamilyName.c_str(), packageFamilyName.c_str(), appxLocalPath.c_str(), applicationContent.c_str());
 
     bufsize += 1; // need null-termintator
     std::vector<wchar_t> buff(bufsize);
 
-    _snwprintf_s(buff.data(), bufsize, bufsize, syncML, packageFamilyName.c_str(), packageFamilyName.c_str(), packageUri.c_str(), applicationContent.c_str());
+    _snwprintf_s(buff.data(), bufsize, bufsize, syncML, packageFamilyName.c_str(), packageFamilyName.c_str(), appxLocalPath.c_str(), applicationContent.c_str());
 
     std::wstring output;
     std::wstring sid = Utils::GetSidForAccount(L"DefaultAccount");
     MdmProvision::RunSyncML(sid, buff.data(), output);
+
+    ApplicationInfo applicationInfo = GetInstalledAppInfo(packageFamilyName, AppSourceType::NonStore);
+    TRACE(L"-------------------------------------------------------------------");
+    TRACEP(L"Name             : ", applicationInfo.name.c_str());
+    TRACEP(L"PackageFamilyName: ", applicationInfo.packageFamilyName.c_str());
+    TRACEP(L"Version          : ", applicationInfo.version.c_str());
+    TRACEP(L"InstallDate      : ", applicationInfo.installDate.c_str());
+    TRACE(L"-------------------------------------------------------------------");
+
+    return applicationInfo;
 }
 
 void EnterpriseModernAppManagementCSP::UninstallApp(const std::wstring& packageFamilyName, bool storeApp)
 {
+    TRACE(__FUNCTION__);
+
     const wchar_t* syncML = LR"(
 <SyncBody>
     <!-- Uninstall App for a Package Family-->
@@ -140,7 +216,7 @@ void EnterpriseModernAppManagementCSP::UninstallApp(const std::wstring& packageF
 </SyncBody>
 )";
 
-    std::wstring appLocation = (storeApp) ? L"AppStore" : L"nonStore";
+    std::wstring appLocation = (storeApp) ? L"AppStore" : L"NonStore";
     size_t bufsize = _scwprintf(syncML, appLocation.c_str(), packageFamilyName.c_str());
 
     bufsize += 1; // need null-termintator

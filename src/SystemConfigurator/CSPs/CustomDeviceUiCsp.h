@@ -22,6 +22,8 @@ class CustomDeviceUiCSP
 public:
     static std::wstring GetStartupAppId();
     static std::wstring GetBackgroundTasksToLaunch();
+    static bool IsForeground(const std::wstring& appId);
+    static bool IsBackground(const std::wstring& appId);
     static void AddAsStartupApp(const std::wstring& appId, bool backgroundApplication);
     static void RemoveBackgroundApplicationAsStartupApp(const std::wstring& appId);
 };

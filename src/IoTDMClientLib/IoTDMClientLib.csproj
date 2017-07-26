@@ -94,11 +94,17 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AppxManagement.cs" />
+    <Compile Include="Handlers\AppxManagement.cs" />
     <Compile Include="AzureBlobFileTransfer.cs" />
     <Compile Include="AzureIoTHubDeviceTwinProxy.cs" />
     <Compile Include="CertificateManagement.cs" />
+    <Compile Include="Handlers\DeviceHealthAttestationHandler.cs" />
     <Compile Include="DeviceManagementClient.cs" />
+    <Compile Include="DirectMethodGuard.cs" />
+    <Compile Include="Handlers\EventTracingHandler.cs" />
+    <Compile Include="Handlers\ExternalStorageHandler.cs" />
+    <Compile Include="Handlers\StorageHandler.cs" />
+    <Compile Include="IDeviceManagementClientHandler.cs" />
     <Compile Include="ISystemConfiguratorProxy.cs" />
     <Compile Include="SystemConfiguratorProxy.cs" />
     <Compile Include="IDeviceManagementRequestHandler.cs" />
@@ -106,6 +112,9 @@
     <Compile Include="OnPremDeviceTwinProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TpmDevice.cs" />
+    <Compile Include="Utils.cs" />
+    <Compile Include="Handlers\WindowsUpdatePolicyHandler.cs" />
+    <Compile Include="Handlers\WifiHandler.cs" />
     <EmbeddedResource Include="Properties\IoTDMClient.rd.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -114,6 +123,10 @@
     </SDKReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DMDataContract\DMDataContract\DMDataContract.csproj">
+      <Project>{94794bf1-4d16-46be-97c1-15f968cd433f}</Project>
+      <Name>DMDataContract</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DMMessage\DMMessage.vcxproj">
       <Project>{241582cd-4861-4643-a7a2-21865b779aaf}</Project>
       <Name>DMMessage</Name>

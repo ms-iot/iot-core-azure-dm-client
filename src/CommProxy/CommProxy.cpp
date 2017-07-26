@@ -12,6 +12,7 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #include "stdafx.h"
 #include <Windows.h>
 #include "..\SharedUtilities\Utils.h"
@@ -31,18 +32,17 @@ Blob^ GetResponseFromSystemConfigurator(Blob^ request, const wchar_t* pipeName)
 
     Utils::AutoCloseHandle pipeHandle;
     int waitAttemptsLeft = 10;
-
     while (waitAttemptsLeft--)
     {
         TRACE("Attempting to connect to system configurator pipe...");
 
-        pipeHandle = CreateFileW(pipeName,
+        pipeHandle.SetHandle(CreateFileW(pipeName,
             GENERIC_READ | GENERIC_WRITE,
             0,
             NULL,
             OPEN_EXISTING,
             0,
-            NULL);
+            NULL));
 
         // Break if the pipe handle is valid.
         if (pipeHandle.Get() != INVALID_HANDLE_VALUE)
@@ -65,18 +65,13 @@ Blob^ GetResponseFromSystemConfigurator(Blob^ request, const wchar_t* pipeName)
     {
         throw ref new Exception(E_FAIL, "Failed to connect to SystemConfigurator pipe...");
     }
+    TRACE("Connected successfully to SystemConfigurator pipe...");
 
-    TRACE("Connected successfully to pipe...");
-
-    TRACE("Writing request to pipe...");
-
+    TRACE("Writing request to SystemConfigurator pipe...");
     request->WriteToNativeHandle(pipeHandle.Get64());
 
-    TRACE("Reading response from pipe...");
-
+    TRACE("Reading response from SystemConfigurator pipe...");
     Blob^ response = Blob::ReadFromNativeHandle(pipeHandle.Get64());
-
-    TRACE("Done writing and reading.");
 
     return response;
 }
@@ -84,34 +79,40 @@ Blob^ GetResponseFromSystemConfigurator(Blob^ request, const wchar_t* pipeName)
 int main(Platform::Array<Platform::String^>^ args)
 {
     TRACE(__FUNCTION__);
+
     Utils::AutoCloseHandle stdinHandle(GetStdHandle(STD_INPUT_HANDLE));
     Utils::AutoCloseHandle stdoutHandle(GetStdHandle(STD_OUTPUT_HANDLE));
+
+    int retCode = 1;
+
     try
     {
         TRACE("Reading request from stdin...");
-
         Blob^ request = Blob::ReadFromNativeHandle(stdinHandle.Get64());
+        request->ValidateVersion();
 
-        try
-        {
-            request->ValidateVersion();
+        Blob^ response = GetResponseFromSystemConfigurator(request, PipeName);
 
-            Blob^ response = GetResponseFromSystemConfigurator(request, PipeName);
+        TRACE("Writing to stdout...");
+        response->WriteToNativeHandle(stdoutHandle.Get64());
 
-            response->WriteToNativeHandle(stdoutHandle.Get64());
-        }
-        catch (Exception^ ex)
-        {
-            auto response = ref new StringResponse(ResponseStatus::Failure, ex->Message, DMMessageKind::ErrorResponse);
-            response->Serialize()->WriteToNativeHandle(stdoutHandle.Get64());
-        }
+        TRACE("Completed successfully.");
+
         // Return code 0 means the caller should get the output from the output stream
-        return 0;
+        retCode = 0;
+    }
+    catch (Exception^ ex)
+    {
+        TRACEP(L"Exception caught in CommProxy.exe: ", ex->Message->Data());
+
+        auto response = ref new StringResponse(ResponseStatus::Failure, ex->Message, DMMessageKind::ErrorResponse);
+        response->Serialize()->WriteToNativeHandle(stdoutHandle.Get64());
     }
     catch (...)
     {
-        // Return code 1 means we could not read data from the input pipe. We did not even try to launch SystemConfigurator
-        return 1;
+        TRACE(L"Unknown exception caught in CommProxy.exe.");
     }
+
+    return retCode;
 }
 

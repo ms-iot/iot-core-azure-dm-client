@@ -28,7 +28,7 @@ namespace IoTDMClient
         public string ContainerName { get; set; }
         public string BlobName { get; set; }
 
-        public async Task<string> DownloadToTempAsync(DeviceManagementClient client)
+        public async Task<string> DownloadToTempAsync(ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             var path = DMGarbageCollector.TempFolder + BlobName;
             var info = new AzureFileTransferInfo()
@@ -41,8 +41,21 @@ namespace IoTDMClient
                 LocalPath = path
             };
 
-            await AzureBlobFileTransfer.TransferFileAsync(info, client);
+            await AzureBlobFileTransfer.TransferFileAsync(info, systemConfiguratorProxy);
             return path;
+        }
+        public static BlobInfo BlobInfoFromSource(string connectionString, string containerAndFile)
+        {
+            string[] sourceParts = containerAndFile.Split('\\');
+            if (sourceParts.Length != 2)
+            {
+                throw new Exception("container name is missing in: " + containerAndFile);
+            }
+            IoTDMClient.BlobInfo info = new IoTDMClient.BlobInfo();
+            info.ConnectionString = connectionString;
+            info.ContainerName = sourceParts[0];
+            info.BlobName = sourceParts[1];
+            return info;
         }
     }
 
@@ -89,7 +102,7 @@ namespace IoTDMClient
             await blockBlob.UploadFromFileAsync(appLocalDataFile);
         }
 
-        public static async Task TransferFileAsync(AzureFileTransferInfo transferInfo, DeviceManagementClient client)
+        public static async Task TransferFileAsync(AzureFileTransferInfo transferInfo, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             //
             // C++ Azure Blob SDK not supported for ARM, so use Service to copy file to/from
@@ -103,7 +116,9 @@ namespace IoTDMClient
                 transferInfo.AppLocalDataPath = await DownloadFile(transferInfo, appLocalDataFile);
             }
 
-            await client.TransferFileAsync(transferInfo);
+            // use C++ service to copy file to/from App LocalData
+            var request = new AzureFileTransferRequest(transferInfo);
+            var result = await systemConfiguratorProxy.SendCommandAsync(request);
 
             if (transferInfo.Upload)
             {
