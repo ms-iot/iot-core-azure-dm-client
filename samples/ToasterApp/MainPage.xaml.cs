@@ -12,13 +12,13 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management;
 using System;
 using System.Threading.Tasks;
 using Windows.Foundation.Diagnostics;
-using Windows.System.Threading;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -27,7 +27,6 @@ namespace Toaster
 {
     public sealed partial class MainPage : Page
     {
-        DeviceClient deviceClient;
         DeviceManagementClient deviceManagementClient;
 
         private async Task EnableDeviceManagementUiAsync(bool enable)
@@ -81,7 +80,7 @@ namespace Toaster
 
         private async Task ResetConnectionAsync(DeviceClient existingConnection)
         {
-            EtwLogger.Log("ResetConnectionAsync start", LoggingLevel.Verbose);
+            Logger.Log("ResetConnectionAsync start", LoggingLevel.Verbose);
             // Attempt to close any existing connections before
             // creating a new one
             if (existingConnection != null)
@@ -93,7 +92,7 @@ namespace Toaster
                     {
                         var msg = "existingClient.CloseAsync exception: " + e.Message + "\n" + e.StackTrace;
                         System.Diagnostics.Debug.WriteLine(msg);
-                        EtwLogger.Log(msg, LoggingLevel.Verbose);
+                        Logger.Log(msg, LoggingLevel.Verbose);
                     }
                 });
             }
@@ -110,7 +109,7 @@ namespace Toaster
 
             // IDeviceTwin abstracts away communication with the back-end.
             // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
-            IDeviceTwin deviceTwin = new AzureIoTHubDeviceTwinProxy(newDeviceClient, ResetConnectionAsync, EtwLogger.Log);
+            IDeviceTwin deviceTwin = new AzureIoTHubDeviceTwinProxy(newDeviceClient, ResetConnectionAsync, Logger.Log);
 
             // IDeviceManagementRequestHandler handles device management-specific requests to the app,
             // such as whether it is OK to perform a reboot at any givem moment, according the app business logic
@@ -127,7 +126,7 @@ namespace Toaster
             // await newDeviceManagementClient.ApplyDesiredStateAsync();
 
             this.deviceManagementClient = newDeviceManagementClient;
-            EtwLogger.Log("ResetConnectionAsync end", LoggingLevel.Verbose);
+            Logger.Log("ResetConnectionAsync end", LoggingLevel.Verbose);
         }
 
         private async Task InitializeDeviceClientAsync()
@@ -143,7 +142,7 @@ namespace Toaster
                 {
                     var msg = "InitializeDeviceClientAsync exception: " + e.Message + "\n" + e.StackTrace;
                     System.Diagnostics.Debug.WriteLine(msg);
-                    EtwLogger.Log(msg, LoggingLevel.Error);
+                    Logger.Log(msg, LoggingLevel.Error);
                 }
 
                 await Task.Delay(5 * 60 * 1000);
