@@ -13,18 +13,18 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using DMDataContract;
+using IoTDMClient;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Threading.Tasks;
-using System;
-using System.Linq;
 using Microsoft.Devices.Management.Message;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using Windows.Storage;
-using IoTDMClient;
-using DMDataContract;
-using System.IO;
 
 namespace Microsoft.Devices.Management
 {
@@ -44,7 +44,7 @@ namespace Microsoft.Devices.Management
         {
             return new Dictionary<string, Func<string, Task<string>>>()
                 {
-                    { "microsoft.management.getWifiDetails" , GetWifiProfileDetailsAsync },
+                    { DMJSonConstants.DTWindowsIoTNameSpace + ".getWifiDetails" , GetWifiProfileDetailsAsync },
                 };
         }
 

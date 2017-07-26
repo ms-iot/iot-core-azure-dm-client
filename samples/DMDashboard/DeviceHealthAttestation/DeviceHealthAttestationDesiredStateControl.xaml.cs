@@ -24,6 +24,14 @@ namespace DMDashboard.DeviceHealthAttestation
     /// </summary>
     public partial class DeviceHealthAttestationDesiredStateControl : UserControl
     {
+        public string SectionName
+        {
+            get
+            {
+                return DeviceHealthAttestationDataContract.JsonSectionName;
+            }
+        }
+
         public DeviceHealthAttestationDesiredStateControl()
         {
             InitializeComponent();

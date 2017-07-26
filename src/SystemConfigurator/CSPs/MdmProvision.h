@@ -14,8 +14,9 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #pragma once
 
-#include "Utils.h"
 #include <string>
+#include "..\SharedUtilities\DMException.h"
+#include "..\SharedUtilities\Utils.h"
 
 class MdmProvision
 {
@@ -27,6 +28,7 @@ public:
 
     static void RunAdd(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
     static void RunAddData(const std::wstring& sid, const std::wstring& path, const std::wstring& value, const std::wstring& type = L"chr");
+    static void RunAddTyped(const std::wstring& sid, const std::wstring& path, const std::wstring& type);
     static void RunAddDataBase64(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
 
     static void RunDelete(const std::wstring& sid, const std::wstring& path);
@@ -43,10 +45,12 @@ public:
     static void RunSetBase64(const std::wstring& sid, const std::wstring& path, const std::wstring& value);
 
     static void RunExec(const std::wstring& sid, const std::wstring& path);
+    static void RunExecWithParameters(const std::wstring& sid, const std::wstring& path, const std::wstring& params);
 
     // Without sid
     static void RunAdd(const std::wstring& path, const std::wstring& value);
     static void RunAddData(const std::wstring& path, const std::wstring& value);
+    static void RunAddTyped(const std::wstring& path, const std::wstring& type);
     static void RunAddDataBase64(const std::wstring& path, const std::wstring& value);
     static void RunAddData(const std::wstring& path, int value);
     static void RunAddData(const std::wstring& path, bool value);
@@ -102,6 +106,7 @@ public:
     static void RunSetBase64(const std::wstring& path, const std::wstring& value);
 
     static void RunExec(const std::wstring& path);
+    static void RunExecWithParameters(const std::wstring& path, const std::wstring& params);
 
     // Helpers
     static std::wstring GetErrorMessage(const std::wstring& returnCodeString);

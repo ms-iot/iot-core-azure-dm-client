@@ -34,7 +34,7 @@ namespace DMDashboard
             set { SetValue(TitleProperty, value); }
         }
 
-        public string PropertyName
+        public virtual string PropertyName
         {
             get { return (string)GetValue(PropertyNameProperty); }
             set { SetValue(PropertyNameProperty, value); }
@@ -58,6 +58,11 @@ namespace DMDashboard
             set { SetValue(IsIncludedProperty, value); }
         }
 
+        public DMControl()
+        {
+            IsIncluded = true;
+        }
+
         public virtual string PropertyValue
         {
             get
@@ -70,7 +75,7 @@ namespace DMDashboard
             }
         }
 
-        public string ToJson()
+        public virtual string ToJson()
         {
             if (!IsIncluded && IsOptional)
             {

@@ -32,4 +32,3 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <sstream>
 #include <ppltasks.h>
 #include <windows.h>
-

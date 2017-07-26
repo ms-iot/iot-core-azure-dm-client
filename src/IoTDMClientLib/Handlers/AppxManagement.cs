@@ -12,7 +12,8 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-using Microsoft.Devices.Management;
+
+using DMDataContract;
 using Microsoft.Devices.Management.Message;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -1043,7 +1044,8 @@ namespace Microsoft.Devices.Management
         {
             UpdateCache(desiredValue);
 
-            // Need to revisit all the desired nodes (not only the changed ones) so that we can re-construct the correct reported list.
+            // Need to revisit all the desired nodes (not only the changed ones)
+            // so that we can re-construct the correct reported list.
             ApplyDesiredAppsConfiguration(_desiredCache[JsonSectionName]);
         }
 

@@ -23,6 +23,17 @@ namespace DMDashboard
 {
     public class DMSectionControl : UserControl
     {
+        public virtual string SectionName
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
         public virtual UIElementCollection PropertiesCollection
         {
             get
@@ -47,12 +58,12 @@ namespace DMDashboard
             }
         }
 
-        public string ToJson(string sectionName)
+        public virtual string ToJson()
         {
             bool useShortForm = true;
 
             StringBuilder json = new StringBuilder();
-            json.Append("\"" + sectionName + "\" : ");
+            json.Append("\"" + SectionName + "\" : ");
 
             if (ApplyProperties)
             {
@@ -66,6 +77,7 @@ namespace DMDashboard
 
                     DMControl dmControl = (DMControl)uc;
                     string controlJson = dmControl.ToJson();
+
                     if (!String.IsNullOrEmpty(controlJson))
                     {
                         if (propertiesString.Length > 0)
