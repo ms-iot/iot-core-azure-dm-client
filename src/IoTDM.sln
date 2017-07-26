@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.0
+VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SystemConfigurator", "SystemConfigurator\SystemConfigurator.vcxproj", "{CBBD687C-3B2A-4216-8F74-754A72E05D7F}"
 EndProject
@@ -49,9 +49,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSPTests", "..\tests\CSPTests\CSPTests.vcxproj", "{A64DB0EF-13E8-4D43-8C09-534259C3818C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMDataContract", "DMDataContract\DMDataContract\DMDataContract.csproj", "{94794BF1-4D16-46BE-97C1-15F968CD433F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DMTpm", "DMTpm\DMTpm.vcxitems", "{0ED4709A-5A05-4540-8E56-B63C91AABBE8}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		DMTpm\DMTpm.vcxitems*{0ed4709a-5a05-4540-8e56-b63c91aabbe8}*SharedItemsImports = 9
 		DMShared\DMShared.vcxitems*{241582cd-4861-4643-a7a2-21865b779aaf}*SharedItemsImports = 4
 		DMShared\DMShared.vcxitems*{4352e901-c90f-4caf-bd9e-d4e063c61be6}*SharedItemsImports = 4
 		SharedUtilities\SharedUtilities.vcxitems*{4352e901-c90f-4caf-bd9e-d4e063c61be6}*SharedItemsImports = 4
@@ -60,6 +62,7 @@ Global
 		DMShared\DMShared.vcxitems*{c6aefe90-4909-410b-8406-839af6fd38b6}*SharedItemsImports = 4
 		SharedUtilities\SharedUtilities.vcxitems*{c6aefe90-4909-410b-8406-839af6fd38b6}*SharedItemsImports = 4
 		DMShared\DMShared.vcxitems*{cbbd687c-3b2a-4216-8f74-754a72e05d7f}*SharedItemsImports = 4
+		DMTpm\DMTpm.vcxitems*{cbbd687c-3b2a-4216-8f74-754a72e05d7f}*SharedItemsImports = 4
 		SharedUtilities\SharedUtilities.vcxitems*{cbbd687c-3b2a-4216-8f74-754a72e05d7f}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -251,5 +254,6 @@ Global
 		{16CE7DA3-EB9A-4D8D-8E0C-F07996E5C378} = {ACADCA61-EDB4-4D41-A868-FEAEFBC8ED43}
 		{A64DB0EF-13E8-4D43-8C09-534259C3818C} = {ACADCA61-EDB4-4D41-A868-FEAEFBC8ED43}
 		{94794BF1-4D16-46BE-97C1-15F968CD433F} = {48F869F6-CAD1-4DCA-90C3-231BC4ACC10F}
+		{0ED4709A-5A05-4540-8E56-B63C91AABBE8} = {48F869F6-CAD1-4DCA-90C3-231BC4ACC10F}
 	EndGlobalSection
 EndGlobal
