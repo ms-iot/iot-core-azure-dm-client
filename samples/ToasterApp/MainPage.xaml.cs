@@ -106,8 +106,6 @@ namespace Toaster
         {
             try
             {
-                Log("test", LoggingLevel.Verbose);
-
                 // Attempt to close any existing connections before
                 // creating a new one
                 if (this.deviceClient != null)

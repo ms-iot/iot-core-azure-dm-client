@@ -12,23 +12,13 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #include "stdafx.h"
 #include "..\SharedUtilities\Logger.h"
+#include "..\SharedUtilities\Utils.h"
 #include "DMException.h"
 
 using namespace std;
-
-// Example -ast output:
-//
-// HostName=iot-open-house-demo.azure-devices.net;DeviceId=device0;SharedAccessSignature=SharedAccessSignature sr=iot-open-house-demo.azure-devices.net/devices/device0&sig=dPmolG%2foBeyrrO1pt6dCQr853a6%2fc6xxWYth%2fUptFyg%3d&se=1486606191
-
-// Example -rur output:
-//
-//<?xml version="1.0" encoding="utf-8"?>
-//<ServiceURI>
-//  iot-open-house-demo.azure-devices.net/device0
-//</ServiceURI>
-
 
 static std::string RunLimpet(const std::wstring& params)
 {
