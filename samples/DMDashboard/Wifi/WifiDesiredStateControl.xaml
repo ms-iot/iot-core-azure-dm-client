@@ -19,11 +19,11 @@
             </Grid.ColumnDefinitions>
             
             <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Profile Name"/>
-            <TextBox Grid.Row="0" Grid.Column="1" Margin="3" x:Name="Name" HorizontalAlignment="Stretch" Text="{Binding Name}"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Margin="3" HorizontalAlignment="Stretch" Text="{Binding Name}"/>
             <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Profile File"/>
-            <TextBox Grid.Row="1" Grid.Column="1" Margin="3" x:Name="Profile" HorizontalAlignment="Stretch" Text="{Binding Profile}"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Margin="3" HorizontalAlignment="Stretch" Text="{Binding Profile}"/>
             <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Uninstall"/>
-            <CheckBox Grid.Row="2" Grid.Column="1" Margin="3" x:Name="Uninstall" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding  Path=Uninstall}"/>
+            <CheckBox Grid.Row="2" Grid.Column="1" Margin="3" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding  Path=Uninstall}"/>
         </Grid>
     </Border>
 </UserControl>

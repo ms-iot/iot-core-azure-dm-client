@@ -17,6 +17,8 @@ namespace DMDataContract
 {
     public class DMJSonConstants
     {
+        public const string DTWindowsIoTNameSpace = "windows";
+
         public const string ApplyPropertiesString = "applyProperties";
         public const string ReportPropertiesString = "reportProperties";
         public const string YesString = "yes";

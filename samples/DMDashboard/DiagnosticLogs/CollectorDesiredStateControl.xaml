@@ -1,0 +1,64 @@
+﻿<local:DMSectionControl x:Class="DMDashboard.CollectorDesiredStateControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:local="clr-namespace:DMDashboard"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <local:DMSectionControl.Resources>
+        <ResourceDictionary>
+            <local:YesNoStringToComboIndex x:Key="yesNoToInt"/>
+            <local:FileModeToInt x:Key="fileModeToInt"/>
+        </ResourceDictionary>
+    </local:DMSectionControl.Resources>
+    <StackPanel Orientation="Vertical">
+        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="200" Height="1" />
+        <TextBlock Margin="3" FontSize="14" FontWeight="Bold" Text="Collector"/>
+        <local:DMTextBox Title="Name" PropertyName="name" PropertyValue="{Binding Path=Name}" IsNumeric="False" IsOptional="False" x:Name="CollectorName"/>
+        <local:DMComboBox Title="Report Properties" PropertyName="reportProperties" IsNumeric="False" IsOptional="False" x:Name="ReportPropertiesCombo"
+                          SelectedIndex="{Binding Path=ReportProperties, Converter={StaticResource yesNoToInt}, Mode=TwoWay}">
+            <local:DMComboBox.ValuesList>
+                <x:Array Type="sys:String">
+                    <sys:String>no</sys:String>
+                    <sys:String>yes</sys:String>
+                </x:Array>
+            </local:DMComboBox.ValuesList>
+        </local:DMComboBox>
+        <local:DMComboBox Title="Apply Properties" PropertyName="applyProperties" IsNumeric="False" IsOptional="False" x:Name="ApplyPropertiesCombo"
+                          SelectedIndex="{Binding Path=ApplyProperties, Converter={StaticResource yesNoToInt}, Mode=TwoWay}">
+            <local:DMComboBox.ValuesList>
+                <x:Array Type="sys:String">
+                    <sys:String>no</sys:String>
+                    <sys:String>yes</sys:String>
+                </x:Array>
+            </local:DMComboBox.ValuesList>
+        </local:DMComboBox>
+        <StackPanel Orientation="Vertical" x:Name="PropertiesControls">
+            <local:DMComboBox Title="File Mode" PropertyName="traceLogFileMode" IsNumeric="False" IsOptional="True" x:Name="TraceLogFileModeCombo"
+                              SelectedIndex="{Binding Path=TraceLogFileMode, Converter={StaticResource fileModeToInt}, Mode=TwoWay}">
+                <local:DMComboBox.ValuesList>
+                    <x:Array Type="sys:String">
+                        <sys:String>sequential</sys:String>
+                        <sys:String>circular</sys:String>
+                    </x:Array>
+                </local:DMComboBox.ValuesList>
+            </local:DMComboBox>
+            <local:DMTextBox Title="Max Size in MB" PropertyName="logFileSizeLimitMB" IsNumeric="True" IsOptional="True"
+                             PropertyValue="{Binding Path=LogFileSizeLimitMB, Mode=TwoWay}"/>
+            <local:DMTextBox Title="File Relative Path" PropertyName="logFileFolder" IsNumeric="False" IsOptional="True"
+                             PropertyValue="{Binding Path=LogFileFolder, Mode=TwoWay}"/>
+            <local:DMComboBox Title="Started" PropertyName="started" IsNumeric="False" IsOptional="True" x:Name="StartedCombo"
+                              SelectedIndex="{Binding Path=Started, Converter={StaticResource yesNoToInt}, Mode=TwoWay}">
+                <local:DMComboBox.ValuesList>
+                    <x:Array Type="sys:String">
+                        <sys:String>no</sys:String>
+                        <sys:String>yes</sys:String>
+                    </x:Array>
+                </local:DMComboBox.ValuesList>
+            </local:DMComboBox>
+            <local:ProviderDesiredStateListControl Margin="50,3,3,3" x:Name="ProviderList"/>
+        </StackPanel>
+    </StackPanel>
+</local:DMSectionControl>

@@ -12,7 +12,6 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -23,6 +22,14 @@ namespace DMDashboard
 {
     public partial class AppsDesiredStateControl : UserControl
     {
+        public string SectionName
+        {
+            get
+            {
+                return "apps";
+            }
+        }
+
         public List<AppDesiredState> AppsConfigurations
         {
             set
@@ -42,7 +49,7 @@ namespace DMDashboard
             InitializeComponent();
         }
 
-        public string GetJSon()
+        public string ToJson()
         {
             StringBuilder sb = new StringBuilder();
 
@@ -56,7 +63,7 @@ namespace DMDashboard
 
             foreach (AppDesiredStateControl control in ControlList.Children)
             {
-                string s = control.GetJSon();
+                string s = control.ToJson();
                 if (!String.IsNullOrEmpty(s))
                 {
                     if (sb.Length > 0)
@@ -130,9 +137,9 @@ namespace DMDashboard
             return appDesiredState;
         }
 
-        public void PopulateFromJson(JObject jRoot)
+        public void FromJson(JObject jRoot)
         {
-            JToken jAppsToken = jRoot.SelectToken("properties.desired.microsoft.management.apps");
+            JToken jAppsToken = jRoot.SelectToken("properties.desired.windows.apps");
             if (jAppsToken == null || !(jAppsToken is JObject))
             {
                 return;

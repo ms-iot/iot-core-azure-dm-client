@@ -101,7 +101,9 @@
     <Compile Include="Handlers\DeviceHealthAttestationHandler.cs" />
     <Compile Include="DeviceManagementClient.cs" />
     <Compile Include="DirectMethodGuard.cs" />
+    <Compile Include="Handlers\EventTracingHandler.cs" />
     <Compile Include="Handlers\ExternalStorageHandler.cs" />
+    <Compile Include="Handlers\StorageHandler.cs" />
     <Compile Include="IDeviceManagementClientHandler.cs" />
     <Compile Include="ISystemConfiguratorProxy.cs" />
     <Compile Include="SystemConfiguratorProxy.cs" />

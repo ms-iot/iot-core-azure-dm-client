@@ -70,6 +70,11 @@ namespace IoTDMClientLibTests
                 throw new NotImplementedException();
             }
 
+            public Task<IResponse> SendCommand(IRequest request)
+            {
+                throw new NotImplementedException();
+            }
+
             public Func<IRequest, IResponse> SendCommandHook;
         }
 

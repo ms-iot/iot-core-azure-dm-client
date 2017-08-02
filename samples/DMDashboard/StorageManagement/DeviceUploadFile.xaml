@@ -1,0 +1,48 @@
+﻿<Window x:Class="DMDashboard.StorageManagement.DeviceUploadFile"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DMDashboard.StorageManagement"
+        mc:Ignorable="d"
+        Title="Device Upload File" Height="600" Width="500">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Row="0" Grid.Column="0" FontSize="16" Text="Source" />
+            <local:DeviceFileSelectionControl Grid.Row="1" Grid.Column="0" x:Name="FileSelectionControl"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" Margin="3" FontSize="16" Text="Target"/>
+            <Grid Grid.Row="1" Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Margin="3" Text="Azure Connection String"/>
+                <TextBox Grid.Row="1" Margin="3" x:Name="AzureStorageConnectionString"/>
+                <Button Grid.Row="2" Margin="3" Width="130" VerticalAlignment="Center" HorizontalAlignment="Left" Content="Enumerate Containers" Click="OnEnumContainers"/>
+                <ListView Grid.Row="3" Margin="3" VerticalAlignment="Stretch" x:Name="ContainersList" SelectionMode="Single"/>
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="1" HorizontalAlignment="Right">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="140"/>
+                <ColumnDefinition Width="140"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Row="0" Grid.Column="0" Margin="3" Width="130" VerticalAlignment="Center" Content="Upload" Click="OnUpload"/>
+            <Button Grid.Row="0" Grid.Column="1" Margin="3" Width="130" VerticalAlignment="Center" Content="Close" Click="OnClose"/>
+        </Grid>
+    </Grid>
+</Window>

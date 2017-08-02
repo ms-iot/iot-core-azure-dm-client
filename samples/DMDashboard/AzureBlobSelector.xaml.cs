@@ -71,7 +71,7 @@ namespace DMDashboard
             }
             catch (Exception e)
             {
-                MessageBox.Show("Failed to enumerate blobs. Make sure the connection string is valid.");
+                MessageBox.Show("Failed to enumerate blobs. Make sure the connection string is valid." + e.Message);
                 return;
             }
         }

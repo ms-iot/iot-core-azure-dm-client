@@ -20,9 +20,6 @@ using System.Windows.Controls;
 
 namespace DMDashboard
 {
-    /// <summary>
-    /// Interaction logic for WifiDesiredStateControl.xaml
-    /// </summary>
     public partial class WifiDesiredStateControl : UserControl
     {
         public WifiDesiredStateControl()
