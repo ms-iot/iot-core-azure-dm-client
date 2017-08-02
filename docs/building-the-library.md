@@ -16,6 +16,8 @@ To build the library:
 #### Build The Nuget Package
 
   - Open a Visual Studio command prompt and 
+    - Make sure you have Nuget.exe on the path.
+      - If not, or if it is not present, download version v3.5.0 from this [Nuget.org](<https://dist.nuget.org/index.html>).
     - `cd c:\iot-core-azure-dm-client\nuget`
     - Run `PackIoTDMClientLib.cmd`
 
