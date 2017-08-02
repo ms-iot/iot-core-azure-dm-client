@@ -6,7 +6,7 @@
 
 The library is to be linked to a UWP application to allow both the Device Management components and the UWP application to share the connection to the Azure IoT Hub.
 
-The application can be a foreground application or a background application. You can find [samples](samples.md) for both and a [walk-through](walk-through.md) to build a foreground application.
+The application can be a foreground application or a background application. You can find [samples](docs/samples.md) for both and a [walk-through](docs/dm-hello-world-overview.md) to build a foreground application.
 
 Here's a diagram of where the library fits:
 

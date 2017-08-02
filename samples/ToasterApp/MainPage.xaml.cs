@@ -81,7 +81,7 @@ namespace Toaster
 
         private async Task ResetConnectionAsync(DeviceClient existingConnection)
         {
-            EtwLogger.Log("ResetConnectionAsync start", LoggingLevel.Verbose);
+            Logger.Log("ResetConnectionAsync start", LoggingLevel.Verbose);
             // Attempt to close any existing connections before
             // creating a new one
             if (existingConnection != null)
@@ -93,7 +93,7 @@ namespace Toaster
                     {
                         var msg = "existingClient.CloseAsync exception: " + e.Message + "\n" + e.StackTrace;
                         System.Diagnostics.Debug.WriteLine(msg);
-                        EtwLogger.Log(msg, LoggingLevel.Verbose);
+                        Logger.Log(msg, LoggingLevel.Verbose);
                     }
                 });
             }
@@ -110,7 +110,7 @@ namespace Toaster
 
             // IDeviceTwin abstracts away communication with the back-end.
             // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
-            IDeviceTwin deviceTwin = new AzureIoTHubDeviceTwinProxy(newDeviceClient, ResetConnectionAsync, EtwLogger.Log);
+            IDeviceTwin deviceTwin = new AzureIoTHubDeviceTwinProxy(newDeviceClient, ResetConnectionAsync, Logger.Log);
 
             // IDeviceManagementRequestHandler handles device management-specific requests to the app,
             // such as whether it is OK to perform a reboot at any givem moment, according the app business logic
@@ -127,7 +127,7 @@ namespace Toaster
             // await newDeviceManagementClient.ApplyDesiredStateAsync();
 
             this.deviceManagementClient = newDeviceManagementClient;
-            EtwLogger.Log("ResetConnectionAsync end", LoggingLevel.Verbose);
+            Logger.Log("ResetConnectionAsync end", LoggingLevel.Verbose);
         }
 
         private async Task InitializeDeviceClientAsync()
@@ -143,7 +143,7 @@ namespace Toaster
                 {
                     var msg = "InitializeDeviceClientAsync exception: " + e.Message + "\n" + e.StackTrace;
                     System.Diagnostics.Debug.WriteLine(msg);
-                    EtwLogger.Log(msg, LoggingLevel.Error);
+                    Logger.Log(msg, LoggingLevel.Error);
                 }
 
                 await Task.Delay(5 * 60 * 1000);
