@@ -51,7 +51,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)StringUtils.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="D:\Projs\DM.0627\iot-core-azure-dm-client\src\SharedUtilities\ETWLogger.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)ETWLogger.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
@@ -89,7 +89,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)StringUtils.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="D:\Projs\DM.0627\iot-core-azure-dm-client\src\SharedUtilities\ETWLogger.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)ETWLogger.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
