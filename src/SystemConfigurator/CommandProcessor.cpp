@@ -48,7 +48,7 @@ StringResponse^ ReportError(const string& context, const DMException& e)
     string debugMessage = "Error: " + context;
     TRACEP(debugMessage.c_str(), e.what());
     auto errorMessageCStr = Utils::MultibyteToWide(e.what());
-    auto responseMessage = ref new String(errorMessageCStr.c_str(), errorMessageCStr.length());
+    auto responseMessage = ref new String(errorMessageCStr.c_str(), static_cast<unsigned int>(errorMessageCStr.length()));
     return ref new StringResponse(ResponseStatus::Failure, responseMessage, DMMessageKind::ErrorResponse);
 }
 
@@ -1074,7 +1074,7 @@ IResponse^ HandleDeviceHealthAttestationVerifyHealth(IRequest^ request)
             wstringstream ws;
             ws << L"VerifyHealth failed: 0x" << hex << healthAttestationStatus;
             auto errorMessageCStr = ws.str();
-            auto errorMessage = ref new String(errorMessageCStr.c_str(), errorMessageCStr.length());
+            auto errorMessage = ref new String(errorMessageCStr.c_str(), static_cast<unsigned int>(errorMessageCStr.length()));
             return ref new StringResponse(ResponseStatus::Failure, errorMessage, DMMessageKind::ErrorResponse);
         }
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
@@ -1083,7 +1083,7 @@ IResponse^ HandleDeviceHealthAttestationVerifyHealth(IRequest^ request)
     {
         TRACEP("ERROR DMCommand::HandleDeviceHealthAttestationVerifyHealth: ", e.what());
         auto errorMessageCStr = Utils::MultibyteToWide(e.what());
-        auto errorMessage = ref new String(errorMessageCStr.c_str(), errorMessageCStr.length());
+        auto errorMessage = ref new String(errorMessageCStr.c_str(), static_cast<unsigned int>(errorMessageCStr.length()));
         return ref new StringResponse(ResponseStatus::Failure, errorMessage, DMMessageKind::ErrorResponse);
     }
 }
@@ -1099,9 +1099,9 @@ IResponse^ HandleDeviceHealthAttestationGetReport(IRequest^ request)
 
         DeviceHealthAttestationCSP::SetNonce(certificateRequest->Nonce->Data());
         auto certificateCStr = DeviceHealthAttestationCSP::GetCertificate();
-        auto certificate = ref new Platform::String(certificateCStr.c_str(), certificateCStr.length());
+        auto certificate = ref new Platform::String(certificateCStr.c_str(), static_cast<unsigned int>(certificateCStr.length()));
         auto correlationIdCStr = DeviceHealthAttestationCSP::GetCorrelationId();
-        auto correlationId = ref new Platform::String(correlationIdCStr.c_str(), correlationIdCStr.length());
+        auto correlationId = ref new Platform::String(correlationIdCStr.c_str(), static_cast<unsigned int>(correlationIdCStr.length()));
 
         return ref new DeviceHealthAttestationGetReportResponse(certificate, correlationId);
     }
@@ -1109,7 +1109,7 @@ IResponse^ HandleDeviceHealthAttestationGetReport(IRequest^ request)
     {
         TRACEP("ERROR DMCommand::HandleDeviceHealthAttestationGetCertificate: ", e.what());
         auto errorMessageCStr = Utils::MultibyteToWide(e.what());
-        auto errorMessage = ref new String(errorMessageCStr.c_str(), errorMessageCStr.length());
+        auto errorMessage = ref new String(errorMessageCStr.c_str(), static_cast<unsigned int>(errorMessageCStr.length()));
         return ref new StringResponse(ResponseStatus::Failure, errorMessage, DMMessageKind::ErrorResponse);
     }
 }

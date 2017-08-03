@@ -434,7 +434,7 @@ namespace Utils
             throw DMExceptionWithErrorCode(status);
         }
 
-        status = RegSetValueEx(hKey, propName.c_str(), 0, REG_SZ, reinterpret_cast<const BYTE*>(propValue.c_str()), (propValue.size() + 1) * sizeof(propValue[0]));
+        status = RegSetValueEx(hKey, propName.c_str(), 0, REG_SZ, reinterpret_cast<const BYTE*>(propValue.c_str()), (static_cast<unsigned int>(propValue.size()) + 1) * sizeof(propValue[0]));
         if (status != ERROR_SUCCESS) {
             RegCloseKey(hKey);
             throw DMExceptionWithErrorCode(status);
@@ -515,7 +515,7 @@ namespace Utils
         }
 
         vector<wchar_t> buffer(charCount);
-        charCount = ::GetEnvironmentVariable(variableName.c_str(), buffer.data(), buffer.size());
+        charCount = ::GetEnvironmentVariable(variableName.c_str(), buffer.data(), static_cast<unsigned int>(buffer.size()));
         if (charCount == 0)
         {
             throw DMExceptionWithErrorCode(GetLastError());
@@ -529,7 +529,7 @@ namespace Utils
         UINT size = GetSystemDirectory(0, 0);
 
         vector<wchar_t> buffer(size);
-        if (size != GetSystemDirectory(buffer.data(), buffer.size()) + 1)
+        if (size != GetSystemDirectory(buffer.data(), static_cast<unsigned int>(buffer.size())) + 1)
         {
             throw DMException("Error: failed to retrieve system folder.");
         }
@@ -666,7 +666,7 @@ while (!doneWriting)
         {
             DWORD readByteCount = 0;
             vector<char> readBuffer(bytesAvailable + 1);
-            if (ReadFile(stdOutReadHandle.Get(), readBuffer.data(), readBuffer.size() - 1, &readByteCount, NULL) || readByteCount == 0)
+            if (ReadFile(stdOutReadHandle.Get(), readBuffer.data(), static_cast<unsigned int>(readBuffer.size()) - 1, &readByteCount, NULL) || readByteCount == 0)
             {
                 readBuffer[readByteCount] = '\0';
                 output += readBuffer.data();
@@ -715,13 +715,13 @@ TRACEP("Command output : ", output.c_str());
         TRACE(__FUNCTION__);
 
         DWORD destinationSize = 0;
-        if (!CryptStringToBinary(encrypted.c_str(), encrypted.size(), CRYPT_STRING_BASE64, nullptr, &destinationSize, nullptr, nullptr))
+        if (!CryptStringToBinary(encrypted.c_str(), static_cast<unsigned int>(encrypted.size()), CRYPT_STRING_BASE64, nullptr, &destinationSize, nullptr, nullptr))
         {
             throw DMException("Error: cannot obtain the required size to decode buffer from base64.");
         }
 
         decrypted.resize(destinationSize);
-        if (!CryptStringToBinary(encrypted.c_str(), encrypted.size(), CRYPT_STRING_BASE64, reinterpret_cast<unsigned char*>(decrypted.data()), &destinationSize, nullptr, nullptr))
+        if (!CryptStringToBinary(encrypted.c_str(), static_cast<unsigned int>(encrypted.size()), CRYPT_STRING_BASE64, reinterpret_cast<unsigned char*>(decrypted.data()), &destinationSize, nullptr, nullptr))
         {
             throw DMException("Error: cannot obtain the required size to decode buffer from base64.");
         }
@@ -732,13 +732,13 @@ TRACEP("Command output : ", output.c_str());
         TRACE(__FUNCTION__);
 
         DWORD destinationSize = 0;
-        if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size(), CRYPT_STRING_BASE64, nullptr, &destinationSize))
+        if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), static_cast<unsigned int>(buffer.size()), CRYPT_STRING_BASE64, nullptr, &destinationSize))
         {
             throw DMException("Error: cannot obtain the required size to encode buffer into base64.");
         }
 
         vector<wchar_t> destinationBuffer(destinationSize);
-        if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size(), CRYPT_STRING_BASE64, destinationBuffer.data(), &destinationSize))
+        if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), static_cast<unsigned int>(buffer.size()), CRYPT_STRING_BASE64, destinationBuffer.data(), &destinationSize))
         {
             throw DMException("Error: cannot convert binary stream to base64.");
         }

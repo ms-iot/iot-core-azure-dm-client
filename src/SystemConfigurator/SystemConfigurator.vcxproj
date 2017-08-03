@@ -127,7 +127,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppCfg.cpp" />
-    <ClCompile Include="CommandProcessor.cpp" />
+    <ClCompile Include="CommandProcessor.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="CSPs\CertificateInfo.cpp" />
     <ClCompile Include="CSPs\CertificateManagement.cpp" />
     <ClCompile Include="CSPs\CertificateStoreCSP.cpp" />
