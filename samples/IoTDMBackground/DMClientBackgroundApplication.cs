@@ -111,8 +111,7 @@ namespace IoTDMBackground
             var newDeviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwin, appRequestHandler);
 
             // Tell the deviceManagementClient to sync the device with the current desired state.
-            // Disabled due to: https://github.com/ms-iot/iot-core-azure-dm-client/issues/105
-            // await newDeviceManagementClient.ApplyDesiredStateAsync();
+            await newDeviceManagementClient.ApplyDesiredStateAsync();
 
             this._dmClient = newDeviceManagementClient;
             Logger.Log("ResetConnectionAsync end", LoggingLevel.Verbose);
