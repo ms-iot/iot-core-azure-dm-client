@@ -107,9 +107,9 @@ namespace Microsoft.Devices.Management
             return desiredProperties;
         }
 
-        async Task<string> IDeviceTwin.GetDeviceTwinPropertiesAsync()
+        async Task<string> IDeviceTwin.GetAllPropertiesAsync()
         {
-            Logger.Log("AzureIoTHubDeviceTwinProxy.GetDeviceTwinPropertiesAsync", LoggingLevel.Information);
+            Logger.Log("AzureIoTHubDeviceTwinProxy.GetAllPropertiesAsync", LoggingLevel.Information);
             StringBuilder sb = new StringBuilder();
             try
             {
@@ -208,12 +208,13 @@ namespace Microsoft.Devices.Management
                 await Task.Delay(5 * 1000);
             }
         }
+
         async Task IDeviceTwin.RefreshConnectionAsync()
         {
             await InternalRefreshConnectionAsync();
         }
 
-        public async Task InternalRefreshConnectionAsync()
+        private async Task InternalRefreshConnectionAsync()
         {
             while (true)
             {

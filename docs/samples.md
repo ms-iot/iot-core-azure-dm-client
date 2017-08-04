@@ -40,3 +40,7 @@ To leverage these items on your IotCore device, follow these steps (steps below 
     + DMDashboard can trigger reboot in device, get and change time info, get and change device status, and install an App by using Azure blob storage.
 
 For production environments, see [OEM Device Setup](oem-device-setup.md).
+
+----
+
+[Home Page](../README.md)

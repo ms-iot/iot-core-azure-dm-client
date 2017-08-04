@@ -202,3 +202,7 @@ Now you have a fully functional DM client integrated into the application!
 **Next Step**:
 
 - Deploying the [DM Hello World! Application](dm-hello-world-deploying.md).
+
+----
+
+[Home Page](../README.md) | [DM Hello World Application](dm-hello-world-overview.md)

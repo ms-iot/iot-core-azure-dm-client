@@ -26,7 +26,6 @@ namespace Toaster
 {
     public sealed partial class MainPage : Page
     {
-        DeviceClient deviceClient;
         DeviceManagementClient deviceManagementClient;
 
         private async Task EnableDeviceManagementUiAsync(bool enable)
@@ -105,7 +104,7 @@ namespace Toaster
 
             // Set the callback for desired properties update. The callback will be invoked
             // for all desired properties -- including those specific to device management
-            await newDeviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdate, null);
+            await newDeviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdated, null);
 
             // IDeviceTwin abstracts away communication with the back-end.
             // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
@@ -148,7 +147,7 @@ namespace Toaster
             }
         }
 
-        public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
+        public Task OnDesiredPropertyUpdated(TwinCollection desiredProperties, object userContext)
         {
             // Let the device management client process properties specific to device management
             this.deviceManagementClient.ApplyDesiredStateAsync(desiredProperties);
@@ -200,7 +199,8 @@ namespace Toaster
             this.textBlock.Text = "Ready";
             this.imageHot.Visibility = Visibility.Collapsed;
         }
-
+        /*  
+        // ToDo: Not implemented in SystemConfigurator.
         private async void OnCheckForUpdates(object sender, RoutedEventArgs e)
         {
             bool updatesAvailable = await deviceManagementClient.CheckForUpdatesAsync();
@@ -212,7 +212,7 @@ namespace Toaster
                 // Don't do anything yet
             }
         }
-
+        */
         private async void RestartSystem()
         {
             bool success = true;

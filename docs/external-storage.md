@@ -21,4 +21,6 @@ The storage is described in the desired properties section as follows:
 
 The inidividual configuration section may then refer to files in that location - either at the root or under containers. The relative location is left for the individual sections to define.
 
+----
 
+[Home Page](../README.md) | [Library Reference](library-reference.md)

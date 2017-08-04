@@ -489,3 +489,7 @@ Successful update response:
     }
 }
 </pre>
+
+----
+
+[Home Page](../README.md) | [Library Reference](library-reference.md)

@@ -1,25 +1,23 @@
 # Reboot Management
 
-The **Reboot Management** functionality allows the operator to perform the following tasks:
+The **Reboot Management** functionality can perform the following tasks:
 
 - Retrieve last reboot time.
-- Allow/Disallow system reboots.
-- Initiate immediate reboots
+- Allow/Disallow system reboots (also available as a .NET API).
+- Initiate immediate reboots (also available as a .NET API).
   - Issue command and inspect its status in the device twin.
 - Schedule reboots
   - Schedule a reboot for a certain time - to be executed once, or daily - and inspect that schedule in the device twin.
 
 ## Retrieve Last Boot Time
 
-*After* the device reboots, the `"reported.microsoft.management.rebootInfo.lastBootTime"` property is set, which is defined as follows:
+*After* the device reboots, the `"reported.windows.rebootInfo.lastBootTime"` property is set, which is defined as follows:
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "rebootInfo" : {
-                "lastBootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
-            }
+    "windows" : {
+        "rebootInfo" : {
+            "lastBootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
         }
     }
 }
@@ -31,11 +29,9 @@ Device boots and sets `"lastBootTime"` property:
 
 ```
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "rebootInfo" : {
-                `"lastBootTime"` : "2017-01-25T13:34:33+04:00"
-            }
+    "windows" : {
+        "rebootInfo" : {
+            `"lastBootTime"` : "2017-01-25T13:34:33+04:00"
         }
     }
 }
@@ -105,12 +101,43 @@ Note that IsRebootAllowedBySystem() can return only one of the following values 
 
 ## Initiate Immediate Reboot
 
-The **Immediate Reboot** operation is initiated by the device receiving the `microsoft.management.immediateReboot` method.
+The **Immediate Reboot** operation is initiated by either:
 
-### Input Payload 
+- the application calling `ImmediateRebootAsync()`. 
+- the operator invoking the Azure direct method `windows.immediateReboot`.
+
+### ImmediateRebootAsync()
+
+<pre>
+    <b>Namespace</b>:
+	Microsoft.Devices.Management
+</pre>
+
+<pre>
+    <b>Class</b>:
+	DeviceManagementClient
+</pre>
+
+<pre>
+    <b>Methods</b>:
+    public async Task ImmediateRebootAsync()
+</pre>
+
+**Example**
+
+<pre>
+    async Task OnRebootClicked(DeviceManagementClient dmClient)
+    {
+        await dmClient.ImmediateRebootAsync();
+    }
+</pre>
+
+### windows.immediateReboot
+
+#### Input Payload 
 Input payload is empty
 
-### Output Payload
+#### Output Payload
 The device responds immediately with the following JSON payload:
 
 <pre>
@@ -123,7 +150,7 @@ Possible `"response"` values are:
 - `"disabled"` - is returned when the application flags its busy state by calling `"AllowReboots(false)"`.
 - `"inActiveHours"` - is returned when the immediate reboot command is received between the active hours as 
    specified by `windowsUpdatePolicy` (see [Windows Update Management](windows-update-management.md) 
-   `desired.microsoft.management.windowsUpdatePolicy.activeHoursStart` and `desired.microsoft.management.windowsUpdatePolicy.activeHoursEnd`).
+   `desired.windows.windowsUpdatePolicy.activeHoursStart` and `desired.windows.windowsUpdatePolicy.activeHoursEnd`).
 
 The state of the latest reboot request is communicated to the back-end via
 reported properties as described in [Device Twin Communication](#device-twin-communication) below.
@@ -133,7 +160,7 @@ Note that an immediate roboot request will be 'accepted' initially if it meets t
 be rejected later when the application is intorregated (where it may prompt the application user for a response; for example).
 Such rejection will be expressed in the Device Twin.
 
-After the device reboots, `"reported.microsoft.management.rebootInfo.lastBootTime"` will be set to a new value.
+After the device reboots, `"reported.windows.rebootInfo.lastBootTime"` will be set to a new value.
 This can be used to confirm the reboot took place.
 
 **Examples:**
@@ -144,20 +171,18 @@ Successful response:
 "response" : "accepted"
 ```
 
-### Device Twin Communication
+#### Device Twin Communication
 
 After responding to the method call, the device attempts to reboot. The result
-of the attempt is recorded in the reported property `"reported.microsoft.management.rebootInfo.lastRebootCmdTime"`, which
+of the attempt is recorded in the reported property `"reported.windows.rebootInfo.lastRebootCmdTime"`, which
 is JSON object with two key/value pairs defined as follows:
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "rebootInfo" : {
-                "lastRebootCmdTime": "<i>Datetime in ISO 8601 format, UTC</i>"
-                "lastRebootCmdStatus": "<i>value</i>"
-            }
+    "windows" : {
+        "rebootInfo" : {
+            "lastRebootCmdTime": "<i>Datetime in ISO 8601 format, UTC</i>"
+            "lastRebootCmdStatus": "<i>value</i>"
         }
     }
 }
@@ -180,12 +205,10 @@ Successful response:
 
 ```
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "rebootInfo" : {
-                "lastRebootCmdTime": "2017-01-25T13:27:33+04:00"
-                "lastRebootCmdStatus": "accepted"
-            }
+    "windows" : {
+        "rebootInfo" : {
+            "lastRebootCmdTime": "2017-01-25T13:27:33+04:00"
+            "lastRebootCmdStatus": "accepted"
         }
     }
 }
@@ -193,19 +216,17 @@ Successful response:
 
 ## Schedule Reboots
 
-The **Schedule Reboots** operation is initiated by the device receiving the `"desired.microsoft.management.scheduledReboot"` desired property.
+The **Schedule Reboots** operation is initiated by the device receiving the `"desired.windows.scheduledReboot"` desired property.
 
 ### Configuration Format
-The format of the `"desired.microsoft.management.scheduledReboot"` desired property is as follows:
+The format of the `"desired.windows.scheduledReboot"` desired property is as follows:
 
 <pre>
 "desired" : {
-    "microsoft" : {
-        "management" : {
-            "scheduledReboot" :{
-                "singleRebootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
-                "dailyRebootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
-            }
+    "windows" : {
+        "scheduledReboot" :{
+            "singleRebootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
+            "dailyRebootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
         }
     }
 }
@@ -219,12 +240,10 @@ Perform a singleRebootTime reboot on Jan 25th, 2017 at 09:00 UTC time and also r
 
 ```
 "desired" : {
-    "microsoft" : {
-        "management" : {
-            "scheduledReboot" : {
-                "singleRebootTime" : "2017-01-25T09:00:00+00:00"
-                "dailyRebootTime" : "2017-01-25T03:00:00+00:00"
-            }
+    "windows" : {
+        "scheduledReboot" : {
+            "singleRebootTime" : "2017-01-25T09:00:00+00:00"
+            "dailyRebootTime" : "2017-01-25T03:00:00+00:00"
         }
     }
 }
@@ -234,19 +253,21 @@ Either or both <i>singleRebootTime</i> and <i>dailyRebootTime</i> can be set to 
 
 ### Reporting Format
 
-The current state of reboot configuration and status is stored under the `"reported.microsoft.management.rebootInfo"`.
+The current state of reboot configuration and status is stored under the `"reported.windows.rebootInfo"`.
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "rebootInfo" : {
-                "dailyRebootTime": "<i>Datetime in ISO 8601 format, UTC</i>",
-                "singleRebootTime": "<i>Datetime in ISO 8601 format, UTC</i>"
-            }
+    "windows" : {
+        "rebootInfo" : {
+            "dailyRebootTime": "<i>Datetime in ISO 8601 format, UTC</i>",
+            "singleRebootTime": "<i>Datetime in ISO 8601 format, UTC</i>"
         }
     }
 }
 </pre>
 
 **dailyRebootTime** and **singleRebootTime** reflect the values set in the desired scheduledReboot property.
+
+----
+
+[Home Page](../README.md) | [Library Reference](library-reference.md)

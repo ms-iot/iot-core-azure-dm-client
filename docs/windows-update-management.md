@@ -139,3 +139,7 @@ The device current state of the **Windows Updates** can be inspected through the
 </pre>
 
 For a full documentation on what each field does, see the [Update CSP](https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/update-csp) MSDN page.
+
+----
+
+[Home Page](../README.md) | [Library Reference](library-reference.md)

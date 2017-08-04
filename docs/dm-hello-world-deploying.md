@@ -24,3 +24,7 @@ In a production scenario, they will be part of the OS image (see [Production Dev
 **Next Step**:
 
 - Managing the [Managing the Device](dm-hello-world-managing.md).
+
+----
+
+[Home Page](../README.md) | [DM Hello World Application](dm-hello-world-overview.md)
