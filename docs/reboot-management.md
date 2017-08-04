@@ -99,6 +99,9 @@ Note that IsRebootAllowedBySystem() can return only one of the following values 
     }
 </pre>
 
+**Note:** There is no Azure interface for this functionality. This functionality is meant for the application signal its own busy state.
+
+
 ## Initiate Immediate Reboot
 
 The **Immediate Reboot** operation is initiated by either:
