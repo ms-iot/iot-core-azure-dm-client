@@ -54,6 +54,15 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ETWLogger.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\SharedUtilities\AutoCloseHandle.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\SharedUtilities\AutoCloseBase.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\SharedUtilities\SystemConfiguratorPipe.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)DMException.cpp">
@@ -90,6 +99,9 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)ETWLogger.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\SharedUtilities\SystemConfiguratorPipe.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

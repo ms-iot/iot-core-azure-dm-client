@@ -206,8 +206,12 @@ namespace CommProxyTests
 
         Blob^ RoundTripThroughNativeHandle(Blob^ inputBlob)
         {
+            std::wstring pipeName;
+            pipeName += PipeName;
+            pipeName += L"-test";
+
             Utils::AutoCloseHandle pipeHandleWrite = CreateNamedPipeW(
-                PIPE_NAME L"-test",
+                pipeName.c_str(),
                 PIPE_ACCESS_DUPLEX,
                 PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
                 PIPE_UNLIMITED_INSTANCES,
@@ -216,7 +220,8 @@ namespace CommProxyTests
                 NMPWAIT_USE_DEFAULT_WAIT,
                 nullptr);
 
-            Utils::AutoCloseHandle pipeHandleRead = CreateFileW(PIPE_NAME L"-test",
+            Utils::AutoCloseHandle pipeHandleRead = CreateFileW(
+                pipeName.c_str(),
                 GENERIC_READ | GENERIC_WRITE,
                 0,
                 nullptr,

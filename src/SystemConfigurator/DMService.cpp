@@ -12,23 +12,21 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #include "stdafx.h"
 #include <filesystem>
 #include <assert.h>
 #include "DMService.h"
 #include "..\SharedUtilities\DMException.h"
+#include "..\SharedUtilities\SystemConfiguratorPipe.h"
 #include "CommandProcessor.h"
 
-// Thread will check whether it is time to renew the connection string 
-// every CONNECTION_RENEWAL_CHECK_INTERVAL seconds.
-// Making this longer affects the time the service takes to response
-// to stop requests.
-// ToDo: consider waiting on multiple events.
-#define CONNECTION_RENEWAL_CHECK_INTERVAL 5
+#include "Models\ExitDM.h"
 
 using namespace std;
 using namespace std::chrono;
 using namespace std::experimental;
+using namespace Microsoft::Devices::Management::Message;
 
 DMService *DMService::s_service = NULL;
 
@@ -262,10 +260,8 @@ void DMService::ServiceWorkerThread(void* context)
     iotDMService->ServiceWorkerThreadHelper();
 }
 
-static VOID CALLBACK TimerCallback(PVOID /*ParameterPtr*/, BOOLEAN)
+static VOID CALLBACK CleanupTemporaryFiles(PVOID /*ParameterPtr*/, BOOLEAN)
 {
-    //auto contextPtr = static_cast<DMService *>(ParameterPtr);
-
     // handle garbage collection
     wstring gcFolder = SC_CLEANUP_FOLDER;
     if (filesystem::exists(gcFolder))
@@ -297,9 +293,9 @@ void DMService::ServiceWorkerThreadHelper(void)
     TRACE(__FUNCTION__);
 
     CreateTimerQueueTimer(
-        &_timerQueueHandle,
+        &_temporaryFilesCleanupTimer,
         NULL,                                   // default timer queue  
-        TimerCallback,
+        CleanupTemporaryFiles,
         this,
         0,                                      // start immediately  
         1000 * 60 * 60 * 24,                    // every day  
@@ -315,7 +311,8 @@ void DMService::OnStop()
 {
     TRACE(__FUNCTION__);
 
-    // ToDo: Need a graceful way to signal the work thread to exit.
+    IRequest^ request = ref new ExitDMRequest();
+    Utils::SystemConfiguratorPipe::Send(request->Serialize());
 }
 
 void DMService::Install(

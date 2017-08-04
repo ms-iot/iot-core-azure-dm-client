@@ -52,6 +52,12 @@ StringResponse^ ReportError(const string& context, const DMException& e)
     return ref new StringResponse(ResponseStatus::Failure, responseMessage, DMMessageKind::ErrorResponse);
 }
 
+IResponse^ HandleExitDM(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
 IResponse^ HandleFactoryReset(IRequest^ request)
 {
     TRACE(__FUNCTION__);
@@ -1270,16 +1276,23 @@ void Listen()
         pipeConnection.Connect(pipeHandle.Get());
         TRACE("Client connected...");
 
-        auto request = Blob::ReadFromNativeHandle(pipeHandle.Get64());
+        auto requestBlob = Blob::ReadFromNativeHandle(pipeHandle.Get64());
         TRACE("Request received...");
-        TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)request->Tag));
-        TRACEP(L"    ", Utils::ConcatString(L"request version:", request->Version));
+        TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)requestBlob->Tag));
+        TRACEP(L"    ", Utils::ConcatString(L"request version:", requestBlob->Version));
 
         try
         {
-            IResponse^ response = ProcessCommand(request->MakeIRequest());
+            IRequest^ request = requestBlob->MakeIRequest();
+            IResponse^ response = ProcessCommand(request);
             response->Serialize()->WriteToNativeHandle(pipeHandle.Get64());
             TRACE(L"WriteToNativeHandle() completed successfully.");
+
+            if (request->Tag == DMMessageKind::ExitDM && response->Status == ResponseStatus::Success)
+            {
+                TRACE(L"Exiting service...");
+                break;
+            }
         }
         catch (const DMException& ex)
         {
@@ -1287,7 +1300,5 @@ void Listen()
             auto response = ref new StringResponse(ResponseStatus::Failure, ref new String(std::wstring(Utils::MultibyteToWide(ex.what())).c_str()), DMMessageKind::ErrorResponse);
             response->Serialize()->WriteToNativeHandle(pipeHandle.Get64());
         }
-
-        // ToDo: How do we exit this loop gracefully?
     }
 }

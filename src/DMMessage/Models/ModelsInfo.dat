@@ -6,6 +6,7 @@
 //            |----------------------|-----------|-------------------------------------|---------------------|
 //            | Tag Name             | Tag Value | Request Type Name                   | Response Type Name  |
 //            |----------------------|-----------|-------------------------------------|---------------------|
+MODEL_REQDEF(   ExitDM,                       0,  ExitDMRequest,                        StatusCodeResponse )
 MODEL_REQDEF(   FactoryReset,                 1,  FactoryResetRequest,                  StatusCodeResponse )
 MODEL_ALLDEF(   CheckUpdates,                 2,  CheckForUpdatesRequest,               CheckForUpdatesResponse )
 MODEL_ALLDEF(   ListApps,                     3,  ListAppsRequest,                      ListAppsResponse )
