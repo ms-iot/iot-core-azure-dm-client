@@ -59,3 +59,7 @@ For example, if you want to change account type of the Azure Storage account whe
       }
     }
 ```
+
+----
+
+[Home Page](../README.md) | [Library Reference](library-reference.md)

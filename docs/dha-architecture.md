@@ -60,3 +60,6 @@ The following breaks down each of the three steps in detail:
 15.	DHA-Service reviews the data and replies with a device health report (DHA-Report).
 16.	DHA-Azure-Functions stores the DHA-Report in the Azure-Table-Storage.
 
+----
+
+[Home Page](../README.md) | [Library Reference](library-reference.md)

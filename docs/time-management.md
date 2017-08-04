@@ -94,3 +94,7 @@ The reported settings will looks something like this:
     }
 }
 </pre>
+
+----
+
+[Home Page](../README.md) | [Library Reference](library-reference.md)

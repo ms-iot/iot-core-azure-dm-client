@@ -24,3 +24,7 @@ This will create `c:\iot-core-azure-dm-client\nuget\IoTDMClientLib.1.0.0.nupkg`.
 **Next Step**:
 
 - See the [DM Hello World! Application](dm-hello-world-overview.md).
+
+----
+
+[Home Page](../README.md)

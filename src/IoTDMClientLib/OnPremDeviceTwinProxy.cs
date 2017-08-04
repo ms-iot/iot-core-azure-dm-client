@@ -29,7 +29,7 @@ namespace Microsoft.Devices.Management
             return null;
         }
 
-        async Task<string> IDeviceTwin.GetDeviceTwinPropertiesAsync()
+        async Task<string> IDeviceTwin.GetAllPropertiesAsync()
         {
             return "{}";
         }

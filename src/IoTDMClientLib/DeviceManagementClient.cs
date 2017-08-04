@@ -44,6 +44,14 @@ namespace Microsoft.Devices.Management
         public IDeviceTwin DeviceTwin { get { return _deviceTwin; } }
 
         // Types
+        public enum RebootRequestStatus
+        {
+            Allowed,
+            Disabled,
+            InActiveHours,
+            RejectedByApp
+        }
+
         public struct DMMethodResult
         {
             public uint returnCode;
@@ -229,20 +237,15 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public async Task<bool> CheckForUpdatesAsync()
+        /*
+        // ToDo: Not implemented in SystemConfigurator.
+        private async Task<bool> CheckForUpdatesAsync()
         {
             var request = new Message.CheckForUpdatesRequest();
             var response = await this._systemConfiguratorProxy.SendCommandAsync(request);
             return (response as Message.CheckForUpdatesResponse).UpdatesAvailable;
         }
-
-        public enum RebootRequestStatus
-        {
-            Allowed,
-            Disabled,
-            InActiveHours,
-            RejectedByApp
-        }
+        */
 
         private static string RebootRequestStatusString(RebootRequestStatus status)
         {
@@ -328,7 +331,7 @@ namespace Microsoft.Devices.Management
             await ImmediateRebootAsync(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ"));
         }
 
-        public async Task ImmediateRebootAsync(string rebootCmdTime)
+        private async Task ImmediateRebootAsync(string rebootCmdTime)
         {
             RebootRequestStatus rebootRequestStatus = await IsRebootAllowedByApp();
 

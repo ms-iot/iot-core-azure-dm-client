@@ -100,3 +100,6 @@ To configure the device to Pacifict Standard Time, the <i>timeInfo</i> is set to
     }
 ```
 
+----
+
+[Home Page](../README.md) | [Library Reference](library-reference.md)

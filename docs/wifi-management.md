@@ -189,3 +189,7 @@ If the operator wants to uninstall a wifi profile (home-wifi.xml), the following
       }
     }
 </pre>
+
+----
+
+[Home Page](../README.md) | [Library Reference](library-reference.md)

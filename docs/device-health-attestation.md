@@ -156,3 +156,7 @@ For example, the operator can perform a "factory reset" to bring the device back
 ```
 
 See [HealthInspector sample code](../src/DHA/DHA/DHAServiceBusQueueHandler/HealthInspector.csx) for details.
+
+----
+
+[Home Page](../README.md) | [Library Reference](library-reference.md)

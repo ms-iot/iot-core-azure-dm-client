@@ -40,7 +40,7 @@ namespace Utils
         do
         {
             vector<wchar_t> moduleFileName(size);
-            ::GetModuleFileName(NULL, moduleFileName.data(), moduleFileName.size());
+            ::GetModuleFileName(NULL, moduleFileName.data(), static_cast<DWORD>(moduleFileName.size()));
 
             if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
             {

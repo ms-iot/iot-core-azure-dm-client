@@ -37,7 +37,7 @@ namespace IoTDMClientLibTests
             return null;
         }
 
-        async Task<string> IDeviceTwin.GetDeviceTwinPropertiesAsync()
+        async Task<string> IDeviceTwin.GetAllPropertiesAsync()
         {
             throw new NotImplementedException();
         }

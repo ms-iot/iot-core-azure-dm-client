@@ -29,7 +29,7 @@ Blob^ SerializationHelper::CreateBlobFromPtrSize(uint32_t tag, const byte* bytep
 {
     size_t byteCount = PrefixSize + size;
 
-    auto byteArray = ref new Array<byte>(byteCount);
+    auto byteArray = ref new Array<byte>(static_cast<unsigned int>(byteCount));
 
     // First, put out the version (32 bits)
     uint32_t version = CurrentVersion;
