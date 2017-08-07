@@ -5,12 +5,12 @@ The **Apply All Desired Propeties** operation is initiated by the following .NET
 
 <pre>
     <b>Namespace</b>:
-	Microsoft.Devices.Management
+    Microsoft.Devices.Management
 </pre>
 
 <pre>
     <b>Class</b>:
-	DeviceManagementClient
+    DeviceManagementClient
 </pre>
 
 <pre>

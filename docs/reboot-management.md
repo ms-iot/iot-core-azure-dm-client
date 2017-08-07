@@ -57,7 +57,7 @@ To allow/disallow reboots, the application developer can invoke the following .N
 
 <pre>
     <b>Namespace</b>:
-	Microsoft.Devices.Management
+    Microsoft.Devices.Management
 </pre>
 
 <pre>
@@ -73,7 +73,7 @@ To allow/disallow reboots, the application developer can invoke the following .N
 
 <pre>
     <b>Class</b>:
-	DeviceManagementClient
+    DeviceManagementClient
 </pre>
 
 <pre>
