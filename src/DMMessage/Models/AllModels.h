@@ -23,6 +23,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DeviceHealthAttestation.h"
 #include "DeviceInfo.h"
 #include "EventTracingConfiguration.h"
+#include "ExitDM.h"
 #include "FactoryReset.h"
 #include "FileTransfer.h"
 #include "ListApps.h"

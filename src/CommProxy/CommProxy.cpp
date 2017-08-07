@@ -18,63 +18,13 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "..\SharedUtilities\Utils.h"
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMRequest.h"
-
 #include "Blob.h"
+#include "..\SharedUtilities\SystemConfiguratorPipe.h"
 #include "StringResponse.h"
 
 using namespace Microsoft::Devices::Management::Message;
-
 using namespace std;
-
-Blob^ GetResponseFromSystemConfigurator(Blob^ request, const wchar_t* pipeName)
-{
-    TRACE(__FUNCTION__);
-
-    Utils::AutoCloseHandle pipeHandle;
-    int waitAttemptsLeft = 10;
-    while (waitAttemptsLeft--)
-    {
-        TRACE("Attempting to connect to system configurator pipe...");
-
-        pipeHandle.SetHandle(CreateFileW(pipeName,
-            GENERIC_READ | GENERIC_WRITE,
-            0,
-            NULL,
-            OPEN_EXISTING,
-            0,
-            NULL));
-
-        // Break if the pipe handle is valid.
-        if (pipeHandle.Get() != INVALID_HANDLE_VALUE)
-        {
-            break;
-        }
-
-        // Exit if an error other than ERROR_PIPE_BUSY occurs
-        if (GetLastError() != ERROR_PIPE_BUSY)
-        {
-            throw ref new Exception(HRESULT_FROM_WIN32(GetLastError()), "Cannot open pipe. Make sure SystemConfigurator is running");
-        }
-
-        // All pipe instances are busy, so wait for a maximum of 1 second
-        // or until an instance becomes available.
-        WaitNamedPipe(PipeName, 1000);
-    }
-
-    if (pipeHandle.Get() == INVALID_HANDLE_VALUE || pipeHandle.Get() == NULL)
-    {
-        throw ref new Exception(E_FAIL, "Failed to connect to SystemConfigurator pipe...");
-    }
-    TRACE("Connected successfully to SystemConfigurator pipe...");
-
-    TRACE("Writing request to SystemConfigurator pipe...");
-    request->WriteToNativeHandle(pipeHandle.Get64());
-
-    TRACE("Reading response from SystemConfigurator pipe...");
-    Blob^ response = Blob::ReadFromNativeHandle(pipeHandle.Get64());
-
-    return response;
-}
+using namespace Utils;
 
 int main(Platform::Array<Platform::String^>^ args)
 {
@@ -91,7 +41,7 @@ int main(Platform::Array<Platform::String^>^ args)
         Blob^ request = Blob::ReadFromNativeHandle(stdinHandle.Get64());
         request->ValidateVersion();
 
-        Blob^ response = GetResponseFromSystemConfigurator(request, PipeName);
+        Blob^ response = SystemConfiguratorPipe::Send(request);
 
         TRACE("Writing to stdout...");
         response->WriteToNativeHandle(stdoutHandle.Get64());

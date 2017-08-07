@@ -57,7 +57,7 @@ To allow/disallow reboots, the application developer can invoke the following .N
 
 <pre>
     <b>Namespace</b>:
-	Microsoft.Devices.Management
+    Microsoft.Devices.Management
 </pre>
 
 <pre>
@@ -73,7 +73,7 @@ To allow/disallow reboots, the application developer can invoke the following .N
 
 <pre>
     <b>Class</b>:
-	DeviceManagementClient
+    DeviceManagementClient
 </pre>
 
 <pre>
@@ -98,6 +98,9 @@ Note that IsRebootAllowedBySystem() can return only one of the following values 
         dmClient.AllowReboots(true);
     }
 </pre>
+
+**Note:** There is no Azure interface for this functionality. This functionality is meant for the application signal its own busy state.
+
 
 ## Initiate Immediate Reboot
 

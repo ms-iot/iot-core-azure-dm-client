@@ -1,3 +1,4 @@
+#pragma once
 /*
 Copyright 2017 Microsoft
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -13,13 +14,36 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #pragma once
+#include "IRequestIResponse.h"
+#include "SerializationHelper.h"
+#include "DMMessageKind.h"
+#include "StatusCodeResponse.h"
+#include "Blob.h"
 
-#include <cstdint>
-#include <string>
-#include <vector>
-#include <codecvt>
+using namespace Platform;
+using namespace Platform::Metadata;
+using namespace Windows::Data::Json;
 
-const int PipeBufferSize = 4096;
-const int DataSizeInBytes = 128;
+namespace Microsoft { namespace Devices { namespace Management { namespace Message
+{
+    public ref class ExitDMRequest sealed : public IRequest
+    {
+    public:
 
-__declspec(selectany) const wchar_t* PipeName = L"\\\\.\\pipe\\dm-client-pipe";
+        virtual Blob^ Serialize()
+        {
+            return SerializationHelper::CreateEmptyBlob((uint32_t)Tag);
+        }
+
+        static IDataPayload^ Deserialize(Blob^ blob)
+        {
+            assert(blob->Tag == DMMessageKind::ExitDM);
+            return ref new ExitDMRequest();
+        }
+
+        virtual property DMMessageKind Tag
+        {
+            DMMessageKind get();
+        }
+    };
+}}}}

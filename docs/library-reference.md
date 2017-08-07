@@ -72,6 +72,10 @@ Certain device management operations are initiated by desired properties set fro
 - [Time Management](time-management.md)
 - [WiFi](wifi-management.md)
 - [Windows Update Management](windows-update-management.md)
+
+### General
+
+- [Apply All Desired Properties](apply-all-desired-properties.md)
 - [Report All Device Properties](report-all-device-properties.md)
 
 ----

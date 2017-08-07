@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\DMShared\..\DMMessage\DMGarbageCollector.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\DMShared\..\DMMessage\DMMessageHelper.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\DMShared\..\DMMessage\SerializationHelper.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\DMShared\..\DMMessage\Blob.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{5e5067ba-c539-49d4-b283-75942f0fec92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{3b7645c8-0e97-4060-8c6c-02944b8df0d7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\DMShared\..\DMMessage\DMGarbageCollectorTempFolder.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
