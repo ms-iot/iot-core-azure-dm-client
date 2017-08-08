@@ -173,7 +173,7 @@ namespace Microsoft.Devices.Management
         // IClientPropertyHandler
         public void OnDesiredPropertyChange(JToken desiredValue)
         {
-            HandleDesiredPropertyChangeAsync(desiredValue);
+            HandleDesiredPropertyChangeAsync(desiredValue).FireAndForget();
         }
 
         // IClientPropertyHandler
@@ -244,7 +244,7 @@ namespace Microsoft.Devices.Management
             try
             {
                 // Submit the work and return immediately.
-                DoGetWifiProfileDetailsAsync(jsonParam);
+                DoGetWifiProfileDetailsAsync(jsonParam).FireAndForget();
             }
             catch (Exception e)
             {

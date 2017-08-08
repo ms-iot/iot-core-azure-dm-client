@@ -207,7 +207,7 @@ CertificateFile::CertificateFile(const std::wstring& certFileName)
     std::vector<char> certEncoded;
     Utils::LoadFile(certFileName, certEncoded);
 
-    PCCERT_CONTEXT certContext = CertCreateCertificateContext(X509_ASN_ENCODING, reinterpret_cast<BYTE*>(certEncoded.data()), certEncoded.size());
+    PCCERT_CONTEXT certContext = CertCreateCertificateContext(X509_ASN_ENCODING, reinterpret_cast<BYTE*>(certEncoded.data()), static_cast<DWORD>(certEncoded.size()));
     if (!certContext)
     {
         throw new DMException("Error: CertCreateCertificateContext() failed.", GetLastError());

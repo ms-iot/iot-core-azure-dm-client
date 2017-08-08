@@ -12,8 +12,10 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Windows.Foundation.Diagnostics;
 
 namespace Microsoft.Devices.Management
@@ -66,6 +68,20 @@ namespace Microsoft.Devices.Management
                 channel.LogMessage(message, level);
             }
         }
+    }
 
+    static class AsyncHelper
+    {
+        public static async void FireAndForget(this Task task)
+        {
+            try
+            {
+                await task;
+            }
+            catch (Exception)
+            {
+                // log errors
+            }
+        }
     }
 }

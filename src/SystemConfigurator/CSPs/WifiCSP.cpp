@@ -33,7 +33,7 @@ vector<wstring> WifiCSP::GetProfiles()
     vector<wstring> data;
     // use std::function to pass lambda that captures something
     std::function<void(std::vector<std::wstring>&, std::wstring&)> valueHandler =
-        [&data](vector<wstring>& uriTokens, wstring& value) {
+        [&data](vector<wstring>& uriTokens, wstring&) {
             if (uriTokens.size() == 6)
             {
                 // 0/__1____/_2_/__3__/__4___/______5______

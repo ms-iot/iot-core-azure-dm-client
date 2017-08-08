@@ -473,14 +473,17 @@ namespace Microsoft.Devices.Management
         private static async Task<AppReportedState> UpdateAppFromStore(AppDesiredState desiredState)
         {
             Debug.WriteLine("Updating " + desiredState.packageFamilyName + " from store");
-            return new AppReportedState(
-                desiredState.packageFamilyId,
-                desiredState.packageFamilyName,
-                desiredState.version.ToString(),
-                desiredState.startUp,
-                "",
-                new Error(ErrorCodes.E_NOTIMPL, "Updating app from the store has not been implemented yet."),
-                JsonReport.Report);
+            return await Task.Run(() =>
+                {
+                    return new AppReportedState(
+                                    desiredState.packageFamilyId,
+                                    desiredState.packageFamilyName,
+                                    desiredState.version.ToString(),
+                                    desiredState.startUp,
+                                    "",
+                                    new Error(ErrorCodes.E_NOTIMPL, "Updating app from the store has not been implemented yet."),
+                                    JsonReport.Report);
+                });
         }
 
         private async Task<IDictionary<string, Message.AppInfo>> ListAppsAsync()
@@ -809,7 +812,7 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        private async Task QueryAppAsync(AppInfo installedAppInfo, AppDesiredState desiredState)
+        private void QueryApp(AppInfo installedAppInfo, AppDesiredState desiredState)
         {
             Debug.WriteLine("Processing query request...");
 
@@ -874,7 +877,7 @@ namespace Microsoft.Devices.Management
                     break;
                 case AppDesiredAction.Query:
                     {
-                        await QueryAppAsync(installedAppInfo, desiredState);
+                        QueryApp(installedAppInfo, desiredState);
                     }
                     break;
                 case AppDesiredAction.Unreport:
@@ -1046,14 +1049,14 @@ namespace Microsoft.Devices.Management
 
             // Need to revisit all the desired nodes (not only the changed ones)
             // so that we can re-construct the correct reported list.
-            ApplyDesiredAppsConfiguration(_desiredCache[JsonSectionName]);
+            ApplyDesiredAppsConfiguration(_desiredCache[JsonSectionName]).FireAndForget();
         }
 
         // IClientPropertyHandler
         public async Task<JObject> GetReportedPropertyAsync()
         {
             // ToDo: we need to use the cached status to know what to report back.
-            return (JObject)JsonConvert.DeserializeObject("{ \"state\" : \"not implemented\" }");
+            return await Task.Run(() => { return (JObject)JsonConvert.DeserializeObject("{ \"state\" : \"not implemented\" }"); });
         }
 
         private string _connectionString;

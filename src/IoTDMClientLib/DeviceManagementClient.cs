@@ -69,13 +69,13 @@ namespace Microsoft.Devices.Management
 
         class AppLifeCycleParameters
         {
-            public string pkgFamilyName;
-            public string action;
+            public string pkgFamilyName = "";
+            public string action = "";
         }
 
         class StartupApps
         {
-            public string foreground;
+            public string foreground = "";
         }
 
         private class HandlerCallback : IClientHandlerCallBack
@@ -322,7 +322,7 @@ namespace Microsoft.Devices.Management
             }
 
             // Start the reboot operation asynchrnously, which may or may not succeed
-            this.ImmediateRebootAsync(rebootCmdTime);
+            this.ImmediateRebootAsync(rebootCmdTime).FireAndForget();
             return JsonConvert.SerializeObject(new { response = "accepted" });
         }
 
@@ -397,7 +397,7 @@ namespace Microsoft.Devices.Management
         {
             Debug.WriteLine("StartAppSelfUpdateMethodHandlerAsync");
 
-            StartAppSelfUpdate();
+            StartAppSelfUpdate().FireAndForget();
 
             return Task.FromResult(JsonConvert.SerializeObject(new { response = "succeeded" }));
         }
@@ -442,7 +442,7 @@ namespace Microsoft.Devices.Management
             try
             {
                 // Submit the work and return immediately.
-                GetCertificateDetailsAsync(jsonParam);
+                GetCertificateDetailsAsync(jsonParam).FireAndForget();
             }
             catch(Exception e)
             {
@@ -478,7 +478,7 @@ namespace Microsoft.Devices.Management
             try
             {
                 // Submit the work and return immediately.
-                FactoryResetAsync(jsonParam);
+                FactoryResetAsync(jsonParam).FireAndForget();
             }
             catch (Exception e)
             {
@@ -520,7 +520,7 @@ namespace Microsoft.Devices.Management
 
             await IoTDMClient.CertificateManagement.DownloadCertificates(systemConfiguratorProxy, connectionString, containerName, certificateConfiguration);
             var request = new Message.SetCertificateConfigurationRequest(certificateConfiguration);
-            systemConfiguratorProxy.SendCommandAsync(request);
+            systemConfiguratorProxy.SendCommandAsync(request).FireAndForget();
         }
 
         public async Task AllowReboots(bool allowReboots)
@@ -574,7 +574,6 @@ namespace Microsoft.Devices.Management
 
             // ToDo: We should not throw here. All problems need to be logged.
             Message.CertificateConfiguration certificateConfiguration = null;
-            JObject appsConfiguration = null;
 
             foreach (var sectionProp in windowsPropValue.Children().OfType<JProperty>())
             {
@@ -749,7 +748,7 @@ namespace Microsoft.Devices.Management
                 timeInfo = timeInfoResponse.data,
             };
 
-            _deviceTwin.ReportProperties(collection);
+            _deviceTwin.ReportProperties(collection).FireAndForget();
         }
 
         private async Task ReportAllDeviceProperties()
@@ -782,16 +781,16 @@ namespace Microsoft.Devices.Management
             collection[DMJSonConstants.DTWindowsIoTNameSpace] = windowsObj;
 
             Debug.WriteLine($"Report properties: {collection[DMJSonConstants.DTWindowsIoTNameSpace].ToString()}");
-            _deviceTwin.ReportProperties(collection);
+            _deviceTwin.ReportProperties(collection).FireAndForget();
         }
 
-        private async Task<string> ReportAllDevicePropertiesMethodHandler(string jsonParam)
+        private Task<string> ReportAllDevicePropertiesMethodHandler(string jsonParam)
         {
             Logger.Log("Handling direct method " + MethodReportAllDeviceProperties + " ...", LoggingLevel.Verbose);
 
-            ReportAllDeviceProperties();
+            ReportAllDeviceProperties().FireAndForget();
 
-            return JsonConvert.SerializeObject(new { response = "success" });
+            return new Task<string>(() => { return JsonConvert.SerializeObject(new { response = "success" }); });
         }
 
         // Data members

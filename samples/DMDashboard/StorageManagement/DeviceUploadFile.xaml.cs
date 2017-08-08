@@ -95,7 +95,7 @@ namespace DMDashboard.StorageManagement
 
         private void OnUpload(object sender, RoutedEventArgs e)
         {
-            UploadAsync();
+            UploadAsync().FireAndForget();
         }
 
         private void OnClose(object sender, RoutedEventArgs e)

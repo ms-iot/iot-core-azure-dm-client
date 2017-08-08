@@ -103,7 +103,7 @@ namespace DMDashboard.StorageManagement
 
         private void OnEnumFolders(object sender, RoutedEventArgs e)
         {
-            EnumFolderAsync();
+            EnumFolderAsync().FireAndForget();
         }
 
         public async Task EnumFilesAsync()
@@ -136,7 +136,7 @@ namespace DMDashboard.StorageManagement
 
         private void OnEnumFiles(object sender, RoutedEventArgs e)
         {
-            EnumFilesAsync();
+            EnumFilesAsync().FireAndForget();
         }
 
         DeviceTwinAndMethod _azureDevice;

@@ -13,40 +13,23 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using Newtonsoft.Json.Linq;
+using System;
 using System.Threading.Tasks;
 
-namespace Microsoft.Devices.Management
+namespace DMDashboard
 {
-    class ExternalStorageHandler : IClientPropertyHandler
+    static class AsyncHelper
     {
-        const string JsonSectionName = "externalStorage";
-
-        // IClientPropertyHandler
-        public string PropertySectionName
+        public static async void FireAndForget(this Task task)
         {
-            get
+            try
             {
-                return JsonSectionName; // todo: constant in data contract?
+                await task;
+            }
+            catch (Exception)
+            {
+                // log errors
             }
         }
-
-        // IClientPropertyHandler
-        public void OnDesiredPropertyChange(JToken desiredValue)
-        {
-            if (desiredValue is JObject)
-            {
-                JObject jObject = (JObject)desiredValue;
-                _connectionString = (string)jObject.Property("connectionString").Value;
-            }
-        }
-
-        // IClientPropertyHandler
-        public Task<JObject> GetReportedPropertyAsync()
-        {
-            return null;
-        }
-
-        private string _connectionString;
     }
 }

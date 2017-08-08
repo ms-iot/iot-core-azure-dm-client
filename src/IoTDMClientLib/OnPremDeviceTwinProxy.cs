@@ -26,12 +26,12 @@ namespace Microsoft.Devices.Management
 
         async Task<Dictionary<string, object>> IDeviceTwin.GetDesiredPropertiesAsync()
         {
-            return null;
+            return await new Task<Dictionary<string, object>>(() => { return null; });
         }
 
         async Task<string> IDeviceTwin.GetAllPropertiesAsync()
         {
-            return "{}";
+            return await new Task<string>(() => { return "{}"; });
         }
 
         async Task IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
