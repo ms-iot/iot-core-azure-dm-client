@@ -59,7 +59,7 @@ namespace Microsoft.Devices.Management
 
         public void OnDesiredPropertyChange(JToken value)
         {
-            VerifyHealthAsync((JObject)value); // fire and forget
+            VerifyHealthAsync((JObject)value).FireAndForget();
         }
 
         public async Task<JObject> GetReportedPropertyAsync()
@@ -78,7 +78,7 @@ namespace Microsoft.Devices.Management
 
                 if (_reportInterval < TimeSpan.Zero)
                 {
-                    ReportStatus("Reporting Disabled");
+                    ReportStatus("Reporting Disabled").FireAndForget();
                     return;
                 }
                 else
@@ -88,7 +88,7 @@ namespace Microsoft.Devices.Management
                     request.HealthAttestationServerEndpoint = properties.Endpoint;
                     await this._systemConfiguratorProxy.SendCommandAsync(request);
                     // Report status OK
-                    ReportStatus("VerifyHealth Success");
+                    ReportStatus("VerifyHealth Success").FireAndForget();
 
                     if (_reportInterval == TimeSpan.Zero)
                     {
@@ -103,7 +103,7 @@ namespace Microsoft.Devices.Management
             catch (Exception e)
             {
                 Debug.WriteLine($"VerifyHealth failed: {e}");
-                ReportStatus($"VerifyHealth failed: {e.Message}");
+                ReportStatus($"VerifyHealth failed: {e.Message}").FireAndForget();
             }
         }
 
@@ -141,7 +141,7 @@ namespace Microsoft.Devices.Management
         private void ScheduledReportHandler(ThreadPoolTimer timer)
         {
             // Fire and forget
-            RequestNonceAsync();
+            RequestNonceAsync().FireAndForget();
         }
 
         private async Task RequestNonceAsync()
@@ -200,7 +200,7 @@ namespace Microsoft.Devices.Management
             Debug.WriteLine("DeviceHealthAttestationHandler.ReportNowHandlerAsync");
 
             // Submit the work and return immediately.
-            RequestNonceAsync();
+            RequestNonceAsync().FireAndForget();
 
             var response = new { response = "succeeded", reason = "" };
             return Task.FromResult(JsonConvert.SerializeObject(response));
@@ -217,7 +217,7 @@ namespace Microsoft.Devices.Management
                 var request = new Message.DeviceHealthAttestationGetReportRequest();
                 request.Nonce = param.Nonce;
                 // Submit the work and return immediately.
-                GetReportHandlerAsync(request);
+                GetReportHandlerAsync(request).FireAndForget();
             }
             catch (Exception e)
             {

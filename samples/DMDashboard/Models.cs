@@ -163,7 +163,7 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public CertificateConfiguration Configuration;
+        public CertificateConfiguration Configuration = null;
     }
 
     class GetCertificateDetailsParams
@@ -177,12 +177,12 @@ namespace Microsoft.Devices.Management
 
     class GetCertificateDetailsResponse
     {
-        public int Tag;
-        public int Status;
-        public string ValidTo;
-        public string ValidFrom;
-        public string IssuedTo;
-        public string IssuedBy;
+        public int Tag = 0;
+        public int Status = 0;
+        public string ValidTo = "";
+        public string ValidFrom = "";
+        public string IssuedTo = "";
+        public string IssuedBy = "";
     }
     class GetWifiProfileDetailsParams
     {

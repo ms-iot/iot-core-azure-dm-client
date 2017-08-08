@@ -230,13 +230,13 @@ namespace Microsoft.Devices.Management
             }
             catch (Exception err)
             {
-                BuildMethodJsonResponse("", err.HResult, err.Message);
+                BuildMethodJsonResponse("", err.HResult, err.Message).FireAndForget();
             }
         }
 
         private Task<string> UploadDMFile(string jsonParam)
         {
-            UploadDMFileAsync(jsonParam);
+            UploadDMFileAsync(jsonParam).FireAndForget();
 
             return BuildMethodJsonResponse("" /*payload*/, SuccessCode, "" /*error message*/);
         }

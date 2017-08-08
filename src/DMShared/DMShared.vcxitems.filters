@@ -1,18 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\DMShared\..\DMMessage\DMGarbageCollector.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\DMShared\..\DMMessage\DMMessageHelper.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\DMShared\..\DMMessage\SerializationHelper.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\DMShared\..\DMMessage\Blob.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\DMMessageHelper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\DMGarbageCollector.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\SerializationHelper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\Blob.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -23,8 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="D:\Projs\DM.0804.D\iot-core-azure-dm-client\src\DMShared\..\DMMessage\DMGarbageCollectorTempFolder.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\DMMessage\DMGarbageCollectorTempFolder.h" />
   </ItemGroup>
 </Project>

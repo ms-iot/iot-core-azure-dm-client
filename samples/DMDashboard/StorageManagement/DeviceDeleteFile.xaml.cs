@@ -59,12 +59,12 @@ namespace DMDashboard.StorageManagement
             DeviceMethodReturnValue result = await _azureDevice.CallDeviceMethod(DeleteDMFileMethod, parameters.ToString(), new TimeSpan(0, 0, 30), cancellationToken);
 
             MessageBox.Show("Triggered file delete...");
-            FileSelectionControl.EnumFilesAsync();
+            FileSelectionControl.EnumFilesAsync().FireAndForget();
         }
 
         private void OnDelete(object sender, RoutedEventArgs e)
         {
-            DeleteAsync();
+            DeleteAsync().FireAndForget();
         }
 
         private void OnClose(object sender, RoutedEventArgs e)

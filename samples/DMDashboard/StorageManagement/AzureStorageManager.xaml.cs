@@ -170,7 +170,7 @@ namespace DMDashboard.StorageManagement
             DialogResult result = folderBrowserDialog1.ShowDialog();
             string localFolder = folderBrowserDialog1.SelectedPath;
 
-            DownloadAsync(StorageConnectionStringBox.Text, (string)ContainersList.SelectedItem, ((BlobInfo)BlobsList.SelectedItem).Name, localFolder);
+            DownloadAsync(StorageConnectionStringBox.Text, (string)ContainersList.SelectedItem, ((BlobInfo)BlobsList.SelectedItem).Name, localFolder).FireAndForget();
         }
 
         private void OnDeleteSelectedBlob(object sender, RoutedEventArgs e)
@@ -180,7 +180,7 @@ namespace DMDashboard.StorageManagement
                 return;
             }
 
-            DeleteAsync(StorageConnectionStringBox.Text, (string)ContainersList.SelectedItem, ((BlobInfo)BlobsList.SelectedItem).Name);
+            DeleteAsync(StorageConnectionStringBox.Text, (string)ContainersList.SelectedItem, ((BlobInfo)BlobsList.SelectedItem).Name).FireAndForget();
         }
     }
 }

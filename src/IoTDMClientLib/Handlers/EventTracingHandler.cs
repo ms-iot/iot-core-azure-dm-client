@@ -325,7 +325,7 @@ namespace Microsoft.Devices.Management
 
             // Need to revisit all the desired nodes (not only the changed ones) 
             // so that we can re-construct the correct reported list.
-            OnDesiredPropertyChangeAsync(_desiredCache[JsonSectionName]);
+            OnDesiredPropertyChangeAsync(_desiredCache[JsonSectionName]).FireAndForget();
         }
 
         // IClientPropertyHandler

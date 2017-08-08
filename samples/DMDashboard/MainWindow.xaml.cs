@@ -464,7 +464,7 @@ namespace DMDashboard
 
         private void OnSetTimeInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(TimeDesiredState.SectionName, TimeDesiredState.ToJson());
+            SetDesired(TimeDesiredState.SectionName, TimeDesiredState.ToJson()).FireAndForget();
         }
 
         private ExternalStorage UIToExternalStorageModel()
@@ -477,17 +477,17 @@ namespace DMDashboard
         private void OnSetExternalStorageInfo(object sender, RoutedEventArgs e)
         {
             ExternalStorage externalStorage = UIToExternalStorageModel();
-            SetDesired(externalStorage.SectionName, externalStorage.ToJson());
+            SetDesired(externalStorage.SectionName, externalStorage.ToJson()).FireAndForget();
         }
 
         private void OnSetWindowsUpdatePolicyInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(DesiredWindowsUpdatePolicy.SectionName, DesiredWindowsUpdatePolicy.ToJson());
+            SetDesired(DesiredWindowsUpdatePolicy.SectionName, DesiredWindowsUpdatePolicy.ToJson()).FireAndForget();
         }
 
         private void OnSetDiagnosticLogsInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(DesiredDiagnosticLogs.SectionName, DesiredDiagnosticLogs.ToJson());
+            SetDesired(DesiredDiagnosticLogs.SectionName, DesiredDiagnosticLogs.ToJson()).FireAndForget();
         }
 
         private void OnDeviceDeleteFile(object sender, RoutedEventArgs e)
@@ -529,7 +529,7 @@ namespace DMDashboard
         private void OnSetWindowsUpdatesInfo(object sender, RoutedEventArgs e)
         {
             Microsoft.Devices.Management.WindowsUpdates.SetParams setParams = UIToWindowsUpdatesConfiguration();
-            SetDesired(setParams.SectionName, setParams.ToJson());
+            SetDesired(setParams.SectionName, setParams.ToJson()).FireAndForget();
         }
 
         private Certificates.CertificateConfiguration UIToCertificateConfiguration()
@@ -549,18 +549,18 @@ namespace DMDashboard
         private void OnSetCertificateConfiguration(object sender, RoutedEventArgs e)
         {
             Certificates.CertificateConfiguration certificateConfiguration = UIToCertificateConfiguration();
-            SetDesired(certificateConfiguration.SectionName, certificateConfiguration.ToJson());
+            SetDesired(certificateConfiguration.SectionName, certificateConfiguration.ToJson()).FireAndForget();
         }
 
         private void OnSetRebootInfo(object sender, RoutedEventArgs e)
         {
             Microsoft.Devices.Management.RebootInfo.SetParams setParams = UIToRebootInfoModel();
-            SetDesired(setParams.SectionName, setParams.ToJson());
+            SetDesired(setParams.SectionName, setParams.ToJson()).FireAndForget();
         }
 
         private void OnSetAppsConfiguration(object sender, RoutedEventArgs e)
         {
-            SetDesired(TheAppsConfigurator.SectionName, TheAppsConfigurator.ToJson());
+            SetDesired(TheAppsConfigurator.SectionName, TheAppsConfigurator.ToJson()).FireAndForget();
         }
 
         private void OnSetAllDesiredProperties(object sender, RoutedEventArgs e)
@@ -585,7 +585,7 @@ namespace DMDashboard
             json.Append(WifiDesiredState.ToJson());
             json.Append("}");
 
-            UpdateTwinData(DTRefreshing, json.ToString());
+            UpdateTwinData(DTRefreshing, json.ToString()).FireAndForget();
         }
 
         private void OnExpandApps(object sender, RoutedEventArgs e)
@@ -642,7 +642,7 @@ namespace DMDashboard
 
         private void DeviceHealthAttestationSetInfoButtonAsync(object sender, RoutedEventArgs e)
         {
-            SetDesired(DeviceHealthAttestationDesiredState.SectionName, DeviceHealthAttestationDesiredState.ToJson());
+            SetDesired(DeviceHealthAttestationDesiredState.SectionName, DeviceHealthAttestationDesiredState.ToJson()).FireAndForget();
         }
 
         private void OnExpandAzureStorageExplorer(object sender, RoutedEventArgs e)
@@ -708,7 +708,7 @@ namespace DMDashboard
 
         private void OnSetWifiConfiguration(object sender, RoutedEventArgs e)
         {
-            SetDesired(WifiDesiredState.SectionName, WifiDesiredState.ToJson());
+            SetDesired(WifiDesiredState.SectionName, WifiDesiredState.ToJson()).FireAndForget();
         }
 
         public async void ExportWifiProfileDetails(string profileName, string storageConnectionString, string storageContainer, string blobName)
