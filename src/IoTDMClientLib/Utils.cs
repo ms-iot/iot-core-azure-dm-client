@@ -13,6 +13,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -29,12 +30,63 @@ namespace Microsoft.Devices.Management
 
     class Error : Exception
     {
+        const string SubSystemString = "subSystem";
+        const string ErrorCodeString = "code";
+        const string ErrorContextString = "context";
+
         public Error() { }
 
         public Error(int code, string message) : base(message)
         {
             this.HResult = code;
         }
+
+        public Error(Message.ErrorSubSystem subSystem, int code, string message) : base(message)
+        {
+            this.HResult = code;
+            this.SubSystem = subSystem;
+        }
+
+        public JToken ToJson()
+        {
+            JObject jErrorDetails = new JObject();
+            jErrorDetails.Add(SubSystemString, new JValue(SubSystem.ToString()));
+            jErrorDetails.Add(ErrorCodeString, new JValue(this.HResult));
+            jErrorDetails.Add(ErrorContextString, new JValue(base.Message));
+            return jErrorDetails;
+        }
+
+        public Message.ErrorSubSystem SubSystem { get; private set; }
+    }
+
+    class StatusSection
+    {
+        const string SectionName = "lastCommit";
+        const string StatusSuccess = "success";
+
+        public StatusSection(Error error)
+        {
+            this._error = error;
+        }
+
+        public StatusSection()
+        { }
+
+        public JToken ToJson()
+        {
+            JObject jStatusObject = new JObject();
+            if (_error != null)
+            {
+                jStatusObject.Add(SectionName, _error.ToJson());
+            }
+            else
+            {
+                jStatusObject.Add(SectionName, new JValue(StatusSuccess));
+            }
+            return jStatusObject;
+        }
+
+        private Error _error;
     }
 
     enum JsonReport

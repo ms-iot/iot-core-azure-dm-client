@@ -109,19 +109,19 @@ namespace Utils
         HRESULT hr = CreateXmlReader(__uuidof(IXmlReader), (void**)xmlReader.GetAddressOf(), NULL);
         if (FAILED(hr))
         {
-            throw DMExceptionWithHRESULT("Error: Failed to create xml reader.", hr);
+            throw DMExceptionWithErrorCode("Error: Failed to create xml reader.", hr);
         }
 
         hr = xmlReader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
         if (FAILED(hr))
         {
-            throw DMExceptionWithHRESULT("Error: XmlReaderProperty_DtdProcessing() failed.", hr);
+            throw DMExceptionWithErrorCode("Error: XmlReaderProperty_DtdProcessing() failed.", hr);
         }
 
         hr = xmlReader->SetInput(resultSyncML);
         if (FAILED(hr))
         {
-            throw DMExceptionWithHRESULT("Error: SetInput() failed.", hr);
+            throw DMExceptionWithErrorCode("Error: SetInput() failed.", hr);
         }
 
         deque<wstring> pathStack;
@@ -141,14 +141,14 @@ namespace Utils
                 hr = xmlReader->GetPrefix(&prefix, &prefixSize);
                 if (FAILED(hr))
                 {
-                    throw DMExceptionWithHRESULT("Error: GetPrefix() failed.", hr);
+                    throw DMExceptionWithErrorCode("Error: GetPrefix() failed.", hr);
                 }
 
                 const wchar_t* localName;
                 hr = xmlReader->GetLocalName(&localName, NULL);
                 if (FAILED(hr))
                 {
-                    throw DMExceptionWithHRESULT("Error: GetLocalName() failed.", hr);
+                    throw DMExceptionWithErrorCode("Error: GetLocalName() failed.", hr);
                 }
 
                 wstring elementName;
@@ -185,14 +185,14 @@ namespace Utils
                 hr = xmlReader->GetPrefix(&prefix, &prefixSize);
                 if (FAILED(hr))
                 {
-                    throw DMExceptionWithHRESULT("Error: GetPrefix() failed.", hr);
+                    throw DMExceptionWithErrorCode("Error: GetPrefix() failed.", hr);
                 }
 
                 const wchar_t* localName = NULL;
                 hr = xmlReader->GetLocalName(&localName, NULL);
                 if (FAILED(hr))
                 {
-                    throw DMExceptionWithHRESULT("Error: GetLocalName() failed.", hr);
+                    throw DMExceptionWithErrorCode("Error: GetLocalName() failed.", hr);
                 }
 
                 if (itemPath == currentPath)
@@ -228,7 +228,7 @@ namespace Utils
                 hr = xmlReader->GetValue(&valueText, NULL);
                 if (FAILED(hr))
                 {
-                    throw DMExceptionWithHRESULT("Error: GetValue() failed.", hr);
+                    throw DMExceptionWithErrorCode("Error: GetValue() failed.", hr);
                 }
 
                 if (uriPath == currentPath)
@@ -253,21 +253,21 @@ namespace Utils
         if (FAILED(hr))
         {
             TRACEP(L"Error: Failed to create xml reader. Code :", hr);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithErrorCode(hr);
         }
 
         hr = xmlReader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
         if (FAILED(hr))
         {
             TRACEP(L"Error: XmlReaderProperty_DtdProcessing() failed. Code :\n", hr);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithErrorCode(hr);
         }
 
         hr = xmlReader->SetInput(resultSyncML);
         if (FAILED(hr))
         {
             TRACEP(L"Error: SetInput() failed. Code :\n", hr);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithErrorCode(hr);
         }
 
         deque<wstring> pathStack;
@@ -290,7 +290,7 @@ namespace Utils
                 if (FAILED(hr))
                 {
                     TRACEP(L"Error: GetPrefix() failed. Code :\n", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithErrorCode(hr);
                 }
 
                 const wchar_t* localName;
@@ -298,7 +298,7 @@ namespace Utils
                 if (FAILED(hr))
                 {
                     TRACEP(L"Error: GetLocalName() failed. Code :\n", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithErrorCode(hr);
                 }
 
                 wstring elementName;
@@ -335,7 +335,7 @@ namespace Utils
                 if (FAILED(hr))
                 {
                     TRACEP(L"Error: GetPrefix() failed. Code :", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithErrorCode(hr);
                 }
 
                 const wchar_t* localName = NULL;
@@ -343,7 +343,7 @@ namespace Utils
                 if (FAILED(hr))
                 {
                     TRACEP(L"Error: GetLocalName() failed. Code :", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithErrorCode(hr);
                 }
 
                 pathStack.pop_back();
@@ -357,7 +357,7 @@ namespace Utils
                 if (FAILED(hr))
                 {
                     TRACEP(L"Error: GetValue() failed. Code :", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithErrorCode(hr);
                 }
 
                 if (targetXmlPath == currentPath)
@@ -388,7 +388,7 @@ namespace Utils
         if (FAILED(hr))
         {
             GlobalFree(buffer);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithErrorCode(hr);
         }
         ReadXmlStructData(dataStream.Get(), handler);
 
@@ -407,7 +407,7 @@ namespace Utils
         if (FAILED(hr))
         {
             GlobalFree(buffer);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithErrorCode(hr);
         }
         ReadXmlValue(dataStream.Get(), targetXmlPath, value);
 

@@ -54,15 +54,26 @@ namespace Microsoft.Devices.Management
 
         private void ThrowError(IResponse response)
         {
-            var stringResponse = response as StringResponse;
-            string message = "Error: CommProxy.exe - Operation failed";
-            if (stringResponse != null)
+            if (response == null)
             {
-                message = "Error Tag(" + stringResponse.Tag.ToString() + ") : " + stringResponse.Status.ToString() + " : " + stringResponse.Response;
+                throw new Error(ErrorSubSystem.Unknown, -1, "SystemConfigurator returned a null response.");
             }
-            Logger.Log(message, LoggingLevel.Critical);
-            Debug.WriteLine(message);
-            throw new Error((int)stringResponse.Status, message);
+            else if (response is ErrorResponse)
+            {
+                var errorResponse = response as ErrorResponse;
+                string message = "Sub-system=" + errorResponse.SubSystem.ToString() + ", code=" + errorResponse.ErrorCode + ", messag=" + errorResponse.ErrorMessage;
+                Logger.Log(message, LoggingLevel.Error);
+                Debug.WriteLine(message);
+                throw new Error(errorResponse.SubSystem, errorResponse.ErrorCode, errorResponse.ErrorMessage);
+            }
+            else if (response is StringResponse)
+            {
+                var stringResponse = response as StringResponse;
+                string message = "Error Tag(" + stringResponse.Tag.ToString() + ") : " + stringResponse.Status.ToString() + " : " + stringResponse.Response;
+                Logger.Log(message, LoggingLevel.Error);
+                Debug.WriteLine(message);
+                throw new Error(ErrorSubSystem.Unknown, -1, message);
+            }
         }
 
         public async Task<IResponse> SendCommandAsync(IRequest command)

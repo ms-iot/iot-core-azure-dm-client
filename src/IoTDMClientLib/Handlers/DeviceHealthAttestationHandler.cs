@@ -57,7 +57,7 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public void OnDesiredPropertyChange(JToken value)
+        public async Task OnDesiredPropertyChange(JToken value)
         {
             VerifyHealthAsync((JObject)value).FireAndForget();
         }

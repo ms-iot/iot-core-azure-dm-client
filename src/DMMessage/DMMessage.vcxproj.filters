@@ -114,6 +114,9 @@
     <ClInclude Include="Models\ExitDM.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="Models\ErrorResponse.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Models\ModelsInfo.dat" />

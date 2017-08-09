@@ -98,6 +98,7 @@
     <ClInclude Include="Models\DeviceDMStorage.h" />
     <ClInclude Include="Models\DeviceHealthAttestation.h" />
     <ClInclude Include="Models\DeviceInfo.h" />
+    <ClInclude Include="Models\ErrorResponse.h" />
     <ClInclude Include="Models\EventTracingConfiguration.h" />
     <ClInclude Include="Models\ExitDM.h" />
     <ClInclude Include="Models\FactoryReset.h" />

@@ -57,14 +57,7 @@ namespace DMDataContract
             JToken jValue;
             if (jObj.TryGetValue(propertyName, out jValue))
             {
-                if (jValue.Type == JTokenType.String)
-                {
-                    return (string)jValue;
-                }
-                else
-                {
-                    Debug.WriteLine($"Property {propertyName} found but its type is not string!");
-                }
+                return jValue.ToString();
             }
             return defaultValue;
         }

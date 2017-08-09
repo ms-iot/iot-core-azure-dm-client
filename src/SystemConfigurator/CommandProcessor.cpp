@@ -216,10 +216,18 @@ IResponse^ HandleSetTimeInfo(IRequest^ request)
         TimeCfg::Set(setTimeInfoRequest);
         return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
     }
-    catch (const DMException& e)
+    catch (const DMExceptionWithErrorCode& e)
     {
-        TRACEP("ERROR DMCommand::HandleSetTimeInfo: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
+    }
+    catch (const exception& e)
+    {
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        int errorCode = static_cast<int>(DeviceManagementErrors::SetTimeZoneGenericError);
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
     }
 }
 
