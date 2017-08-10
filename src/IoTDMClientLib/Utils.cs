@@ -30,9 +30,9 @@ namespace Microsoft.Devices.Management
 
     class Error : Exception
     {
-        const string SubSystemString = "subSystem";
-        const string ErrorCodeString = "code";
-        const string ErrorContextString = "context";
+        const string SubSystemString = "errSubSystem";
+        const string ErrorCodeString = "errCode";
+        const string ErrorContextString = "errContext";
 
         public Error() { }
 
@@ -47,7 +47,7 @@ namespace Microsoft.Devices.Management
             this.SubSystem = subSystem;
         }
 
-        public JToken ToJson()
+        public JObject ToJson()
         {
             JObject jErrorDetails = new JObject();
             jErrorDetails.Add(SubSystemString, new JValue(SubSystem.ToString()));
@@ -61,32 +61,41 @@ namespace Microsoft.Devices.Management
 
     class StatusSection
     {
-        const string SectionName = "lastCommit";
-        const string StatusSuccess = "success";
+        const string SectionName = "lastChange";
+        const string TimeString = "time";
+        const string StateString = "state";
 
-        public StatusSection(Error error)
+        public enum StateType
         {
-            this._error = error;
+            Pending,
+            Committed,
+            Failed
         }
+
+        public StateType State { get; set; }
 
         public StatusSection()
-        { }
-
-        public JToken ToJson()
         {
-            JObject jStatusObject = new JObject();
-            if (_error != null)
-            {
-                jStatusObject.Add(SectionName, _error.ToJson());
-            }
-            else
-            {
-                jStatusObject.Add(SectionName, new JValue(StatusSuccess));
-            }
-            return jStatusObject;
+            _dateTime = DateTime.Now;
+            State = StateType.Pending;
         }
 
-        private Error _error;
+        public JObject ToJsonValue(Error error)
+        {
+            JObject jStatusObject = new JObject();
+            jStatusObject.Add(TimeString, new JValue(_dateTime));
+            jStatusObject.Add(StateString, new JValue(State.ToString().ToLower()));
+            if (error != null)
+            {
+                jStatusObject.Merge(error.ToJson());
+            }
+
+            JObject jLastChange = new JObject();
+            jLastChange.Add(SectionName, jStatusObject);
+            return jLastChange;
+        }
+
+        DateTime _dateTime;
     }
 
     enum JsonReport

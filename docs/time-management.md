@@ -45,6 +45,13 @@ The format of the `"reported.microsoft.management.timeInfo"` desired property is
             "timeZoneBias": <i>bias</i>,
             "ntpServer": "<i>ntpServer</i>",
             "localTime": "<i>Datetime in ISO 8601 format, UTC</i>"
+            "lastChange": {
+                "time" : "<i>timestamp</i>",
+                "state" : "pending|committed|failed",
+                "errSubSystem" : "<i>error sub-system</i>",
+                "errCode" : <i>error code</i>,
+                "errContext" : "<i>error context</i>"
+            }
           }
         }
       }
@@ -89,6 +96,10 @@ The reported settings will looks something like this:
             "timeZoneBias": 480,
             "ntpServer": "time.windows.com",
             "localTime": "2017-03-02T01:31:15.0000483Z"
+            "lastChange": {
+                "time" : "<i>timestamp</i>",
+                "state" : "committed",
+            }
           }
         }
     }

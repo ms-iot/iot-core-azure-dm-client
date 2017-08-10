@@ -556,7 +556,10 @@ namespace Microsoft.Devices.Management
                         try
                         {
                             Debug.WriteLine($"{sectionProp.Name} = {sectionProp.Value.ToString()}");
-                            handler.OnDesiredPropertyDependencyChange(sectionProp.Name, (JObject)sectionProp.Value);
+                            if (sectionProp.Value is JObject)
+                            {
+                                handler.OnDesiredPropertyDependencyChange(sectionProp.Name, (JObject)sectionProp.Value);
+                            }
                         }
                         catch (Exception e)
                         {
@@ -573,6 +576,9 @@ namespace Microsoft.Devices.Management
                 IClientPropertyHandler handler;
                 if (this._desiredPropertyMap.TryGetValue(sectionProp.Name, out handler))
                 {
+                    StatusSection statusSection = new StatusSection();
+                    ReportPropertiesAsync(sectionProp.Name, statusSection.ToJsonValue(null)).FireAndForget();
+
                     try
                     {
                         Debug.WriteLine($"{sectionProp.Name} = {sectionProp.Value.ToString()}");
@@ -583,19 +589,19 @@ namespace Microsoft.Devices.Management
 
                         await handler.OnDesiredPropertyChange(sectionProp.Value);
 
-                        StatusSection statusSection = new StatusSection();
-                        ReportPropertiesAsync(sectionProp.Name, statusSection.ToJson()).FireAndForget();
+                        statusSection.State = StatusSection.StateType.Committed;
+                        ReportPropertiesAsync(sectionProp.Name, statusSection.ToJsonValue(null)).FireAndForget();
                     }
                     catch (Error e)
                     {
-                        StatusSection statusSection = new StatusSection(e);
-                        ReportPropertiesAsync(sectionProp.Name, statusSection.ToJson()).FireAndForget();
+                        statusSection.State = StatusSection.StateType.Failed;
+                        ReportPropertiesAsync(sectionProp.Name, statusSection.ToJsonValue(e)).FireAndForget();
                     }
                     catch (Exception e)
                     {
                         Error error = new Error(ErrorSubSystem.Unknown, e.HResult, e.Message);
-                        StatusSection statusSection = new StatusSection(error);
-                        ReportPropertiesAsync(sectionProp.Name, statusSection.ToJson()).FireAndForget();
+                        statusSection.State = StatusSection.StateType.Failed;
+                        ReportPropertiesAsync(sectionProp.Name, statusSection.ToJsonValue(error)).FireAndForget();
                     }
                 }
                 else
