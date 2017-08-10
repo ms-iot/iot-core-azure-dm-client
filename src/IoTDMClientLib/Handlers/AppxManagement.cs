@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Foundation.Diagnostics;
 
 namespace Microsoft.Devices.Management
 {
@@ -159,22 +160,22 @@ namespace Microsoft.Devices.Management
 
         public void Dump()
         {
-            Debug.WriteLine("- Desired State ------------------------------------------------");
-            Debug.WriteLine("packageFamilyId = " + packageFamilyId);
-            Debug.WriteLine("packageFamilyName   = " + packageFamilyName);
-            Debug.WriteLine("action              = " + action.ToString());
-            Debug.WriteLine("version             = " + version?.ToString());
-            Debug.WriteLine("startUp             = " + startUp.ToString());
-            Debug.WriteLine("appxSource          = " + appxSource);
-            Debug.WriteLine("depsSources         = " + depsSources);
-            Debug.WriteLine("certSource          = " + certSource);
-            Debug.WriteLine("certStore           = " + certStore);
+            Logger.Log("- Desired State ------------------------------------------------", LoggingLevel.Verbose);
+            Logger.Log("packageFamilyId     = " + packageFamilyId, LoggingLevel.Verbose);
+            Logger.Log("packageFamilyName   = " + packageFamilyName, LoggingLevel.Verbose);
+            Logger.Log("action              = " + action.ToString(), LoggingLevel.Verbose);
+            Logger.Log("version             = " + version?.ToString(), LoggingLevel.Verbose);
+            Logger.Log("startUp             = " + startUp.ToString(), LoggingLevel.Verbose);
+            Logger.Log("appxSource          = " + appxSource, LoggingLevel.Verbose);
+            Logger.Log("depsSources         = " + depsSources, LoggingLevel.Verbose);
+            Logger.Log("certSource          = " + certSource, LoggingLevel.Verbose);
+            Logger.Log("certStore           = " + certStore, LoggingLevel.Verbose);
             if (error != null)
             {
-                Debug.WriteLine("errorCode           = " + error.HResult);
-                Debug.WriteLine("errorMessage        = " + error.Message);
+                Logger.Log("errorCode           = " + error.HResult, LoggingLevel.Verbose);
+                Logger.Log("errorMessage        = " + error.Message, LoggingLevel.Verbose);
             }
-            Debug.WriteLine("----------------------------------------------------------------");
+            Logger.Log("----------------------------------------------------------------", LoggingLevel.Verbose);
         }
     }
 
@@ -224,19 +225,19 @@ namespace Microsoft.Devices.Management
         {
             foreach (KeyValuePair<string, AppInfo> p in data)
             {
-                Debug.WriteLine("- Installed App ---------------------------------------------");
-                Debug.WriteLine("Key               = " + p.Key);
-                Debug.WriteLine("Name              = " + p.Value.Name);
-                Debug.WriteLine("PackageFamilyName = " + p.Value.PackageFamilyName);
-                Debug.WriteLine("AppSource         = " + p.Value.AppSource);
-                Debug.WriteLine("InstallDate       = " + p.Value.InstallDate);
-                Debug.WriteLine("InstallLocation   = " + p.Value.InstallLocation);
-                Debug.WriteLine("Architecture      = " + p.Value.Architecture);
-                Debug.WriteLine("Publisher         = " + p.Value.Publisher);
-                Debug.WriteLine("Version           = " + p.Value.Version);
-                Debug.WriteLine("Users             = " + p.Value.Users);
-                Debug.WriteLine("StartUp           = " + p.Value.StartUp);
-                Debug.WriteLine("-------------------------------------------------------------");
+                Logger.Log("- Installed App ---------------------------------------------", LoggingLevel.Verbose);
+                Logger.Log("Key               = " + p.Key, LoggingLevel.Verbose);
+                Logger.Log("Name              = " + p.Value.Name, LoggingLevel.Verbose);
+                Logger.Log("PackageFamilyName = " + p.Value.PackageFamilyName, LoggingLevel.Verbose);
+                Logger.Log("AppSource         = " + p.Value.AppSource, LoggingLevel.Verbose);
+                Logger.Log("InstallDate       = " + p.Value.InstallDate, LoggingLevel.Verbose);
+                Logger.Log("InstallLocation   = " + p.Value.InstallLocation, LoggingLevel.Verbose);
+                Logger.Log("Architecture      = " + p.Value.Architecture, LoggingLevel.Verbose);
+                Logger.Log("Publisher         = " + p.Value.Publisher, LoggingLevel.Verbose);
+                Logger.Log("Version           = " + p.Value.Version, LoggingLevel.Verbose);
+                Logger.Log("Users             = " + p.Value.Users, LoggingLevel.Verbose);
+                Logger.Log("StartUp           = " + p.Value.StartUp, LoggingLevel.Verbose);
+                Logger.Log("-------------------------------------------------------------", LoggingLevel.Verbose);
             }
         }
 
@@ -247,19 +248,19 @@ namespace Microsoft.Devices.Management
             sb.Append("    " + appReportedState.ToJson());
             sb.Append("}\n");
 
-            Debug.WriteLine("Report:\n" + sb.ToString());
+            Logger.Log("Report:\n" + sb.ToString(), LoggingLevel.Verbose);
             await this._callback.ReportPropertiesAsync(JsonSectionName, (JToken)JsonConvert.DeserializeObject(sb.ToString()));
         }
 
         private async Task NullifyReported()
         {
-            Debug.WriteLine("NullifyReported\n");
+            Logger.Log("NullifyReported\n", LoggingLevel.Verbose);
             await this._callback.ReportPropertiesAsync(JsonSectionName, new JValue("refreshing"));
         }
 
         private async Task ReportGeneralError(int errorCode, string errorMessage)
         {
-            Debug.WriteLine("ReportGeneralError\n");
+            Logger.Log("ReportGeneralError\n", LoggingLevel.Verbose);
 
             /*
             StringBuilder sb = new StringBuilder();
@@ -297,7 +298,7 @@ namespace Microsoft.Devices.Management
 
             foreach (AppDesiredState state in foregroundApps)
             {
-                Debug.WriteLine("Found foreground app: " + state.packageFamilyName);
+                Logger.Log("Found foreground app: " + state.packageFamilyName, LoggingLevel.Verbose);
                 desiredForegroundApp = state;
             }
 
@@ -351,10 +352,10 @@ namespace Microsoft.Devices.Management
                 appDesiredStates.Insert(0, desiredForegroundApp);
             }
 
-            Debug.WriteLine("Ordered:");
+            Logger.Log("Ordered:", LoggingLevel.Verbose);
             foreach (AppDesiredState state in appDesiredStates)
             {
-                Debug.WriteLine("App: " + state.packageFamilyName + " " + state.startUp.ToString());
+                Logger.Log("App: " + state.packageFamilyName + " " + state.startUp.ToString(), LoggingLevel.Verbose);
             }
         }
 
@@ -451,7 +452,7 @@ namespace Microsoft.Devices.Management
 
             foreach (JProperty property in appsNode.Children())
             {
-                Debug.WriteLine("Property Name = " + property.Name);
+                Logger.Log("Property Name = " + property.Name, LoggingLevel.Verbose);
                 if (String.IsNullOrEmpty(property.Name))
                 {
                     continue;
@@ -472,7 +473,7 @@ namespace Microsoft.Devices.Management
 
         private static async Task<AppReportedState> UpdateAppFromStore(AppDesiredState desiredState)
         {
-            Debug.WriteLine("Updating " + desiredState.packageFamilyName + " from store");
+            Logger.Log("Updating " + desiredState.packageFamilyName + " from store", LoggingLevel.Verbose);
             return await Task.Run(() =>
                 {
                     return new AppReportedState(
@@ -495,7 +496,7 @@ namespace Microsoft.Devices.Management
 
         private async Task<Message.AppInstallResponse> InstallAppAsync(Message.AppInstallRequestData requestData)
         {
-            Debug.WriteLine("Installing: " + requestData.PackageFamilyName);
+            Logger.Log("Installing: " + requestData.PackageFamilyName, LoggingLevel.Verbose);
 
             var request = new Message.AppInstallRequest(requestData);
             return await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.AppInstallResponse;
@@ -503,7 +504,7 @@ namespace Microsoft.Devices.Management
 
         private async Task<Message.AppUninstallResponse> UninstallAppAsync(Message.AppUninstallRequestData requestData)
         {
-            Debug.WriteLine("Uninstalling: " + requestData.PackageFamilyName);
+            Logger.Log("Uninstalling: " + requestData.PackageFamilyName, LoggingLevel.Verbose);
 
             var request = new Message.AppUninstallRequest(requestData);
             return await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.AppUninstallResponse;
@@ -511,7 +512,7 @@ namespace Microsoft.Devices.Management
 
         private async Task UninstallAppAsync(AppInfo appInfo, string packageFamilyId, string packageFamilyName)
         {
-            Debug.WriteLine("Processing uninstall request...");
+            Logger.Log("Processing uninstall request...", LoggingLevel.Verbose);
 
             AppReportedState reportedState = null;
             try
@@ -573,7 +574,7 @@ namespace Microsoft.Devices.Management
             AppReportedState reportedState = null;
             try
             {
-                Debug.WriteLine("-> installing " + desiredState.packageFamilyName + " from " + desiredState.appxSource);
+                Logger.Log("-> installing " + desiredState.packageFamilyName + " from " + desiredState.appxSource, LoggingLevel.Verbose);
                 if (String.IsNullOrEmpty(desiredState.appxSource))
                 {
                     throw new Error(ErrorCodes.INVALID_DESIRED_APPX_SRC, "Cannot install appx without a source.");
@@ -584,7 +585,7 @@ namespace Microsoft.Devices.Management
                 requestData.StartUp = desiredState.startUp;
 
                 // Downloading dependencies...
-                Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Downloading...");
+                Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Downloading...", LoggingLevel.Verbose);
                 if (!String.IsNullOrEmpty(desiredState.depsSources))
                 {
                     string[] depsSources = desiredState.depsSources.Split(';');
@@ -592,29 +593,29 @@ namespace Microsoft.Devices.Management
                     for (int i = 0; i < depsSources.Length; ++i)
                     {
                         IoTDMClient.BlobInfo dependencyBlob = IoTDMClient.BlobInfo.BlobInfoFromSource(connectionString, depsSources[i]);
-                        Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Downloading " + dependencyBlob.BlobName);
+                        Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Downloading " + dependencyBlob.BlobName, LoggingLevel.Verbose);
 
                         var dependencyPath = await dependencyBlob.DownloadToTempAsync(this._systemConfiguratorProxy);
-                        Debug.WriteLine(dependencyPath);
+                        Logger.Log(dependencyPath, LoggingLevel.Verbose);
                         requestData.Dependencies.Add(dependencyPath);
                     }
                 }
 
                 // Downloading certificates...
-                Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Downloading appx certificate...");
+                Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Downloading appx certificate...", LoggingLevel.Verbose);
                 IoTDMClient.BlobInfo certificateBlob = IoTDMClient.BlobInfo.BlobInfoFromSource(connectionString, desiredState.certSource);
                 requestData.CertFile = await certificateBlob.DownloadToTempAsync(this._systemConfiguratorProxy);
                 requestData.CertStore = desiredState.certStore;
 
                 // Downloading appx...
-                Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Downloading appx...");
+                Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Downloading appx...", LoggingLevel.Verbose);
                 IoTDMClient.BlobInfo appxBlob = IoTDMClient.BlobInfo.BlobInfoFromSource(connectionString, desiredState.appxSource);
                 requestData.AppxPath = await appxBlob.DownloadToTempAsync(this._systemConfiguratorProxy);
 
                 // Installing appx...
-                Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Installing appx...");
+                Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Installing appx...", LoggingLevel.Verbose);
                 AppInstallResponse response = await InstallAppAsync(requestData);
-                Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " Done installing appx...");
+                Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Done installing appx...", LoggingLevel.Verbose);
 
                 Error e = null;
                 if (desiredState.version.ToString() != response.data.version)
@@ -681,7 +682,7 @@ namespace Microsoft.Devices.Management
             IList<string> backgroundApps = await ListStartupBackgroundAppsAsync();
             foreach(string s in backgroundApps)
             {
-                Debug.WriteLine("Found background app: " + s);
+                Logger.Log("Found background app: " + s, LoggingLevel.Verbose);
             }
             var result = from backgroundApp in backgroundApps where backgroundApp == appId select backgroundApp;
             if (result.Count<string>() > 0)
@@ -694,27 +695,27 @@ namespace Microsoft.Devices.Management
 
         private async Task InstallAppAsync(AppInfo installedAppInfo, Version installedAppVersion, string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
         {
-            Debug.WriteLine("Processing install request for " + desiredState.packageFamilyId);
+            Logger.Log("Processing install request for " + desiredState.packageFamilyId, LoggingLevel.Verbose);
 
             if (installedAppInfo == null)
             {
                 // It is a new application.
-                Debug.WriteLine("    Can't find an installed version... Installing a fresh copy...");
+                Logger.Log("    Can't find an installed version... Installing a fresh copy...", LoggingLevel.Verbose);
                 await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);       // ---> InstallAppFromAzureAsync
             }
             else
             {
                 // A version of this application is installed.
-                Debug.WriteLine("    Found an installed version...");
+                Logger.Log("    Found an installed version...", LoggingLevel.Verbose);
 
                 if (desiredState.version == installedAppVersion)
                 {
-                    Debug.WriteLine("        Same version is installed...");
+                    Logger.Log("        Same version is installed...", LoggingLevel.Verbose);
                     AppReportedState appReportedState = null;
 
                     if (desiredState.startUp == installedAppInfo.StartUp)
                     {
-                        Debug.WriteLine("        App StartUp is the same: desired = " + desiredState.startUp);
+                        Logger.Log("        App StartUp is the same: desired = " + desiredState.startUp, LoggingLevel.Verbose);
 
                         appReportedState = new AppReportedState(
                             desiredState.packageFamilyId,
@@ -727,27 +728,27 @@ namespace Microsoft.Devices.Management
                     }
                     else
                     {
-                        Debug.WriteLine("        App StartUp is different: desired = " + desiredState.startUp.ToString() + ", current = " + installedAppInfo.StartUp.ToString());
+                        Logger.Log("        App StartUp is different: desired = " + desiredState.startUp.ToString() + ", current = " + installedAppInfo.StartUp.ToString(), LoggingLevel.Verbose);
 
                         switch (desiredState.startUp)
                         {
                             case StartUpType.None:
                                 {
-                                    Debug.WriteLine("            Removing app from background apps.");
+                                    Logger.Log("            Removing app from background apps.", LoggingLevel.Verbose);
                                     StartupAppInfo startupAppInfo = new StartupAppInfo(desiredState.packageFamilyName, true /*background*/);
                                     await RemoveStartupAppAsync(startupAppInfo);
                                 }
                                 break;
                             case StartUpType.Foreground:
                                 {
-                                    Debug.WriteLine("            Setting app to be the foreground app.");
+                                    Logger.Log("            Setting app to be the foreground app.", LoggingLevel.Verbose);
                                     StartupAppInfo startupAppInfo = new StartupAppInfo(desiredState.packageFamilyName, false /*background*/);
                                     await AddStartupAppAsync(startupAppInfo);
                                 }
                                 break;
                             case StartUpType.Background:
                                 {
-                                    Debug.WriteLine("            Adding app to the background apps.");
+                                    Logger.Log("            Adding app to the background apps.", LoggingLevel.Verbose);
                                     StartupAppInfo startupAppInfo = new StartupAppInfo(desiredState.packageFamilyName, true /*background*/);
                                     await AddStartupAppAsync(startupAppInfo);
                                 }
@@ -755,7 +756,7 @@ namespace Microsoft.Devices.Management
                         }
 
                         StartUpType appStartUp = await GetAppStartup(desiredState.packageFamilyName);
-                        Debug.WriteLine("            Querying returned app startup: " + appStartUp.ToString());
+                        Logger.Log("            Querying returned app startup: " + appStartUp.ToString(), LoggingLevel.Verbose);
 
                         appReportedState = new AppReportedState(
                             desiredState.packageFamilyId,
@@ -771,7 +772,7 @@ namespace Microsoft.Devices.Management
                 }
                 else if (desiredState.version > installedAppVersion)
                 {
-                    Debug.WriteLine("        Older version is installed...");
+                    Logger.Log("        Older version is installed...", LoggingLevel.Verbose);
 
                     if (!String.IsNullOrEmpty(desiredState.appxSource))
                     {
@@ -785,7 +786,7 @@ namespace Microsoft.Devices.Management
                 else
                 {
                     // desiredState.version < installedAppVersion
-                    Debug.WriteLine("       Newer version is installed...rolling back.");
+                    Logger.Log("       Newer version is installed...rolling back.", LoggingLevel.Verbose);
 
                     if (String.IsNullOrEmpty(desiredState.appxSource))
                     {
@@ -814,12 +815,12 @@ namespace Microsoft.Devices.Management
 
         private void QueryApp(AppInfo installedAppInfo, AppDesiredState desiredState)
         {
-            Debug.WriteLine("Processing query request...");
+            Logger.Log("Processing query request...", LoggingLevel.Verbose);
 
             AppReportedState appReportedState;
             if (installedAppInfo == null)
             {
-                Debug.WriteLine("    Couldn't find an installed version...");
+                Logger.Log("    Couldn't find an installed version...", LoggingLevel.Verbose);
 
                 appReportedState = new AppReportedState(
                     desiredState.packageFamilyId,
@@ -832,7 +833,7 @@ namespace Microsoft.Devices.Management
             }
             else
             {
-                Debug.WriteLine("    Found an installed version...");
+                Logger.Log("    Found an installed version...", LoggingLevel.Verbose);
 
                 appReportedState = new AppReportedState(
                     desiredState.packageFamilyId,
@@ -882,7 +883,7 @@ namespace Microsoft.Devices.Management
                     break;
                 case AppDesiredAction.Unreport:
                     {
-                        Debug.WriteLine("Processing unreport request...");
+                        Logger.Log("Processing unreport request...", LoggingLevel.Verbose);
 
                         AppReportedState appReportedState = new AppReportedState(
                             desiredState.packageFamilyId,
@@ -898,7 +899,7 @@ namespace Microsoft.Devices.Management
                     break;
                 case AppDesiredAction.Undefined:
                     {
-                        Debug.WriteLine("Processing unknown request...");
+                        Logger.Log("Processing unknown request...", LoggingLevel.Verbose);
 
                         AppReportedState appReportedState = new AppReportedState(
                             desiredState.packageFamilyId,

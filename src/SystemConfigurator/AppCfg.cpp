@@ -114,17 +114,24 @@ ApplicationInfo AppCfg::BuildOperationResult(const wstring& packageFamilyName, i
 
     if (package)
     {
+        TRACE(L"Found the package!");
+
         applicationInfo = GetAppInfo(package);
     }
     else
     {
+        TRACE(L"Could not find the package!");
+
         applicationInfo.packageFamilyName = packageFamilyName;
         applicationInfo.version = L"not installed";
     }
-    TRACE("5");
 
     if (errorCode != 0)
     {
+        TRACE(L"An error occured!");
+        TRACEP(L"Reported Error Message: ", errorMessage.c_str());
+        TRACEP(L"Reported Error Code   : ", errorCode);
+
         applicationInfo.errorCode = errorCode;
         applicationInfo.errorMessage = errorMessage;
     }
@@ -201,6 +208,8 @@ ApplicationInfo AppCfg::InstallApp(const wstring& packageFamilyName, const wstri
     }
     catch (...)
     {
+        TRACE(L"Unknown exception while installing app!");
+
         errorCode = -1;
         errorMessage = L"Error: unknown failure while installing application.";
     }
