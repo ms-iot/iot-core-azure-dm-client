@@ -77,6 +77,7 @@ Certain device management operations are initiated by desired properties set fro
 
 - [Apply All Desired Properties](apply-all-desired-properties.md)
 - [Report All Device Properties](report-all-device-properties.md)
+- [Debugging Azure Device Management Client](debugging.md)
 
 ----
 
