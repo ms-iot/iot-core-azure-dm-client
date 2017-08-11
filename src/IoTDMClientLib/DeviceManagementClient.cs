@@ -573,6 +573,12 @@ namespace Microsoft.Devices.Management
 
             foreach (var sectionProp in windowsPropValue.Children().OfType<JProperty>())
             {
+                // If we've been told to stop, we should not process any desired properties...
+                if (_desiredPropertyApplication == DesiredPropertyApplication.Stop)
+                {
+                    break;
+                }
+
                 IClientPropertyHandler handler;
                 if (this._desiredPropertyMap.TryGetValue(sectionProp.Name, out handler))
                 {
@@ -587,7 +593,7 @@ namespace Microsoft.Devices.Management
                             continue;
                         }
 
-                        await handler.OnDesiredPropertyChange(sectionProp.Value);
+                        _desiredPropertyApplication = await handler.OnDesiredPropertyChange(sectionProp.Value);
 
                         statusSection.State = StatusSection.StateType.Committed;
                         ReportPropertiesAsync(sectionProp.Name, statusSection.ToJsonValue(null)).FireAndForget();
@@ -772,6 +778,7 @@ namespace Microsoft.Devices.Management
         string _externalStorageConnectionString;
         Dictionary<string, IClientPropertyHandler> _desiredPropertyMap;
         Dictionary<string, List<IClientPropertyDependencyHandler>> _desiredPropertyDependencyMap;
+        DesiredPropertyApplication _desiredPropertyApplication = DesiredPropertyApplication.Continue;
     }
 
 }

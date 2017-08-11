@@ -26,29 +26,34 @@ struct ApplicationInfo
     std::wstring installDate;
     std::wstring errorMessage;
     int errorCode;
+    bool pending;
 
     ApplicationInfo() :
-        errorCode(0)
+        errorCode(0),
+        pending(false)
     {}
 
     ApplicationInfo(const std::wstring& pkgFamilyName) :
         packageFamilyName(pkgFamilyName),
-        errorCode(0)
+        errorCode(0),
+        pending(false)
     {}
 
-    ApplicationInfo(const std::wstring& pkgFamilyName, int errCode, const std::wstring& errMessage) :
+    ApplicationInfo(const std::wstring& pkgFamilyName, int errCode, const std::wstring& errMessage, bool installPending) :
         packageFamilyName(pkgFamilyName),
         errorCode(errCode),
-        errorMessage(errMessage)
+        errorMessage(errMessage),
+        pending(installPending)
     {}
 
-    ApplicationInfo(const std::wstring& pkgFamilyName, const std::wstring& appName, const std::wstring& appVersion, const std::wstring& appInstallDate, int errCode, const std::wstring& errMessage) :
+    ApplicationInfo(const std::wstring& pkgFamilyName, const std::wstring& appName, const std::wstring& appVersion, const std::wstring& appInstallDate, int errCode, const std::wstring& errMessage, bool installPending) :
         packageFamilyName(pkgFamilyName),
         name(appName),
         version(appVersion),
         installDate(appInstallDate),
         errorCode(errCode),
-        errorMessage(errMessage)
+        errorMessage(errMessage),
+        pending(installPending)
     {}
 
 };

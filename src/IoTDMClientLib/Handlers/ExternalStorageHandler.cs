@@ -32,13 +32,15 @@ namespace Microsoft.Devices.Management
         }
 
         // IClientPropertyHandler
-        public async Task OnDesiredPropertyChange(JToken desiredValue)
+        public async Task<DesiredPropertyApplication> OnDesiredPropertyChange(JToken desiredValue)
         {
             if (desiredValue is JObject)
             {
                 JObject jObject = (JObject)desiredValue;
                 _connectionString = (string)jObject.Property("connectionString").Value;
             }
+
+            return DesiredPropertyApplication.Continue;
         }
 
         // IClientPropertyHandler

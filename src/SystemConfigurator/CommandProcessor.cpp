@@ -539,21 +539,53 @@ IResponse^ HandleInstallApp(IRequest^ request)
         auto appxPath = (wstring)info->AppxPath->Data();
         auto certFile = (wstring)info->CertFile->Data();
         auto certStore = (wstring)info->CertStore->Data();
+        auto isSelfUpdate = info->IsDMSelfUpdate;
 
         // ToDo: Need to either fix the CSP api, or just stick with the WinRT interface.
         // EnterpriseModernAppManagementCSP::ApplicationInfo applicationInfo = EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
-        ApplicationInfo applicationInfo = AppCfg::InstallApp(packageFamilyName, appxPath, deps, certFile, certStore);
+        ApplicationInfo applicationInfo = AppCfg::InstallApp(packageFamilyName, appxPath, deps, certFile, certStore, isSelfUpdate);
         AppInstallResponseData^ responseData = ref new AppInstallResponseData();
         responseData->pkgFamilyName = ref new String(applicationInfo.packageFamilyName.c_str());
-        responseData->name = ref new String(applicationInfo.name.c_str());
-        responseData->installDate = ref new String(applicationInfo.installDate.c_str());
-        responseData->version = ref new String(applicationInfo.version.c_str());
+        if (applicationInfo.name.size())
+        {
+            responseData->name = ref new String(applicationInfo.name.c_str());
+        }
+        else
+        {
+            responseData->name = L"-";
+        }
+        if (applicationInfo.installDate.size())
+        {
+            responseData->installDate = ref new String(applicationInfo.installDate.c_str());
+        }
+        else
+        {
+            applicationInfo.installDate = L"-";
+        }
+        if (applicationInfo.version.size())
+        {
+            responseData->version = ref new String(applicationInfo.version.c_str());
+        }
+        else
+        {
+            responseData->version = L"-";
+        }
         responseData->errorCode = applicationInfo.errorCode;
-        responseData->errorMessage = ref new String(applicationInfo.errorMessage.c_str());
+        if (applicationInfo.errorMessage.size())
+        {
+            responseData->errorMessage = ref new String(applicationInfo.errorMessage.c_str());
+        }
+        else
+        {
+            responseData->errorMessage = L"-";
+        }
 
-        // Handle the startup state...
-        SetAppStartUpType(packageFamilyName, info->StartUp);
-        responseData->startUp = GetAppStartUpType(packageFamilyName);
+        if (!isSelfUpdate)
+        {
+            // Handle the startup state...
+            SetAppStartUpType(packageFamilyName, info->StartUp);
+            responseData->startUp = GetAppStartUpType(packageFamilyName);
+        }
 
         return ref new AppInstallResponse(ResponseStatus::Success, responseData);
     }
@@ -735,8 +767,24 @@ IResponse^ HandleRemoveStartupApp(IRequest^ request)
 IResponse^ HandleGetStartupForegroundApp(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-    auto appId = CustomDeviceUiCSP::GetStartupAppId();
-    return ref new GetStartupForegroundAppResponse(ResponseStatus::Success, ref new Platform::String(appId.c_str()));
+    try
+    {
+        auto appId = CustomDeviceUiCSP::GetStartupAppId();
+        return ref new GetStartupForegroundAppResponse(ResponseStatus::Success, ref new Platform::String(appId.c_str()));
+    }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
+    }
+    catch (const exception& e)
+    {
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        int errorCode = static_cast<int>(DeviceManagementErrors::GetStartupForegroundAppGenericError);
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
+    }
 }
 
 IResponse^ HandleListStartupBackgroundApps(IRequest^ request)

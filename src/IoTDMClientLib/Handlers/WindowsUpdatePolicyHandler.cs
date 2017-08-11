@@ -58,9 +58,11 @@ namespace Microsoft.Devices.Management
         }
 
         // IClientPropertyHandler
-        public async Task OnDesiredPropertyChange(JToken desiredValue)
+        public async Task<DesiredPropertyApplication> OnDesiredPropertyChange(JToken desiredValue)
         {
             HandleDesiredPropertyChangeAsync(desiredValue).FireAndForget();
+
+            return DesiredPropertyApplication.Continue;
         }
 
         // IClientPropertyHandler

@@ -517,6 +517,16 @@ namespace Microsoft.Devices.Management
             AppReportedState reportedState = null;
             try
             {
+                Windows.ApplicationModel.PackageId thisPackage = Windows.ApplicationModel.Package.Current.Id;
+                Debug.WriteLine("FamilyName = " + thisPackage.FamilyName);
+                Debug.WriteLine("Name       = " + thisPackage.Name);
+
+                if (packageFamilyName == thisPackage.FamilyName)
+                {
+                    // ToDo: define error codes properly.
+                    throw new Exception("Cannot uninstall the DM application");
+                }
+
                 // ToDo: We need to handle store and system apps too.
                 AppUninstallResponse response = await UninstallAppAsync(new AppUninstallRequestData(packageFamilyName, false /*non-store app*/));
                 if (response.Status == ResponseStatus.Success)
@@ -560,7 +570,7 @@ namespace Microsoft.Devices.Management
             throw new Exception("Failed to uninstall " + packageFamilyName);
         }
 
-        private async Task InstallAppFromAzureAsync(AppInfo currentState, string connectionString, AppDesiredState desiredState)
+        private async Task InstallAppFromAzureAsync(AppInfo currentState, string connectionString, AppDesiredState desiredState, bool self)
         {
             // Is this a fresh installation?
             if (currentState == null)
@@ -611,40 +621,56 @@ namespace Microsoft.Devices.Management
                 Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Downloading appx...", LoggingLevel.Verbose);
                 IoTDMClient.BlobInfo appxBlob = IoTDMClient.BlobInfo.BlobInfoFromSource(connectionString, desiredState.appxSource);
                 requestData.AppxPath = await appxBlob.DownloadToTempAsync(this._systemConfiguratorProxy);
+                requestData.IsDMSelfUpdate = self;
 
                 // Installing appx...
                 Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Installing appx...", LoggingLevel.Verbose);
                 AppInstallResponse response = await InstallAppAsync(requestData);
                 Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Done installing appx...", LoggingLevel.Verbose);
 
-                Error e = null;
-                if (desiredState.version.ToString() != response.data.version)
-                {
-                    if (currentState.Version == response.data.version)
-                    {
-                        e = new Error(ErrorCodes.INVALID_INSTALLED_APP_VERSION_UNCHANGED, "Installating the supplied appx succeeded, but the new app version is not the desired version, and is the same as the old app version.");
-                    }
-                    else
-                    {
-                        e = new Error(ErrorCodes.INVALID_INSTALLED_APP_VERSION_UNEXPECTED, "Installating the supplied appx succeeded, but the new app version is not the desired version.");
-                    }
-                }
-
-                if (response.Status == ResponseStatus.Success)
+                if (self)
                 {
                     reportedState = new AppReportedState(desiredState.packageFamilyId,
-                                                         desiredState.packageFamilyName,
-                                                         response.data.version,
-                                                         response.data.startUp,
-                                                         response.data.installDate,
-                                                         e,
-                                                         JsonReport.Report);
+                                                        desiredState.packageFamilyName,
+                                                        "pending",
+                                                        response.data.startUp,
+                                                        response.data.installDate,
+                                                        null,
+                                                        JsonReport.Report);
                     _stateToReport[desiredState.packageFamilyId] = reportedState;
                     return;
                 }
                 else
                 {
-                    throw new Error(response.data.errorCode, response.data.errorMessage);
+                    Error e = null;
+                    if (response.Status == ResponseStatus.Success)
+                    {
+                        if (desiredState.version.ToString() != response.data.version)
+                        {
+                            if (currentState.Version == response.data.version)
+                            {
+                                e = new Error(ErrorCodes.INVALID_INSTALLED_APP_VERSION_UNCHANGED, "Installating the supplied appx succeeded, but the new app version is not the desired version, and is the same as the old app version.");
+                            }
+                            else
+                            {
+                                e = new Error(ErrorCodes.INVALID_INSTALLED_APP_VERSION_UNEXPECTED, "Installating the supplied appx succeeded, but the new app version is not the desired version.");
+                            }
+                        }
+
+                        reportedState = new AppReportedState(desiredState.packageFamilyId,
+                                                            desiredState.packageFamilyName,
+                                                            response.data.version,
+                                                            response.data.startUp,
+                                                            response.data.installDate,
+                                                            e,
+                                                            JsonReport.Report);
+                        _stateToReport[desiredState.packageFamilyId] = reportedState;
+                        return;
+                    }
+                    else
+                    {
+                        throw new Error(response.data.errorCode, response.data.errorMessage);
+                    }
                 }
             }
             catch (Error e)
@@ -693,7 +719,7 @@ namespace Microsoft.Devices.Management
             return StartUpType.None;
         }
 
-        private async Task InstallAppAsync(AppInfo installedAppInfo, Version installedAppVersion, string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
+        private async Task<DesiredPropertyApplication> InstallAppAsync(AppInfo installedAppInfo, Version installedAppVersion, string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
         {
             Logger.Log("Processing install request for " + desiredState.packageFamilyId, LoggingLevel.Verbose);
 
@@ -701,10 +727,16 @@ namespace Microsoft.Devices.Management
             {
                 // It is a new application.
                 Logger.Log("    Can't find an installed version... Installing a fresh copy...", LoggingLevel.Verbose);
-                await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);       // ---> InstallAppFromAzureAsync
+                await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState, false /*not self*/);       // ---> InstallAppFromAzureAsync
             }
             else
             {
+                Windows.ApplicationModel.PackageId thisPackage = Windows.ApplicationModel.Package.Current.Id;
+                Debug.WriteLine("FamilyName = " + thisPackage.FamilyName);
+                Debug.WriteLine("Name       = " + thisPackage.Name);
+
+                bool isSelf = desiredState.packageFamilyName == thisPackage.FamilyName;
+
                 // A version of this application is installed.
                 Logger.Log("    Found an installed version...", LoggingLevel.Verbose);
 
@@ -776,7 +808,10 @@ namespace Microsoft.Devices.Management
 
                     if (!String.IsNullOrEmpty(desiredState.appxSource))
                     {
-                        await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);
+                        await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState, isSelf);
+
+                        // Make sure to inform the caller to stop processing desired properties. 
+                        return DesiredPropertyApplication.Stop;
                     }
                     else
                     {
@@ -803,14 +838,18 @@ namespace Microsoft.Devices.Management
 
                         throw new Exception("Failed to roll back application version.");
                     }
-                    else
+
+                    if (isSelf)
                     {
-                        // Note that UninstallAppAsync will throw if it fails - and correctly avoid launching the install...
-                        await UninstallAppAsync(installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);
-                        await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState);
+                        throw new Exception("Reverting to an older version of thedevice management application is not supported.");
                     }
+                    // Note that UninstallAppAsync will throw if it fails - and correctly avoid launching the install...
+                    await UninstallAppAsync(installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);
+                    await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState, isSelf);
                 }
             }
+
+            return DesiredPropertyApplication.Continue;
         }
 
         private void QueryApp(AppInfo installedAppInfo, AppDesiredState desiredState)
@@ -847,8 +886,9 @@ namespace Microsoft.Devices.Management
             _stateToReport[desiredState.packageFamilyId] = appReportedState;
         }
 
-        private async Task ApplyAppDesiredState(string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
+        private async Task<DesiredPropertyApplication> ApplyAppDesiredState(string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
         {
+            DesiredPropertyApplication desiredPropertyApplication = DesiredPropertyApplication.Continue;
             AppInfo installedAppInfo = null;
             Version installedAppVersion = null;
 
@@ -868,7 +908,7 @@ namespace Microsoft.Devices.Management
             {
                 case AppDesiredAction.Install:
                     {
-                        await InstallAppAsync(installedAppInfo, installedAppVersion, connectionString, installedApps, desiredState);
+                        desiredPropertyApplication = await InstallAppAsync(installedAppInfo, installedAppVersion, connectionString, installedApps, desiredState);
                     }
                     break;
                 case AppDesiredAction.Uninstall:
@@ -914,13 +954,17 @@ namespace Microsoft.Devices.Management
                     }
                     break;
             }
+
+            return desiredPropertyApplication;
         }
 
-        private async Task ApplyDesiredAppsConfiguration(JToken jAppsToken)
+        private async Task<DesiredPropertyApplication> ApplyDesiredAppsConfiguration(JToken jAppsToken)
         {
+            DesiredPropertyApplication desiredPropertyApplication = DesiredPropertyApplication.Continue;
+
             if (!(jAppsToken is JObject))
             {
-                return;
+                return desiredPropertyApplication;
             }
 
             try
@@ -941,12 +985,18 @@ namespace Microsoft.Devices.Management
                 {
                     try
                     {
-                        await ApplyAppDesiredState(this._connectionString, installedApps, appDesiredState);
+                        desiredPropertyApplication = await ApplyAppDesiredState(this._connectionString, installedApps, appDesiredState);
                     }
                     catch (Exception)
                     {
                         // Catch everything here so that we may continue processing other appDesiredStates.
                         // No reporting to the IoT Hub is needed here because it has already taken place.
+                    }
+
+                    // Should we continue?
+                    if (desiredPropertyApplication == DesiredPropertyApplication.Stop)
+                    {
+                        break;
                     }
                 }
 
@@ -992,6 +1042,8 @@ namespace Microsoft.Devices.Management
                 await NullifyReported();
                 await ReportGeneralError(e.HResult, e.Message);
             }
+
+            return desiredPropertyApplication;
         }
 
         private async Task<string> GetStartupForegroundAppAsync()
@@ -1044,13 +1096,13 @@ namespace Microsoft.Devices.Management
         }
 
         // IClientPropertyHandler
-        public async Task OnDesiredPropertyChange(JToken desiredValue)
+        public async Task<DesiredPropertyApplication> OnDesiredPropertyChange(JToken desiredValue)
         {
             UpdateCache(desiredValue);
 
             // Need to revisit all the desired nodes (not only the changed ones)
             // so that we can re-construct the correct reported list.
-            ApplyDesiredAppsConfiguration(_desiredCache[JsonSectionName]).FireAndForget();
+            return await ApplyDesiredAppsConfiguration(_desiredCache[JsonSectionName]);
         }
 
         // IClientPropertyHandler
