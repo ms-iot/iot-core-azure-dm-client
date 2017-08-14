@@ -111,6 +111,7 @@
     <ClInclude Include="Models\StringListResponse.h" />
     <ClInclude Include="Models\StringResponse.h" />
     <ClInclude Include="Models\TimeInfo.h" />
+    <ClInclude Include="Models\TimeService.h" />
     <ClInclude Include="Models\TpmRequests.h" />
     <ClInclude Include="Models\WifiConfiguration.h" />
     <ClInclude Include="Models\WifiDetails.h" />

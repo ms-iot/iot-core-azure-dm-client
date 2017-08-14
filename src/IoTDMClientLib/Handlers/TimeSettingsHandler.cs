@@ -53,15 +53,21 @@ namespace Microsoft.Devices.Management
 
             data.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
             string standardDateString = subProperties.Property("timeZoneStandardDate").Value.ToString();
-            DateTime standardDate = DateTime.Parse(standardDateString).ToUniversalTime();
-            data.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            if (!String.IsNullOrEmpty(standardDateString))
+            {
+                DateTime standardDate = DateTime.Parse(standardDateString).ToUniversalTime();
+                data.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            }
             data.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
             data.timeZoneStandardDayOfWeek = (int)subProperties.Property("timeZoneStandardDayOfWeek").Value;
 
             data.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
             string daylightDateString = subProperties.Property("timeZoneDaylightDate").Value.ToString();
-            DateTime daylightDate = DateTime.Parse(daylightDateString).ToUniversalTime();
-            data.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            if (!String.IsNullOrEmpty(daylightDateString))
+            {
+                DateTime daylightDate = DateTime.Parse(daylightDateString).ToUniversalTime();
+                data.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            }
             data.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
             data.timeZoneDaylightDayOfWeek = (int)subProperties.Property("timeZoneDaylightDayOfWeek").Value;
 

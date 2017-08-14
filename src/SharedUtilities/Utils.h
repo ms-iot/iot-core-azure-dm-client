@@ -129,6 +129,22 @@ namespace Utils
         AutoCloseACL& operator=(const AutoCloseACL&);  // prevent assignment
     };
 
+    class AutoCloseServiceHandle : public AutoCloseBase<SC_HANDLE>
+    {
+    public:
+        AutoCloseServiceHandle() :
+            AutoCloseBase(NULL, [](SC_HANDLE h) { CloseServiceHandle(h); return TRUE; })
+        {}
+
+        AutoCloseServiceHandle(SC_HANDLE&& handle) :
+            AutoCloseBase(std::move(handle), [](SC_HANDLE h) { CloseServiceHandle(h); return TRUE; })
+        {}
+
+    private:
+        AutoCloseServiceHandle(const AutoCloseServiceHandle&);            // prevent copy
+        AutoCloseServiceHandle& operator=(const AutoCloseServiceHandle&);  // prevent assignment
+    };
+
     void LoadFile(const std::wstring& fileName, std::vector<char>& buffer);
     void Base64ToBinary(const std::wstring& encrypted, std::vector<char>& decrypted);
     std::wstring ToBase64(std::vector<char>& buffer);

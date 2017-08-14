@@ -104,6 +104,7 @@
     <Compile Include="Handlers\EventTracingHandler.cs" />
     <Compile Include="Handlers\ExternalStorageHandler.cs" />
     <Compile Include="Handlers\StorageHandler.cs" />
+    <Compile Include="Handlers\TimeServiceHandler.cs" />
     <Compile Include="Handlers\TimeSettingsHandler.cs" />
     <Compile Include="IDeviceManagementClientHandler.cs" />
     <Compile Include="ISystemConfiguratorProxy.cs" />

@@ -12,6 +12,7 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #include "stdafx.h"
 #include <vector>
 #include <map>
@@ -22,10 +23,18 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMException.h"
 #include "CSPs\MdmProvision.h"
+#include "ServiceManager.h"
 
 #include "Models\TimeInfo.h"
 
 #define NtpServerPropertyName "NtpServer"
+#define TimeServiceName L"w32time"
+#define JsonNo L"no"
+#define JsonYes L"yes"
+#define JsonNA L"n/a"
+#define JsonAuto L"auto"
+#define JsonManual L"manual"
+#define JsonUnexpected L"unexpected"
 
 using namespace Windows::System;
 using namespace Platform;
@@ -117,9 +126,17 @@ void TimeCfg::Set(SetTimeInfoRequest^ setTimeInfoRequest)
 
     // Standard...
     wcsncpy_s(tzi.StandardName, data->timeZoneStandardName->Data(), _TRUNCATE);
-    if (!SystemTimeFromISO8601(data->timeZoneStandardDate->Data(), tzi.StandardDate))
+    if (data->timeZoneStandardDate->Length() == 0)
     {
-        throw DMExceptionWithErrorCode("Error: invalid date/time format.", GetLastError());
+        // No support for daylight saving time.
+        tzi.StandardDate.wMonth = 0;
+    }
+    else
+    {
+        if (!SystemTimeFromISO8601(data->timeZoneStandardDate->Data(), tzi.StandardDate))
+        {
+            throw DMExceptionWithErrorCode("Error: invalid date/time format.", GetLastError());
+        }
     }
     tzi.StandardDate.wYear = 0;
     tzi.StandardDate.wDayOfWeek = static_cast<WORD>(data->timeZoneStandardDayOfWeek);
@@ -127,9 +144,17 @@ void TimeCfg::Set(SetTimeInfoRequest^ setTimeInfoRequest)
 
     // Daytime...
     wcsncpy_s(tzi.DaylightName, data->timeZoneDaylightName->Data(), _TRUNCATE);
-    if (!SystemTimeFromISO8601(data->timeZoneDaylightDate->Data(), tzi.DaylightDate))
+    if (data->timeZoneDaylightDate->Length() == 0)
     {
-        throw DMExceptionWithErrorCode("Error: invalid date/time format.", GetLastError());
+        // No support for daylight saving time.
+        tzi.DaylightDate.wMonth = 0;
+    }
+    else
+    {
+        if (!SystemTimeFromISO8601(data->timeZoneDaylightDate->Data(), tzi.DaylightDate))
+        {
+            throw DMExceptionWithErrorCode("Error: invalid date/time format.", GetLastError());
+        }
     }
     tzi.DaylightDate.wYear = 0;
     tzi.DaylightDate.wDayOfWeek = static_cast<WORD>(data->timeZoneDaylightDayOfWeek);
@@ -166,32 +191,89 @@ void TimeCfg::SetNtpServer(const std::wstring& ntpServer)
 GetTimeInfoResponse^ TimeCfg::Get()
 {
     TRACE(__FUNCTION__);
-    GetTimeInfoResponse ^response;
-    try
+
+    TimeInfo info;
+    Get(info);
+
+    GetTimeInfoResponseData^ data = ref new GetTimeInfoResponseData();
+    data->localTime = ref new String(info.localTime.c_str());
+    data->ntpServer = ref new String(info.ntpServer.c_str());
+    data->timeZoneBias = info.timeZoneInformation.Bias;
+
+    data->timeZoneStandardName = ref new String(info.timeZoneInformation.StandardName);
+    data->timeZoneStandardDate = ref new String(Utils::ISO8601FromSystemTime(info.timeZoneInformation.StandardDate).c_str());
+    data->timeZoneStandardBias = info.timeZoneInformation.StandardBias;
+    data->timeZoneStandardDayOfWeek = info.timeZoneInformation.StandardDate.wDayOfWeek;
+
+    data->timeZoneDaylightName = ref new String(info.timeZoneInformation.DaylightName);
+    data->timeZoneDaylightDate = ref new String(Utils::ISO8601FromSystemTime(info.timeZoneInformation.DaylightDate).c_str());
+    data->timeZoneDaylightBias = info.timeZoneInformation.DaylightBias;
+    data->timeZoneDaylightDayOfWeek = info.timeZoneInformation.DaylightDate.wDayOfWeek;
+
+    return ref new GetTimeInfoResponse(ResponseStatus::Success, data);
+}
+
+TimeServiceData^ TimeCfg::GetTimeServiceState()
+{
+    TRACE(__FUNCTION__);
+
+    TimeServiceData^ data = ref new TimeServiceData();
+
+    if (ServiceManager::GetStartType(TimeServiceName) == SERVICE_DISABLED)
     {
-        TimeInfo info;
-        Get(info);
-
-        GetTimeInfoResponseData^ data = ref new GetTimeInfoResponseData();
-        data->localTime = ref new String(info.localTime.c_str());
-        data->ntpServer = ref new String(info.ntpServer.c_str());
-        data->timeZoneBias = info.timeZoneInformation.Bias;
-
-        data->timeZoneStandardName = ref new String(info.timeZoneInformation.StandardName);
-        data->timeZoneStandardDate = ref new String(Utils::ISO8601FromSystemTime(info.timeZoneInformation.StandardDate).c_str());
-        data->timeZoneStandardBias = info.timeZoneInformation.StandardBias;
-        data->timeZoneStandardDayOfWeek = info.timeZoneInformation.StandardDate.wDayOfWeek;
-
-        data->timeZoneDaylightName = ref new String(info.timeZoneInformation.DaylightName);
-        data->timeZoneDaylightDate = ref new String(Utils::ISO8601FromSystemTime(info.timeZoneInformation.DaylightDate).c_str());
-        data->timeZoneDaylightBias = info.timeZoneInformation.DaylightBias;
-        data->timeZoneDaylightDayOfWeek = info.timeZoneInformation.DaylightDate.wDayOfWeek;
-
-        response = ref new GetTimeInfoResponse(ResponseStatus::Success, data);
+        data->enabled = ref new String(JsonNo);
+        data->startup = ref new String(JsonNA);
+        data->started = ref new String(JsonNA);
     }
-    catch (...)
+    else
     {
-        response = ref new GetTimeInfoResponse(ResponseStatus::Failure, nullptr);
+        data->enabled = ref new String(JsonYes);
+        if (ServiceManager::GetStartType(TimeServiceName) == SERVICE_AUTO_START)
+        {
+            data->startup = ref new String(JsonAuto);
+        }
+        else if (ServiceManager::GetStartType(TimeServiceName) == SERVICE_DEMAND_START)
+        {
+            data->startup = ref new String(JsonManual);
+        }
+        else
+        {
+            data->startup = ref new String(JsonUnexpected);
+        }
+
+        DWORD status = ServiceManager::GetStatus(TimeServiceName);
+
+        data->started = ref new String((status == SERVICE_RUNNING) ? JsonYes : JsonNo);
     }
-    return response;
+
+    return data;
+}
+
+void TimeCfg::SetTimeServiceState(TimeServiceData^ data)
+{
+    if (data->enabled == JsonNo)
+    {
+        ServiceManager::Stop(TimeServiceName);
+        ServiceManager::SetStartType(TimeServiceName, SERVICE_DISABLED);
+    }
+    else
+    {
+        if (data->startup == JsonAuto)
+        {
+            ServiceManager::SetStartType(TimeServiceName, SERVICE_AUTO_START);
+        }
+        else if (data->startup == JsonManual)
+        {
+            ServiceManager::SetStartType(TimeServiceName, SERVICE_DEMAND_START);
+        }
+
+        if (data->started == JsonYes)
+        {
+            ServiceManager::Start(TimeServiceName);
+        }
+        else
+        {
+            ServiceManager::Stop(TimeServiceName);
+        }
+    }
 }

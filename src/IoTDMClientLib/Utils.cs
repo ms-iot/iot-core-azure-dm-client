@@ -64,6 +64,7 @@ namespace Microsoft.Devices.Management
         const string SectionName = "lastChange";
         const string TimeString = "time";
         const string StateString = "state";
+        const string Refreshing = "refreshing";
 
         public enum StateType
         {
@@ -73,26 +74,30 @@ namespace Microsoft.Devices.Management
         }
 
         public StateType State { get; set; }
+        public Error TheError { get; set; }
 
-        public StatusSection()
+        public StatusSection(StateType state)
         {
             _dateTime = DateTime.Now;
-            State = StateType.Pending;
+            State = state;
         }
 
-        public JObject ToJsonValue(Error error)
+        public JProperty AsJsonPropertyRefreshing()
+        {
+            return new JProperty(SectionName, new JValue(Refreshing));
+        }
+
+        public JProperty AsJsonProperty()
         {
             JObject jStatusObject = new JObject();
             jStatusObject.Add(TimeString, new JValue(_dateTime));
             jStatusObject.Add(StateString, new JValue(State.ToString().ToLower()));
-            if (error != null)
+            if (TheError != null)
             {
-                jStatusObject.Merge(error.ToJson());
+                jStatusObject.Merge(TheError.ToJson());
             }
 
-            JObject jLastChange = new JObject();
-            jLastChange.Add(SectionName, jStatusObject);
-            return jLastChange;
+            return new JProperty(SectionName, jStatusObject);
         }
 
         DateTime _dateTime;

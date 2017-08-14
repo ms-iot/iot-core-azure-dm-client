@@ -128,7 +128,7 @@ namespace DMDashboard
             string timeServer = ((ComboBoxItem)DesiredNtpServer.SelectedItem).Content.ToString();
 
             StringBuilder sb = new StringBuilder();
-            sb.Append("\"timeInfo\" : {\n");
+            sb.Append("\"" + SectionName + "\" : {\n");
             sb.Append("\"timeZoneDaylightBias\" : " + timeZoneData.DaylightBias + ",\n");
             sb.Append("\"timeZoneDaylightDate\" : \"" + timeZoneData.DaylightDate + "\",\n");
             sb.Append("\"timeZoneDaylightName\" : \"" + timeZoneData.DaylightName + "\",\n");

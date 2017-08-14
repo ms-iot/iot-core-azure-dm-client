@@ -231,6 +231,56 @@ IResponse^ HandleSetTimeInfo(IRequest^ request)
     }
 }
 
+IResponse^ HandleGetTimeService(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        auto timeServiceRequest = dynamic_cast<GetTimeServiceRequest^>(request);
+        TimeServiceData^ data = TimeCfg::GetTimeServiceState();
+        return ref new GetTimeServiceResponse(ResponseStatus::Success, data);
+    }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
+    }
+    catch (const exception& e)
+    {
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        int errorCode = static_cast<int>(DeviceManagementErrors::SetTimeZoneGenericError);
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
+    }
+}
+
+IResponse^ HandleSetTimeService(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        auto timeServiceRequest = dynamic_cast<SetTimeServiceRequest^>(request);
+        TimeCfg::SetTimeServiceState(timeServiceRequest->data);
+        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
+    }
+    catch (const exception& e)
+    {
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        int errorCode = static_cast<int>(DeviceManagementErrors::SetTimeZoneGenericError);
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
+    }
+}
+
 IResponse^ HandleGetCertificateConfiguration(IRequest^ request)
 {
     TRACE(__FUNCTION__);
@@ -452,7 +502,25 @@ IResponse^ HandleSetRebootInfo(IRequest^ request)
 
 IResponse^ HandleGetTimeInfo(IRequest^ request)
 {
-    return TimeCfg::Get();
+    TRACE(__FUNCTION__);
+
+    try
+    {
+        return TimeCfg::Get();
+    }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
+    }
+    catch (const exception& e)
+    {
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        int errorCode = static_cast<int>(DeviceManagementErrors::SetTimeZoneGenericError);
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
+    }
 }
 
 IResponse^ HandleImmediateReboot(IRequest^ request)

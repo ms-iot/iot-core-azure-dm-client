@@ -205,6 +205,9 @@ namespace Microsoft.Devices.Management
             var timeSettingsHandler = new TimeSettingsHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(timeSettingsHandler);
 
+            var timeServiceHandler = new TimeServiceHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(timeServiceHandler);
+
             return deviceManagementClient;
         }
 
@@ -537,6 +540,21 @@ namespace Microsoft.Devices.Management
             }
         }
 
+        private async Task ReportStatusAsync(string sectionName, StatusSection statusSubSection)
+        {
+            // We always construct an object and set a property inside it.
+            // This way, we do not overwrite what's already in there.
+
+            // Set the status to refreshing...
+            JObject refreshingValue = new JObject();
+            refreshingValue.Add(statusSubSection.AsJsonPropertyRefreshing());
+            await ReportPropertiesAsync(sectionName, refreshingValue);
+
+            // Set the status to the actual status...
+            JObject actualValue = new JObject();
+            actualValue.Add(statusSubSection.AsJsonProperty());
+            await ReportPropertiesAsync(sectionName, actualValue);
+        }
 
         public async Task ApplyDesiredStateAsync(JObject windowsPropValue)
         {
@@ -582,8 +600,8 @@ namespace Microsoft.Devices.Management
                 IClientPropertyHandler handler;
                 if (this._desiredPropertyMap.TryGetValue(sectionProp.Name, out handler))
                 {
-                    StatusSection statusSection = new StatusSection();
-                    ReportPropertiesAsync(sectionProp.Name, statusSection.ToJsonValue(null)).FireAndForget();
+                    StatusSection statusSection = new StatusSection(StatusSection.StateType.Pending);
+                    await ReportStatusAsync(sectionProp.Name, statusSection);
 
                     try
                     {
@@ -596,18 +614,19 @@ namespace Microsoft.Devices.Management
                         _desiredPropertyApplication = await handler.OnDesiredPropertyChange(sectionProp.Value);
 
                         statusSection.State = StatusSection.StateType.Committed;
-                        ReportPropertiesAsync(sectionProp.Name, statusSection.ToJsonValue(null)).FireAndForget();
+                        await ReportStatusAsync(sectionProp.Name, statusSection);
                     }
                     catch (Error e)
                     {
                         statusSection.State = StatusSection.StateType.Failed;
-                        ReportPropertiesAsync(sectionProp.Name, statusSection.ToJsonValue(e)).FireAndForget();
+                        statusSection.TheError = e;
+                        await ReportStatusAsync(sectionProp.Name, statusSection);
                     }
                     catch (Exception e)
                     {
-                        Error error = new Error(ErrorSubSystem.Unknown, e.HResult, e.Message);
                         statusSection.State = StatusSection.StateType.Failed;
-                        ReportPropertiesAsync(sectionProp.Name, statusSection.ToJsonValue(error)).FireAndForget();
+                        statusSection.TheError = new Error(ErrorSubSystem.Unknown, e.HResult, e.Message);
+                        await ReportStatusAsync(sectionProp.Name, statusSection);
                     }
                 }
                 else
