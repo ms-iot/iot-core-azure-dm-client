@@ -535,7 +535,7 @@ IResponse^ HandleTransferFile(IRequest^ request)
     auto transferRequest = dynamic_cast<AzureFileTransferRequest^>(request);
     auto info = transferRequest->AzureFileTransferInfo;
     auto upload = info->Upload;
-    auto relativeLocalPath = (wstring)info->LocalPath->Data();
+    auto relativeLocalPath = (wstring)info->RelativeLocalPath->Data();
     auto appLocalDataPath = (wstring)info->AppLocalDataPath->Data();
 
     auto localPathBase = Utils::GetDmUserFolder();

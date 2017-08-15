@@ -30,23 +30,23 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public:
         AzureFileTransferInfo()
         {
-            LocalPath = ref new Platform::String();
+            RelativeLocalPath = ref new Platform::String();
             AppLocalDataPath = ref new Platform::String();
             ConnectionString = ref new Platform::String();
             ContainerName = ref new Platform::String();
             BlobName = ref new Platform::String();
             Upload = true;
         }
-        AzureFileTransferInfo(String^ localPath, String^ appLocalDataPath, String^ connectionString, String^ containerName, String^ blobName, bool upload)
+        AzureFileTransferInfo(String^ relativeLocalPath, String^ appLocalDataPath, String^ connectionString, String^ containerName, String^ blobName, bool upload)
         {
-            LocalPath = localPath;
+            RelativeLocalPath = relativeLocalPath;
             AppLocalDataPath = appLocalDataPath;
             ConnectionString = connectionString;
             ContainerName = containerName;
             BlobName = blobName;
             Upload = upload;
         }
-        property String^ LocalPath;
+        property String^ RelativeLocalPath;
         property String^ AppLocalDataPath;
         property String^ ConnectionString;
         property String^ ContainerName;
@@ -62,7 +62,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
         virtual Blob^ Serialize() {
             JsonObject^ jsonObject = ref new JsonObject();
-            jsonObject->Insert("LocalPath", JsonValue::CreateStringValue(appInfo->LocalPath));
+            jsonObject->Insert("RelativeLocalPath", JsonValue::CreateStringValue(appInfo->RelativeLocalPath));
             jsonObject->Insert("AppLocalDataPath", JsonValue::CreateStringValue(appInfo->AppLocalDataPath));
             jsonObject->Insert("ConnectionString", JsonValue::CreateStringValue(appInfo->ConnectionString));
             jsonObject->Insert("ContainerName", JsonValue::CreateStringValue(appInfo->ContainerName));
@@ -75,14 +75,14 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         static IDataPayload^ Deserialize(Blob^ bytes) {
             String^ str = SerializationHelper::GetStringFromBlob(bytes);
             JsonObject^ jsonObject = JsonObject::Parse(str);
-            auto localPath = jsonObject->Lookup("LocalPath")->GetString();
+            auto relativeLocalPath = jsonObject->Lookup("RelativeLocalPath")->GetString();
             auto appLocalDataPath = jsonObject->Lookup("AppLocalDataPath")->GetString();
             auto connectionString = jsonObject->Lookup("ConnectionString")->GetString();
             auto containerName = jsonObject->Lookup("ContainerName")->GetString();
             auto blobName = jsonObject->Lookup("BlobName")->GetString();
             auto upload = jsonObject->Lookup("Upload")->GetBoolean();
 
-            auto appInfo = ref new Microsoft::Devices::Management::Message::AzureFileTransferInfo(localPath, appLocalDataPath, connectionString, containerName, blobName, upload);
+            auto appInfo = ref new Microsoft::Devices::Management::Message::AzureFileTransferInfo(relativeLocalPath, appLocalDataPath, connectionString, containerName, blobName, upload);
             return ref new AzureFileTransferRequest(appInfo);
         }
 

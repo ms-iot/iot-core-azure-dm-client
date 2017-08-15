@@ -37,7 +37,7 @@ namespace IoTDMClient
                 BlobName = BlobName,
                 Upload = false,
 
-                LocalPath = BlobName
+                RelativeLocalPath = BlobName
             };
 
             await AzureBlobFileTransfer.TransferFileAsync(info, systemConfiguratorProxy);

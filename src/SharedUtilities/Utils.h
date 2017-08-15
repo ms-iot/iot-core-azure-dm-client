@@ -40,10 +40,10 @@ namespace Utils
     typedef std::function<void(std::vector<std::wstring>&, std::wstring&)>& ELEMENT_HANDLER;
 
     // User helper
-	std::wstring GetDmUserSid();
-	std::wstring GetDmUserName();
-	std::wstring GetDmUserFolder();
-	std::wstring GetDmTempFolder();
+    std::wstring GetDmUserSid();
+    std::wstring GetDmUserName();
+    std::wstring GetDmUserFolder();
+    std::wstring GetDmTempFolder();
 
     // Replaces invalid characters (like .) with _ so that the string can be used
     // as a json property name.

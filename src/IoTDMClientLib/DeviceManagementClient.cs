@@ -274,7 +274,7 @@ namespace Microsoft.Devices.Management
                 ContainerName = parameters.containerName,
                 BlobName = parameters.blobName,
                 Upload = true,
-                LocalPath = ""
+                RelativeLocalPath = ""
             };
 
             var appLocalDataFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(parameters.blobName, CreationCollisionOption.ReplaceExisting);
