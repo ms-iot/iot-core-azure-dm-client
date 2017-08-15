@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\DMMessageHelper.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\DMGarbageCollector.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\SerializationHelper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\Blob.cpp" />
   </ItemGroup>

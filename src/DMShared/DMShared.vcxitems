@@ -15,7 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\DMMessageHelper.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\DMGarbageCollector.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\SerializationHelper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\Blob.cpp">
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
