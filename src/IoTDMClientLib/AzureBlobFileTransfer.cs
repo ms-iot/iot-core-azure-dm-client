@@ -30,7 +30,6 @@ namespace IoTDMClient
 
         public async Task<string> DownloadToTempAsync(ISystemConfiguratorProxy systemConfiguratorProxy)
         {
-            var path = DMGarbageCollector.TempFolder + BlobName;
             var info = new AzureFileTransferInfo()
             {
                 ConnectionString = ConnectionString,
@@ -38,11 +37,11 @@ namespace IoTDMClient
                 BlobName = BlobName,
                 Upload = false,
 
-                LocalPath = path
+                LocalPath = BlobName
             };
 
             await AzureBlobFileTransfer.TransferFileAsync(info, systemConfiguratorProxy);
-            return path;
+            return BlobName;
         }
         public static BlobInfo BlobInfoFromSource(string connectionString, string containerAndFile)
         {

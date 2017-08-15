@@ -29,6 +29,13 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DMException.h"
 #include "Logger.h"
 
+// WTSQueryUserToken
+#include "Wtsapi32.h"
+// EnumProcesses
+#include "Psapi.h"
+// SHGetFolderPath
+#include "Shlobj.h"
+
 using namespace std;
 using namespace Microsoft::WRL;
 using namespace Windows::ApplicationModel;
@@ -40,41 +47,156 @@ using namespace Windows::System::Profile;
 
 namespace Utils
 {
-    wstring GetSidForAccount(const wchar_t* userAccount)
+
+    struct HANDLE_Cleanup
     {
-        wstring sidString = L"";
-
-        BYTE userSidBytes[SECURITY_MAX_SID_SIZE] = {};
-        PSID userSid = reinterpret_cast<PSID>(userSidBytes);
-        DWORD sidSize = ARRAYSIZE(userSidBytes);
-        wchar_t domainNameUnused[MAX_PATH] = {};
-        DWORD domainSizeUnused = ARRAYSIZE(domainNameUnused);
-        SID_NAME_USE sidTypeUnused = SidTypeInvalid;
-
-        if (!LookupAccountName(
-                nullptr,
-                userAccount,
-                &userSid,
-                &sidSize,
-                domainNameUnused,
-                &domainSizeUnused,
-                &sidTypeUnused
-            ))
-        {
-            throw DMExceptionWithErrorCode("Error: Utils::GetSidForAccount LookupAccountName failed.", GetLastError());
-        }
-        LPWSTR pString = nullptr;
-        if (!ConvertSidToStringSid(
-                &userSid,
-                &pString
-            ))
+        HANDLE m_handle;
+        HANDLE_Cleanup(HANDLE handle) : m_handle(handle) {};
+        ~HANDLE_Cleanup()
         { 
-            throw DMExceptionWithErrorCode("Error: Utils::GetSidForAccount ConvertSidToStringSid failed.", GetLastError());
+            if (m_handle != nullptr && m_handle != INVALID_HANDLE_VALUE)
+            {
+                CloseHandle(m_handle);
+            }
         }
-        sidString = pString;
-        LocalFree(pString);
+    };
 
-        return sidString;
+    typedef std::function<void(HANDLE, PTOKEN_USER)> DO_TOKEN_STUFF_FUNCTION;
+
+    void GetDmUserInfo(DO_TOKEN_STUFF_FUNCTION handler)
+    {
+        LPCWSTR processName = L"sihost.exe";
+        const size_t processNameLength = wcslen(processName);
+        vector<DWORD> spProcessIds(1024);
+        DWORD bytesReturned = 0;
+        WCHAR imageFileName[MAX_PATH];
+
+        if (EnumProcesses(
+            &spProcessIds.front(),
+            static_cast<unsigned int>(spProcessIds.size() * sizeof(DWORD)),
+            &bytesReturned))
+        {
+            auto actualProcessIds = bytesReturned / sizeof(unsigned int);
+            auto activeSessionId = WTSGetActiveConsoleSessionId();
+
+            for (unsigned int i = 0; i < actualProcessIds; i++)
+            {
+                DWORD error = 0;
+                HANDLE Process = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, spProcessIds[i]);
+                if (Process == INVALID_HANDLE_VALUE) continue;
+                HANDLE_Cleanup spProcess(Process);
+
+                auto imageFileNameLength = GetProcessImageFileNameW(Process, imageFileName, _countof(imageFileName));
+                if ((imageFileNameLength < processNameLength) || (_wcsicmp(processName, &imageFileName[imageFileNameLength - processNameLength]) != 0)) continue;
+
+                HANDLE ProcessToken;
+                error = OpenProcessToken(Process, TOKEN_READ, &ProcessToken);
+                if (FAILED(error))
+                {
+                    TRACEP(L"OpenProcessToken failed. Code: ", error);
+                    continue;
+                }
+                HANDLE_Cleanup spProcessToken(ProcessToken);
+
+                DWORD sessionID = 0;
+                DWORD size = 0;
+                if (!GetTokenInformation(ProcessToken, TokenSessionId, &sessionID, sizeof(sessionID), &size))
+                {
+                    TRACEP(L"GetTokenInformation(TokenSessionId) failed. Code: ", GetLastError());
+                    continue;
+                }
+
+                // Make sure the process is running in the active session
+                if (activeSessionId != sessionID) continue;
+
+                BYTE buffer[SECURITY_MAX_SID_SIZE];
+                PTOKEN_USER tokenUser = reinterpret_cast<PTOKEN_USER>(buffer);
+                DWORD tokenUserSize = sizeof(buffer);
+                if (FAILED(GetTokenInformation(ProcessToken, TokenUser, tokenUser, tokenUserSize, &tokenUserSize)))
+                {
+                    TRACEP(L"GetTokenInformation(TokenUser) failed. Code: ", GetLastError());
+                    continue;
+                }
+
+                handler(ProcessToken, tokenUser);
+            }
+        }
+        else
+        {
+            TRACEP(L"EnumProcesses failed. Code: ", GetLastError());
+        }
+    }
+
+    wstring GetDmUserSid() 
+    {
+        wstring sid(L"");
+        GetDmUserInfo([&sid](HANDLE /*token*/, PTOKEN_USER tokenUser) {
+            WCHAR *pCOwner = NULL;
+            if (ConvertSidToStringSid(tokenUser->User.Sid, &pCOwner))
+            {
+                sid = pCOwner;
+                LocalFree(pCOwner);
+            }
+            else
+            {
+                TRACEP(L"ConvertSidToStringSid failed. Code: ", GetLastError());
+            }
+        });
+
+        return sid;
+    }
+
+    wstring GetDmUserName() 
+    {
+        wstring name(L"");
+        GetDmUserInfo([&name](HANDLE /*token*/, PTOKEN_USER tokenUser) {
+            DWORD cchDomainName = 0, cchAccountName = 0;
+            SID_NAME_USE AccountType = SidTypeUnknown;
+            LookupAccountSid(NULL, tokenUser->User.Sid, NULL, &cchAccountName, NULL, &cchDomainName, &AccountType);
+            if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+            {
+                vector<wchar_t> DomainName(cchDomainName);
+                vector<wchar_t> AccountName(cchAccountName);
+                if (LookupAccountSid(NULL, tokenUser->User.Sid, AccountName.data(), &cchAccountName, DomainName.data(), &cchDomainName, &AccountType))
+                {
+                    name = AccountName.data();
+                }
+                else
+                {
+                    TRACEP(L"LookupAccountSid failed. Code: ", GetLastError());
+                }
+            }
+            else
+            {
+                TRACEP(L"LookupAccountSid(NULL) failed. Code: ", GetLastError());
+            }
+        });
+
+        return name;
+    }
+
+    wstring GetDmUserFolder()
+    {
+        wstring folder(L"");
+        GetDmUserInfo([&folder](HANDLE token, PTOKEN_USER /*tokenUser*/) {
+            WCHAR szPath[MAX_PATH];
+            HRESULT hr = SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, token, 0, szPath);
+            if (SUCCEEDED(hr))
+            {
+                folder = szPath;
+            }
+            else
+            {
+                TRACEP(L"SHGetFolderPath failed. Code: ", hr);
+            }
+        });
+
+        return folder;
+    }
+
+    wstring GetDmTempFolder()
+    {
+        return GetDmUserFolder() + IOTDM_RELATIVE_PATH;
     }
 
     wstring GetCurrentDateTimeString()

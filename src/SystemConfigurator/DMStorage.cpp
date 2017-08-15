@@ -18,6 +18,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include <iomanip>
 #include "..\SharedUtilities\Logger.h"
+#include "..\SharedUtilities\Utils.h"
 #include "DMStorage.h"
 
 using namespace std;
@@ -51,7 +52,7 @@ IResponse^ DMStorage::HandleGetDMFolders(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = SC_CLEANUP_FOLDER;
+    wstring path = Utils::GetDmTempFolder();
 
     StringListResponse^ response = ref new StringListResponse(ResponseStatus::Success);
     response->List = GetFSObjectNames(path, file_type::directory);
@@ -65,7 +66,7 @@ IResponse^ DMStorage::HandleGetDMFiles(IRequest^ request)
     GetDMFilesRequest^ filesRequest = dynamic_cast<GetDMFilesRequest^>(request);
 
     wstring path;
-    path += SC_CLEANUP_FOLDER;
+    path += Utils::GetDmTempFolder();
     path += L"\\";
     path += filesRequest->DMFolderName->Data();
 
@@ -81,7 +82,7 @@ IResponse^ DMStorage::HandleDeleteDMFile(IRequest^ request)
     DeleteDMFileRequest^ deleteRequest = dynamic_cast<DeleteDMFileRequest^>(request);
 
     wstring fullFileName;
-    fullFileName += SC_CLEANUP_FOLDER;
+    fullFileName += Utils::GetDmTempFolder();
     fullFileName += L"\\";
     fullFileName += deleteRequest->DMFolderName->Data();
     fullFileName += L"\\";

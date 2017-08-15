@@ -75,7 +75,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>crypt32.lib;mdmlocalmanagement.lib;xmllite.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shell32.lib;crypt32.lib;mdmlocalmanagement.lib;xmllite.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\external\WinSDKRS2\$(PlatformTarget)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

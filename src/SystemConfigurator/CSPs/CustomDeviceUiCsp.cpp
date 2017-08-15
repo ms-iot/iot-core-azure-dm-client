@@ -44,7 +44,7 @@ wstring CustomDeviceUiCSP::GetStartupAppId()
     //        </Item>
     //    </Results>
         
-    wstring sid = Utils::GetSidForAccount(L"DefaultAccount");
+    wstring sid = Utils::GetDmUserSid();
     auto appId = MdmProvision::RunGetString(
         sid.c_str(),
         L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData");
@@ -155,7 +155,7 @@ void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add
     _snwprintf_s(buff.data(), bufsize, bufsize, syncML, action, cspAppId.c_str(), action);
 
     wstring output;
-    wstring sid = Utils::GetSidForAccount(L"DefaultAccount");
+    wstring sid = Utils::GetDmUserSid();
     MdmProvision::RunSyncML(sid, buff.data(), output);
 
 }

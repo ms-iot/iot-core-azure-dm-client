@@ -18,6 +18,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include <iomanip>
 #include "..\SharedUtilities\Logger.h"
+#include "..\SharedUtilities\Utils.h"
 #include "MdmProvision.h"
 #include "DiagnosticLogCSP.h"
 
@@ -68,10 +69,10 @@ class XperfWorkAround
 {
 public:
     XperfWorkAround(const wstring& providerGuid) :
-        _dummyEtlFileName(SC_CLEANUP_FOLDER L"\\DMAddProviderSession.etl"),
         _xperfExe(L"C:\\windows\\system32\\xperf.exe"),
         _xperfSession(L"DMAddProviderSession")
     {
+        _dummyEtlFileName = Utils::GetDmTempFolder() + L"\\DMAddProviderSession.etl";
         _dummyXperfStartCmd = _xperfExe + L" -start " + _xperfSession + L" -f " + _dummyEtlFileName + L" -on " + providerGuid;
         _dummyXperfStopCmd += _xperfExe + L" -stop " + _xperfSession;
     }
@@ -309,7 +310,7 @@ void DiagnosticLogCSP::CreateEtlFile(CollectorDesiredConfiguration^ collector)
 
     // Make sure the target folder exists...
     wstring etlFolderName;
-    etlFolderName += SC_CLEANUP_FOLDER;
+    etlFolderName += Utils::GetDmTempFolder();
     etlFolderName += L"\\";
     etlFolderName += collector->CSPConfiguration->LogFileFolder->Data();
     CreateDirectory(etlFolderName.c_str(), NULL);
