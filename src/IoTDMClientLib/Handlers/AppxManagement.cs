@@ -471,22 +471,6 @@ namespace Microsoft.Devices.Management
             return new DesiredActions(appDesiredStates, appListQuery);
         }
 
-        private static async Task<AppReportedState> UpdateAppFromStore(AppDesiredState desiredState)
-        {
-            Logger.Log("Updating " + desiredState.packageFamilyName + " from store", LoggingLevel.Verbose);
-            return await Task.Run(() =>
-                {
-                    return new AppReportedState(
-                                    desiredState.packageFamilyId,
-                                    desiredState.packageFamilyName,
-                                    desiredState.version.ToString(),
-                                    desiredState.startUp,
-                                    "",
-                                    new Error(ErrorCodes.E_NOTIMPL, "Updating app from the store has not been implemented yet."),
-                                    JsonReport.Report);
-                });
-        }
-
         private async Task<IDictionary<string, Message.AppInfo>> ListAppsAsync()
         {
             var request = new Message.ListAppsRequest();
@@ -523,8 +507,7 @@ namespace Microsoft.Devices.Management
 
                 if (packageFamilyName == thisPackage.FamilyName)
                 {
-                    // ToDo: define error codes properly.
-                    throw new Exception("Cannot uninstall the DM application");
+                    throw new Error(ErrorCodes.CANNOT_UNINSTALL_DM_APPLICATION, "Cannot uninstall the DM application: " + thisPackage.FamilyName);
                 }
 
                 // ToDo: We need to handle store and system apps too.
@@ -570,7 +553,7 @@ namespace Microsoft.Devices.Management
             throw new Exception("Failed to uninstall " + packageFamilyName);
         }
 
-        private async Task InstallAppFromAzureAsync(AppInfo currentState, string connectionString, AppDesiredState desiredState, bool self)
+        private async Task InstallAppFromAzureAsync(AppInfo currentState, string connectionString, AppDesiredState desiredState, bool selfUpdate)
         {
             // Is this a fresh installation?
             if (currentState == null)
@@ -621,15 +604,16 @@ namespace Microsoft.Devices.Management
                 Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Downloading appx...", LoggingLevel.Verbose);
                 IoTDMClient.BlobInfo appxBlob = IoTDMClient.BlobInfo.BlobInfoFromSource(connectionString, desiredState.appxSource);
                 requestData.AppxPath = await appxBlob.DownloadToTempAsync(this._systemConfiguratorProxy);
-                requestData.IsDMSelfUpdate = self;
+                requestData.IsDMSelfUpdate = selfUpdate;
 
                 // Installing appx...
                 Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Installing appx...", LoggingLevel.Verbose);
                 AppInstallResponse response = await InstallAppAsync(requestData);
-                Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Done installing appx...", LoggingLevel.Verbose);
-
-                if (self)
+                if (response.data.pending)
                 {
+                    Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Installing appx is pending...", LoggingLevel.Verbose);
+                    Debug.Assert(selfUpdate);
+
                     reportedState = new AppReportedState(desiredState.packageFamilyId,
                                                         desiredState.packageFamilyName,
                                                         "pending",
@@ -642,6 +626,8 @@ namespace Microsoft.Devices.Management
                 }
                 else
                 {
+                    Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Done installing appx...", LoggingLevel.Verbose);
+
                     Error e = null;
                     if (response.Status == ResponseStatus.Success)
                     {
@@ -727,7 +713,7 @@ namespace Microsoft.Devices.Management
             {
                 // It is a new application.
                 Logger.Log("    Can't find an installed version... Installing a fresh copy...", LoggingLevel.Verbose);
-                await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState, false /*not self*/);       // ---> InstallAppFromAzureAsync
+                await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState, false /*not self update*/);       // ---> InstallAppFromAzureAsync
             }
             else
             {
@@ -808,14 +794,21 @@ namespace Microsoft.Devices.Management
 
                     if (!String.IsNullOrEmpty(desiredState.appxSource))
                     {
+                        // Trigger the update...
                         await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState, isSelf);
 
-                        // Make sure to inform the caller to stop processing desired properties. 
-                        return DesiredPropertyApplication.Stop;
+                        if (isSelf)
+                        {
+                            // If isSelf == true, it means that SystemConfigurator will force this application to exit very soon.
+                            // Let's stop processing any further desired properties.
+                            return DesiredPropertyApplication.Stop;
+                        }
                     }
                     else
                     {
-                        await UpdateAppFromStore(desiredState);
+                        // Note that store updates are not control through DM desired properties.
+                        // Instead, they are triggered by the system scan for all store applications.
+                        throw new Error(ErrorCodes.INVALID_DESIRED_APPX_SRC, "Appx package is required to update " + desiredState.packageFamilyName);
                     }
                 }
                 else
@@ -841,7 +834,8 @@ namespace Microsoft.Devices.Management
 
                     if (isSelf)
                     {
-                        throw new Exception("Reverting to an older version of thedevice management application is not supported.");
+                        // This might be useful in the future.
+                        throw new Error(ErrorCodes.CANNOT_REVERT_DM_APPLICATION, "Reverting to an older version of the device management application (" + desiredState.packageFamilyName + ")is not supported.");
                     }
                     // Note that UninstallAppAsync will throw if it fails - and correctly avoid launching the install...
                     await UninstallAppAsync(installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);

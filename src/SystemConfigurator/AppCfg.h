@@ -36,9 +36,6 @@ public:
 
 
 private:
-    static bool IsProcessRunning(
-        const std::wstring& processName);
-
     static bool IsAppRunning(
         const std::wstring& packageFamilyName);
 

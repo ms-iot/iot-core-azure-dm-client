@@ -614,39 +614,12 @@ IResponse^ HandleInstallApp(IRequest^ request)
         ApplicationInfo applicationInfo = AppCfg::InstallApp(packageFamilyName, appxPath, deps, certFile, certStore, isSelfUpdate);
         AppInstallResponseData^ responseData = ref new AppInstallResponseData();
         responseData->pkgFamilyName = ref new String(applicationInfo.packageFamilyName.c_str());
-        if (applicationInfo.name.size())
-        {
-            responseData->name = ref new String(applicationInfo.name.c_str());
-        }
-        else
-        {
-            responseData->name = L"-";
-        }
-        if (applicationInfo.installDate.size())
-        {
-            responseData->installDate = ref new String(applicationInfo.installDate.c_str());
-        }
-        else
-        {
-            applicationInfo.installDate = L"-";
-        }
-        if (applicationInfo.version.size())
-        {
-            responseData->version = ref new String(applicationInfo.version.c_str());
-        }
-        else
-        {
-            responseData->version = L"-";
-        }
+        responseData->name = ref new String(applicationInfo.name.c_str());
+        responseData->installDate = ref new String(applicationInfo.installDate.c_str());
+        responseData->version = ref new String(applicationInfo.version.c_str());
         responseData->errorCode = applicationInfo.errorCode;
-        if (applicationInfo.errorMessage.size())
-        {
-            responseData->errorMessage = ref new String(applicationInfo.errorMessage.c_str());
-        }
-        else
-        {
-            responseData->errorMessage = L"-";
-        }
+        responseData->errorMessage = ref new String(applicationInfo.errorMessage.c_str());
+        responseData->pending = applicationInfo.pending;
 
         if (!isSelfUpdate)
         {

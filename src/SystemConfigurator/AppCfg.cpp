@@ -68,21 +68,21 @@ Package^ AppCfg::FindApp(const wstring& packageFamilyName)
     {
         Package^ package = it->Current;
 
-TRACE("---------------------------------------------------------------------------");
-TRACEP("Name        : ", Utils::WideToMultibyte(package->Id->Name->Data()).c_str());
-TRACEP("DisplayName : ", Utils::WideToMultibyte(package->DisplayName->Data()).c_str());
-TRACEP("FullName    : ", Utils::WideToMultibyte(package->Id->FullName->Data()).c_str());
-TRACEP("FamilyName  : ", Utils::WideToMultibyte(package->Id->FamilyName->Data()).c_str());
-TRACEP("Name        : ", Utils::WideToMultibyte(package->Id->Name->Data()).c_str());
-TRACE("---------------------------------------------------------------------------");
+        TRACE("---------------------------------------------------------------------------");
+        TRACEP("Name        : ", Utils::WideToMultibyte(package->Id->Name->Data()).c_str());
+        TRACEP("DisplayName : ", Utils::WideToMultibyte(package->DisplayName->Data()).c_str());
+        TRACEP("FullName    : ", Utils::WideToMultibyte(package->Id->FullName->Data()).c_str());
+        TRACEP("FamilyName  : ", Utils::WideToMultibyte(package->Id->FamilyName->Data()).c_str());
+        TRACEP("Name        : ", Utils::WideToMultibyte(package->Id->Name->Data()).c_str());
+        TRACE("---------------------------------------------------------------------------");
 
-if (0 == _wcsicmp(packageFamilyName.c_str(), package->Id->FamilyName->Data()))
-{
-    TRACE("Found.");
-    return package;
-}
+        if (0 == _wcsicmp(packageFamilyName.c_str(), package->Id->FamilyName->Data()))
+        {
+            TRACE("Found.");
+            return package;
+        }
 
-it->MoveNext();
+        it->MoveNext();
     }
 
     TRACE("Not found.");
@@ -92,9 +92,8 @@ it->MoveNext();
 ApplicationInfo AppCfg::GetAppInfo(Package^ package)
 {
     TRACE(__FUNCTION__);
-    TRACE("1x");
     assert(package);
-    TRACE("2x");
+
     ApplicationInfo applicationInfo;
     wstring version = to_wstring(package->Id->Version.Major) + L"." +
         to_wstring(package->Id->Version.Minor) + L"." +
@@ -118,13 +117,12 @@ ApplicationInfo AppCfg::BuildOperationResult(const wstring& packageFamilyName, i
 
     if (package)
     {
-        TRACE(L"Found the package!");
-
+        TRACEP(L"Found the package ", packageFamilyName.c_str());
         applicationInfo = GetAppInfo(package);
     }
     else
     {
-        TRACE(L"Could not find the package!");
+        TRACEP(L"Could not find the package ", packageFamilyName.c_str());
 
         applicationInfo.packageFamilyName = packageFamilyName;
         applicationInfo.version = L"not installed";
@@ -142,84 +140,6 @@ ApplicationInfo AppCfg::BuildOperationResult(const wstring& packageFamilyName, i
     return applicationInfo;
 }
 
-wstring GetProcessExe(DWORD processID)
-{
-    wchar_t exePath[MAX_PATH] = TEXT("<unknown>");
-
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
-    if (NULL != hProcess)
-    {
-        HMODULE hModule;
-        DWORD cbNeeded;
-
-        if (EnumProcessModules(hProcess, &hModule, sizeof(hModule), &cbNeeded))
-        {
-            GetModuleFileNameEx(hProcess, hModule, exePath, sizeof(exePath) / sizeof(wchar_t));
-        }
-
-        CloseHandle(hProcess);
-    }
-
-    return wstring(exePath);
-}
-
-
-bool Contains(const wstring& container, const wstring& contained)
-{
-    if (container.size() < contained.size())
-    {
-        return false;
-    }
-
-    bool match = false;
-    for (size_t i = 0; (i < container.size() - contained.size() + 1) && !match; ++i)
-    {
-        match = true;
-        for (size_t j = 0; j < contained.size(); ++j)
-        {
-            if (towlower(container[i + j]) != towlower(contained[j]))
-            {
-                match = false;
-                break;
-            }
-        }
-    }
-    return match;
-}
-
-bool AppCfg::IsProcessRunning(const wstring& processName)
-{
-    TRACE(__FUNCTION__);
-
-    bool running = false;
-    TRACEP(L"Checking: ", processName.c_str());
-
-    DWORD processHandles[1024];
-    DWORD bytesNeeded = 0;
-    if (EnumProcesses(processHandles, sizeof(processHandles), &bytesNeeded))
-    {
-        DWORD processCount = bytesNeeded / sizeof(DWORD);
-        for (DWORD i = 0; i < processCount; i++)
-        {
-            if (processHandles[i] == 0)
-            {
-                continue;
-            }
-            wstring exePath = GetProcessExe(processHandles[i]);
-            TRACEP(L"Found Process: ", exePath.c_str());
-
-            if (Contains(exePath, processName))
-            {
-                TRACE(L"process is running!");
-                running = true;
-                break;
-            }
-        }
-    }
-
-    return running;
-}
-
 bool AppCfg::IsAppRunning(const wstring& packageFamilyName)
 {
     TRACE(__FUNCTION__);
@@ -231,7 +151,7 @@ bool AppCfg::IsAppRunning(const wstring& packageFamilyName)
     if (package != nullptr)
     {
         TRACE("Application found... now, checking if it is running...");
-        running = IsProcessRunning(package->Id->Name->Data());
+        running = Utils::IsProcessRunning(package->Id->Name->Data());
     }
 
     return running;
@@ -241,7 +161,7 @@ ApplicationInfo AppCfg::InstallAppInternal(const wstring& packageFamilyName, con
 {
     int errorCode = 0;
     wstring errorMessage;
-    bool isRunning = IsAppRunning(packageFamilyName);
+    bool launchApp = IsAppRunning(packageFamilyName);
 
     try
     {
@@ -310,7 +230,7 @@ ApplicationInfo AppCfg::InstallAppInternal(const wstring& packageFamilyName, con
         errorMessage = L"Error: unknown failure while installing application.";
     }
 
-    if (isRunning)
+    if (launchApp)
     {
         StartApp(packageFamilyName);
     }
@@ -332,13 +252,12 @@ ApplicationInfo AppCfg::InstallApp(const wstring& packageFamilyName, const wstri
     {
         TRACE(L"Request to update the DM application... spawing another thread...");
 
-#if 1
         thread t([packageFamilyName, appxLocalPath, dependentPackages, certFileName, certStore, isDMSelfUpdate] {
 
             TRACE(L"We'll process the upgrade scenario on this thread...");
 
             // Wait for CommProxy to exit.
-            while (IsProcessRunning(L"CommProxy.exe"))
+            while (Utils::IsProcessRunning(L"CommProxy.exe"))
             {
                 TRACE(L"Waiting for CommProxy to exit...");
                 ::Sleep(1000);
@@ -350,15 +269,18 @@ ApplicationInfo AppCfg::InstallApp(const wstring& packageFamilyName, const wstri
             // contact the system configurator... proceed to upgrade the DM application now.
             InstallAppInternal(packageFamilyName, appxLocalPath, dependentPackages, certFileName, certStore);
 
-            // ToDo: How do we report that?!
+            // ToDo: How do we report the outcome of this operation now that we no longer have a connection to CommProxy?
+            //
             //       When the DM application is restarted, this same information will be gathered from the 'installed apps' list.
-            //       So, it won't be necessary in cases of success.
-            //       In cases of failure, however, how do we capture this outside the logs?
+            //       So, it won't be necessary to save the outcome in cases of success.
+            //
+            //       In cases of failure, however, we will need to capture those errors and send them back as a response to
+            //       a special 'CachedErrors' request from the newly instantiated DM application.
+            //
 
         }); // end of thread lambda
 
         t.detach();
-#endif
 
         TRACE(L"Responding to DM application to stop accepting/processing new requests...");
         // Return right away saying the install is pending...

@@ -70,6 +70,8 @@ namespace Utils
 
     // Process helpers
     void LaunchProcess(const std::wstring& commandString, unsigned long& returnCode, std::string& output);
+    std::wstring GetProcessExePath(DWORD processID);
+    bool IsProcessRunning(const std::wstring& processName);
 
     // Threading helpers
     class JoiningThread

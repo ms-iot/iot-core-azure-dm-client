@@ -15,6 +15,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "stdafx.h"
 // ToDo: Need to move this to the precompiled header.
 #include <windows.h>
+#include <psapi.h>
 #include <wrl/client.h>
 #include <ostream>
 #include <sstream>
@@ -30,7 +31,9 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using namespace std;
 using namespace Microsoft::WRL;
+using namespace Windows::ApplicationModel;
 using namespace Windows::Data::Json;
+using namespace Windows::Management::Deployment;
 using namespace Windows::System::Profile;
 
 #define ERROR_PIPE_HAS_BEEN_ENDED 109
@@ -686,6 +689,60 @@ while (!doneWriting)
 
 TRACEP("Command return Code: ", returnCode);
 TRACEP("Command output : ", output.c_str());
+    }
+
+    wstring GetProcessExePath(DWORD processID)
+    {
+        wchar_t exePath[MAX_PATH] = TEXT("<unknown>");
+
+        HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+        if (NULL != hProcess)
+        {
+            HMODULE hModule;
+            DWORD cbNeeded;
+
+            if (EnumProcessModules(hProcess, &hModule, sizeof(hModule), &cbNeeded))
+            {
+                GetModuleFileNameEx(hProcess, hModule, exePath, sizeof(exePath) / sizeof(wchar_t));
+            }
+
+            CloseHandle(hProcess);
+        }
+
+        return wstring(exePath);
+    }
+
+    bool IsProcessRunning(const wstring& processName)
+    {
+        TRACE(__FUNCTION__);
+
+        bool running = false;
+        TRACEP(L"Checking: ", processName.c_str());
+
+        DWORD processHandles[1024];
+        DWORD bytesNeeded = 0;
+        if (EnumProcesses(processHandles, sizeof(processHandles), &bytesNeeded))
+        {
+            DWORD processCount = bytesNeeded / sizeof(DWORD);
+            for (DWORD i = 0; i < processCount; i++)
+            {
+                if (processHandles[i] == 0)
+                {
+                    continue;
+                }
+                wstring exePath = Utils::GetProcessExePath(processHandles[i]);
+                TRACEP(L"Found Process: ", exePath.c_str());
+
+                if (Utils::Contains(exePath, processName))
+                {
+                    TRACE(L"process is running!");
+                    running = true;
+                    break;
+                }
+            }
+        }
+
+        return running;
     }
 
     void LoadFile(const wstring& fileName, vector<char>& buffer)

@@ -45,4 +45,27 @@ namespace Utils
         }
         return trimmed;
     }
+
+    bool Contains(const wstring& container, const wstring& contained)
+    {
+        if (container.size() < contained.size())
+        {
+            return false;
+        }
+
+        bool match = false;
+        for (size_t i = 0; (i < container.size() - contained.size() + 1) && !match; ++i)
+        {
+            match = true;
+            for (size_t j = 0; j < contained.size(); ++j)
+            {
+                if (towlower(container[i + j]) != towlower(contained[j]))
+                {
+                    match = false;
+                    break;
+                }
+            }
+        }
+        return match;
+    }
 }

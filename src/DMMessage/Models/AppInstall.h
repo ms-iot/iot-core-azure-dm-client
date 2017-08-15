@@ -125,6 +125,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         property String^ installDate;
         property int errorCode;
         property String^ errorMessage;
+        property bool pending;
 
         Blob^ Serialize(uint32_t tag) {
             JsonObject^ jsonObject = ref new JsonObject();
@@ -136,6 +137,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             jsonObject->Insert("installDate", JsonValue::CreateStringValue(installDate));
             jsonObject->Insert("errorCode", JsonValue::CreateNumberValue(errorCode));
             jsonObject->Insert("errorMessage", JsonValue::CreateStringValue(errorMessage));
+            jsonObject->Insert("pending", JsonValue::CreateBooleanValue(pending));
 
             return SerializationHelper::CreateBlobFromJson(tag, jsonObject);
         }
@@ -152,6 +154,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             result->installDate = jsonObject->GetNamedString("installDate");
             result->errorCode = static_cast<int>(jsonObject->GetNamedNumber("errorCode"));
             result->errorMessage = jsonObject->GetNamedString("errorMessage");
+            result->pending = jsonObject->GetNamedBoolean("pending");
 
             return result;
         }
