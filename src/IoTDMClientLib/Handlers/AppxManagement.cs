@@ -512,22 +512,16 @@ namespace Microsoft.Devices.Management
 
                 // ToDo: We need to handle store and system apps too.
                 AppUninstallResponse response = await UninstallAppAsync(new AppUninstallRequestData(packageFamilyName, false /*non-store app*/));
-                if (response.Status == ResponseStatus.Success)
-                {
-                    reportedState = new AppReportedState(packageFamilyId,
-                                                         packageFamilyName,
-                                                         VersionNotInstalled,
-                                                         StartUpType.None,
-                                                         null,   // no install date
-                                                         null,   // no error
-                                                         JsonReport.Report);
-                    _stateToReport[packageFamilyId] = reportedState;
-                    return;
-                }
-                else
-                {
-                    throw new Error(response.data.errorCode, response.data.errorMessage);
-                }
+
+                reportedState = new AppReportedState(packageFamilyId,
+                                                        packageFamilyName,
+                                                        VersionNotInstalled,
+                                                        StartUpType.None,
+                                                        null,   // no install date
+                                                        null,   // no error
+                                                        JsonReport.Report);
+                _stateToReport[packageFamilyId] = reportedState;
+                return;
             }
             catch(Error e)
             {
@@ -629,34 +623,27 @@ namespace Microsoft.Devices.Management
                     Logger.Log(DateTime.Now.ToString("HH:mm:ss") + " Done installing appx...", LoggingLevel.Verbose);
 
                     Error e = null;
-                    if (response.Status == ResponseStatus.Success)
+                    if (desiredState.version.ToString() != response.data.version)
                     {
-                        if (desiredState.version.ToString() != response.data.version)
+                        if (currentState.Version == response.data.version)
                         {
-                            if (currentState.Version == response.data.version)
-                            {
-                                e = new Error(ErrorCodes.INVALID_INSTALLED_APP_VERSION_UNCHANGED, "Installating the supplied appx succeeded, but the new app version is not the desired version, and is the same as the old app version.");
-                            }
-                            else
-                            {
-                                e = new Error(ErrorCodes.INVALID_INSTALLED_APP_VERSION_UNEXPECTED, "Installating the supplied appx succeeded, but the new app version is not the desired version.");
-                            }
+                            e = new Error(ErrorCodes.INVALID_INSTALLED_APP_VERSION_UNCHANGED, "Installating the supplied appx succeeded, but the new app version is not the desired version, and is the same as the old app version.");
                         }
+                        else
+                        {
+                            e = new Error(ErrorCodes.INVALID_INSTALLED_APP_VERSION_UNEXPECTED, "Installating the supplied appx succeeded, but the new app version is not the desired version.");
+                        }
+                    }
 
-                        reportedState = new AppReportedState(desiredState.packageFamilyId,
-                                                            desiredState.packageFamilyName,
-                                                            response.data.version,
-                                                            response.data.startUp,
-                                                            response.data.installDate,
-                                                            e,
-                                                            JsonReport.Report);
-                        _stateToReport[desiredState.packageFamilyId] = reportedState;
-                        return;
-                    }
-                    else
-                    {
-                        throw new Error(response.data.errorCode, response.data.errorMessage);
-                    }
+                    reportedState = new AppReportedState(desiredState.packageFamilyId,
+                                                        desiredState.packageFamilyName,
+                                                        response.data.version,
+                                                        response.data.startUp,
+                                                        response.data.installDate,
+                                                        e,
+                                                        JsonReport.Report);
+                    _stateToReport[desiredState.packageFamilyId] = reportedState;
+                    return;
                 }
             }
             catch (Error e)

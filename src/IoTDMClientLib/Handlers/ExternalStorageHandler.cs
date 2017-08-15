@@ -13,6 +13,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 
@@ -21,6 +22,8 @@ namespace Microsoft.Devices.Management
     class ExternalStorageHandler : IClientPropertyHandler
     {
         const string JsonSectionName = "externalStorage";
+        const string JsonConnectionString = "connectionString";
+        const string JsonNotSet = "<not set>";
 
         // IClientPropertyHandler
         public string PropertySectionName
@@ -37,18 +40,18 @@ namespace Microsoft.Devices.Management
             if (desiredValue is JObject)
             {
                 JObject jObject = (JObject)desiredValue;
-                _connectionString = (string)jObject.Property("connectionString").Value;
+                _connectionString = (string)jObject.Property(JsonConnectionString).Value;
             }
 
             return DesiredPropertyApplication.Continue;
         }
 
         // IClientPropertyHandler
-        public Task<JObject> GetReportedPropertyAsync()
+        public async Task<JObject> GetReportedPropertyAsync()
         {
-            return null;
+            return await Task.Run(() => { return (JObject)JsonConvert.DeserializeObject("{ \"connectionString\" : \"" + _connectionString + "\" }"); });
         }
 
-        private string _connectionString;
+        private string _connectionString = JsonNotSet;
     }
 }

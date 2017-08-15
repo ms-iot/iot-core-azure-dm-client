@@ -210,75 +210,27 @@ IResponse^ HandleSetTimeInfo(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto setTimeInfoRequest = dynamic_cast<SetTimeInfoRequest^>(request);
-        TimeCfg::Set(setTimeInfoRequest);
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMExceptionWithErrorCode& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
-    }
-    catch (const exception& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        int errorCode = static_cast<int>(DeviceManagementErrors::SetTimeZoneGenericError);
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
-    }
+    auto setTimeInfoRequest = dynamic_cast<SetTimeInfoRequest^>(request);
+    TimeCfg::Set(setTimeInfoRequest);
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetTimeService(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto timeServiceRequest = dynamic_cast<GetTimeServiceRequest^>(request);
-        TimeServiceData^ data = TimeCfg::GetTimeServiceState();
-        return ref new GetTimeServiceResponse(ResponseStatus::Success, data);
-    }
-    catch (const DMExceptionWithErrorCode& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
-    }
-    catch (const exception& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        int errorCode = static_cast<int>(DeviceManagementErrors::SetTimeZoneGenericError);
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
-    }
+    auto timeServiceRequest = dynamic_cast<GetTimeServiceRequest^>(request);
+    TimeServiceData^ data = TimeCfg::GetTimeServiceState();
+    return ref new GetTimeServiceResponse(ResponseStatus::Success, data);
 }
 
 IResponse^ HandleSetTimeService(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto timeServiceRequest = dynamic_cast<SetTimeServiceRequest^>(request);
-        TimeCfg::SetTimeServiceState(timeServiceRequest->data);
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMExceptionWithErrorCode& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
-    }
-    catch (const exception& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        int errorCode = static_cast<int>(DeviceManagementErrors::SetTimeZoneGenericError);
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
-    }
+    auto timeServiceRequest = dynamic_cast<SetTimeServiceRequest^>(request);
+    TimeCfg::SetTimeServiceState(timeServiceRequest->data);
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetCertificateConfiguration(IRequest^ request)
@@ -503,24 +455,7 @@ IResponse^ HandleSetRebootInfo(IRequest^ request)
 IResponse^ HandleGetTimeInfo(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-
-    try
-    {
-        return TimeCfg::Get();
-    }
-    catch (const DMExceptionWithErrorCode& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
-    }
-    catch (const exception& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        int errorCode = static_cast<int>(DeviceManagementErrors::SetTimeZoneGenericError);
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
-    }
+    return TimeCfg::Get();
 }
 
 IResponse^ HandleImmediateReboot(IRequest^ request)
@@ -593,62 +528,41 @@ IResponse^ HandleInstallApp(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
+    auto appInstallRequest = dynamic_cast<AppInstallRequest^>(request);
+    auto info = appInstallRequest->data;
+
+    std::vector<wstring> deps;
+    for each (auto dep in info->Dependencies)
     {
-        auto appInstallRequest = dynamic_cast<AppInstallRequest^>(request);
-        auto info = appInstallRequest->data;
-
-        std::vector<wstring> deps;
-        for each (auto dep in info->Dependencies)
-        {
-            deps.push_back((wstring)dep->Data());
-        }
-        auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
-        auto appxPath = (wstring)info->AppxPath->Data();
-        auto certFile = (wstring)info->CertFile->Data();
-        auto certStore = (wstring)info->CertStore->Data();
-        auto isSelfUpdate = info->IsDMSelfUpdate;
-
-        // ToDo: Need to either fix the CSP api, or just stick with the WinRT interface.
-        // EnterpriseModernAppManagementCSP::ApplicationInfo applicationInfo = EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
-        ApplicationInfo applicationInfo = AppCfg::InstallApp(packageFamilyName, appxPath, deps, certFile, certStore, isSelfUpdate);
-
-        AppInstallResponseData^ responseData = ref new AppInstallResponseData();
-        responseData->pkgFamilyName = ref new String(applicationInfo.packageFamilyName.c_str());
-        responseData->name = ref new String(applicationInfo.name.c_str());
-        responseData->installDate = ref new String(applicationInfo.installDate.c_str());
-        responseData->version = ref new String(applicationInfo.version.c_str());
-        responseData->errorCode = applicationInfo.errorCode;
-        responseData->errorMessage = ref new String(applicationInfo.errorMessage.c_str());
-        responseData->pending = applicationInfo.pending;
-
-        if (!isSelfUpdate)
-        {
-            // Handle the startup state...
-            SetAppStartUpType(packageFamilyName, info->StartUp);
-            responseData->startUp = GetAppStartUpType(packageFamilyName);
-        }
-
-        return ref new AppInstallResponse(ResponseStatus::Success, responseData);
+        deps.push_back((wstring)dep->Data());
     }
-    catch (const DMExceptionWithErrorCode& e)
+    auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
+    auto appxPath = (wstring)info->AppxPath->Data();
+    auto certFile = (wstring)info->CertFile->Data();
+    auto certStore = (wstring)info->CertStore->Data();
+    auto isSelfUpdate = info->IsDMSelfUpdate;
+
+    // ToDo: Need to either fix the CSP api, or just stick with the WinRT interface.
+    // EnterpriseModernAppManagementCSP::ApplicationInfo applicationInfo = EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
+    ApplicationInfo applicationInfo = AppCfg::InstallApp(packageFamilyName, appxPath, deps, certFile, certStore, isSelfUpdate);
+
+    AppInstallResponseData^ responseData = ref new AppInstallResponseData();
+    responseData->pkgFamilyName = ref new String(applicationInfo.packageFamilyName.c_str());
+    responseData->name = ref new String(applicationInfo.name.c_str());
+    responseData->installDate = ref new String(applicationInfo.installDate.c_str());
+    responseData->version = ref new String(applicationInfo.version.c_str());
+    responseData->errorCode = applicationInfo.errorCode;
+    responseData->errorMessage = ref new String(applicationInfo.errorMessage.c_str());
+    responseData->pending = applicationInfo.pending;
+
+    if (!isSelfUpdate)
     {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
+        // Handle the startup state...
+        SetAppStartUpType(packageFamilyName, info->StartUp);
+        responseData->startUp = GetAppStartUpType(packageFamilyName);
     }
-    catch (const exception& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        int errorCode = static_cast<int>(DeviceManagementErrors::InstallAppxGenericError);
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
-    }
-    catch (Platform::Exception^ e)
-    {
-        // ToDo: Move to caller
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e->HResult, e->Message);
-    }
+
+    return ref new AppInstallResponse(ResponseStatus::Success, responseData);
 }
 
 IResponse^ HandleUninstallApp(IRequest^ request)
@@ -657,40 +571,19 @@ IResponse^ HandleUninstallApp(IRequest^ request)
     responseData->errorCode = 0;
     responseData->errorMessage = L"";
 
-    try
-    {
-        auto appUninstallRequest = dynamic_cast<AppUninstallRequest^>(request);
-        auto requestData = appUninstallRequest->data;
-        auto packageFamilyName = (wstring)requestData->PackageFamilyName->Data();
+    auto appUninstallRequest = dynamic_cast<AppUninstallRequest^>(request);
+    auto requestData = appUninstallRequest->data;
+    auto packageFamilyName = (wstring)requestData->PackageFamilyName->Data();
 
-        SetAppStartUpType(packageFamilyName, StartUpType::None);
+    SetAppStartUpType(packageFamilyName, StartUpType::None);
 
-        // ToDo: Need to either fix the CSP api, or just stick with the WinRT interface.
-        // auto storeApp = info->StoreApp;
-        // EnterpriseModernAppManagementCSP::UninstallApp(packageFamilyName, storeApp);
-        AppCfg::UninstallApp(packageFamilyName.c_str());
-        responseData->errorCode = 0;
-        responseData->errorMessage = L"";
-        return ref new AppUninstallResponse(ResponseStatus::Success, responseData);
-    }
-    catch (const DMExceptionWithErrorCode& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
-    }
-    catch (const exception& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        int errorCode = static_cast<int>(DeviceManagementErrors::UninstallAppxGenericError);
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
-    }
-    catch (Platform::Exception^ e)
-    {
-        // ToDo: Move to caller
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e->HResult, e->Message);
-    }
+    // ToDo: Need to either fix the CSP api, or just stick with the WinRT interface.
+    // auto storeApp = info->StoreApp;
+    // EnterpriseModernAppManagementCSP::UninstallApp(packageFamilyName, storeApp);
+    AppCfg::UninstallApp(packageFamilyName.c_str());
+    responseData->errorCode = 0;
+    responseData->errorMessage = L"";
+    return ref new AppUninstallResponse(ResponseStatus::Success, responseData);
 }
 
 IResponse^ HandleTransferFile(IRequest^ request)
@@ -818,24 +711,8 @@ IResponse^ HandleRemoveStartupApp(IRequest^ request)
 IResponse^ HandleGetStartupForegroundApp(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-    try
-    {
-        auto appId = CustomDeviceUiCSP::GetStartupAppId();
-        return ref new GetStartupForegroundAppResponse(ResponseStatus::Success, ref new Platform::String(appId.c_str()));
-    }
-    catch (const DMExceptionWithErrorCode& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
-    }
-    catch (const exception& e)
-    {
-        // ToDo: Move to caller
-        wstring context = Utils::MultibyteToWide(e.what());
-        int errorCode = static_cast<int>(DeviceManagementErrors::GetStartupForegroundAppGenericError);
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
-    }
+    auto appId = CustomDeviceUiCSP::GetStartupAppId();
+    return ref new GetStartupForegroundAppResponse(ResponseStatus::Success, ref new Platform::String(appId.c_str()));
 }
 
 IResponse^ HandleListStartupBackgroundApps(IRequest^ request)
@@ -1354,58 +1231,123 @@ private:
     HANDLE _pipeHandle;
 };
 
-void Listen()
+void EnsureErrorsLogged(const function<void()>& func)
 {
     TRACE(__FUNCTION__);
 
-    SecurityAttributes sa(GENERIC_WRITE | GENERIC_READ);
+    ErrorResponse^ error;
 
-    TRACE("Creating pipe...");
-    Utils::AutoCloseHandle pipeHandle = CreateNamedPipeW(
-        PipeName,
-        PIPE_ACCESS_DUPLEX,
-        PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-        PIPE_UNLIMITED_INSTANCES,
-        PipeBufferSize,
-        PipeBufferSize,
-        NMPWAIT_USE_DEFAULT_WAIT,
-        sa.GetSA());
-
-    if (pipeHandle.Get() == INVALID_HANDLE_VALUE)
+    try
     {
-        throw DMExceptionWithErrorCode("CreateNamedPipe Error: ", GetLastError());
+        func();
+    }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        error = CreateErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), e.what());
+    }
+    catch (const exception& e)  // Note that DMException is just 'exception' with some trace statements.
+    {
+        error = CreateErrorResponse(ErrorSubSystem::DeviceManagement, static_cast<int>(DeviceManagementErrors::GenericError), e.what());
+    }
+    catch (Platform::Exception^ e)
+    {
+        error = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e->HResult, e->Message);
+    }
+    catch (...)
+    {
+        error = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, static_cast<int>(DeviceManagementErrors::GenericError), L"Unknown exception!");
     }
 
-    while (true)
+    if (error)
     {
-        PipeConnection pipeConnection;
-        TRACE("Waiting for a client to connect...");
-        pipeConnection.Connect(pipeHandle.Get());
-        TRACE("Client connected...");
+        // We can't do anything but log it...
+        TRACE(L"Error encountered!");
+        TRACEP(L"  Error Code   : ", error->ErrorCode);
+        TRACEP(L"  Error Message: ", error->ErrorMessage->Data());
+    }
+}
 
+bool ProcessClientConnection(Utils::AutoCloseHandle& pipeHandle)
+{
+    bool exit = false;
+    // If the connection code throws, there's no way to communicate that the pipe...
+    // But we can still log it...
+    PipeConnection pipeConnection;
+    TRACE("Waiting for a client to connect...");
+    pipeConnection.Connect(pipeHandle.Get());
+    TRACE("Client connected...");
+
+    IResponse^ response;
+    try
+    {
         auto requestBlob = Blob::ReadFromNativeHandle(pipeHandle.Get64());
         TRACE("Request received...");
         TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)requestBlob->Tag));
         TRACEP(L"    ", Utils::ConcatString(L"request version:", requestBlob->Version));
 
-        try
-        {
-            IRequest^ request = requestBlob->MakeIRequest();
-            IResponse^ response = ProcessCommand(request);
-            response->Serialize()->WriteToNativeHandle(pipeHandle.Get64());
-            TRACE(L"WriteToNativeHandle() completed successfully.");
+        IRequest^ request = requestBlob->MakeIRequest();
+        response = ProcessCommand(request);
 
-            if (request->Tag == DMMessageKind::ExitDM && response->Status == ResponseStatus::Success)
-            {
-                TRACE(L"Exiting service...");
-                break;
-            }
-        }
-        catch (const DMException& ex)
+        TRACE(L"WriteToNativeHandle() completed successfully.");
+        if (request->Tag == DMMessageKind::ExitDM && response->Status == ResponseStatus::Success)
         {
-            TRACE("DMExeption was thrown from ProcessCommand()...");
-            auto response = ref new StringResponse(ResponseStatus::Failure, ref new String(std::wstring(Utils::MultibyteToWide(ex.what())).c_str()), DMMessageKind::ErrorResponse);
-            response->Serialize()->WriteToNativeHandle(pipeHandle.Get64());
+            TRACE(L"Exiting service...");
+            exit = true;
         }
     }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        response = CreateErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), e.what());
+    }
+    catch (const exception& e)  // Note that DMException is just 'exception' with some trace statements.
+    {
+        response = CreateErrorResponse(ErrorSubSystem::DeviceManagement, static_cast<int>(DeviceManagementErrors::GenericError), e.what());
+    }
+    catch (Platform::Exception^ e)
+    {
+        response = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e->HResult, e->Message);
+    }
+    catch (...)
+    {
+        response = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, static_cast<int>(DeviceManagementErrors::GenericError), L"Unknown exception!");
+    }
+
+    EnsureErrorsLogged([&]()
+    {
+        response->Serialize()->WriteToNativeHandle(pipeHandle.Get64());
+    });
+
+    return exit;
+}
+
+void Listen()
+{
+    TRACE(__FUNCTION__);
+
+    EnsureErrorsLogged([&]()
+    {
+        SecurityAttributes sa(GENERIC_WRITE | GENERIC_READ);
+
+        TRACE("Creating pipe...");
+        Utils::AutoCloseHandle pipeHandle = CreateNamedPipeW(
+            PipeName,
+            PIPE_ACCESS_DUPLEX,
+            PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
+            PIPE_UNLIMITED_INSTANCES,
+            PipeBufferSize,
+            PipeBufferSize,
+            NMPWAIT_USE_DEFAULT_WAIT,
+            sa.GetSA());
+
+        if (pipeHandle.Get() == INVALID_HANDLE_VALUE)
+        {
+            throw DMExceptionWithErrorCode("CreateNamedPipe Error: ", GetLastError());
+        }
+
+        bool exit = false;
+        while (!exit)
+        {
+            exit = ProcessClientConnection(pipeHandle);
+        }
+    });
 }

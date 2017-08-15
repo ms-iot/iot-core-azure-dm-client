@@ -56,10 +56,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     public enum class DeviceManagementErrors
     {
-        SetTimeZoneGenericError = 0x00000001,
-        GetStartupForegroundAppGenericError = 0x00000002,
-        InstallAppxGenericError = 0x00000003,
-        UninstallAppxGenericError = 0x00000004
+        GenericError = 0x00000001
     };
 
 }}}}

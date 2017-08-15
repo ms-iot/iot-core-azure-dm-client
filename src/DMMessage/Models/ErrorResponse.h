@@ -19,6 +19,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DMMessageKind.h"
 #include "ResponseStatus.h"
 #include "Blob.h"
+#include "../SharedUtilities/StringUtils.h"
 
 using namespace Platform;
 using namespace Platform::Metadata;
@@ -74,5 +75,12 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             ResponseStatus get() { return status; }
         }
     };
+
+    static ErrorResponse^ CreateErrorResponse(ErrorSubSystem subSystem, int code, const char* message)
+    {
+        String^ errorMessage = ref new String(Utils::MultibyteToWide(message).c_str());
+        return ref new ErrorResponse(subSystem, code, errorMessage);
+    }
+
 }
 }}}
