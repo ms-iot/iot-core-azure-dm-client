@@ -35,9 +35,14 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define IoTDMRegistryTrue L"True"
 #define IoTDMRegistryFalse L"False"
 
+#define IoTDMSihostExe L"sihost.exe"
+
+
 namespace Utils
 {
     typedef std::function<void(std::vector<std::wstring>&, std::wstring&)>& ELEMENT_HANDLER;
+    typedef std::function<void(HANDLE, PTOKEN_USER)> TOKEN_HANDLER;
+
 
     // User helper
     std::wstring GetDmUserSid();

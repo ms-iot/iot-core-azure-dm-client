@@ -47,26 +47,9 @@ using namespace Windows::System::Profile;
 
 namespace Utils
 {
-
-    struct HANDLE_Cleanup
+    void GetDmUserInfo(TOKEN_HANDLER handler)
     {
-        HANDLE m_handle;
-        HANDLE_Cleanup(HANDLE handle) : m_handle(handle) {};
-        ~HANDLE_Cleanup()
-        { 
-            if (m_handle != nullptr && m_handle != INVALID_HANDLE_VALUE)
-            {
-                CloseHandle(m_handle);
-            }
-        }
-    };
-
-    typedef std::function<void(HANDLE, PTOKEN_USER)> DO_TOKEN_STUFF_FUNCTION;
-
-    void GetDmUserInfo(DO_TOKEN_STUFF_FUNCTION handler)
-    {
-        LPCWSTR processName = L"sihost.exe";
-        const size_t processNameLength = wcslen(processName);
+        const size_t processNameLength = wcslen(IoTDMSihostExe);
         vector<DWORD> spProcessIds(1024);
         DWORD bytesReturned = 0;
         WCHAR imageFileName[MAX_PATH];
@@ -82,25 +65,23 @@ namespace Utils
             for (unsigned int i = 0; i < actualProcessIds; i++)
             {
                 DWORD error = 0;
-                HANDLE Process = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, spProcessIds[i]);
-                if (Process == INVALID_HANDLE_VALUE) continue;
-                HANDLE_Cleanup spProcess(Process);
+                AutoCloseHandle processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, spProcessIds[i]);
+                if (processHandle.Get() == INVALID_HANDLE_VALUE) continue;
 
-                auto imageFileNameLength = GetProcessImageFileNameW(Process, imageFileName, _countof(imageFileName));
-                if ((imageFileNameLength < processNameLength) || (_wcsicmp(processName, &imageFileName[imageFileNameLength - processNameLength]) != 0)) continue;
+                auto imageFileNameLength = GetProcessImageFileNameW(processHandle.Get(), imageFileName, _countof(imageFileName));
+                if ((imageFileNameLength < processNameLength) || (_wcsicmp(IoTDMSihostExe, &imageFileName[imageFileNameLength - processNameLength]) != 0)) continue;
 
-                HANDLE ProcessToken;
-                error = OpenProcessToken(Process, TOKEN_READ, &ProcessToken);
+                AutoCloseHandle processTokenHandle;
+                error = OpenProcessToken(processHandle.Get(), TOKEN_READ, processTokenHandle.GetAddress());
                 if (FAILED(error))
                 {
                     TRACEP(L"OpenProcessToken failed. Code: ", error);
                     continue;
                 }
-                HANDLE_Cleanup spProcessToken(ProcessToken);
 
                 DWORD sessionID = 0;
                 DWORD size = 0;
-                if (!GetTokenInformation(ProcessToken, TokenSessionId, &sessionID, sizeof(sessionID), &size))
+                if (!GetTokenInformation(processTokenHandle.Get(), TokenSessionId, &sessionID, sizeof(sessionID), &size))
                 {
                     TRACEP(L"GetTokenInformation(TokenSessionId) failed. Code: ", GetLastError());
                     continue;
@@ -112,19 +93,22 @@ namespace Utils
                 BYTE buffer[SECURITY_MAX_SID_SIZE];
                 PTOKEN_USER tokenUser = reinterpret_cast<PTOKEN_USER>(buffer);
                 DWORD tokenUserSize = sizeof(buffer);
-                if (FAILED(GetTokenInformation(ProcessToken, TokenUser, tokenUser, tokenUserSize, &tokenUserSize)))
+                if (!GetTokenInformation(processTokenHandle.Get(), TokenUser, tokenUser, tokenUserSize, &tokenUserSize))
                 {
                     TRACEP(L"GetTokenInformation(TokenUser) failed. Code: ", GetLastError());
                     continue;
                 }
 
-                handler(ProcessToken, tokenUser);
+                handler(processTokenHandle.Get(), tokenUser);
+                return;
             }
         }
         else
         {
-            TRACEP(L"EnumProcesses failed. Code: ", GetLastError());
+            throw DMExceptionWithErrorCode("EnumProcesses failed.", GetLastError());
         }
+
+        throw DMExceptionWithErrorCode("GetDmUserInfo: no user process found.", E_FAIL);
     }
 
     wstring GetDmUserSid() 
@@ -139,7 +123,7 @@ namespace Utils
             }
             else
             {
-                TRACEP(L"ConvertSidToStringSid failed. Code: ", GetLastError());
+                throw DMExceptionWithErrorCode("ConvertSidToStringSid failed.", GetLastError());
             }
         });
 
@@ -163,12 +147,12 @@ namespace Utils
                 }
                 else
                 {
-                    TRACEP(L"LookupAccountSid failed. Code: ", GetLastError());
+                    throw DMExceptionWithErrorCode("LookupAccountSid failed.", GetLastError());
                 }
             }
             else
             {
-                TRACEP(L"LookupAccountSid(NULL) failed. Code: ", GetLastError());
+                throw DMExceptionWithErrorCode("LookupAccountSid(NULL) failed.", GetLastError());
             }
         });
 
@@ -187,7 +171,7 @@ namespace Utils
             }
             else
             {
-                TRACEP(L"SHGetFolderPath failed. Code: ", hr);
+                throw DMExceptionWithErrorCode("SHGetFolderPath failed.", hr);
             }
         });
 
