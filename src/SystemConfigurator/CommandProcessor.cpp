@@ -612,6 +612,7 @@ IResponse^ HandleInstallApp(IRequest^ request)
         // ToDo: Need to either fix the CSP api, or just stick with the WinRT interface.
         // EnterpriseModernAppManagementCSP::ApplicationInfo applicationInfo = EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
         ApplicationInfo applicationInfo = AppCfg::InstallApp(packageFamilyName, appxPath, deps, certFile, certStore, isSelfUpdate);
+
         AppInstallResponseData^ responseData = ref new AppInstallResponseData();
         responseData->pkgFamilyName = ref new String(applicationInfo.packageFamilyName.c_str());
         responseData->name = ref new String(applicationInfo.name.c_str());
@@ -630,15 +631,23 @@ IResponse^ HandleInstallApp(IRequest^ request)
 
         return ref new AppInstallResponse(ResponseStatus::Success, responseData);
     }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
+    }
+    catch (const exception& e)
+    {
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        int errorCode = static_cast<int>(DeviceManagementErrors::InstallAppxGenericError);
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
+    }
     catch (Platform::Exception^ e)
     {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleInstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
-
-        AppInstallResponseData^ responseData = ref new AppInstallResponseData();
-        responseData->errorCode = e->HResult;
-        responseData->errorMessage = e->Message;
-        return ref new AppInstallResponse(ResponseStatus::Failure, responseData);
+        // ToDo: Move to caller
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e->HResult, e->Message);
     }
 }
 
@@ -664,23 +673,24 @@ IResponse^ HandleUninstallApp(IRequest^ request)
         responseData->errorMessage = L"";
         return ref new AppUninstallResponse(ResponseStatus::Success, responseData);
     }
-    catch (Platform::Exception^ e)
-    {
-        responseData->errorCode = e->HResult;
-        responseData->errorMessage = e->Message;
-    }
     catch (const DMExceptionWithErrorCode& e)
     {
-        responseData->errorCode = e.ErrorCode();
-        responseData->errorMessage = ref new String(Utils::MultibyteToWide(e.what()).c_str());
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), ref new String(context.c_str()));
     }
-    catch (const DMException& e)
+    catch (const exception& e)
     {
-        responseData->errorCode = 0;    // unknown error
-        responseData->errorMessage = ref new String(Utils::MultibyteToWide(e.what()).c_str());
+        // ToDo: Move to caller
+        wstring context = Utils::MultibyteToWide(e.what());
+        int errorCode = static_cast<int>(DeviceManagementErrors::UninstallAppxGenericError);
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, errorCode, ref new String(context.c_str()));
     }
-
-    return ref new AppUninstallResponse(ResponseStatus::Failure, responseData);
+    catch (Platform::Exception^ e)
+    {
+        // ToDo: Move to caller
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e->HResult, e->Message);
+    }
 }
 
 IResponse^ HandleTransferFile(IRequest^ request)

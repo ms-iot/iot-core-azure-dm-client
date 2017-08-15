@@ -50,8 +50,5 @@ private:
     static void StartStopApp(const std::wstring& appId, bool start);
 
     static Windows::ApplicationModel::Package^ FindApp(const std::wstring& packageFamilyName);
-    static ApplicationInfo BuildOperationResult(
-        const std::wstring& packageFamilyName,
-        int errorCode,
-        const std::wstring& errorMessage);
+    static ApplicationInfo BuildOperationResult(const std::wstring& packageFamilyName);
 };
