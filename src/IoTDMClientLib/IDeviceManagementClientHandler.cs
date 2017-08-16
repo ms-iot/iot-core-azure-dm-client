@@ -38,7 +38,7 @@ namespace Microsoft.Devices.Management
     {
         string PropertySectionName { get; }
 
-        Task<DesiredPropertyApplication> OnDesiredPropertyChange(JToken value);
+        Task<CommandStatus> OnDesiredPropertyChange(JToken value);
 
         Task<JObject> GetReportedPropertyAsync();
     }

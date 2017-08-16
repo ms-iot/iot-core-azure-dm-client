@@ -517,7 +517,7 @@ namespace Microsoft.Devices.Management
             return Task.FromResult(JsonConvert.SerializeObject(response));
         }
 
-        private static async void ProcessDesiredCertificateConfiguration(
+        private static async Task ProcessDesiredCertificateConfigurationAsync(
             ISystemConfiguratorProxy systemConfiguratorProxy,
             string connectionString,
             string containerName,
@@ -526,7 +526,7 @@ namespace Microsoft.Devices.Management
 
             await IoTDMClient.CertificateManagement.DownloadCertificates(systemConfiguratorProxy, connectionString, containerName, certificateConfiguration);
             var request = new Message.SetCertificateConfigurationRequest(certificateConfiguration);
-            systemConfiguratorProxy.SendCommandAsync(request).FireAndForget();
+            await systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         public async Task AllowReboots(bool allowReboots)
@@ -592,7 +592,7 @@ namespace Microsoft.Devices.Management
             foreach (var sectionProp in windowsPropValue.Children().OfType<JProperty>())
             {
                 // If we've been told to stop, we should not process any desired properties...
-                if (_desiredPropertyApplication == DesiredPropertyApplication.Stop)
+                if (_lastCommandStatus == CommandStatus.PendingDMAppRestart)
                 {
                     break;
                 }
@@ -611,7 +611,7 @@ namespace Microsoft.Devices.Management
                             continue;
                         }
 
-                        _desiredPropertyApplication = await handler.OnDesiredPropertyChange(sectionProp.Value);
+                        _lastCommandStatus = await handler.OnDesiredPropertyChange(sectionProp.Value);
 
                         statusSection.State = StatusSection.StateType.Committed;
                         await ReportStatusAsync(sectionProp.Name, statusSection);
@@ -705,7 +705,7 @@ namespace Microsoft.Devices.Management
             {
                 if (certificateConfiguration != null)
                 {
-                    ProcessDesiredCertificateConfiguration(_systemConfiguratorProxy, _externalStorageConnectionString, "certificates", certificateConfiguration);
+                    await ProcessDesiredCertificateConfigurationAsync(_systemConfiguratorProxy, _externalStorageConnectionString, "certificates", certificateConfiguration);
                 }
             }
         }
@@ -797,7 +797,7 @@ namespace Microsoft.Devices.Management
         string _externalStorageConnectionString;
         Dictionary<string, IClientPropertyHandler> _desiredPropertyMap;
         Dictionary<string, List<IClientPropertyDependencyHandler>> _desiredPropertyDependencyMap;
-        DesiredPropertyApplication _desiredPropertyApplication = DesiredPropertyApplication.Continue;
+        CommandStatus _lastCommandStatus = CommandStatus.NotStarted;
     }
 
 }

@@ -319,7 +319,7 @@ namespace Microsoft.Devices.Management
         }
 
         // IClientPropertyHandler
-        public async Task<DesiredPropertyApplication> OnDesiredPropertyChange(JToken desiredValue)
+        public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
         {
             UpdateCache(desiredValue);
 
@@ -327,7 +327,7 @@ namespace Microsoft.Devices.Management
             // so that we can re-construct the correct reported list.
             await OnDesiredPropertyChangeAsync(_desiredCache[JsonSectionName]);
 
-            return DesiredPropertyApplication.Continue;
+            return CommandStatus.Committed;
         }
 
         // IClientPropertyHandler

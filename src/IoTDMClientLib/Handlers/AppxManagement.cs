@@ -692,7 +692,7 @@ namespace Microsoft.Devices.Management
             return StartUpType.None;
         }
 
-        private async Task<DesiredPropertyApplication> InstallAppAsync(AppInfo installedAppInfo, Version installedAppVersion, string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
+        private async Task<CommandStatus> InstallAppAsync(AppInfo installedAppInfo, Version installedAppVersion, string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
         {
             Logger.Log("Processing install request for " + desiredState.packageFamilyId, LoggingLevel.Verbose);
 
@@ -788,7 +788,7 @@ namespace Microsoft.Devices.Management
                         {
                             // If isSelf == true, it means that SystemConfigurator will force this application to exit very soon.
                             // Let's stop processing any further desired properties.
-                            return DesiredPropertyApplication.Stop;
+                            return CommandStatus.PendingDMAppRestart;
                         }
                     }
                     else
@@ -830,7 +830,7 @@ namespace Microsoft.Devices.Management
                 }
             }
 
-            return DesiredPropertyApplication.Continue;
+            return CommandStatus.Committed;
         }
 
         private void QueryApp(AppInfo installedAppInfo, AppDesiredState desiredState)
@@ -867,9 +867,9 @@ namespace Microsoft.Devices.Management
             _stateToReport[desiredState.packageFamilyId] = appReportedState;
         }
 
-        private async Task<DesiredPropertyApplication> ApplyAppDesiredState(string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
+        private async Task<CommandStatus> ApplyAppDesiredState(string connectionString, IDictionary<string, AppInfo> installedApps, AppDesiredState desiredState)
         {
-            DesiredPropertyApplication desiredPropertyApplication = DesiredPropertyApplication.Continue;
+            CommandStatus commandStatus = CommandStatus.NotStarted;
             AppInfo installedAppInfo = null;
             Version installedAppVersion = null;
 
@@ -889,7 +889,7 @@ namespace Microsoft.Devices.Management
             {
                 case AppDesiredAction.Install:
                     {
-                        desiredPropertyApplication = await InstallAppAsync(installedAppInfo, installedAppVersion, connectionString, installedApps, desiredState);
+                        commandStatus = await InstallAppAsync(installedAppInfo, installedAppVersion, connectionString, installedApps, desiredState);
                     }
                     break;
                 case AppDesiredAction.Uninstall:
@@ -936,16 +936,16 @@ namespace Microsoft.Devices.Management
                     break;
             }
 
-            return desiredPropertyApplication;
+            return commandStatus;
         }
 
-        private async Task<DesiredPropertyApplication> ApplyDesiredAppsConfiguration(JToken jAppsToken)
+        private async Task<CommandStatus> ApplyDesiredAppsConfiguration(JToken jAppsToken)
         {
-            DesiredPropertyApplication desiredPropertyApplication = DesiredPropertyApplication.Continue;
+            CommandStatus commandStatus = CommandStatus.NotStarted;
 
             if (!(jAppsToken is JObject))
             {
-                return desiredPropertyApplication;
+                return commandStatus;
             }
 
             try
@@ -966,7 +966,7 @@ namespace Microsoft.Devices.Management
                 {
                     try
                     {
-                        desiredPropertyApplication = await ApplyAppDesiredState(this._connectionString, installedApps, appDesiredState);
+                        commandStatus = await ApplyAppDesiredState(this._connectionString, installedApps, appDesiredState);
                     }
                     catch (Exception)
                     {
@@ -975,7 +975,7 @@ namespace Microsoft.Devices.Management
                     }
 
                     // Should we continue?
-                    if (desiredPropertyApplication == DesiredPropertyApplication.Stop)
+                    if (commandStatus == CommandStatus.PendingDMAppRestart)
                     {
                         break;
                     }
@@ -1024,7 +1024,7 @@ namespace Microsoft.Devices.Management
                 await ReportGeneralError(e.HResult, e.Message);
             }
 
-            return desiredPropertyApplication;
+            return commandStatus;
         }
 
         private async Task<string> GetStartupForegroundAppAsync()
@@ -1077,7 +1077,7 @@ namespace Microsoft.Devices.Management
         }
 
         // IClientPropertyHandler
-        public async Task<DesiredPropertyApplication> OnDesiredPropertyChange(JToken desiredValue)
+        public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
         {
             UpdateCache(desiredValue);
 

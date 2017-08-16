@@ -57,11 +57,11 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public async Task<DesiredPropertyApplication> OnDesiredPropertyChange(JToken value)
+        public async Task<CommandStatus> OnDesiredPropertyChange(JToken value)
         {
             await VerifyHealthAsync((JObject)value);
 
-            return DesiredPropertyApplication.Continue;
+            return CommandStatus.Committed;
         }
 
         public async Task<JObject> GetReportedPropertyAsync()

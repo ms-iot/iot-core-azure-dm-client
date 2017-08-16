@@ -14,7 +14,7 @@ Here are the steps you need to obtain detailed logs for a certain period of time
 - Open an admin console to the device and start capturing logs using:
 
     <pre>
-    xperf.exe -start MySession -f c:\temp\dm.etl -on D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897
+    xperf.exe -start MySession -f c:\Data\Users\DefaultAccount\AppData\Local\Temp\dm.etl -on D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897
     </pre>
 
 - Run your scenarios (i.e. set the desired property in question, etc).

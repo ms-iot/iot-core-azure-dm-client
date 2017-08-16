@@ -109,10 +109,11 @@ namespace Microsoft.Devices.Management
         Unreport
     }
 
-    enum DesiredPropertyApplication
+    enum CommandStatus
     {
-        Continue,
-        Stop
+        NotStarted,
+        Committed,
+        PendingDMAppRestart
     }
 
     public class Logger

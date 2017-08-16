@@ -35,7 +35,7 @@ namespace Microsoft.Devices.Management
         }
 
         // IClientPropertyHandler
-        public async Task<DesiredPropertyApplication> OnDesiredPropertyChange(JToken desiredValue)
+        public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
         {
             if (desiredValue is JObject)
             {
@@ -43,7 +43,7 @@ namespace Microsoft.Devices.Management
                 _connectionString = (string)jObject.Property(JsonConnectionString).Value;
             }
 
-            return DesiredPropertyApplication.Continue;
+            return CommandStatus.Committed;
         }
 
         // IClientPropertyHandler
