@@ -24,7 +24,7 @@ The application can be a foreground application or a background application.
 ## Reference
 
 - [Architecture](docs/dm-client-architecture.md)
-- [Building the Library](docs/building-the-library.md)
+- [Building the Device Management Binaries](docs/building-the-dm-binaries.md)
 - [OEM Device Setup](docs/oem-device-setup.md)
 - [Library Reference](docs/library-reference.md)
 

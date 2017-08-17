@@ -3,7 +3,7 @@
 
 
 #### Make Sure Library Is Ready
-- Follow the steps described in [Building the Library](building-the-library.md)
+- Follow the steps described in [Building the Device Management Binaries](building-the-dm-binaries.md).
 - Make sure you have the `c:\iot-core-azure-dm-client\nuget\IoTDMClientLib.1.2.0.nupkg` from the previous step.
 
 #### Create A New Project
@@ -28,7 +28,7 @@
 - In Visual Studio, open `Tools | NuGet Package Manager | Package Manager Console`. In the NuGet console:
   - Run `Install-Package Microsoft.Azure.Devices.Client`
   - Run `Install-Package IoTDMClientLib -source nuget_path`
-      - where <i>nuget_path</i> is the path to where the nuget was generated from following the [Building the Library](building-the-library.md) step.
+      - where <i>nuget_path</i> is the path to where the nuget was generated from following the [Building the Device Management Binaries](building-the-dm-binaries.md) step.
 - Verify the references have been added under the project's `References' node in Solution Explorer or by looking at the project.json file.
 
 #### Connect to Azure DM

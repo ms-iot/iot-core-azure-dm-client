@@ -5,19 +5,30 @@ The process and tools by which customized images can be created is described her
 
 In order to include Azure Device Management functionality in such images, 
 
-- Include the following components:
+- Build The Binaries
+  - Follow the instructions [here](building-the-dm-binaries.md).
+
+- Include The Binaries:
   - The UWP application that hosts the device management library (see the [Walk-Through](dm-hello-world-overview.md) on how to create one).
   - `SystemConfigurator.exe`
   - `CommProxy.exe`
 
-- Configure the componenents:
+- Configure The Binaries:
   - `CommProxy.exe` need to be whitelisted.
   - `SystemConfigurator` service is installed, and is configured to start automatically.
 
 ## Including the Binaries
 
 - OEM authors packages to include all the necessary binaries.
-- `CommProxy.exe` and `SystemConfigurator.exe` need to be placed in system32.
+- `CommProxy.exe` and `SystemConfigurator.exe` are to be placed in system32.
+
+<pre>
+    &lt;Files&gt;
+    &lt;File Source="CommProxy.exe" DestinationDir="$(runtime.system32)" /&gt;
+    &lt;File Source="SystemConfigurator.exe" DestinationDir="$(runtime.system32)" /&gt;
+    &lt;File Source="DMSetup.cmd" /&gt;
+    &lt;/Files&gt;
+</pre>
 
 ## Configuring the Binaries
 
@@ -59,16 +70,13 @@ reg query HKLM\Software\IoT /v FirstBootDone >nul 2>&1
 if %errorlevel% == 1 ( 
      REM Enable Administrator User 
      net user Administrator p@ssw0rd /active:yes 
-     reg add HKLM\Software\IoT /v FirstBootDone /t REG_DWORD /d 1 /f >nul 2>&1 
      call DMSetup.cmd
+     reg add HKLM\Software\IoT /v FirstBootDone /t REG_DWORD /d 1 /f >nul 2>&1 
 ) 
 </pre>
 
 (see more samples on authoring OEMCustomization.cmd [here](https://github.com/ms-iot/iot-adk-addonkit/blob/master/Source-arm/Products/))
 
+----
 
-
-
-
-
-
+[Home Page](../README.md)
