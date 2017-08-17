@@ -1,15 +1,20 @@
-# Time
+# Time Management
 
-The **Time** functionality allows the operator to configure the time zone and the time synchronization server.
+The **Time** functionality allows the operator to configure the following:
 
-### Setting Time Configuration
-The format of the `"desired.microsoft.management.timeInfo"` desired property is as follows:
+- The time zone.
+- The time synchronization server.
+- The time service on the Windows machine.
+
+### Time Zone and Synchronization Server
+
+#### Setting
+The format of the `"desired.windows.timeInfo"` desired property is as follows:
 
 <pre>
-    "desired" : {
-      "microsoft": {
-        "management": {
-          "timeInfo": {
+"desired" : {
+    "windows": {
+        "timeInfo": {
             "timeZoneDaylightBias": <i>daylightBias</i>,
             "timeZoneDaylightDate": "<i>Datetime in ISO 8601 format, UTC</i>",
             "timeZoneDaylightName": "<i>daylight display name</i>",
@@ -20,20 +25,19 @@ The format of the `"desired.microsoft.management.timeInfo"` desired property is 
             "timeZoneStandardDayOfWeek": <i>0 for Sunday, etc</i>,
             "timeZoneBias": <i>bias</i>,
             "ntpServer": "<i>ntpServer</i>"
-          }
+            }
         }
-      }
     }
+}
 </pre>
 
-### Reporting Time Configuration
+#### Reporting
 The format of the `"reported.microsoft.management.timeInfo"` desired property is as follows:
 
 <pre>
-    "reported" : {
-      "microsoft": {
-        "management": {
-          "timeInfo": {
+"reported" : {
+    "windows": {
+        "timeInfo": {
             "timeZoneDaylightDayOfWeek": <i>0 for Sunday, etc</i>,
             "timeZoneDaylightBias": <i>daylightBias</i>,
             "timeZoneDaylightDate": "<i>Datetime in ISO 8601 format, UTC</i>",
@@ -45,21 +49,26 @@ The format of the `"reported.microsoft.management.timeInfo"` desired property is
             "timeZoneBias": <i>bias</i>,
             "ntpServer": "<i>ntpServer</i>",
             "localTime": "<i>Datetime in ISO 8601 format, UTC</i>"
-          }
+            "lastChange": {
+                "time" : "<i>timestamp</i>",
+                "state" : "pending|committed|failed",
+                "errSubSystem" : "<i>error sub-system</i>",
+                "errCode" : <i>error code</i>,
+                "errContext" : "<i>error context</i>"
+            }
         }
-      }
     }
+}
 </pre>
 
-###Examples
+#### Examples
 
 To configure the device to Pacifict Standard Time, the <i>timeInfo</i> is set to:
 
 <pre>
 "desired" : {
-    "microsoft" : {
-        "management" : {
-          "timeInfo": {
+    "windows" : {
+        "timeInfo": {
             "timeZoneDaylightBias": -60,
             "timeZoneDaylightDate": "3/2/2016 2:00:00 AM",
             "timeZoneDaylightName": "Pacific Daylight Time",
@@ -68,7 +77,6 @@ To configure the device to Pacifict Standard Time, the <i>timeInfo</i> is set to
             "timeZoneStandardName": "Pacific Standard Time",
             "timeZoneBias": 480,
             "ntpServer": "time.windows.com"
-          }
         }
     }
 }
@@ -77,9 +85,8 @@ To configure the device to Pacifict Standard Time, the <i>timeInfo</i> is set to
 The reported settings will looks something like this:
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-          "timeInfo": {
+    "windows" : {
+        "timeInfo": {
             "timeZoneDaylightBias": -60,
             "timeZoneDaylightDate": "2016-03-02T02:00:00Z",
             "timeZoneDaylightName": "Pacific Daylight Time",
@@ -89,7 +96,44 @@ The reported settings will looks something like this:
             "timeZoneBias": 480,
             "ntpServer": "time.windows.com",
             "localTime": "2017-03-02T01:31:15.0000483Z"
-          }
+            "lastChange": {
+                "time" : "<i>timestamp</i>",
+                "state" : "committed"
+            }
+        }
+    }
+}
+</pre>
+
+### Time Service
+
+#### Setting
+
+<pre>
+"desired" : {
+    "windows": {
+        "timeService": {
+            "enabled": "yes|no",
+            "startup": "auto|manual",
+            "started": "yes|no",
+        }
+    }
+}
+</pre>
+
+#### Reporting
+
+<pre>
+"desired" : {
+    "windows": {
+        "timeService": {
+            "enabled": "yes|no",
+            "startup": "auto|manual|n/a",
+            "started": "yes|no|n/a",
+            "lastChange": {
+                "time" : "<i>timestamp</i>",
+                "state" : "<i>status</i>"
+            }
         }
     }
 }

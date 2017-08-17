@@ -120,6 +120,7 @@
     <ClInclude Include="DMService.h" />
     <ClInclude Include="DMStorage.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="ServiceManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TimeCfg.h" />
@@ -144,6 +145,7 @@
     <ClCompile Include="CSPs\WifiCSP.cpp" />
     <ClCompile Include="DMService.cpp" />
     <ClCompile Include="DMStorage.cpp" />
+    <ClCompile Include="ServiceManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

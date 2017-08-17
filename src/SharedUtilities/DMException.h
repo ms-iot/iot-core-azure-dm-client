@@ -41,39 +41,22 @@ public:
 
 class DMExceptionWithErrorCode : public DMException
 {
-    int _errorCode;
+    long _errorCode;
 public:
-    DMExceptionWithErrorCode(int errorCode) :
+    DMExceptionWithErrorCode(long errorCode) :
         DMException(""), _errorCode(errorCode)
     {
         TRACEP("Exception error code: ", errorCode);
     }
 
-    DMExceptionWithErrorCode(const char* message, int errorCode) :
+    DMExceptionWithErrorCode(const char* message, long errorCode) :
         DMException(message), _errorCode(errorCode)
     {
         TRACEP("Exception error code: ", errorCode);
     }
 
-    int ErrorCode() const
+    long ErrorCode() const
     {
         return _errorCode;
-    }
-};
-
-class DMExceptionWithHRESULT : public DMException
-{
-    HRESULT _hr;
-public:
-    DMExceptionWithHRESULT(HRESULT hr) :
-        DMException(""), _hr(hr)
-    {
-        TRACEP("Exception HRESULT: ", hr);
-    }
-
-    DMExceptionWithHRESULT(const char* message, HRESULT hr) :
-        DMException(message), _hr(hr)
-    {
-        TRACEP("Exception HRESULT: ", hr);
     }
 };

@@ -319,13 +319,15 @@ namespace Microsoft.Devices.Management
         }
 
         // IClientPropertyHandler
-        public void OnDesiredPropertyChange(JToken desiredValue)
+        public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
         {
             UpdateCache(desiredValue);
 
             // Need to revisit all the desired nodes (not only the changed ones) 
             // so that we can re-construct the correct reported list.
-            OnDesiredPropertyChangeAsync(_desiredCache[JsonSectionName]).FireAndForget();
+            await OnDesiredPropertyChangeAsync(_desiredCache[JsonSectionName]);
+
+            return CommandStatus.Committed;
         }
 
         // IClientPropertyHandler

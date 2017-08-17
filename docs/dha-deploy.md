@@ -3,7 +3,7 @@
 Additional Azure resources are required to support Device Health Attestation.  Please see [Device Health Attestation Architecture](dha-architecture.md) for more details.  If Device Health Attestation is not required, this step can be skipped.
 
 #### Make Sure Library Is Ready
-- Follow the steps described in [Building the Library](building-the-library.md)
+- Follow the steps described in [Building the Device Management Binaries](building-the-dm-binaries.md).
 
 #### Prepare Powershell with Azure Resource Management
 Follow the steps described in [Install and configure Azure PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-azurerm-ps?view=azurermps-4.1.0)

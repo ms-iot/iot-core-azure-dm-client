@@ -13,17 +13,20 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using DMDataContract;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
-    class WindowsUpdatePolicyHandler : IClientPropertyHandler
+    class TimeServiceHandler : IClientPropertyHandler
     {
-        const string JsonSectionName = "windowsUpdatePolicy";
+        const string JsonSectionName = "timeService";
+        const string JsonEnabled = "enabled";
+        const string JsonStartup = "startup";
+        const string JsonStarted = "started";
 
-        public WindowsUpdatePolicyHandler(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy)
+        public TimeServiceHandler(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             this._systemConfiguratorProxy = systemConfiguratorProxy;
             this._callback = callback;
@@ -40,21 +43,20 @@ namespace Microsoft.Devices.Management
 
         private async Task HandleDesiredPropertyChangeAsync(JToken desiredValue)
         {
-            Message.SetWindowsUpdatePolicyRequest request = Message.SetWindowsUpdatePolicyRequest.Deserialize(desiredValue.ToString());
+            Message.TimeServiceData data = new Message.TimeServiceData();
 
-            // Always send down to SystemConfigurator because we need to persist the reporting (if specified).
+            JObject subProperties = (JObject)desiredValue;
+
+            data.enabled = subProperties.Property(JsonEnabled).Value.ToString();
+            data.startup = subProperties.Property(JsonStartup).Value.ToString();
+            data.started = subProperties.Property(JsonStarted).Value.ToString();
+
+            var request = new Message.SetTimeServiceRequest(data);
+
             await this._systemConfiguratorProxy.SendCommandAsync(request);
 
-            Message.GetWindowsUpdatePolicyResponse reportedProperties = await GetWindowsUpdatePolicyAsync();
-            if (reportedProperties.ReportToDeviceTwin == DMJSonConstants.YesString)
-            {
-                // ToDo: Need to avoid serializing activeFields since it is internal implementation details.
-                await this._callback.ReportPropertiesAsync(JsonSectionName, JObject.FromObject(reportedProperties.data));
-            }
-            else
-            {
-                await this._callback.ReportPropertiesAsync(JsonSectionName, DMJSonConstants.NoReportString);
-            }
+            var reportedProperties = await GetTimeServiceAsync();
+            await this._callback.ReportPropertiesAsync(JsonSectionName, JObject.FromObject(reportedProperties.data));
         }
 
         // IClientPropertyHandler
@@ -68,18 +70,19 @@ namespace Microsoft.Devices.Management
         // IClientPropertyHandler
         public async Task<JObject> GetReportedPropertyAsync()
         {
-            Message.GetWindowsUpdatePolicyResponse reportedProperties = await GetWindowsUpdatePolicyAsync();
-            return JObject.FromObject(reportedProperties);
+            var response = await GetTimeServiceAsync();
+            return JObject.FromObject(response.data);
         }
 
-        public async Task<Message.GetWindowsUpdatePolicyResponse> GetWindowsUpdatePolicyAsync()
+        public async Task<Message.GetTimeServiceResponse> GetTimeServiceAsync()
         {
-            var request = new Message.GetWindowsUpdatePolicyRequest();
+            var request = new Message.GetTimeServiceRequest();
             var response = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return response as Message.GetWindowsUpdatePolicyResponse;
+            return response as Message.GetTimeServiceResponse;
         }
 
         private ISystemConfiguratorProxy _systemConfiguratorProxy;
         private IClientHandlerCallBack _callback;
     }
 }
+

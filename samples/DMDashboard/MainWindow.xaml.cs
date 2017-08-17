@@ -139,6 +139,11 @@ namespace DMDashboard
             ToggleUIElementVisibility(TimeInfoGrid);
         }
 
+        private void OnExpandTimeService(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(TimeServiceGrid);
+        }
+
         private async void ListDevices(string connectionString)
         {
             RegistryManager registryManager = RegistryManager.CreateFromConnectionString(connectionString);
@@ -262,9 +267,13 @@ namespace DMDashboard
             {
                 if (jsonProp.Name == "timeInfo" && jsonProp.Value.Type == JTokenType.Object)
                 {
-                        TimeReportedState.FromJson((JObject)jsonProp.Value);
+                    TimeReportedState.FromJson((JObject)jsonProp.Value);
                 }
-                if (jsonProp.Name == "certificates")
+                else if (jsonProp.Name == TimeSvcReportedState.SectionName && jsonProp.Value.Type == JTokenType.Object)
+                {
+                    TimeSvcReportedState.FromJson((JObject)jsonProp.Value);
+                }
+                else if (jsonProp.Name == "certificates")
                 {
                     Microsoft.Devices.Management.Certificates certificatesInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.Certificates>(jsonProp.Value.ToString());
                     CertificatesInfoToUI(certificatesInfo);
@@ -465,6 +474,11 @@ namespace DMDashboard
         private void OnSetTimeInfo(object sender, RoutedEventArgs e)
         {
             SetDesired(TimeDesiredState.SectionName, TimeDesiredState.ToJson()).FireAndForget();
+        }
+
+        private void OnSetTimeService(object sender, RoutedEventArgs e)
+        {
+            SetDesired(TimeSvcDesiredState.SectionName, TimeSvcDesiredState.ToJson()).FireAndForget();
         }
 
         private ExternalStorage UIToExternalStorageModel()

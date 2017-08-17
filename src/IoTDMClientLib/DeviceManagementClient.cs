@@ -202,6 +202,12 @@ namespace Microsoft.Devices.Management
             var storageHandler = new StorageHandler(clientCallback, systemConfiguratorProxy);
             await deviceManagementClient.AddDirectMethodHandlerAsync(storageHandler);
 
+            var timeSettingsHandler = new TimeSettingsHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(timeSettingsHandler);
+
+            var timeServiceHandler = new TimeServiceHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(timeServiceHandler);
+
             return deviceManagementClient;
         }
 
@@ -218,7 +224,7 @@ namespace Microsoft.Devices.Management
             object windowsPropValue = null;
             if (desiredProperties.TryGetValue(DMJSonConstants.DTWindowsIoTNameSpace, out windowsPropValue) && windowsPropValue != null && windowsPropValue is JObject)
             {
-                ApplyDesiredStateAsync((JObject)windowsPropValue);
+                await ApplyDesiredStateAsync((JObject)windowsPropValue);
             }
         }
 
@@ -229,7 +235,7 @@ namespace Microsoft.Devices.Management
             try
             {
                 JObject windowsPropValue = (JObject)desiredProperties[DMJSonConstants.DTWindowsIoTNameSpace];
-                ApplyDesiredStateAsync(windowsPropValue);
+                ApplyDesiredStateAsync(windowsPropValue).FireAndForget();
             }
             catch (Exception)
             {
@@ -511,7 +517,7 @@ namespace Microsoft.Devices.Management
             return Task.FromResult(JsonConvert.SerializeObject(response));
         }
 
-        private static async void ProcessDesiredCertificateConfiguration(
+        private static async Task ProcessDesiredCertificateConfigurationAsync(
             ISystemConfiguratorProxy systemConfiguratorProxy,
             string connectionString,
             string containerName,
@@ -520,7 +526,7 @@ namespace Microsoft.Devices.Management
 
             await IoTDMClient.CertificateManagement.DownloadCertificates(systemConfiguratorProxy, connectionString, containerName, certificateConfiguration);
             var request = new Message.SetCertificateConfigurationRequest(certificateConfiguration);
-            systemConfiguratorProxy.SendCommandAsync(request).FireAndForget();
+            await systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         public async Task AllowReboots(bool allowReboots)
@@ -534,41 +540,23 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        private async void ApplyDesiredTimeSettings(JToken jsonValue)
+        private async Task ReportStatusAsync(string sectionName, StatusSection statusSubSection)
         {
-            // Default JsonConvert Deserializing changes ISO8601 date fields to "mm/dd/yyyy hh:mm:ss".
-            // We need to preserve the ISO8601 since that's the format SystemConfigurator understands.
-            // Because of that, we are not using:
-            // Message.SetTimeInfo requestInfo = JsonConvert.DeserializeObject<Message.SetTimeInfo>(fieldsJson);
+            // We always construct an object and set a property inside it.
+            // This way, we do not overwrite what's already in there.
 
-            Message.SetTimeInfoRequestData data = new Message.SetTimeInfoRequestData();
+            // Set the status to refreshing...
+            JObject refreshingValue = new JObject();
+            refreshingValue.Add(statusSubSection.AsJsonPropertyRefreshing());
+            await ReportPropertiesAsync(sectionName, refreshingValue);
 
-            JObject subProperties = (JObject)jsonValue;
-            data.ntpServer = (string)subProperties.Property("ntpServer").Value;
-            data.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
-
-            data.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
-            string standardDateString = subProperties.Property("timeZoneStandardDate").Value.ToString();
-            DateTime standardDate = DateTime.Parse(standardDateString).ToUniversalTime();
-            data.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-            data.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
-            data.timeZoneStandardDayOfWeek = (int)subProperties.Property("timeZoneStandardDayOfWeek").Value;
-
-            data.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
-            string daylightDateString = subProperties.Property("timeZoneDaylightDate").Value.ToString();
-            DateTime daylightDate = DateTime.Parse(daylightDateString).ToUniversalTime();
-            data.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-            data.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
-            data.timeZoneDaylightDayOfWeek = (int)subProperties.Property("timeZoneDaylightDayOfWeek").Value;
-
-            Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest(data);
-
-            await this._systemConfiguratorProxy.SendCommandAsync(request);
-
-            await ReportTimeInfoAsync();
+            // Set the status to the actual status...
+            JObject actualValue = new JObject();
+            actualValue.Add(statusSubSection.AsJsonProperty());
+            await ReportPropertiesAsync(sectionName, actualValue);
         }
 
-        public void ApplyDesiredStateAsync(JObject windowsPropValue)
+        public async Task ApplyDesiredStateAsync(JObject windowsPropValue)
         {
             Logger.Log("Applying " + DMJSonConstants.DTWindowsIoTNameSpace + " node desired state...", LoggingLevel.Verbose);
 
@@ -586,7 +574,10 @@ namespace Microsoft.Devices.Management
                         try
                         {
                             Debug.WriteLine($"{sectionProp.Name} = {sectionProp.Value.ToString()}");
-                            handler.OnDesiredPropertyDependencyChange(sectionProp.Name, (JObject)sectionProp.Value);
+                            if (sectionProp.Value is JObject)
+                            {
+                                handler.OnDesiredPropertyDependencyChange(sectionProp.Name, (JObject)sectionProp.Value);
+                            }
                         }
                         catch (Exception e)
                         {
@@ -600,9 +591,18 @@ namespace Microsoft.Devices.Management
 
             foreach (var sectionProp in windowsPropValue.Children().OfType<JProperty>())
             {
+                // If we've been told to stop, we should not process any desired properties...
+                if (_lastCommandStatus == CommandStatus.PendingDMAppRestart)
+                {
+                    break;
+                }
+
                 IClientPropertyHandler handler;
                 if (this._desiredPropertyMap.TryGetValue(sectionProp.Name, out handler))
                 {
+                    StatusSection statusSection = new StatusSection(StatusSection.StateType.Pending);
+                    await ReportStatusAsync(sectionProp.Name, statusSection);
+
                     try
                     {
                         Debug.WriteLine($"{sectionProp.Name} = {sectionProp.Value.ToString()}");
@@ -611,13 +611,22 @@ namespace Microsoft.Devices.Management
                             continue;
                         }
 
-                        handler.OnDesiredPropertyChange(sectionProp.Value);
+                        _lastCommandStatus = await handler.OnDesiredPropertyChange(sectionProp.Value);
+
+                        statusSection.State = StatusSection.StateType.Committed;
+                        await ReportStatusAsync(sectionProp.Name, statusSection);
+                    }
+                    catch (Error e)
+                    {
+                        statusSection.State = StatusSection.StateType.Failed;
+                        statusSection.TheError = e;
+                        await ReportStatusAsync(sectionProp.Name, statusSection);
                     }
                     catch (Exception e)
                     {
-                        Debug.WriteLine($"Exception caught while handling desired property - {sectionProp.Name}");
-                        Debug.WriteLine(e);
-                        throw;
+                        statusSection.State = StatusSection.StateType.Failed;
+                        statusSection.TheError = new Error(ErrorSubSystem.Unknown, e.HResult, e.Message);
+                        await ReportStatusAsync(sectionProp.Name, statusSection);
                     }
                 }
                 else
@@ -648,7 +657,7 @@ namespace Microsoft.Devices.Management
                                     request.dailyRebootTime = DateTime.Parse(dailyRebootTimeString).ToString("yyyy-MM-ddTHH:mm:ssZ");
                                 }
 
-                                this._systemConfiguratorProxy.SendCommandAsync(request);
+                                await this._systemConfiguratorProxy.SendCommandAsync(request);
                             }
                             break;
                         case "externalStorage":
@@ -667,17 +676,11 @@ namespace Microsoft.Devices.Management
                                 certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(sectionProp.Value.ToString());
                             }
                             break;
-                        case "timeInfo":
-                            {
-                                Debug.WriteLine("timeInfo = " + sectionProp.Value.ToString());
-                                ApplyDesiredTimeSettings(sectionProp.Value);
-                            }
-                            break;
                         case "windowsUpdates":
                             {
                                 Debug.WriteLine("windowsUpdates = " + sectionProp.Value.ToString());
                                 var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(sectionProp.Value.ToString());
-                                this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
+                                await this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
                             }
                             break;
                         case "startupApps":
@@ -685,7 +688,7 @@ namespace Microsoft.Devices.Management
                                 Debug.WriteLine("startupApps = " + sectionProp.Value.ToString());
                                 var startupApps = JsonConvert.DeserializeObject<StartupApps>(sectionProp.Value.ToString());
                                 StartupAppInfo foregroundApp = new StartupAppInfo(startupApps.foreground, false /*!background*/);
-                                this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
+                                await this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
                             }
                             break;
                         default:
@@ -702,15 +705,9 @@ namespace Microsoft.Devices.Management
             {
                 if (certificateConfiguration != null)
                 {
-                    ProcessDesiredCertificateConfiguration(_systemConfiguratorProxy, _externalStorageConnectionString, "certificates", certificateConfiguration);
+                    await ProcessDesiredCertificateConfigurationAsync(_systemConfiguratorProxy, _externalStorageConnectionString, "certificates", certificateConfiguration);
                 }
             }
-        }
-
-        private async Task<Message.GetTimeInfoResponse> GetTimeInfoAsync()
-        {
-            var request = new Message.GetTimeInfoRequest();
-            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetTimeInfoResponse);
         }
 
         private async Task<Message.GetCertificateConfigurationResponse> GetCertificateConfigurationAsync()
@@ -737,18 +734,17 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse);
         }
 
-        private async Task ReportTimeInfoAsync()
+        private async Task ReportPropertiesAsync(string sectionName, JToken sectionValue)
         {
-            Debug.WriteLine("Reporting timeInfo...");
+            Debug.WriteLine("ReportPropertiesAsync...");
 
-            Message.GetTimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
+            JObject newSection = new JObject();
+            newSection.Add(sectionName, sectionValue);
+
             Dictionary<string, object> collection = new Dictionary<string, object>();
-            collection[DMJSonConstants.DTWindowsIoTNameSpace] = new
-            {
-                timeInfo = timeInfoResponse.data,
-            };
+            collection[DMJSonConstants.DTWindowsIoTNameSpace] = newSection;
 
-            _deviceTwin.ReportProperties(collection).FireAndForget();
+            await _deviceTwin.ReportProperties(collection);
         }
 
         private async Task ReportAllDeviceProperties()
@@ -757,7 +753,6 @@ namespace Microsoft.Devices.Management
 
             Logger.Log("Querying device state...", LoggingLevel.Information);
 
-            Message.GetTimeInfoResponse timeInfoResponse = await GetTimeInfoAsync();
             Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await GetCertificateConfigurationAsync();
             Message.GetRebootInfoResponse rebootInfoResponse = await GetRebootInfoAsync();
             Message.GetDeviceInfoResponse deviceInfoResponse = await GetDeviceInfoAsync();
@@ -771,7 +766,6 @@ namespace Microsoft.Devices.Management
                 // TODO: how do we ensure that only Reported=yes sections report results?
                 windowsObj[handler.PropertySectionName] = await handler.GetReportedPropertyAsync();
             }
-            windowsObj["timeInfo"] = JObject.Parse(JsonConvert.SerializeObject(timeInfoResponse));
             windowsObj["certificates"] = JObject.Parse(JsonConvert.SerializeObject(certificateConfigurationResponse));
             windowsObj["rebootInfo"] = JObject.Parse(JsonConvert.SerializeObject(rebootInfoResponse));
             windowsObj["deviceInfo"] = JObject.Parse(JsonConvert.SerializeObject(deviceInfoResponse));
@@ -803,6 +797,7 @@ namespace Microsoft.Devices.Management
         string _externalStorageConnectionString;
         Dictionary<string, IClientPropertyHandler> _desiredPropertyMap;
         Dictionary<string, List<IClientPropertyDependencyHandler>> _desiredPropertyDependencyMap;
+        CommandStatus _lastCommandStatus = CommandStatus.NotStarted;
     }
 
 }

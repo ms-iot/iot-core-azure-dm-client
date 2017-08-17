@@ -184,6 +184,12 @@
     <Compile Include="StorageManagement\DeviceUploadFile.xaml.cs">
       <DependentUpon>DeviceUploadFile.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TimeSettings\TimeSvcDesiredStateControl.xaml.cs">
+      <DependentUpon>TimeSvcDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TimeSettings\TimeSvcReportedStateControl.xaml.cs">
+      <DependentUpon>TimeSvcReportedStateControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utils.cs" />
     <Compile Include="Wifi\WifiDetails.xaml.cs">
       <DependentUpon>WifiDetails.xaml</DependentUpon>
@@ -311,6 +317,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="StorageManagement\DeviceUploadFile.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TimeSettings\TimeSvcDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TimeSettings\TimeSvcReportedStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

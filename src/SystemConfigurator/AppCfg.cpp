@@ -12,9 +12,12 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #include "stdafx.h"
 #include <windows.h>
 #include <collection.h>
+#include <psapi.h>
+#include <thread>
 #include "AppCfg.h"
 #include "..\SharedUtilities\Utils.h"
 #include "..\SharedUtilities\Logger.h"
@@ -89,23 +92,23 @@ Package^ AppCfg::FindApp(const wstring& packageFamilyName)
 ApplicationInfo AppCfg::GetAppInfo(Package^ package)
 {
     TRACE(__FUNCTION__);
-    TRACE("1x");
     assert(package);
-    TRACE("2x");
+
     ApplicationInfo applicationInfo;
     wstring version = to_wstring(package->Id->Version.Major) + L"." +
-                      to_wstring(package->Id->Version.Minor) + L"." +
-                      to_wstring(package->Id->Version.Build) + L"." +
-                      to_wstring(package->Id->Version.Revision);
+        to_wstring(package->Id->Version.Minor) + L"." +
+        to_wstring(package->Id->Version.Build) + L"." +
+        to_wstring(package->Id->Version.Revision);
     applicationInfo.packageFamilyName = package->Id->FamilyName->Data();
     applicationInfo.name = package->Id->Name->Data();
     applicationInfo.version = version;
+    applicationInfo.pending = false;
     // ToDo: When accessing package->InstalledDate, "Element not found." exception is thrown.
     // applicationInfo.installDate = package->InstalledDate.ToString()->Data();
     return applicationInfo;
 }
 
-ApplicationInfo AppCfg::BuildOperationResult(const wstring& packageFamilyName, int errorCode, const wstring& errorMessage)
+ApplicationInfo AppCfg::BuildOperationResult(const wstring& packageFamilyName)
 {
     TRACE(__FUNCTION__);
 
@@ -114,98 +117,159 @@ ApplicationInfo AppCfg::BuildOperationResult(const wstring& packageFamilyName, i
 
     if (package)
     {
+        TRACEP(L"Found the package ", packageFamilyName.c_str());
         applicationInfo = GetAppInfo(package);
     }
     else
     {
+        TRACEP(L"Could not find the package ", packageFamilyName.c_str());
+
         applicationInfo.packageFamilyName = packageFamilyName;
         applicationInfo.version = L"not installed";
     }
-    TRACE("5");
 
-    if (errorCode != 0)
-    {
-        applicationInfo.errorCode = errorCode;
-        applicationInfo.errorMessage = errorMessage;
-    }
     return applicationInfo;
 }
 
-ApplicationInfo AppCfg::InstallApp(const wstring& packageFamilyName, const wstring& appxLocalPath, const vector<wstring>& dependentPackages, const wstring& certFileName, const wstring& certStore)
+bool AppCfg::IsAppRunning(const wstring& packageFamilyName)
+{
+    TRACE(__FUNCTION__);
+
+    bool running = false;
+    TRACEP(L"Checking: ", packageFamilyName.c_str());
+
+    Package^ package = FindApp(packageFamilyName);
+    if (package != nullptr)
+    {
+        TRACE("Application found... now, checking if it is running...");
+        running = Utils::IsProcessRunning(package->Id->Name->Data());
+    }
+
+    return running;
+}
+
+ApplicationInfo AppCfg::InstallAppInternal(const wstring& packageFamilyName, const wstring& appxLocalPath, const vector<wstring>& dependentPackages, const wstring& certFileName, const wstring& certStore)
+{
+    bool launchApp = IsAppRunning(packageFamilyName);
+
+    Utils::AutoCloseHandle completedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+    if (!completedEvent.Get())
+    {
+        TRACE("Error: failed to create synchronization event.");
+        return ApplicationInfo(packageFamilyName, -1, L"Error: DM Internal error. Failed to create event.", false /*not pending*/);
+    }
+
+    TRACE("Installing appx and its dependencies...");
+
+    Impersonator impersonator;
+    impersonator.ImpersonateShellHost();
+
+    Vector<Uri^>^ appxDepPkgs = ref new Vector<Uri^>();
+    for (const wstring& depSource : dependentPackages)
+    {
+        appxDepPkgs->Append(ref new Uri(ref new String(depSource.c_str())));
+    }
+
+    Uri^ packageUri = ref new Uri(ref new Platform::String(appxLocalPath.c_str()));
+
+    PackageManager^ packageManager = ref new PackageManager;
+
+    auto installTask = packageManager->AddPackageAsync(packageUri, appxDepPkgs, DeploymentOptions::ForceApplicationShutdown);
+
+    installTask->Completed = ref new AsyncOperationWithProgressCompletedHandler<DeploymentResult^, DeploymentProgress>(
+        [&](IAsyncOperationWithProgress<DeploymentResult^, DeploymentProgress>^ operation, AsyncStatus)
+    {
+        TRACE("Firing 'install completed' event.");
+        SetEvent(completedEvent.Get());
+    });
+
+    TRACE("Waiting for installing to complete...");
+    WaitForSingleObject(completedEvent.Get(), INFINITE);
+
+    TRACE("Install task completed.");
+    if (installTask->Status == AsyncStatus::Completed)
+    {
+        TRACE("Succeeded.");
+    }
+    else if (installTask->Status == AsyncStatus::Started)
+    {
+        // This should never happen...
+        throw DMExceptionWithErrorCode("Error: failed to wait for installation to complete.", -1);
+    }
+    else if (installTask->Status == AsyncStatus::Error)
+    {
+        auto deploymentResult = installTask->GetResults();
+        string context = Utils::WideToMultibyte(deploymentResult->ErrorText->Data());
+        throw DMExceptionWithErrorCode(context.c_str(), installTask->ErrorCode.Value);
+    }
+    else if (installTask->Status == AsyncStatus::Canceled)
+    {
+        throw DMExceptionWithErrorCode("Error: application installation task cancelled.", -1);
+    }
+
+    if (launchApp)
+    {
+        StartApp(packageFamilyName);
+    }
+
+    return BuildOperationResult(packageFamilyName);
+}
+
+
+ApplicationInfo AppCfg::InstallApp(const wstring& packageFamilyName, const wstring& appxLocalPath, const vector<wstring>& dependentPackages, const wstring& certFileName, const wstring& certStore, bool isDMSelfUpdate)
 {
     TRACE(__FUNCTION__);
     TRACEP(L"Installing app: ", packageFamilyName.c_str());
-
-    HANDLE completedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-    if (!completedEvent)
-    {
-        TRACE("Error: failed to create synchronization event.");
-        return ApplicationInfo(packageFamilyName, -1, L"Error: DM Internal error. Failed to create event.");
-    }
 
     TRACEP(L"Installing certificate to ", certStore.c_str());
     CertificateFile certificateFile(certFileName);
     certificateFile.Install(certStore);
 
-    int errorCode = 0;
-    wstring errorMessage;
-
-    try
+    if (isDMSelfUpdate)
     {
-        TRACE("Installing appx and its dependencies...");
+        TRACE(L"Request to update the DM application... spawing another thread...");
 
-        Impersonator impersonator;
-        impersonator.ImpersonateShellHost();
+        thread t([packageFamilyName, appxLocalPath, dependentPackages, certFileName, certStore, isDMSelfUpdate] {
 
-        Vector<Uri^>^ appxDepPkgs = ref new Vector<Uri^>();
-        for (const wstring& depSource : dependentPackages)
-        {
-            appxDepPkgs->Append(ref new Uri(ref new String(depSource.c_str())));
-        }
+            TRACE(L"We'll process the upgrade scenario on this thread...");
 
-        Uri^ packageUri = ref new Uri(ref new Platform::String(appxLocalPath.c_str()));
-        PackageManager^ packageManager = ref new PackageManager;
-        auto installTask = packageManager->AddPackageAsync(packageUri, appxDepPkgs, DeploymentOptions::None);
-        installTask->Completed = ref new AsyncOperationWithProgressCompletedHandler<DeploymentResult^, DeploymentProgress>(
-            [&](IAsyncOperationWithProgress<DeploymentResult^, DeploymentProgress>^ operation, AsyncStatus)
+            // Wait for CommProxy to exit.
+            while (Utils::IsProcessRunning(L"CommProxy.exe"))
             {
-                TRACE("Firing 'install completed' event.");
-                SetEvent(completedEvent);
-            });
+                TRACE(L"Waiting for CommProxy to exit...");
+                ::Sleep(1000);
+            }
 
-        TRACE("Waiting for installing to complete...");
-        WaitForSingleObject(completedEvent, INFINITE);
+            TRACE(L"CommProxy exited...Proceeding to upgrade DM application...");
 
-        TRACE("Install task completed.");
-        if (installTask->Status == AsyncStatus::Completed)
-        {
-            TRACE("Succeeded.");
-        }
-        else if (installTask->Status == AsyncStatus::Started)
-        {
-            // This should never happen...
-            errorCode = -1;
-            errorMessage = L"Error: failed to wait for installation to complete.";
-        }
-        else if (installTask->Status == AsyncStatus::Error)
-        {
-            auto deploymentResult = installTask->GetResults();
-            errorCode = installTask->ErrorCode.Value;
-            errorMessage = deploymentResult->ErrorText->Data();
-        }
-        else if (installTask->Status == AsyncStatus::Canceled)
-        {
-            errorCode = -1;
-            errorMessage = L"Error: application installation task cancelled.";
-        }
-    }
-    catch (...)
-    {
-        errorCode = -1;
-        errorMessage = L"Error: unknown failure while installing application.";
+            // By now, the DM application knows that it should not accept new request and should not
+            // contact the system configurator... proceed to upgrade the DM application now.
+            InstallAppInternal(packageFamilyName, appxLocalPath, dependentPackages, certFileName, certStore);
+
+            // ToDo: How do we report the outcome of this operation now that we no longer have a connection to CommProxy?
+            //
+            //       When the DM application is restarted, this same information will be gathered from the 'installed apps' list.
+            //       So, it won't be necessary to save the outcome in cases of success.
+            //
+            //       In cases of failure, however, we will need to capture those errors and send them back as a response to
+            //       a special 'CachedErrors' request from the newly instantiated DM application.
+            //
+
+        }); // end of thread lambda
+
+        t.detach();
+
+        TRACE(L"Responding to DM application to stop accepting/processing new requests...");
+        // Return right away saying the install is pending...
+        ApplicationInfo applicationInfo(packageFamilyName);
+        applicationInfo.pending = true;
+
+        return applicationInfo;
     }
 
-    return BuildOperationResult(packageFamilyName, errorCode, errorMessage);
+    TRACE(L"Request to update an application different from the DM application...");
+
+    return InstallAppInternal(packageFamilyName, appxLocalPath, dependentPackages, certFileName, certStore);
 }
 
 ApplicationInfo AppCfg::UninstallApp(const wstring& packageFamilyName)
@@ -213,70 +277,57 @@ ApplicationInfo AppCfg::UninstallApp(const wstring& packageFamilyName)
     TRACE(__FUNCTION__);
     TRACEP(L"Uninstalling app: ", packageFamilyName.c_str());
 
-    HANDLE completedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-    if (!completedEvent)
+    Utils::AutoCloseHandle  completedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+    if (!completedEvent.Get())
     {
         TRACE("Error: failed to create synchronization event.");
-        return ApplicationInfo(packageFamilyName, -1, L"Error: DM Internal error. Failed to create event.");
+        return ApplicationInfo(packageFamilyName, -1, L"Error: DM Internal error. Failed to create event.", false /*not pending*/);
     }
 
-    int errorCode = 0;
-    wstring errorMessage;
+    TRACE("Uninstalling appx...");
 
-    try
+    Impersonator impersonator;
+    impersonator.ImpersonateShellHost();
+
+    Package^ package = FindApp(packageFamilyName);
+    if (!package)
     {
-        TRACE("Uninstalling appx...");
-
-        Impersonator impersonator;
-        impersonator.ImpersonateShellHost();
-
-        Package^ package = FindApp(packageFamilyName);
-        if (!package)
-        {
-            TRACE("Warning: failed to find the specified package.");
-            return ApplicationInfo(packageFamilyName, L"", L"not installed", L"", 0, L"");
-        }
-
-        PackageManager^ packageManager = ref new PackageManager;
-        auto uninstallTask = packageManager->RemovePackageAsync(package->Id->FullName);
-        uninstallTask->Completed = ref new AsyncOperationWithProgressCompletedHandler<DeploymentResult^, DeploymentProgress>(
-            [&](IAsyncOperationWithProgress<DeploymentResult^, DeploymentProgress>^ operation, AsyncStatus)
-            {
-                TRACE("Firing 'uninstall completed' event.");
-                SetEvent(completedEvent);
-            });
-
-        TRACE("Waiting for uninstalling to complete...");
-        WaitForSingleObject(completedEvent, INFINITE);
-
-        TRACE("Uninstall task completed.");
-        if (uninstallTask->Status == AsyncStatus::Completed)
-        {
-            TRACE("Succeeded.");
-        }
-        else if (uninstallTask->Status == AsyncStatus::Started)
-        {
-            // This should never happen...
-            errorCode = -1;
-            errorMessage = L"Error: failed to wait for uninstallation to complete.";
-        }
-        else if (uninstallTask->Status == AsyncStatus::Error)
-        {
-            auto deploymentResult = uninstallTask->GetResults();
-            errorCode = uninstallTask->ErrorCode.Value;
-            errorMessage = deploymentResult->ErrorText->Data();
-        }
-        else if (uninstallTask->Status == AsyncStatus::Canceled)
-        {
-            errorCode = -1;
-            errorMessage = L"Error: application uninstallation task cancelled.";
-        }
+        TRACE("Warning: failed to find the specified package.");
+        return ApplicationInfo(packageFamilyName, L"", L"not installed", L"", 0, L"", false /*not pending*/);
     }
-    catch (...)
+
+    PackageManager^ packageManager = ref new PackageManager;
+    auto uninstallTask = packageManager->RemovePackageAsync(package->Id->FullName);
+    uninstallTask->Completed = ref new AsyncOperationWithProgressCompletedHandler<DeploymentResult^, DeploymentProgress>(
+        [&](IAsyncOperationWithProgress<DeploymentResult^, DeploymentProgress>^ operation, AsyncStatus)
+        {
+            TRACE("Firing 'uninstall completed' event.");
+            SetEvent(completedEvent.Get());
+        });
+
+    TRACE("Waiting for uninstalling to complete...");
+    WaitForSingleObject(completedEvent.Get(), INFINITE);
+
+    TRACE("Uninstall task completed.");
+    if (uninstallTask->Status == AsyncStatus::Completed)
     {
-        errorCode = -1;
-        errorMessage = L"Error: unknown failure while uninstalling application.";
+        TRACE("Succeeded.");
+    }
+    else if (uninstallTask->Status == AsyncStatus::Started)
+    {
+        // This should never happen...
+        throw DMExceptionWithErrorCode("Error: failed to wait for uninstallation to complete.", -1);
+    }
+    else if (uninstallTask->Status == AsyncStatus::Error)
+    {
+        auto deploymentResult = uninstallTask->GetResults();
+        string context = Utils::WideToMultibyte(deploymentResult->ErrorText->Data());
+        throw DMExceptionWithErrorCode(context.c_str(), uninstallTask->ErrorCode.Value);
+    }
+    else if (uninstallTask->Status == AsyncStatus::Canceled)
+    {
+        throw DMExceptionWithErrorCode("Error: application installation task cancelled.", -1);
     }
 
-    return BuildOperationResult(packageFamilyName, errorCode, errorMessage);
+    return BuildOperationResult(packageFamilyName);
 }

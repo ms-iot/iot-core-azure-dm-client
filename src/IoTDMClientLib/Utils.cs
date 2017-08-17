@@ -13,6 +13,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -29,18 +30,90 @@ namespace Microsoft.Devices.Management
 
     class Error : Exception
     {
+        const string SubSystemString = "errSubSystem";
+        const string ErrorCodeString = "errCode";
+        const string ErrorContextString = "errContext";
+
         public Error() { }
 
         public Error(int code, string message) : base(message)
         {
             this.HResult = code;
         }
+
+        public Error(Message.ErrorSubSystem subSystem, int code, string message) : base(message)
+        {
+            this.HResult = code;
+            this.SubSystem = subSystem;
+        }
+
+        public JObject ToJson()
+        {
+            JObject jErrorDetails = new JObject();
+            jErrorDetails.Add(SubSystemString, new JValue(SubSystem.ToString()));
+            jErrorDetails.Add(ErrorCodeString, new JValue(this.HResult));
+            jErrorDetails.Add(ErrorContextString, new JValue(base.Message));
+            return jErrorDetails;
+        }
+
+        public Message.ErrorSubSystem SubSystem { get; private set; }
+    }
+
+    class StatusSection
+    {
+        const string SectionName = "lastChange";
+        const string TimeString = "time";
+        const string StateString = "state";
+        const string Refreshing = "refreshing";
+
+        public enum StateType
+        {
+            Pending,
+            Committed,
+            Failed
+        }
+
+        public StateType State { get; set; }
+        public Error TheError { get; set; }
+
+        public StatusSection(StateType state)
+        {
+            _dateTime = DateTime.Now;
+            State = state;
+        }
+
+        public JProperty AsJsonPropertyRefreshing()
+        {
+            return new JProperty(SectionName, new JValue(Refreshing));
+        }
+
+        public JProperty AsJsonProperty()
+        {
+            JObject jStatusObject = new JObject();
+            jStatusObject.Add(TimeString, new JValue(_dateTime));
+            jStatusObject.Add(StateString, new JValue(State.ToString().ToLower()));
+            if (TheError != null)
+            {
+                jStatusObject.Merge(TheError.ToJson());
+            }
+
+            return new JProperty(SectionName, jStatusObject);
+        }
+
+        DateTime _dateTime;
     }
 
     enum JsonReport
     {
         Report,
         Unreport
+    }
+
+    enum CommandStatus
+    {
+        NotStarted,
+        Committed,
+        PendingDMAppRestart
     }
 
     public class Logger

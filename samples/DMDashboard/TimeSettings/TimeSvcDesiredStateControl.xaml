@@ -1,0 +1,41 @@
+﻿<UserControl x:Class="DMDashboard.TimeSvcDesiredStateControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DMDashboard"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <StackPanel Orientation="Vertical">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="300" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Margin="15,3,3,3" Text="Enabled"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" Margin="3" SelectedIndex="0" x:Name="DesiredTimeServiceEnabled">
+                <ComboBoxItem Content="Yes" />
+                <ComboBoxItem Content="No" />
+            </ComboBox>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Margin="15,3,3,3" Text="Startup"/>
+            <ComboBox Grid.Row="1" Grid.Column="1" Margin="3" SelectedIndex="0" x:Name="DesiredTimeServiceStartup">
+                <ComboBoxItem Content="Auto" />
+                <ComboBoxItem Content="Manual" />
+            </ComboBox>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Margin="15,3,3,3" Text="Started"/>
+            <ComboBox Grid.Row="2" Grid.Column="1" Margin="3" SelectedIndex="1" x:Name="DesiredTimeServiceStarted">
+                <ComboBoxItem Content="Yes" />
+                <ComboBoxItem Content="No" />
+            </ComboBox>
+
+        </Grid>
+    </StackPanel>
+</UserControl>

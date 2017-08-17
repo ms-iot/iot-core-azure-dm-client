@@ -98,6 +98,7 @@
     <ClInclude Include="Models\DeviceDMStorage.h" />
     <ClInclude Include="Models\DeviceHealthAttestation.h" />
     <ClInclude Include="Models\DeviceInfo.h" />
+    <ClInclude Include="Models\ErrorResponse.h" />
     <ClInclude Include="Models\EventTracingConfiguration.h" />
     <ClInclude Include="Models\ExitDM.h" />
     <ClInclude Include="Models\FactoryReset.h" />
@@ -110,6 +111,7 @@
     <ClInclude Include="Models\StringListResponse.h" />
     <ClInclude Include="Models\StringResponse.h" />
     <ClInclude Include="Models\TimeInfo.h" />
+    <ClInclude Include="Models\TimeService.h" />
     <ClInclude Include="Models\TpmRequests.h" />
     <ClInclude Include="Models\WifiConfiguration.h" />
     <ClInclude Include="Models\WifiDetails.h" />

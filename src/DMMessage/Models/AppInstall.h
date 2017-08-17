@@ -41,8 +41,9 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             Dependencies = ref new Vector<String^>();
             CertFile = ref new String();
             CertStore = ref new String();
+            IsDMSelfUpdate = false;
         }
-        AppInstallRequestData(String^ packageFamilyName, StartUpType startUp, String^ appxPath, IVector<String^>^ dependencies, String^ certFile, String^ certStore)
+        AppInstallRequestData(String^ packageFamilyName, StartUpType startUp, String^ appxPath, IVector<String^>^ dependencies, String^ certFile, String^ certStore, bool isDMSelfUpdate)
         {
             PackageFamilyName = packageFamilyName;
             StartUp = startUp;
@@ -50,6 +51,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             Dependencies = dependencies;
             CertFile = certFile;
             CertStore = certStore;
+            IsDMSelfUpdate = isDMSelfUpdate;
         }
         property String^ PackageFamilyName;
         property StartUpType StartUp;
@@ -57,6 +59,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         property IVector<String^>^ Dependencies;
         property String^ CertFile;
         property String^ CertStore;
+        property bool IsDMSelfUpdate;
     };
 
     public ref class AppInstallRequest sealed : public IRequest
@@ -82,6 +85,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             jsonObject->Insert("Dependencies", jsonArray);
             jsonObject->Insert("CertFile", JsonValue::CreateStringValue(data->CertFile));
             jsonObject->Insert("CertStore", JsonValue::CreateStringValue(data->CertStore));
+            jsonObject->Insert("IsDMSelfUpdate", JsonValue::CreateBooleanValue(data->IsDMSelfUpdate));
 
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
@@ -100,7 +104,9 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             }
             auto certFile = jsonObject->GetNamedString("CertFile");
             auto certStore = jsonObject->GetNamedString("CertStore");
-            auto d = ref new Microsoft::Devices::Management::Message::AppInstallRequestData(packageFamilyName, startUp, appxPath, depsVector, certFile, certStore);
+            auto isDMSelfUpdate = jsonObject->GetNamedBoolean("IsDMSelfUpdate");
+
+            auto d = ref new Microsoft::Devices::Management::Message::AppInstallRequestData(packageFamilyName, startUp, appxPath, depsVector, certFile, certStore, isDMSelfUpdate);
             return ref new AppInstallRequest(d);
         }
 
@@ -119,6 +125,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         property String^ installDate;
         property int errorCode;
         property String^ errorMessage;
+        property bool pending;
 
         Blob^ Serialize(uint32_t tag) {
             JsonObject^ jsonObject = ref new JsonObject();
@@ -130,6 +137,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             jsonObject->Insert("installDate", JsonValue::CreateStringValue(installDate));
             jsonObject->Insert("errorCode", JsonValue::CreateNumberValue(errorCode));
             jsonObject->Insert("errorMessage", JsonValue::CreateStringValue(errorMessage));
+            jsonObject->Insert("pending", JsonValue::CreateBooleanValue(pending));
 
             return SerializationHelper::CreateBlobFromJson(tag, jsonObject);
         }
@@ -146,6 +154,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             result->installDate = jsonObject->GetNamedString("installDate");
             result->errorCode = static_cast<int>(jsonObject->GetNamedNumber("errorCode"));
             result->errorMessage = jsonObject->GetNamedString("errorMessage");
+            result->pending = jsonObject->GetNamedBoolean("pending");
 
             return result;
         }

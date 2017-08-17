@@ -177,6 +177,7 @@ However, if the app cannot be installed at all, the `"version"` will be set to `
 | 0xA0000005  | Appx package has been installed successfully, but the version does not match the desired version. |
 | 0xA0000006  | The desired state designates two applications to be the foreground application. |
 | 0xA0000007  | An application scheduled for uninstall is also being set to be the foreground application. |
+| 0xA0000008  | Cannot uninstall the device management application. |
 | 0x8xxxxxxx  | OS error - check Windows documentation |
 
 ### Examples

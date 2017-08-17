@@ -8,6 +8,8 @@ namespace Utils
     std::string WideToMultibyte(const wchar_t* s);
     std::wstring MultibyteToWide(const char* s);
 
+    bool Contains(const std::wstring& container, const std::wstring& contained);
+
     template<class T>
     void SplitString(const std::basic_string<T> &s, T delim, std::vector<std::basic_string<T>>& tokens)
     {

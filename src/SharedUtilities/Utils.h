@@ -70,6 +70,8 @@ namespace Utils
 
     // Process helpers
     void LaunchProcess(const std::wstring& commandString, unsigned long& returnCode, std::string& output);
+    std::wstring GetProcessExePath(DWORD processID);
+    bool IsProcessRunning(const std::wstring& processName);
 
     // Threading helpers
     class JoiningThread
@@ -127,6 +129,22 @@ namespace Utils
     private:
         AutoCloseACL(const AutoCloseACL &);            // prevent copy
         AutoCloseACL& operator=(const AutoCloseACL&);  // prevent assignment
+    };
+
+    class AutoCloseServiceHandle : public AutoCloseBase<SC_HANDLE>
+    {
+    public:
+        AutoCloseServiceHandle() :
+            AutoCloseBase(NULL, [](SC_HANDLE h) { CloseServiceHandle(h); return TRUE; })
+        {}
+
+        AutoCloseServiceHandle(SC_HANDLE&& handle) :
+            AutoCloseBase(std::move(handle), [](SC_HANDLE h) { CloseServiceHandle(h); return TRUE; })
+        {}
+
+    private:
+        AutoCloseServiceHandle(const AutoCloseServiceHandle&);            // prevent copy
+        AutoCloseServiceHandle& operator=(const AutoCloseServiceHandle&);  // prevent assignment
     };
 
     void LoadFile(const std::wstring& fileName, std::vector<char>& buffer);

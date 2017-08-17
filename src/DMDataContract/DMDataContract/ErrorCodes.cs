@@ -29,6 +29,8 @@ namespace DMDataContract
         public static int INVALID_INSTALLED_APP_VERSION_UNEXPECTED = unchecked((int)0xA0000005);
         public static int INVALID_DESIRED_MULTIPLE_FOREGROUND_APPS = unchecked((int)0xA0000006);
         public static int INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP = unchecked((int)0xA0000007);
+        public static int CANNOT_UNINSTALL_DM_APPLICATION = unchecked((int)0xA0000008);
+        public static int CANNOT_REVERT_DM_APPLICATION = unchecked((int)0xA0000009);
 
         // DM Storage management error codes 0081-0100
         public static int INVALID_PARAMS = unchecked((int)0xA0000081);
