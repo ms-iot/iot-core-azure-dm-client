@@ -63,9 +63,7 @@ namespace Toaster
             {
                 try
                 {
-                    // connectionString = await tpmDevice.GetConnectionStringAsync();
-                    connectionString = "HostName=remote-monitoring-pcs.azure-devices.net;DeviceId=gmileka03;SharedAccessKey=DkqP/WNs85LTOcNJYOS9prDWCctmLXtUSSQ3EU620P4=";
-                    // connectionString = "HostName=GMilekaStd1.azure-devices.net;DeviceId=gmileka01;SharedAccessKey=1vQ2c9IdMddvbZMZxafw2VwVBmqkVwhsxbp8D+qXmks=";
+                    connectionString = await tpmDevice.GetConnectionStringAsync();
                     break;
                 }
                 catch (Exception)
