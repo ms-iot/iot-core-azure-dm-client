@@ -13,7 +13,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using DMDataContract;
+using Microsoft.Devices.Management.DMDataContract;
 using IoTDMClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

@@ -62,39 +62,31 @@ IResponse^ HandleFactoryReset(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
+    auto resetRequest = dynamic_cast<FactoryResetRequest^>(request);
+    TRACEP(L"clearTPM = ", (resetRequest->clearTPM ? L"true" : L"false"));
+    TRACEP(L"recoveryPartitionGUID = ", resetRequest->recoveryPartitionGUID->Data());
+
+    // Clear the TPM if requested...
+    if (resetRequest->clearTPM)
     {
-        auto resetRequest = dynamic_cast<FactoryResetRequest^>(request);
-        TRACEP(L"clearTPM = ", (resetRequest->clearTPM ? L"true" : L"false"));
-        TRACEP(L"recoveryPartitionGUID = ", resetRequest->recoveryPartitionGUID->Data());
-
-        // Clear the TPM if requested...
-        if (resetRequest->clearTPM)
-        {
-            ClearTPM();
-        }
-
-        // Schedule the recovery...
-        unsigned long returnCode = 0;
-        string output;
-        wstring command = Utils::GetSystemRootFolder() + L"\\bcdedit.exe  /set {bootmgr} bootsequence {" + resetRequest->recoveryPartitionGUID->Data() + L"}";
-        TRACE(command.c_str());
-        Utils::LaunchProcess(command, returnCode, output);
-        if (returnCode != 0)
-        {
-            throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
-        }
-
-        // Reboot the device...
-        RebootCSP::ExecRebootNow(Utils::GetCurrentDateTimeString());
-
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+        Tpm::ClearTPM();
     }
-    catch (const DMException& e)
+
+    // Schedule the recovery...
+    unsigned long returnCode = 0;
+    string output;
+    wstring command = Utils::GetSystemRootFolder() + L"\\bcdedit.exe  /set {bootmgr} bootsequence {" + resetRequest->recoveryPartitionGUID->Data() + L"}";
+    TRACE(command.c_str());
+    Utils::LaunchProcess(command, returnCode, output);
+    if (returnCode != 0)
     {
-        TRACEP("ERROR DMCommand::HandleFactoryReset: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+        throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
     }
+
+    // Reboot the device...
+    RebootCSP::ExecRebootNow(Utils::GetCurrentDateTimeString());
+
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetDeviceInfo(IRequest^ request)
@@ -748,7 +740,7 @@ IResponse^ HandleTpmGetServiceUrl(IRequest^ request)
     try
     {
         uint32_t logicalDeviceId = dynamic_cast<TpmGetServiceUrlRequest^>(request)->LogicalDeviceId;
-        std::string serviceUrl = GetServiceUrl(logicalDeviceId);
+        std::string serviceUrl = Tpm::GetServiceUrl(logicalDeviceId);
         auto serviceUrlW = Utils::MultibyteToWide(serviceUrl.c_str());
         return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(serviceUrlW.c_str()), request->Tag);
     }
@@ -771,7 +763,7 @@ IResponse^ HandleTpmGetSASToken(IRequest^ request)
     {
         uint32_t logicalDeviceId = dynamic_cast<TpmGetSASTokenRequest^>(request)->LogicalDeviceId;
         TRACEP(L"logicalDeviceId=", logicalDeviceId);
-        std::string sasToken = GetSASToken(logicalDeviceId);
+        std::string sasToken = Tpm::GetSASToken(logicalDeviceId);
         auto sasTokenW = Utils::MultibyteToWide(sasToken.c_str());
         return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(sasTokenW.c_str()), request->Tag);
     }

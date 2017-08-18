@@ -98,6 +98,7 @@ namespace Toaster
 
             // Get new SAS Token
             var deviceConnectionString = await GetConnectionStringAsync();
+
             // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
             // as well as device management
             var newDeviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
@@ -242,7 +243,7 @@ namespace Toaster
                 // by the builder of the image. For our testing purposes, we have been using the following
                 // guid.
                 string recoveryPartitionGUID = "a5935ff2-32ba-4617-bf36-5ac314b3f9bf";
-                await deviceManagementClient.FactoryResetAsync(false /*don't clear TPM*/, recoveryPartitionGUID);
+                await deviceManagementClient.StartFactoryResetAsync(false /*don't clear TPM*/, recoveryPartitionGUID);
             }
             catch (Exception)
             {

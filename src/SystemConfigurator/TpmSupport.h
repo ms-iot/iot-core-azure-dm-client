@@ -16,7 +16,10 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <string>
 
-std::string GetServiceUrl(int logicalId);
-std::string GetSASToken(int logicalId);
-void ClearTPM();
-
+class Tpm
+{
+public:
+    static std::string GetServiceUrl(int logicalId);
+    static std::string GetSASToken(int logicalId);
+    static void ClearTPM();
+};

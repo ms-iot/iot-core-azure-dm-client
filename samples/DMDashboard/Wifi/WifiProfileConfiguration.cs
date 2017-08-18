@@ -1,4 +1,4 @@
-﻿using DMDataContract;
+﻿using Microsoft.Devices.Management.DMDataContract;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;

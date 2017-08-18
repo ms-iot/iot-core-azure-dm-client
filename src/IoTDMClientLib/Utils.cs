@@ -13,6 +13,8 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using Microsoft.Devices.Management.Message;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
@@ -28,7 +30,7 @@ namespace Microsoft.Devices.Management
         public const string ETWChannelName = "AzureDM";
     }
 
-    class Error : Exception
+    public class Error : Exception
     {
         const string SubSystemString = "errSubSystem";
         const string ErrorCodeString = "errCode";
@@ -56,10 +58,15 @@ namespace Microsoft.Devices.Management
             return jErrorDetails;
         }
 
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(ToJson());
+        }
+
         public Message.ErrorSubSystem SubSystem { get; private set; }
     }
 
-    class StatusSection
+    public class StatusSection
     {
         const string SectionName = "lastChange";
         const string TimeString = "time";
@@ -82,6 +89,13 @@ namespace Microsoft.Devices.Management
             State = state;
         }
 
+        public StatusSection(StateType state, Error error)
+        {
+            _dateTime = DateTime.Now;
+            State = state;
+            TheError = error;
+        }
+
         public JProperty AsJsonPropertyRefreshing()
         {
             return new JProperty(SectionName, new JValue(Refreshing));
@@ -100,7 +114,46 @@ namespace Microsoft.Devices.Management
             return new JProperty(SectionName, jStatusObject);
         }
 
+        public JObject AsJsonObject()
+        {
+            JProperty jStatusProperty = AsJsonProperty();
+            JObject jStatusObject = new JObject();
+            jStatusObject.Add(jStatusProperty);
+            return jStatusObject;
+        }
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(AsJsonProperty().Value);
+        }
+
         DateTime _dateTime;
+    }
+
+    static class Helpers
+    {
+        public static async Task EnsureErrorsLogged(IClientHandlerCallBack _callback, string sectionName, Func<Task> action)
+        {
+            try
+            {
+                await action();
+            }
+            catch (Error ex)
+            {
+                StatusSection status = new StatusSection(StatusSection.StateType.Failed, ex);
+
+                Logger.Log(status.ToString(), LoggingLevel.Error);
+                await _callback.ReportStatusAsync(sectionName, status);
+            }
+            catch (Exception ex)
+            {
+                Error e = new Error(ErrorSubSystem.Unknown, ex.HResult, ex.Message);
+                StatusSection status = new StatusSection(StatusSection.StateType.Failed, e);
+
+                Logger.Log(status.ToString(), LoggingLevel.Error);
+                await _callback.ReportStatusAsync(sectionName, status);
+            }
+        }
     }
 
     enum JsonReport

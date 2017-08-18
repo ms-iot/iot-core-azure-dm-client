@@ -13,24 +13,23 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using DMDataContract;
+using DMDashboard.StorageManagement;
+using Microsoft.Azure.Devices;
+using Microsoft.Devices.Management;
+using Microsoft.Devices.Management.DMDataContract;
+using Microsoft.WindowsAzure.Storage;       // Namespace for CloudStorageAccount
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.Azure.Devices;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Microsoft.Devices.Management;
-using Microsoft.WindowsAzure.Storage;       // Namespace for CloudStorageAccount
-using System.Configuration;
-using System.IO;
-using Microsoft.Devices.Management.DMDataContract;
-using DMDashboard.StorageManagement;
 
 namespace DMDashboard
 {
@@ -391,7 +390,7 @@ namespace DMDashboard
 
         private async void FactoryResetAsync()
         {
-            var resetParams = new FactorResetParams();
+            var resetParams = new FactoryResetDataContract.ResetParams();
             resetParams.clearTPM = DesiredClearTPM.IsChecked == true;
             resetParams.recoveryPartitionGUID = DesiredRecoveryPartitionGUID.Text;
             string resetParamsString = JsonConvert.SerializeObject(resetParams);
@@ -399,8 +398,8 @@ namespace DMDashboard
             Debug.WriteLine("Reset params : " + resetParamsString);
 
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(DMJSonConstants.DTWindowsIoTNameSpace + ".factoryReset", resetParamsString, new TimeSpan(0, 0, 30), cancellationToken);
-            // ToDo: it'd be nice to show the result in the UI.
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(FactoryResetDataContract.StartFactoryResetAsync, resetParamsString, new TimeSpan(0, 0, 30), cancellationToken);
+            System.Windows.MessageBox.Show("FactoryReset Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
         private void OnFactoryReset(object sender, RoutedEventArgs e)

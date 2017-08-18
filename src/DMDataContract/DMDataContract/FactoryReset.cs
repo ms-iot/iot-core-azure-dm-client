@@ -13,33 +13,17 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using Microsoft.Devices.Management.DMDataContract;
-using Newtonsoft.Json.Linq;
-using System.Windows.Controls;
-
-namespace DMDashboard
+namespace Microsoft.Devices.Management.DMDataContract
 {
-    public partial class TimeSvcReportedStateControl : UserControl
+    public class FactoryResetDataContract
     {
-        public string SectionName
-        {
-            get
-            {
-                return "timeService";
-            }
-        }
+        public static readonly string SectionName = "factoryReset";
+        public static readonly string StartFactoryResetAsync = DMJSonConstants.DTWindowsIoTNameSpace + ".startFactoryResetAsync";
 
-        public TimeSvcReportedStateControl()
+        public class ResetParams
         {
-            InitializeComponent();
-        }
-
-        public void FromJson(JObject json)
-        {
-            string notFound = "<not found>";
-            ServiceEnabled.Text = Utils.GetString(json, "enabled", notFound);
-            ServiceStartup.Text = Utils.GetString(json, "startup", notFound);
-            ServiceStarted.Text = Utils.GetString(json, "started", notFound);
+            public bool clearTPM;
+            public string recoveryPartitionGUID;
         }
     }
 }

@@ -13,8 +13,8 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using DMDataContract;
 using Microsoft.Azure.Devices.Shared;
+using Microsoft.Devices.Management.DMDataContract;
 using Microsoft.Devices.Management.Message;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -32,7 +32,7 @@ using Windows.Storage;
 namespace Microsoft.Devices.Management
 {
     // This is the main entry point into DM
-    public class DeviceManagementClient
+    public class DeviceManagementClient : IClientHandlerCallBack
     {
         const string MethodImmediateReboot = DMJSonConstants.DTWindowsIoTNameSpace + ".immediateReboot";
         const string MethodReportAllDeviceProperties = DMJSonConstants.DTWindowsIoTNameSpace + ".reportAllDeviceProperties";
@@ -76,42 +76,6 @@ namespace Microsoft.Devices.Management
         class StartupApps
         {
             public string foreground = "";
-        }
-
-        private class HandlerCallback : IClientHandlerCallBack
-        {
-            public HandlerCallback(IDeviceTwin deviceTwin)
-            {
-                _deviceTwin = deviceTwin;
-            }
-
-            public async Task ReportPropertiesAsync(string sectionName, JToken properties)
-            {
-                Logger.Log("HandlerCallback.ReportPropertiesAsync", LoggingLevel.Information);
-                try
-                {
-                    JObject windowsNodeValue = new JObject();
-                    windowsNodeValue[sectionName] = properties;
-
-                    Dictionary<string, object> collection = new Dictionary<string, object>();
-                    collection[DMJSonConstants.DTWindowsIoTNameSpace] = windowsNodeValue;
-
-                    await _deviceTwin.ReportProperties(collection);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"Failed to report property {sectionName} : \n {e}");
-                }
-            }
-
-            public async Task SendMessageAsync(string message, IDictionary<string, string> properties)
-            {
-                Logger.Log("HandlerCallback.SendMessageAsync", LoggingLevel.Information);
-
-                await _deviceTwin.SendMessageAsync(message, properties);
-            }
-
-            private IDeviceTwin _deviceTwin;
         }
 
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
@@ -170,21 +134,26 @@ namespace Microsoft.Devices.Management
             Logger.Log("Creating Device Management objects.", LoggingLevel.Verbose);
 
             var systemConfiguratorProxy = new SystemConfiguratorProxy();
-            var clientCallback = new HandlerCallback(deviceTwin);
             DeviceManagementClient deviceManagementClient = Create(deviceTwin, requestHandler, systemConfiguratorProxy);
+            IClientHandlerCallBack clientCallback = deviceManagementClient;
+
+            // Attach methods...
             await deviceTwin.SetMethodHandlerAsync(MethodImmediateReboot, deviceManagementClient.ImmediateRebootMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync(MethodReportAllDeviceProperties, deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
             await deviceTwin.SetMethodHandlerAsync(MethodStartAppSelfUpdate, deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync(MethodGetCertificateDetails, deviceManagementClient.GetCertificateDetailsHandlerAsync);
-            await deviceTwin.SetMethodHandlerAsync(MethodFactoryReset, deviceManagementClient.FactoryResetHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync(MethodManageAppLifeCycle, deviceManagementClient.ManageAppLifeCycleHandlerAsync);
 
+            // Create/Attach handlers...
             deviceManagementClient._externalStorageHandler = new ExternalStorageHandler();
             deviceManagementClient.AddPropertyHandler(deviceManagementClient._externalStorageHandler);
 
             var deviceHealthAttestationHandler = new DeviceHealthAttestationHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceHealthAttestationHandler);
             await deviceManagementClient.AddDirectMethodHandlerAsync(deviceHealthAttestationHandler);
+
+            deviceManagementClient._factoryResetHandler = new FactoryResetHandler(clientCallback, systemConfiguratorProxy);
+            await deviceManagementClient.AddDirectMethodHandlerAsync(deviceManagementClient._factoryResetHandler);
 
             deviceManagementClient._windowsUpdatePolicyHandler = new WindowsUpdatePolicyHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsUpdatePolicyHandler);
@@ -214,6 +183,45 @@ namespace Microsoft.Devices.Management
         internal static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             return new DeviceManagementClient(deviceTwin, requestHandler, systemConfiguratorProxy);
+        }
+
+        // IClientHandlerCallBack.ReportPropertiesAsync
+        public async Task ReportPropertiesAsync(string sectionName, JToken sectionValue)
+        {
+            Debug.WriteLine("ReportPropertiesAsync...");
+
+            JObject windowsNodeValue = new JObject();
+            windowsNodeValue.Add(sectionName, sectionValue);
+
+            Dictionary<string, object> collection = new Dictionary<string, object>();
+            collection[DMJSonConstants.DTWindowsIoTNameSpace] = windowsNodeValue;
+
+            await _deviceTwin.ReportProperties(collection);
+        }
+
+        // IClientHandlerCallBack.SendMessageAsync
+        public async Task SendMessageAsync(string message, IDictionary<string, string> properties)
+        {
+            Logger.Log("HandlerCallback.SendMessageAsync", LoggingLevel.Verbose);
+
+            await _deviceTwin.SendMessageAsync(message, properties);
+        }
+
+        // IClientHandlerCallBack.ReportStatusAsync
+        public async Task ReportStatusAsync(string sectionName, StatusSection statusSubSection)
+        {
+            // We always construct an object and set a property inside it.
+            // This way, we do not overwrite what's already in there.
+
+            // Set the status to refreshing...
+            JObject refreshingValue = new JObject();
+            refreshingValue.Add(statusSubSection.AsJsonPropertyRefreshing());
+            await ReportPropertiesAsync(sectionName, refreshingValue);
+
+            // Set the status to the actual status...
+            JObject actualValue = new JObject();
+            actualValue.Add(statusSubSection.AsJsonProperty());
+            await ReportPropertiesAsync(sectionName, actualValue);
         }
 
         public async Task ApplyDesiredStateAsync()
@@ -458,40 +466,9 @@ namespace Microsoft.Devices.Management
             return Task.FromResult(JsonConvert.SerializeObject(response));
         }
 
-        private async Task FactoryResetAsync(Message.FactoryResetRequest request)
+        public async Task StartFactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
         {
-            await _systemConfiguratorProxy.SendCommandAsync(request);
-        }
-
-        private async Task FactoryResetAsync(string jsonParam)
-        {
-            await FactoryResetAsync(JsonConvert.DeserializeObject<Message.FactoryResetRequest>(jsonParam));
-        }
-
-        public async Task FactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
-        {
-            var request = new Message.FactoryResetRequest();
-            request.clearTPM = clearTPM;
-            request.recoveryPartitionGUID = recoveryPartitionGUID;
-            await FactoryResetAsync(request);
-        }
-
-        private Task<string> FactoryResetHandlerAsync(string jsonParam)
-        {
-            Debug.WriteLine("FactoryResetHandlerAsync");
-
-            var response = new { response = "succeeded", reason = "" };
-            try
-            {
-                // Submit the work and return immediately.
-                FactoryResetAsync(jsonParam).FireAndForget();
-            }
-            catch (Exception e)
-            {
-                response = new { response = "rejected:", reason = e.Message };
-            }
-
-            return Task.FromResult(JsonConvert.SerializeObject(response));
+            await _factoryResetHandler.StartFactoryResetAsync(clearTPM, recoveryPartitionGUID);
         }
 
         private Task<string> ManageAppLifeCycleHandlerAsync(string jsonParam)
@@ -538,22 +515,6 @@ namespace Microsoft.Devices.Management
             {
                 throw new Exception("Error: failed to set update reboot policy.");
             }
-        }
-
-        private async Task ReportStatusAsync(string sectionName, StatusSection statusSubSection)
-        {
-            // We always construct an object and set a property inside it.
-            // This way, we do not overwrite what's already in there.
-
-            // Set the status to refreshing...
-            JObject refreshingValue = new JObject();
-            refreshingValue.Add(statusSubSection.AsJsonPropertyRefreshing());
-            await ReportPropertiesAsync(sectionName, refreshingValue);
-
-            // Set the status to the actual status...
-            JObject actualValue = new JObject();
-            actualValue.Add(statusSubSection.AsJsonProperty());
-            await ReportPropertiesAsync(sectionName, actualValue);
         }
 
         public async Task ApplyDesiredStateAsync(JObject windowsPropValue)
@@ -620,12 +581,16 @@ namespace Microsoft.Devices.Management
                     {
                         statusSection.State = StatusSection.StateType.Failed;
                         statusSection.TheError = e;
+
+                        Logger.Log(statusSection.ToString(), LoggingLevel.Error);
                         await ReportStatusAsync(sectionProp.Name, statusSection);
                     }
                     catch (Exception e)
                     {
                         statusSection.State = StatusSection.StateType.Failed;
                         statusSection.TheError = new Error(ErrorSubSystem.Unknown, e.HResult, e.Message);
+
+                        Logger.Log(statusSection.ToString(), LoggingLevel.Error);
                         await ReportStatusAsync(sectionProp.Name, statusSection);
                     }
                 }
@@ -734,19 +699,6 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse);
         }
 
-        private async Task ReportPropertiesAsync(string sectionName, JToken sectionValue)
-        {
-            Debug.WriteLine("ReportPropertiesAsync...");
-
-            JObject newSection = new JObject();
-            newSection.Add(sectionName, sectionValue);
-
-            Dictionary<string, object> collection = new Dictionary<string, object>();
-            collection[DMJSonConstants.DTWindowsIoTNameSpace] = newSection;
-
-            await _deviceTwin.ReportProperties(collection);
-        }
-
         private async Task ReportAllDeviceProperties()
         {
             Logger.Log("Reporting all device properties to device twin...", LoggingLevel.Information);
@@ -790,6 +742,7 @@ namespace Microsoft.Devices.Management
         // Data members
         JObject _desiredCache = new JObject();
         ISystemConfiguratorProxy _systemConfiguratorProxy;
+        FactoryResetHandler _factoryResetHandler;
         WindowsUpdatePolicyHandler _windowsUpdatePolicyHandler;
         ExternalStorageHandler _externalStorageHandler;
         IDeviceManagementRequestHandler _requestHandler;
