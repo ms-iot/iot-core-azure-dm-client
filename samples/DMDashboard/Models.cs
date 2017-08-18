@@ -112,12 +112,6 @@ namespace Microsoft.Devices.Management
         }
     }
 
-    public class FactorResetParams
-    {
-        public bool clearTPM;
-        public string recoveryPartitionGUID;
-    }
-
     class ExternalStorage
     {
         public string SectionName

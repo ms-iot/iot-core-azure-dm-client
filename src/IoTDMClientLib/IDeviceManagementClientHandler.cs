@@ -25,6 +25,8 @@ namespace Microsoft.Devices.Management
         Task ReportPropertiesAsync(string propertyName, JToken properties);
 
         Task SendMessageAsync(string message, IDictionary<string, string> properties);
+
+        Task ReportStatusAsync(string sectionName, StatusSection statusSubSection);
     }
 
     // Interface for handlers that implements direct methods

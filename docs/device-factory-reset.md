@@ -4,10 +4,10 @@ A **Device Factory Reset** re-applies a pre-stored Windows image (from the recov
 
 The **Device Factory Reset** operation is initiated by either:
 
-- the application calling `FactoryResetAsync()`. 
-- the operator invoking the Azure direct method `windows.factoryReset`.
+- The application calling `StartFactoryResetAsync()`. 
+- The operator invoking the Azure direct method `windows.startFactoryResetAsync`.
 
-### FactoryResetAsync()
+### StartFactoryResetAsync()
 
 <pre>
     <b>Namespace</b>:
@@ -21,7 +21,7 @@ The **Device Factory Reset** operation is initiated by either:
 
 <pre>
     <b>Methods</b>:
-    public async Task FactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
+    public async Task StartFactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
 </pre>
 
 **Example**
@@ -29,11 +29,13 @@ The **Device Factory Reset** operation is initiated by either:
 <pre>
     async Task OnRebootClicked(DeviceManagementClient dmClient)
     {
-        await dmClient.FactoryResetAsync(true, "recoveryPartitionGUID");
+        await dmClient.StartFactoryResetAsync(true, "recoveryPartitionGUID");
     }
 </pre>
 
-### windows.factoryReset
+### windows.startFactoryResetAsync
+
+This interface is asynchronous and will return before completing the operation. The status can be tracked through the device twin `factoryReset` node (see below).
 
 #### Input Payload 
 
@@ -48,15 +50,32 @@ The **Device Factory Reset** operation is initiated by either:
 - ```"clearTPM"``` : When set to ```"true"```, all TPM slots will be cleared - otherwise, TPM will be not be cleared.
 
 #### Output Payload
+
+This is the json payload returned by the method.
+
 <pre>
 {
-    "response" : "<i>see below</i>"
-    "reason" : "<i>see below</i>"
+    "status" : {
+        &lt;<i>Status Object</i>&gt;
+    }
 }
 </pre>
 
-- ```"response"``` : This can either be set to ```"accepted"``` or ```"rejected"```. In case it is set to ```"rejected"```, the ```"reason"``` field will contain more details on why the method has been rejected..
-- ```"reason"``` : If the ```"response"``` is ```"accepted"```, this will be empty - otherwise, this field will contain more details on why the method has been rejected.
+For details on <i>Status Object</i>, see [Error Reporting](error-reporting.md).
+
+#### Device Twin Reporting
+
+As the method executes, it will also update the device twin with its current status and its final state.
+
+<pre>
+"reported" : {
+    "windows" : {
+        "factoryReset": {
+            "lastChange" = &lt;<i>Status Object</i>&gt;
+        }
+    }
+}
+</pre>
 
 #### Example
 
@@ -72,10 +91,39 @@ The **Device Factory Reset** operation is initiated by either:
 **Output**
 <pre>
 {
-    "response" : "accepted"
-    "reason" : ""
+    "status" : {
+        "time" : "<i>time stamp</i>",
+        "state": "pending",
+    }
 }
 </pre>
+
+**Device Twin Reporting**
+
+<pre>
+"reported" : {
+    "windows" : {
+        "factoryReset": {
+            "time" : "<i>time stamp</i>",
+            "state": "pending",
+        }
+    }
+}
+</pre>
+
+And then, upon success, it will be changed to:
+
+<pre>
+"reported" : {
+    "windows" : {
+        "factoryReset": {
+            "time" : "<i>time stamp</i>",
+            "state": "committed",
+        }
+    }
+}
+</pre>
+
 
 ----
 

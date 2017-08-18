@@ -55,6 +55,23 @@ namespace IoTDMClientLibTests
                 throw new NotImplementedException();
             }
 
+            // IClientHandlerCallBack.ReportStatusAsync
+            public async Task ReportStatusAsync(string sectionName, StatusSection statusSubSection)
+            {
+                // We always construct an object and set a property inside it.
+                // This way, we do not overwrite what's already in there.
+
+                // Set the status to refreshing...
+                JObject refreshingValue = new JObject();
+                refreshingValue.Add(statusSubSection.AsJsonPropertyRefreshing());
+                await ReportPropertiesAsync(sectionName, refreshingValue);
+
+                // Set the status to the actual status...
+                JObject actualValue = new JObject();
+                actualValue.Add(statusSubSection.AsJsonProperty());
+                await ReportPropertiesAsync(sectionName, actualValue);
+            }
+
             public Action<string, IDictionary<string, string>> SendMessageHook;
             public Action<string, JToken> ReportPropertiesHook;
         }

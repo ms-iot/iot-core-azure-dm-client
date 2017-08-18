@@ -17,7 +17,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace DMDataContract
+namespace Microsoft.Devices.Management.DMDataContract
 {
     public class Utils
     {

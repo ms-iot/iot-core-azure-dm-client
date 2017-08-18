@@ -12,10 +12,11 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-using Newtonsoft.Json;
+
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Windows.Foundation.Diagnostics;
 
 namespace Microsoft.Devices.Management
 {
@@ -37,10 +38,20 @@ namespace Microsoft.Devices.Management
             {
                 return await _method(arg);
             }
-            catch (Exception e)
+            catch (Error ex)
             {
-                var response = new { response = "rejected:", reason = e.Message };
-                return JsonConvert.SerializeObject(response);
+                StatusSection status = new StatusSection(StatusSection.StateType.Failed, ex);
+
+                Logger.Log(status.ToString(), LoggingLevel.Error);
+                return status.AsJsonObject().ToString();
+            }
+            catch (Exception ex)
+            {
+                Error e = new Error(Message.ErrorSubSystem.Unknown, ex.HResult, ex.Message);
+                StatusSection status = new StatusSection(StatusSection.StateType.Failed, e);
+
+                Logger.Log(status.ToString(), LoggingLevel.Error);
+                return status.AsJsonObject().ToString();
             }
         }
 
