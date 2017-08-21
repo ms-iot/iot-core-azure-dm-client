@@ -204,15 +204,6 @@ namespace DMDashboard
             OnManageAppLifeCycle(AppLifeCycleAction.stopApp, LifeCyclePkgFamilyName.Text);
         }
 
-        private void RebootInfoModelToUI(Microsoft.Devices.Management.RebootInfo.GetResponse rebootInfo)
-        {
-            LastRebootCmdTime.Text = rebootInfo.lastRebootCmdTime.ToString();
-            LastRebootCmdStatus.Text = rebootInfo.lastRebootCmdStatus?.ToString();
-            LastBootTime.Text = rebootInfo.lastBootTime.ToString();
-            ReportedSingleRebootTime.Text = rebootInfo.singleRebootTime.ToString();
-            ReportedDailyRebootTime.Text = rebootInfo.dailyRebootTime.ToString();
-        }
-
         private void CertificateInfoToUI(string hashesString, CertificateSelector certificateSelector)
         {
             if (String.IsNullOrEmpty(hashesString))
@@ -282,16 +273,20 @@ namespace DMDashboard
                     Microsoft.Devices.Management.DeviceInfo deviceInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.DeviceInfo>(jsonProp.Value.ToString());
                     DeviceStatusModelToUI(deviceInfo);
                 }
-                else if (jsonProp.Name == "rebootInfo")
+                else if (jsonProp.Name == RebootInfoDataContract.SectionName)
                 {
                     Debug.WriteLine(jsonProp.Value.ToString());
-                    var rebootInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.RebootInfo.GetResponse>(jsonProp.Value.ToString());
-                    RebootInfoModelToUI(rebootInfo);
+                    RebootInfoReportedState.FromJson(jsonProp.Value);
+                }
+                else if (jsonProp.Name == RebootCmdDataContract.SectionName)
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    RebootCmdReportedState.FromJson(jsonProp.Value);
                 }
                 else if (jsonProp.Name == "windowsUpdatePolicy")
                 {
                     Debug.WriteLine(jsonProp.Value.ToString());
-                    ReportedWindowsUpdatePolicy.FromJson(jsonProp.Value);
+                    WindowsUpdatePolicyReportedState.FromJson(jsonProp.Value);
                 }
                 else if (jsonProp.Name == "windowsUpdates")
                 {
@@ -328,9 +323,14 @@ namespace DMDashboard
             ReadDTReported();
         }
 
-        private void OnExpandReboot(object sender, RoutedEventArgs e)
+        private void OnExpandRebootCmd(object sender, RoutedEventArgs e)
         {
-            ToggleUIElementVisibility(RebootGrid);
+            ToggleUIElementVisibility(RebootCmdGrid);
+        }
+
+        private void OnExpandRebootInfo(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(RebootInfoGrid);
         }
 
         private void OnExpandFactoryReset(object sender, RoutedEventArgs e)
@@ -379,8 +379,8 @@ namespace DMDashboard
         private async void RebootSystemAsync()
         {
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(DMJSonConstants.DTWindowsIoTNameSpace + ".immediateReboot", "{}", new TimeSpan(0, 0, 30), cancellationToken);
-            System.Windows.MessageBox.Show("Reboot Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(RebootCmdDataContract.RebootCmdAsync, "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            MessageBox.Show("Reboot Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
         private void OnRebootSystem(object sender, RoutedEventArgs e)
@@ -429,20 +429,6 @@ namespace DMDashboard
         private void OnUpdateDTReported(object sender, RoutedEventArgs e)
         {
             UpdateDTReportedAsync();
-        }
-
-        private Microsoft.Devices.Management.RebootInfo.SetParams UIToRebootInfoModel()
-        {
-            var rebootInfo = new Microsoft.Devices.Management.RebootInfo.SetParams();
-            if (!String.IsNullOrEmpty(DesiredSingleRebootTime.Text))
-            {
-                rebootInfo.singleRebootTime = DateTime.Parse(DesiredSingleRebootTime.Text);
-            }
-            if (!String.IsNullOrEmpty(DesiredDailyRebootTime.Text))
-            {
-                rebootInfo.dailyRebootTime = DateTime.Parse(DesiredDailyRebootTime.Text);
-            }
-            return rebootInfo;
         }
 
         private async Task UpdateTwinData(string jsonString)
@@ -495,7 +481,7 @@ namespace DMDashboard
 
         private void OnSetWindowsUpdatePolicyInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(DesiredWindowsUpdatePolicy.SectionName, DesiredWindowsUpdatePolicy.ToJson()).FireAndForget();
+            SetDesired(WindowsUpdatePolicyDesiredState.SectionName, WindowsUpdatePolicyDesiredState.ToJson()).FireAndForget();
         }
 
         private void OnSetDiagnosticLogsInfo(object sender, RoutedEventArgs e)
@@ -567,8 +553,7 @@ namespace DMDashboard
 
         private void OnSetRebootInfo(object sender, RoutedEventArgs e)
         {
-            Microsoft.Devices.Management.RebootInfo.SetParams setParams = UIToRebootInfoModel();
-            SetDesired(setParams.SectionName, setParams.ToJson()).FireAndForget();
+            SetDesired(RebootInfoDesiredState.SectionName, RebootInfoDesiredState.ToJson()).FireAndForget();
         }
 
         private void OnSetAppsConfiguration(object sender, RoutedEventArgs e)
@@ -587,9 +572,9 @@ namespace DMDashboard
             json.Append(",");
             json.Append(UIToCertificateConfiguration().ToJson());
             json.Append(",");
-            json.Append(UIToRebootInfoModel().ToJson());
+            json.Append(RebootInfoDesiredState.ToJson());
             json.Append(",");
-            json.Append(DesiredWindowsUpdatePolicy.ToJson());
+            json.Append(WindowsUpdatePolicyDesiredState.ToJson());
             json.Append(",");
             json.Append(UIToWindowsUpdatesConfiguration().ToJson());
             json.Append(",");

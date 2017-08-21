@@ -181,8 +181,8 @@
                             <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                             <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
 
-                            <local:WindowsUpdatePolicyDesiredStateControl Grid.Row="1" Grid.Column="1" Margin="3" x:Name="DesiredWindowsUpdatePolicy"/>
-                            <local:WindowsUpdatePolicyReportedStateControl Grid.Row="1" Grid.Column="2" Margin="3" x:Name="ReportedWindowsUpdatePolicy" />
+                            <local:WindowsUpdatePolicyDesiredStateControl Grid.Row="1" Grid.Column="1" Margin="3" x:Name="WindowsUpdatePolicyDesiredState"/>
+                            <local:WindowsUpdatePolicyReportedStateControl Grid.Row="1" Grid.Column="2" Margin="3" x:Name="WindowsUpdatePolicyReportedState" />
                             <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Set Windows Update Policy" Click="OnSetWindowsUpdatePolicyInfo" />
                         </Grid>
 
@@ -453,15 +453,11 @@
                                 <ColumnDefinition Width="40"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Reboot" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandReboot" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Margin="3" Text="Reboot Info" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            <Button Grid.Column="0" Click="OnExpandRebootInfo" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>
-                        <Grid x:Name="RebootGrid" Visibility="Collapsed">
+                        <Grid x:Name="RebootInfoGrid" Visibility="Collapsed">
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
@@ -473,46 +469,34 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                             <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-                            <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Last Reboot Cmd"/>
+                            <local:RebootInfoDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="RebootInfoDesiredState"/>
+                            <local:RebootInfoReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="RebootInfoReportedState"/>
+                            <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Set Reboot Info" Click="OnSetRebootInfo" />
+                        </Grid>
+
+                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="1" Margin="3" Text="Reboot Command" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            <Button Grid.Column="0" Click="OnExpandRebootCmd" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <Grid x:Name="RebootCmdGrid" Visibility="Collapsed">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="300"/>
+                                <ColumnDefinition Width="400"/>
+                                <ColumnDefinition Width="400"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
                             <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Reboot Now" Click="OnRebootSystem"/>
-
-                            <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                <Border Background="#F8F8F8" Margin="3">
-                                    <TextBlock Width="200" x:Name="LastRebootCmdTime" />
-                                </Border>
-                            </StackPanel>
-
-                            <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Last Reboot Cmd Status"/>
-                            <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
-                                <Border Background="#F8F8F8" Margin="3">
-                                    <TextBlock Width="200" x:Name="LastRebootCmdStatus" />
-                                </Border>
-                            </StackPanel>
-
-                            <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Last Boot" />
-                            <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" Text="n/a" />
-                            <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
-                                <Border Background="#F8F8F8" Margin="3">
-                                    <TextBlock Width="200" Text="" x:Name="LastBootTime"/>
-                                </Border>
-                            </StackPanel>
-
-                            <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="One-Time Reboot" />
-                            <TextBox Grid.Row="4" Grid.Column="1" Margin="3" Text="2016-10-10T17:00:00Z" x:Name="DesiredSingleRebootTime"/>
-                            <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
-                                <Border Margin="3" Background="#F8F8F8">
-                                    <TextBlock Width="200" x:Name="ReportedSingleRebootTime"/>
-                                </Border>
-                            </StackPanel>
-
-                            <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Daily Reboot" />
-                            <TextBox Grid.Row="5" Grid.Column="1" Margin="3" Text="" x:Name="DesiredDailyRebootTime"/>
-                            <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal">
-                                <Border Margin="3" Background="#F8F8F8">
-                                    <TextBlock Width="200" x:Name="ReportedDailyRebootTime"/>
-                                </Border>
-                            </StackPanel>
-                            <Button Grid.Row="6" Grid.Column="1" Margin="3" Content="Set Reboot Info" Click="OnSetRebootInfo" />
+                            <local:RebootCmdReportedStateControl Grid.Row="1" Grid.Column="2" Margin="3" x:Name="RebootCmdReportedState"/>
                         </Grid>
 
                         <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />

@@ -62,12 +62,16 @@ To allow/disallow reboots, the application developer can invoke the following .N
 
 <pre>
     <b>Enums</b>:
-    public enum RebootRequestStatus
+    public class RebootCmdDataContract
     {
-        Allowed,
-        Disabled,
-        InActiveHours,
-        RejectedByApp
+        public enum ResponseValue
+        {
+            Allowed,
+            Scheduled,
+            Disabled,
+            InActiveHours,
+            RejectedByApp
+        }
     }
 </pre>
 
@@ -79,7 +83,7 @@ To allow/disallow reboots, the application developer can invoke the following .N
 <pre>
     <b>Methods</b>:
     public async Task AllowReboots(bool allowReboots)
-    public async Task&lt;RebootRequestStatus&gt; IsRebootAllowedBySystem()
+    public async Task&lt;RebootCmdDataContract.ResponseValue&gt; IsRebootAllowedBySystem()
 </pre>
 
 Note that IsRebootAllowedBySystem() can return only one of the following values `"Allowed"`, `"Disabled"`, or `"InActiveHours"`.
@@ -99,17 +103,14 @@ Note that IsRebootAllowedBySystem() can return only one of the following values 
     }
 </pre>
 
-**Note:** There is no Azure interface for this functionality. This functionality is meant for the application signal its own busy state.
+## Initiate Reboot
 
+The **Reboot Command** operation is initiated by either:
 
-## Initiate Immediate Reboot
+- the application calling `RebootAsync()`. 
+- the operator invoking the Azure direct method `windows.rebootAsync`.
 
-The **Immediate Reboot** operation is initiated by either:
-
-- the application calling `ImmediateRebootAsync()`. 
-- the operator invoking the Azure direct method `windows.immediateReboot`.
-
-### ImmediateRebootAsync()
+### RebootAsync()
 
 <pre>
     <b>Namespace</b>:
@@ -123,7 +124,7 @@ The **Immediate Reboot** operation is initiated by either:
 
 <pre>
     <b>Methods</b>:
-    public async Task ImmediateRebootAsync()
+    public async Task RebootAsync()
 </pre>
 
 **Example**
@@ -131,48 +132,55 @@ The **Immediate Reboot** operation is initiated by either:
 <pre>
     async Task OnRebootClicked(DeviceManagementClient dmClient)
     {
-        await dmClient.ImmediateRebootAsync();
+        await dmClient.RebootAsync();
     }
 </pre>
 
-### windows.immediateReboot
+### windows.rebootAsync
 
 #### Input Payload 
 Input payload is empty
 
 #### Output Payload
-The device responds immediately with the following JSON payload:
+
+This method is asynchronous, so it returns immediately and sets the <i>Status Object</i> to `pending`. For more details on the <i>Status Object</i>, see [Status Reporting](status-reporting.md).
 
 <pre>
-"response" : "<i>see below</i>"
+{
+    "status" : {
+        &lt;<i>Status Object</i>&gt;
+    }
+}
+</pre>
+
+#### Device Twin Reporting
+
+The outcome of executing the reboot command will be reported to the device twin under `rebootCmd`.
+
+<pre>
+    "rebootCmd": {
+        "lastChange": {
+            "time": "2017-08-21T02:58:56.815724Z",
+            "state": "completed"
+        },
+        "response": "scheduled"
+    },
 </pre>
 
 Possible `"response"` values are: 
 
-- `"accepted"` - The reboot request was accepted. The device will attempt to reboot momentarily (note: the attempt might fail, see below)
+- `"scheduled"` - The reboot request has been scehduled in 5 minutes. The device will attempt to reboot momentarily (note: the attempt might fail, see below)
 - `"disabled"` - is returned when the application flags its busy state by calling `"AllowReboots(false)"`.
 - `"inActiveHours"` - is returned when the immediate reboot command is received between the active hours as 
    specified by `windowsUpdatePolicy` (see [Windows Update Management](windows-update-management.md) 
    `desired.windows.windowsUpdatePolicy.activeHoursStart` and `desired.windows.windowsUpdatePolicy.activeHoursEnd`).
 
-The state of the latest reboot request is communicated to the back-end via
-reported properties as described in [Device Twin Communication](#device-twin-communication) below.
-
 Note that an immediate roboot request will be 'accepted' initially if it meets the current policy set on the device 
 (namely; outside active hours, and reboot are not disallowed by the application) - however, the request might still
 be rejected later when the application is intorregated (where it may prompt the application user for a response; for example).
-Such rejection will be expressed in the Device Twin.
 
 After the device reboots, `"reported.windows.rebootInfo.lastBootTime"` will be set to a new value.
-This can be used to confirm the reboot took place.
-
-**Examples:**
-
-Successful response:
-
-```
-"response" : "accepted"
-```
+That value can be used to confirm the reboot took place.
 
 #### Device Twin Communication
 
@@ -206,7 +214,7 @@ is JSON object with two key/value pairs defined as follows:
 
 Successful response:
 
-```
+<pre>
 "reported" : {
     "windows" : {
         "rebootInfo" : {
@@ -215,19 +223,19 @@ Successful response:
         }
     }
 }
-```
+</pre>
 
-## Schedule Reboots
+## Scheduled Reboots
 
-The **Schedule Reboots** operation is initiated by the device receiving the `"desired.windows.scheduledReboot"` desired property.
+The **Schedule Reboot** can be configured using the `rebootInfo` node in the desired properties section.
 
 ### Configuration Format
-The format of the `"desired.windows.scheduledReboot"` desired property is as follows:
+The format of the `"desired.windows.rebootInfo"` desired property is as follows:
 
 <pre>
 "desired" : {
     "windows" : {
-        "scheduledReboot" :{
+        "rebootInfo" :{
             "singleRebootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
             "dailyRebootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
         }
@@ -241,16 +249,16 @@ Note that the full date and time are required when specifying the daily reboot t
 
 Perform a singleRebootTime reboot on Jan 25th, 2017 at 09:00 UTC time and also reboot daily at 3 AM:
 
-```
+<pre>
 "desired" : {
     "windows" : {
-        "scheduledReboot" : {
+        "rebootInfo" : {
             "singleRebootTime" : "2017-01-25T09:00:00+00:00"
             "dailyRebootTime" : "2017-01-25T03:00:00+00:00"
         }
     }
 }
-```
+</pre>
 
 Either or both <i>singleRebootTime</i> and <i>dailyRebootTime</i> can be set to an empty string to indicate no reboot is scheduled.
 
@@ -268,8 +276,6 @@ The current state of reboot configuration and status is stored under the `"repor
     }
 }
 </pre>
-
-**dailyRebootTime** and **singleRebootTime** reflect the values set in the desired scheduledReboot property.
 
 ----
 

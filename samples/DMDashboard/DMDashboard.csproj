@@ -172,6 +172,15 @@
     <Compile Include="DiagnosticLogs\ProviderReportedStateListControl.xaml.cs">
       <DependentUpon>ProviderReportedStateListControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Reboot\RebootCmdReportedStateControl.xaml.cs">
+      <DependentUpon>RebootCmdReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Reboot\RebootInfoDesiredStateControl.xaml.cs">
+      <DependentUpon>RebootInfoDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Reboot\RebootInfoReportedStateControl.xaml.cs">
+      <DependentUpon>RebootInfoReportedStateControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="StorageManagement\AzureStorageManager.xaml.cs">
       <DependentUpon>AzureStorageManager.xaml</DependentUpon>
     </Compile>
@@ -301,6 +310,18 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="DiagnosticLogs\ProviderReportedStateListControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Reboot\RebootCmdReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Reboot\RebootInfoDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Reboot\RebootInfoReportedStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

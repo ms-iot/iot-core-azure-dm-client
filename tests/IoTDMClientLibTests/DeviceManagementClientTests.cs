@@ -127,7 +127,7 @@ namespace IoTDMClientLibTests
             var requestHandler = new HandlerMockupForReboot(true);
             var proxy = new ConfigurationProxyMockup();
             var dmClient = DeviceManagementClient.Create(twin, requestHandler, proxy);
-            dmClient.ImmediateRebootAsync().Wait();
+            dmClient.RebootAsync().Wait();
 
             Assert.AreEqual(proxy.ReceivedRequest.Tag, DMMessageKind.ImmediateReboot);
             Assert.AreEqual(proxy.ReturnedResponse.Tag, DMMessageKind.ImmediateReboot);
@@ -141,7 +141,7 @@ namespace IoTDMClientLibTests
             var requestHandler = new HandlerMockupForReboot(false);
             var proxy = new ConfigurationProxyMockup();
             var dmClient = DeviceManagementClient.Create(twin, requestHandler, proxy);
-            dmClient.ImmediateRebootAsync().Wait();
+            dmClient.RebootAsync().Wait();
 
             Assert.AreEqual(proxy.ReceivedRequest, null);
             Assert.AreEqual(proxy.ReturnedResponse, null);

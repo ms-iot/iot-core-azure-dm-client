@@ -76,7 +76,7 @@ namespace Microsoft.Devices.Management
         public enum StateType
         {
             Pending,
-            Committed,
+            Completed,
             Failed
         }
 

@@ -219,7 +219,7 @@ namespace Toaster
             bool success = true;
             try
             {
-                await deviceManagementClient.ImmediateRebootAsync();
+                await deviceManagementClient.RebootAsync();
             }
             catch(Exception)
             {
