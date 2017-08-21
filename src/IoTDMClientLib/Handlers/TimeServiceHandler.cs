@@ -41,7 +41,8 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        private async Task HandleDesiredPropertyChangeAsync(JToken desiredValue)
+        // IClientPropertyHandler
+        public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
         {
             Message.TimeServiceData data = new Message.TimeServiceData();
 
@@ -51,18 +52,13 @@ namespace Microsoft.Devices.Management
             data.startup = subProperties.Property(JsonStartup).Value.ToString();
             data.started = subProperties.Property(JsonStarted).Value.ToString();
 
+            // Construct the request and send it...
             var request = new Message.SetTimeServiceRequest(data);
-
             await this._systemConfiguratorProxy.SendCommandAsync(request);
 
+            // Report to the device twin....
             var reportedProperties = await GetTimeServiceAsync();
-            await this._callback.ReportPropertiesAsync(JsonSectionName, JObject.FromObject(reportedProperties.data));
-        }
-
-        // IClientPropertyHandler
-        public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
-        {
-            await HandleDesiredPropertyChangeAsync(desiredValue);
+            await this._callback.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties.data));
 
             return CommandStatus.Committed;
         }

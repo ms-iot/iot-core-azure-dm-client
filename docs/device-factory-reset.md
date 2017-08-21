@@ -16,7 +16,7 @@ The **Device Factory Reset** operation is initiated by either:
 
 <pre>
     <b>Class</b>:
-	DeviceManagementClient
+    DeviceManagementClient
 </pre>
 
 <pre>
@@ -51,7 +51,7 @@ This interface is asynchronous and will return before completing the operation. 
 
 #### Output Payload
 
-This is the json payload returned by the method.
+`windows.startFactoryResetAsync` returns a <i>Status Object</i> (see [Status Reporting](status-reporting.md)).
 
 <pre>
 {
@@ -123,7 +123,6 @@ And then, upon success, it will be changed to:
     }
 }
 </pre>
-
 
 ----
 

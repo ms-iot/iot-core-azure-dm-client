@@ -51,8 +51,8 @@ namespace Microsoft.Devices.Management
         {
             Logger.Log("InternalStartFactoryResetAsync() invoked.", LoggingLevel.Verbose);
 
-            await Helpers.EnsureErrorsLogged(_deviceManagementClient, PropertySectionName, async () => {
-
+            await Helpers.EnsureErrorsLogged(_deviceManagementClient, PropertySectionName, async () => 
+            {
                 StatusSection status = new StatusSection(StatusSection.StateType.Pending);
                 await _deviceManagementClient.ReportStatusAsync(PropertySectionName, status);
 
@@ -68,7 +68,7 @@ namespace Microsoft.Devices.Management
                 var response = await _systemConfiguratorProxy.SendCommandAsync(request);
 
                 // Report to the device twin
-                status.State = StatusSection.StateType.Committed;
+                status.State = StatusSection.StateType.Completed;
                 await _deviceManagementClient.ReportStatusAsync(PropertySectionName, status);
 
             });

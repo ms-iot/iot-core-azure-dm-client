@@ -20,23 +20,26 @@ namespace Microsoft.Devices.Management.DMDataContract
         // OS Errors
         public static int E_NOTIMPL = unchecked((int)0x80000001);
 
-        // App management error codes 0000-0080
-        public static int INVALID_DESIRED_VERSION = unchecked((int)0xA0000000);
-        public static int INVALID_DESIRED_PKG_FAMILY_ID = unchecked((int)0xA0000001);
-        public static int INVALID_DESIRED_APPX_SRC = unchecked((int)0xA0000002);
-        public static int INVALID_DESIRED_APPX_OPERATION = unchecked((int)0xA0000003);
-        public static int INVALID_INSTALLED_APP_VERSION_UNCHANGED = unchecked((int)0xA0000004);
-        public static int INVALID_INSTALLED_APP_VERSION_UNEXPECTED = unchecked((int)0xA0000005);
-        public static int INVALID_DESIRED_MULTIPLE_FOREGROUND_APPS = unchecked((int)0xA0000006);
-        public static int INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP = unchecked((int)0xA0000007);
-        public static int CANNOT_UNINSTALL_DM_APPLICATION = unchecked((int)0xA0000008);
-        public static int CANNOT_REVERT_DM_APPLICATION = unchecked((int)0xA0000009);
+        // Generic errors
+        public static int INVALID_DESIRED_JSON_VALUE = unchecked((int)0xA0000000);
 
-        // DM Storage management error codes 0081-0100
-        public static int INVALID_PARAMS = unchecked((int)0xA0000081);
-        public static int INVALID_FOLDER_PARAM = unchecked((int)0xA0000082);
-        public static int INVALID_FILE_PARAM = unchecked((int)0xA0000083);
-        public static int INVALID_CONNECTION_STRING_PARAM = unchecked((int)0xA0000084);
-        public static int INVALID_CONTAINER_PARAM = unchecked((int)0xA0000084);
+        // App management error codes 0081-0100
+        public static int INVALID_DESIRED_VERSION = unchecked((int)0xA0000080);
+        public static int INVALID_DESIRED_PKG_FAMILY_ID = unchecked((int)0xA0000081);
+        public static int INVALID_DESIRED_APPX_SRC = unchecked((int)0xA0000082);
+        public static int INVALID_DESIRED_APPX_OPERATION = unchecked((int)0xA0000083);
+        public static int INVALID_INSTALLED_APP_VERSION_UNCHANGED = unchecked((int)0xA0000084);
+        public static int INVALID_INSTALLED_APP_VERSION_UNEXPECTED = unchecked((int)0xA0000085);
+        public static int INVALID_DESIRED_MULTIPLE_FOREGROUND_APPS = unchecked((int)0xA0000086);
+        public static int INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP = unchecked((int)0xA0000087);
+        public static int CANNOT_UNINSTALL_DM_APPLICATION = unchecked((int)0xA0000088);
+        public static int CANNOT_REVERT_DM_APPLICATION = unchecked((int)0xA0000089);
+
+        // DM Storage management error codes 0100-0120
+        public static int INVALID_PARAMS = unchecked((int)0xA0000100);
+        public static int INVALID_FOLDER_PARAM = unchecked((int)0xA0000101);
+        public static int INVALID_FILE_PARAM = unchecked((int)0xA0000102);
+        public static int INVALID_CONNECTION_STRING_PARAM = unchecked((int)0xA0000103);
+        public static int INVALID_CONTAINER_PARAM = unchecked((int)0xA0000104);
     }
 }

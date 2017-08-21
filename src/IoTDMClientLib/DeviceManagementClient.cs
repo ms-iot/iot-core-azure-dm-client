@@ -34,7 +34,6 @@ namespace Microsoft.Devices.Management
     // This is the main entry point into DM
     public class DeviceManagementClient : IClientHandlerCallBack
     {
-        const string MethodImmediateReboot = DMJSonConstants.DTWindowsIoTNameSpace + ".immediateReboot";
         const string MethodReportAllDeviceProperties = DMJSonConstants.DTWindowsIoTNameSpace + ".reportAllDeviceProperties";
         const string MethodStartAppSelfUpdate = DMJSonConstants.DTWindowsIoTNameSpace + ".startAppSelfUpdate";
         const string MethodGetCertificateDetails = DMJSonConstants.DTWindowsIoTNameSpace + ".getCertificateDetails";
@@ -42,21 +41,6 @@ namespace Microsoft.Devices.Management
         const string MethodManageAppLifeCycle = DMJSonConstants.DTWindowsIoTNameSpace + ".manageAppLifeCycle";
 
         public IDeviceTwin DeviceTwin { get { return _deviceTwin; } }
-
-        // Types
-        public enum RebootRequestStatus
-        {
-            Allowed,
-            Disabled,
-            InActiveHours,
-            RejectedByApp
-        }
-
-        public struct DMMethodResult
-        {
-            public uint returnCode;
-            public string response;
-        }
 
         public struct GetCertificateDetailsParams
         {
@@ -78,12 +62,12 @@ namespace Microsoft.Devices.Management
             public string foreground = "";
         }
 
-        private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
+        private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler hostAppHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             Logger.Log("Entering DeviceManagementClient constructor.", LoggingLevel.Verbose);
 
             this._deviceTwin = deviceTwin;
-            this._requestHandler = requestHandler;
+            this._hostAppHandler = hostAppHandler;
             this._systemConfiguratorProxy = systemConfiguratorProxy;
             this._desiredPropertyMap = new Dictionary<string, IClientPropertyHandler>();
             this._desiredPropertyDependencyMap = new Dictionary<string, List<IClientPropertyDependencyHandler>>();
@@ -129,16 +113,15 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public static async Task<DeviceManagementClient> CreateAsync(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler)
+        public static async Task<DeviceManagementClient> CreateAsync(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler hostAppHandler)
         {
             Logger.Log("Creating Device Management objects.", LoggingLevel.Verbose);
 
             var systemConfiguratorProxy = new SystemConfiguratorProxy();
-            DeviceManagementClient deviceManagementClient = Create(deviceTwin, requestHandler, systemConfiguratorProxy);
+            DeviceManagementClient deviceManagementClient = Create(deviceTwin, hostAppHandler, systemConfiguratorProxy);
             IClientHandlerCallBack clientCallback = deviceManagementClient;
 
             // Attach methods...
-            await deviceTwin.SetMethodHandlerAsync(MethodImmediateReboot, deviceManagementClient.ImmediateRebootMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync(MethodReportAllDeviceProperties, deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
             await deviceTwin.SetMethodHandlerAsync(MethodStartAppSelfUpdate, deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync(MethodGetCertificateDetails, deviceManagementClient.GetCertificateDetailsHandlerAsync);
@@ -176,6 +159,19 @@ namespace Microsoft.Devices.Management
 
             var timeServiceHandler = new TimeServiceHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(timeServiceHandler);
+
+            deviceManagementClient._rebootCmdHandler = new RebootCmdHandler(
+                clientCallback,
+                systemConfiguratorProxy,
+                deviceManagementClient._hostAppHandler,
+                deviceManagementClient._windowsUpdatePolicyHandler);
+            await deviceManagementClient.AddDirectMethodHandlerAsync(deviceManagementClient._rebootCmdHandler);
+
+            var rebootInfoHandler = new RebootInfoHandler(
+                clientCallback,
+                systemConfiguratorProxy,
+                deviceManagementClient._desiredCache);
+            deviceManagementClient.AddPropertyHandler(rebootInfoHandler);
 
             return deviceManagementClient;
         }
@@ -261,105 +257,10 @@ namespace Microsoft.Devices.Management
         }
         */
 
-        private static string RebootRequestStatusString(RebootRequestStatus status)
+
+        public async Task RebootAsync()
         {
-            switch (status)
-            {
-                case RebootRequestStatus.Allowed: return "allowed";
-                case RebootRequestStatus.Disabled: return "disabled";
-                case RebootRequestStatus.InActiveHours: return "inActiveHours";
-                case RebootRequestStatus.RejectedByApp: return "rejectedByApp";
-            }
-            return status.ToString();
-        }
-
-        private void ReportImmediateRebootStatus(RebootRequestStatus rebootRequestStatus, string rebootCmdTime)
-        {
-            Dictionary<string, object> collection = new Dictionary<string, object>();
-            collection[DMJSonConstants.DTWindowsIoTNameSpace] = new
-            {
-                rebootInfo = new
-                {
-                    lastRebootCmdTime = rebootCmdTime,
-                    lastRebootCmdStatus = (rebootRequestStatus == RebootRequestStatus.Allowed ? "accepted" : RebootRequestStatusString(rebootRequestStatus))
-                }
-            };
-
-            _deviceTwin.ReportProperties(collection);
-        }
-
-        public async Task<RebootRequestStatus> IsRebootAllowedBySystem()
-        {
-            var request = new Message.GetWindowsUpdateRebootPolicyRequest();
-            var response = await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdateRebootPolicyResponse;
-            if (!response.configuration.allow)
-            {
-                return RebootRequestStatus.Disabled;
-            }
-
-            Message.GetWindowsUpdatePolicyResponse updatePolicy = await _windowsUpdatePolicyHandler.GetWindowsUpdatePolicyAsync();
-            if (updatePolicy.data != null)
-            {
-                uint nowHour = (uint)DateTime.Now.Hour;
-                if (updatePolicy.data.activeHoursStart <= nowHour && nowHour < updatePolicy.data.activeHoursEnd)
-                {
-                    return RebootRequestStatus.InActiveHours;
-                }
-            }
-
-            return RebootRequestStatus.Allowed;
-        }
-
-        private async Task<RebootRequestStatus> IsRebootAllowedByApp()
-        {
-            bool allowed = await this._requestHandler.IsSystemRebootAllowed();
-            if (!allowed)
-            {
-                return RebootRequestStatus.RejectedByApp;
-            }
-
-            return RebootRequestStatus.Allowed;
-        }
-
-        private async Task<string> ImmediateRebootMethodHandlerAsync(string jsonParam)
-        {
-            string rebootCmdTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ");
-
-            RebootRequestStatus rebootRequestStatus = await IsRebootAllowedBySystem();
-            if (rebootRequestStatus != RebootRequestStatus.Allowed)
-            {
-                // Report to the device twin
-                ReportImmediateRebootStatus(rebootRequestStatus, rebootCmdTime);
-
-                // Return details in the method return payload
-                return JsonConvert.SerializeObject(new { response = RebootRequestStatusString(rebootRequestStatus) });
-            }
-
-            // Start the reboot operation asynchrnously, which may or may not succeed
-            this.ImmediateRebootAsync(rebootCmdTime).FireAndForget();
-            return JsonConvert.SerializeObject(new { response = "accepted" });
-        }
-
-        public async Task ImmediateRebootAsync()
-        {
-            await ImmediateRebootAsync(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ"));
-        }
-
-        private async Task ImmediateRebootAsync(string rebootCmdTime)
-        {
-            RebootRequestStatus rebootRequestStatus = await IsRebootAllowedByApp();
-
-            // Report to the device twin
-            ReportImmediateRebootStatus(rebootRequestStatus, rebootCmdTime);
-
-            if (rebootRequestStatus != RebootRequestStatus.Allowed)
-            {
-                return;
-            }
-
-            var request = new Message.ImmediateRebootRequest();
-            request.lastRebootCmdTime = rebootCmdTime;
-            await this._systemConfiguratorProxy.SendCommandAsync(request);
+            await _rebootCmdHandler.RebootAsync();
         }
 
         private void ReportSelfUpdateStatus(string lastCheckValue, string statusValue)
@@ -508,13 +409,7 @@ namespace Microsoft.Devices.Management
 
         public async Task AllowReboots(bool allowReboots)
         {
-            var configuration = new WindowsUpdateRebootPolicyConfiguration();
-            configuration.allow = allowReboots;
-            IResponse response = await this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdateRebootPolicyRequest(configuration));
-            if (response.Status != ResponseStatus.Success)
-            {
-                throw new Exception("Error: failed to set update reboot policy.");
-            }
+            await _rebootCmdHandler.AllowReboots(allowReboots);
         }
 
         public async Task ApplyDesiredStateAsync(JObject windowsPropValue)
@@ -574,7 +469,7 @@ namespace Microsoft.Devices.Management
 
                         _lastCommandStatus = await handler.OnDesiredPropertyChange(sectionProp.Value);
 
-                        statusSection.State = StatusSection.StateType.Committed;
+                        statusSection.State = StatusSection.StateType.Completed;
                         await ReportStatusAsync(sectionProp.Name, statusSection);
                     }
                     catch (Error e)
@@ -602,29 +497,6 @@ namespace Microsoft.Devices.Management
                     }
                     switch (sectionProp.Name)
                     {
-                        case "scheduledReboot":
-                            {
-                                Debug.WriteLine("scheduledReboot = " + sectionProp.Value.ToString());
-
-                                JObject subProperties = (JObject)sectionProp.Value;
-
-                                var request = new Message.SetRebootInfoRequest();
-
-                                string singleRebootTimeString = Utils.GetString(subProperties, "singleRebootTime", "");
-                                if (!String.IsNullOrEmpty(singleRebootTimeString))
-                                {
-                                    request.singleRebootTime = DateTime.Parse(singleRebootTimeString).ToString("yyyy-MM-ddTHH:mm:ssZ");
-                                }
-
-                                string dailyRebootTimeString = Utils.GetString(subProperties, "dailyRebootTime", "");
-                                if (!String.IsNullOrEmpty(dailyRebootTimeString))
-                                {
-                                    request.dailyRebootTime = DateTime.Parse(dailyRebootTimeString).ToString("yyyy-MM-ddTHH:mm:ssZ");
-                                }
-
-                                await this._systemConfiguratorProxy.SendCommandAsync(request);
-                            }
-                            break;
                         case "externalStorage":
                             {
                                 Debug.WriteLine("externalStorage = " + sectionProp.Value.ToString());
@@ -681,12 +553,6 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetCertificateConfigurationResponse);
         }
 
-        private async Task<Message.GetRebootInfoResponse> GetRebootInfoAsync()
-        {
-            var request = new Message.GetRebootInfoRequest();
-            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetRebootInfoResponse);
-        }
-
         private async Task<Message.GetDeviceInfoResponse> GetDeviceInfoAsync()
         {
             var request = new Message.GetDeviceInfoRequest();
@@ -706,7 +572,6 @@ namespace Microsoft.Devices.Management
             Logger.Log("Querying device state...", LoggingLevel.Information);
 
             Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await GetCertificateConfigurationAsync();
-            Message.GetRebootInfoResponse rebootInfoResponse = await GetRebootInfoAsync();
             Message.GetDeviceInfoResponse deviceInfoResponse = await GetDeviceInfoAsync();
             Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
 
@@ -719,7 +584,6 @@ namespace Microsoft.Devices.Management
                 windowsObj[handler.PropertySectionName] = await handler.GetReportedPropertyAsync();
             }
             windowsObj["certificates"] = JObject.Parse(JsonConvert.SerializeObject(certificateConfigurationResponse));
-            windowsObj["rebootInfo"] = JObject.Parse(JsonConvert.SerializeObject(rebootInfoResponse));
             windowsObj["deviceInfo"] = JObject.Parse(JsonConvert.SerializeObject(deviceInfoResponse));
             windowsObj["windowsUpdates"] = JObject.Parse(JsonConvert.SerializeObject(windowsUpdatesResponse));
 
@@ -744,8 +608,9 @@ namespace Microsoft.Devices.Management
         ISystemConfiguratorProxy _systemConfiguratorProxy;
         FactoryResetHandler _factoryResetHandler;
         WindowsUpdatePolicyHandler _windowsUpdatePolicyHandler;
+        RebootCmdHandler _rebootCmdHandler;
         ExternalStorageHandler _externalStorageHandler;
-        IDeviceManagementRequestHandler _requestHandler;
+        IDeviceManagementRequestHandler _hostAppHandler;
         IDeviceTwin _deviceTwin;
         string _externalStorageConnectionString;
         Dictionary<string, IClientPropertyHandler> _desiredPropertyMap;
