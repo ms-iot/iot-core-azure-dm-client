@@ -125,6 +125,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TimeCfg.h" />
     <ClInclude Include="TpmSupport.h" />
+    <ClInclude Include="WindowsTelemetry.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppCfg.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="SystemConfigurator.cpp" />
     <ClCompile Include="TimeCfg.cpp" />
     <ClCompile Include="TpmSupport.cpp" />
+    <ClCompile Include="WindowsTelemetry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />

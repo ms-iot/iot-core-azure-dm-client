@@ -32,6 +32,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "TimeCfg.h"
 #include "TpmSupport.h"
 #include "Permissions\PermissionsManager.h"
+#include "WindowsTelemetry.h"
 
 #include "Models\AllModels.h"
 
@@ -86,6 +87,20 @@ IResponse^ HandleFactoryReset(IRequest^ request)
     // Reboot the device...
     RebootCSP::ExecRebootNow(Utils::GetCurrentDateTimeString());
 
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
+
+IResponse^ HandleGetWindowsTelemetry(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+    return WindowsTelemetry::Get();
+}
+
+IResponse^ HandleSetWindowsTelemetry(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+    WindowsTelemetry::Set(dynamic_cast<SetWindowsTelemetryRequest^>(request));
     return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 

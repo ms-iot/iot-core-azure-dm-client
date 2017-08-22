@@ -123,6 +123,11 @@ namespace DMDashboard
             ToggleUIElementVisibility(WindowsUpdatesGrid);
         }
 
+        private void OnExpandWindowsTelemetry(object sender, RoutedEventArgs e)
+        {
+            ToggleUIElementVisibility(WindowsTelemetryGrid);
+        }
+
         private void OnExpandDiagnosticLogs(object sender, RoutedEventArgs e)
         {
             ToggleUIElementVisibility(DiagnosticLogsGrid);
@@ -191,7 +196,7 @@ namespace DMDashboard
             string parametersString = JsonConvert.SerializeObject(parameters);
             CancellationToken cancellationToken = new CancellationToken();
             DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(DMJSonConstants.DTWindowsIoTNameSpace + ".manageAppLifeCycle", parametersString, new TimeSpan(0, 0, 30), cancellationToken);
-            System.Windows.MessageBox.Show("Reboot Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
+            MessageBox.Show("ManageAppLifeCycle Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
         private void OnStartApplication(object sender, RoutedEventArgs e)
@@ -293,6 +298,18 @@ namespace DMDashboard
                     Debug.WriteLine(jsonProp.Value.ToString());
                     var info = JsonConvert.DeserializeObject<Microsoft.Devices.Management.WindowsUpdates.GetResponse>(jsonProp.Value.ToString());
                     WindowsUpdatesConfigurationToUI(info);
+                }
+                else if (jsonProp.Name == WindowsTelemetryDataContract.SectionName)
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    if (jsonProp.Value is JObject)
+                    {
+                        WindowsTelemetryReportedState.FromJson((JObject)jsonProp.Value);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Expected json object as a value for " + WindowsTelemetryDataContract.SectionName);
+                    }
                 }
                 else if (jsonProp.Name == "apps")
                 {
@@ -531,6 +548,11 @@ namespace DMDashboard
             SetDesired(setParams.SectionName, setParams.ToJson()).FireAndForget();
         }
 
+        private void OnSetWindowsTelemetry(object sender, RoutedEventArgs e)
+        {
+            SetDesired(WindowsTelemetryDataContract.SectionName, WindowsTelemetryDesiredState.ToJson()).FireAndForget();
+        }
+
         private Certificates.CertificateConfiguration UIToCertificateConfiguration()
         {
             Certificates.CertificateConfiguration certificateConfiguration = new Certificates.CertificateConfiguration();
@@ -577,6 +599,8 @@ namespace DMDashboard
             json.Append(WindowsUpdatePolicyDesiredState.ToJson());
             json.Append(",");
             json.Append(UIToWindowsUpdatesConfiguration().ToJson());
+            json.Append(",");
+            json.Append(WindowsTelemetryDesiredState.ToJson());
             json.Append(",");
             json.Append(DeviceHealthAttestationDesiredState.ToJson());
             json.Append(",");

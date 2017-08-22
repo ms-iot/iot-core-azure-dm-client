@@ -39,6 +39,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "TpmRequests.h"
 #include "WifiConfiguration.h"
 #include "WifiDetails.h"
+#include "WindowsTelemetry.h"
 #include "WindowsUpdatePolicy.h"
 #include "WindowsUpdateRebootPolicy.h"
 #include "WindowsUpdates.h"

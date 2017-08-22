@@ -193,6 +193,12 @@
     <Compile Include="StorageManagement\DeviceUploadFile.xaml.cs">
       <DependentUpon>DeviceUploadFile.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Telemetry\WindowsTelemetryDesiredStateControl.xaml.cs">
+      <DependentUpon>WindowsTelemetryDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Telemetry\WindowsTelemetryReportedStateControl.xaml.cs">
+      <DependentUpon>WindowsTelemetryReportedStateControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TimeSettings\TimeSvcDesiredStateControl.xaml.cs">
       <DependentUpon>TimeSvcDesiredStateControl.xaml</DependentUpon>
     </Compile>
@@ -338,6 +344,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="StorageManagement\DeviceUploadFile.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Telemetry\WindowsTelemetryDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Telemetry\WindowsTelemetryReportedStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

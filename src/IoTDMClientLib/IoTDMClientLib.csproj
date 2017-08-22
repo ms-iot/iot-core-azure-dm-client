@@ -109,6 +109,7 @@
     <Compile Include="Handlers\StorageHandler.cs" />
     <Compile Include="Handlers\TimeServiceHandler.cs" />
     <Compile Include="Handlers\TimeSettingsHandler.cs" />
+    <Compile Include="Handlers\WindowsTelemetryHandler.cs" />
     <Compile Include="IDeviceManagementClientHandler.cs" />
     <Compile Include="ISystemConfiguratorProxy.cs" />
     <Compile Include="SystemConfiguratorProxy.cs" />

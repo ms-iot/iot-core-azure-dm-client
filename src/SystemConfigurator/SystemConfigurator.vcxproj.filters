@@ -99,6 +99,9 @@
     <ClInclude Include="ServiceManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WindowsTelemetry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -162,6 +165,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ServiceManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsTelemetry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

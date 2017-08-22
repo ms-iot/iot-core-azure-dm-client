@@ -268,7 +268,7 @@ wstring DiagnosticLogCSP::GetFormattedTime()
     {
         string errorMessage = "Error: could not obtain local time.";
         TRACE(errorMessage.c_str());
-        throw new DMException(errorMessage.c_str());
+        throw DMException(errorMessage.c_str());
     }
 
     basic_ostringstream<wchar_t> nowString;
@@ -362,7 +362,7 @@ void DiagnosticLogCSP::ApplyCollectorConfiguration(const wstring& cspRoot, Colle
     {
         string errorMessage = "Error: LogFileFolder cannot contain '/', '\\', or '..'.";
         TRACE(errorMessage.c_str());
-        throw new DMException(errorMessage.c_str());
+        throw DMException(errorMessage.c_str());
     }
 
     // Build paths...
