@@ -32,19 +32,19 @@ DWORD ServiceManager::GetStatus(const std::wstring& serviceName)
     Utils::AutoCloseServiceHandle serviceManagerHandle = OpenSCManager(NULL /*local machine*/, SERVICES_ACTIVE_DATABASE, SC_MANAGER_ALL_ACCESS);
     if (serviceManagerHandle.Get() == NULL)
     {
-        throw new DMExceptionWithErrorCode("OpenSCManager() failed.", GetLastError());
+        throw DMExceptionWithErrorCode("OpenSCManager() failed.", GetLastError());
     }
 
     Utils::AutoCloseServiceHandle serviceHandle = OpenService(serviceManagerHandle.Get() /*scm manager*/, serviceName.c_str(), SERVICE_ALL_ACCESS);
     if (serviceHandle.Get() == NULL)
     {
-        throw new DMExceptionWithErrorCode("OpenService() failed.", GetLastError());
+        throw DMExceptionWithErrorCode("OpenService() failed.", GetLastError());
     }
 
     SERVICE_STATUS serviceStatus;
     if (!QueryServiceStatus(serviceHandle.Get() /*service handle*/, &serviceStatus))
     {
-        throw new DMExceptionWithErrorCode("QueryServiceStatus() failed.", GetLastError());
+        throw DMExceptionWithErrorCode("QueryServiceStatus() failed.", GetLastError());
     }
 
     return serviceStatus.dwCurrentState;
@@ -59,25 +59,25 @@ DWORD ServiceManager::GetStartType(const std::wstring& serviceName)
     Utils::AutoCloseServiceHandle serviceManagerHandle = OpenSCManager(NULL /*local machine*/, SERVICES_ACTIVE_DATABASE, SC_MANAGER_ALL_ACCESS);
     if (serviceManagerHandle.Get() == NULL)
     {
-        throw new DMExceptionWithErrorCode("OpenSCManager() failed.", GetLastError());
+        throw DMExceptionWithErrorCode("OpenSCManager() failed.", GetLastError());
     }
 
     Utils::AutoCloseServiceHandle serviceHandle = OpenService(serviceManagerHandle.Get() /*scm manager*/, serviceName.c_str(), SERVICE_ALL_ACCESS);
     if (serviceHandle.Get() == NULL)
     {
-        throw new DMExceptionWithErrorCode("OpenService() failed.", GetLastError());
+        throw DMExceptionWithErrorCode("OpenService() failed.", GetLastError());
     }
 
     DWORD bytesNeeded = 0;
     if (!QueryServiceConfig(serviceHandle.Get(), NULL, 0, &bytesNeeded) && (ERROR_INSUFFICIENT_BUFFER != GetLastError()))
     {
-        throw new DMExceptionWithErrorCode("QueryServiceConfig() failed.", GetLastError());
+        throw DMExceptionWithErrorCode("QueryServiceConfig() failed.", GetLastError());
     }
 
     vector<char> buffer(bytesNeeded);
     if (!QueryServiceConfig(serviceHandle.Get(), reinterpret_cast<QUERY_SERVICE_CONFIG*>(buffer.data()), buffer.size(), &bytesNeeded))
     {
-        throw new DMExceptionWithErrorCode("QueryServiceConfig() failed.", GetLastError());
+        throw DMExceptionWithErrorCode("QueryServiceConfig() failed.", GetLastError());
     }
 
     QUERY_SERVICE_CONFIG* config = reinterpret_cast<QUERY_SERVICE_CONFIG*>(buffer.data());
@@ -93,19 +93,19 @@ void ServiceManager::StartStop(const std::wstring& serviceName, bool start)
     Utils::AutoCloseServiceHandle serviceManagerHandle = OpenSCManager(NULL /*local machine*/, SERVICES_ACTIVE_DATABASE, SC_MANAGER_ALL_ACCESS);
     if (serviceManagerHandle.Get() == NULL)
     {
-        throw new DMExceptionWithErrorCode("OpenSCManager() failed.", GetLastError());
+        throw DMExceptionWithErrorCode("OpenSCManager() failed.", GetLastError());
     }
 
     Utils::AutoCloseServiceHandle serviceHandle = OpenService(serviceManagerHandle.Get() /*scm manager*/, serviceName.c_str(), SERVICE_ALL_ACCESS);
     if (serviceHandle.Get() == NULL)
     {
-        throw new DMExceptionWithErrorCode("OpenService() failed.", GetLastError());
+        throw DMExceptionWithErrorCode("OpenService() failed.", GetLastError());
     }
 
     SERVICE_STATUS serviceStatus;
     if (!QueryServiceStatus(serviceHandle.Get() /*service handle*/, &serviceStatus))
     {
-        throw new DMExceptionWithErrorCode("QueryServiceStatus() failed.", GetLastError());
+        throw DMExceptionWithErrorCode("QueryServiceStatus() failed.", GetLastError());
     }
 
     if (start)
@@ -119,7 +119,7 @@ void ServiceManager::StartStop(const std::wstring& serviceName, bool start)
 
         if (!StartService(serviceHandle.Get() /*service handle*/, 0 /* arg count*/, NULL /* no args*/))
         {
-            throw new DMExceptionWithErrorCode("StartService() failed.", GetLastError());
+            throw DMExceptionWithErrorCode("StartService() failed.", GetLastError());
         }
         TRACE(L"Service has been started successfully");
     }
@@ -134,7 +134,7 @@ void ServiceManager::StartStop(const std::wstring& serviceName, bool start)
 
         if (!ControlService(serviceHandle.Get() /*service handle*/, SERVICE_CONTROL_STOP, &serviceStatus))
         {
-            throw new DMExceptionWithErrorCode("ControlService() failed.", GetLastError());
+            throw DMExceptionWithErrorCode("ControlService() failed.", GetLastError());
         }
         TRACE(L"Service has been stopped successfully");
     }
@@ -159,13 +159,13 @@ void ServiceManager::SetStartType(const std::wstring& serviceName, DWORD startTy
     Utils::AutoCloseServiceHandle serviceManagerHandle = OpenSCManager(NULL /*local machine*/, SERVICES_ACTIVE_DATABASE, SC_MANAGER_ALL_ACCESS);
     if (serviceManagerHandle.Get() == NULL)
     {
-        throw new DMExceptionWithErrorCode("OpenSCManager() failed.", GetLastError());
+        throw DMExceptionWithErrorCode("OpenSCManager() failed.", GetLastError());
     }
 
     Utils::AutoCloseServiceHandle serviceHandle = OpenService(serviceManagerHandle.Get() /*scm manager*/, serviceName.c_str(), SERVICE_ALL_ACCESS);
     if (serviceHandle.Get() == NULL)
     {
-        throw new DMExceptionWithErrorCode("OpenService() failed.", GetLastError());
+        throw DMExceptionWithErrorCode("OpenService() failed.", GetLastError());
     }
 
     if (!ChangeServiceConfig(serviceHandle.Get(),
@@ -180,6 +180,6 @@ void ServiceManager::SetStartType(const std::wstring& serviceName, DWORD startTy
         NULL, /*password not changing*/
         NULL)) /*display name not changing*/
     {
-        throw new DMExceptionWithErrorCode("ChangeServiceConfig() to change service to auto start.", GetLastError());
+        throw DMExceptionWithErrorCode("ChangeServiceConfig() to change service to auto start.", GetLastError());
     }
 }

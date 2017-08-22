@@ -446,6 +446,34 @@ namespace Utils
         RegCloseKey(hKey);
     }
 
+    void WriteRegistryValue(const wstring& subKey, const wstring& propName, unsigned long propValue)
+    {
+        LSTATUS status;
+        HKEY hKey = NULL;
+        status = RegCreateKeyEx(
+            HKEY_LOCAL_MACHINE,
+            subKey.c_str(),
+            0,      // reserved
+            NULL,   // user-defined class type of this key.
+            0,      // default; non-volatile
+            KEY_ALL_ACCESS,
+            NULL,   // inherit security descriptor from parent.
+            &hKey,
+            NULL    // disposition [optional, out]
+        );
+        if (status != ERROR_SUCCESS) {
+            throw DMExceptionWithErrorCode(status);
+        }
+
+        status = RegSetValueEx(hKey, propName.c_str(), 0, REG_DWORD, reinterpret_cast<BYTE*>(&propValue), sizeof(propValue));
+        if (status != ERROR_SUCCESS) {
+            RegCloseKey(hKey);
+            throw DMExceptionWithErrorCode(status);
+        }
+
+        RegCloseKey(hKey);
+    }
+
     LSTATUS TryReadRegistryValue(const wstring& subKey, const wstring& propName, wstring& propValue)
     {
         DWORD dataSize = 0;
@@ -464,6 +492,28 @@ namespace Utils
         }
 
         propValue = reinterpret_cast<const wchar_t*>(data.data());
+
+        return ERROR_SUCCESS;
+    }
+
+    LSTATUS TryReadRegistryValue(const wstring& subKey, const wstring& propName, unsigned long& propValue)
+    {
+        DWORD dataSize = 0;
+        LSTATUS status;
+        status = RegGetValue(HKEY_LOCAL_MACHINE, subKey.c_str(), propName.c_str(), RRF_RT_REG_DWORD, NULL, NULL, &dataSize);
+        if (status != ERROR_SUCCESS)
+        {
+            return status;
+        }
+
+        vector<char> data(dataSize);
+        status = RegGetValue(HKEY_LOCAL_MACHINE, subKey.c_str(), propName.c_str(), RRF_RT_REG_DWORD, NULL, data.data(), &dataSize);
+        if (status != ERROR_SUCCESS)
+        {
+            return status;
+        }
+
+        propValue = *(reinterpret_cast<const unsigned long*>(data.data()));
 
         return ERROR_SUCCESS;
     }

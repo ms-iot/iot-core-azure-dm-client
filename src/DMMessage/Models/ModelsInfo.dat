@@ -49,3 +49,5 @@ MODEL_ALLDEF(   GetEventTracingConfiguration,101, GetEventTracingConfigurationRe
 MODEL_ALLDEF(   GetDMFolders,                110, GetDMFoldersRequest,                  StringListResponse )
 MODEL_REQDEF(   GetDMFiles,                  111, GetDMFilesRequest,                    StringListResponse )
 MODEL_REQDEF(   DeleteDMFile,                112, DeleteDMFileRequest,                  StringResponse )
+MODEL_ALLDEF(   GetWindowsTelemetry,         120, GetWindowsTelemetryRequest,           GetWindowsTelemetryResponse )
+MODEL_REQDEF(   SetWindowsTelemetry,         121, SetWindowsTelemetryRequest,           StatusCodeResponse )

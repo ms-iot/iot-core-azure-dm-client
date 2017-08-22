@@ -37,7 +37,6 @@ namespace Microsoft.Devices.Management
         const string MethodReportAllDeviceProperties = DMJSonConstants.DTWindowsIoTNameSpace + ".reportAllDeviceProperties";
         const string MethodStartAppSelfUpdate = DMJSonConstants.DTWindowsIoTNameSpace + ".startAppSelfUpdate";
         const string MethodGetCertificateDetails = DMJSonConstants.DTWindowsIoTNameSpace + ".getCertificateDetails";
-        const string MethodFactoryReset = DMJSonConstants.DTWindowsIoTNameSpace + ".factoryReset";
         const string MethodManageAppLifeCycle = DMJSonConstants.DTWindowsIoTNameSpace + ".manageAppLifeCycle";
 
         public IDeviceTwin DeviceTwin { get { return _deviceTwin; } }
@@ -172,6 +171,11 @@ namespace Microsoft.Devices.Management
                 systemConfiguratorProxy,
                 deviceManagementClient._desiredCache);
             deviceManagementClient.AddPropertyHandler(rebootInfoHandler);
+
+            var windowsTelemetryHandler = new WindowsTelemetryHandler(
+                clientCallback,
+                systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(windowsTelemetryHandler);
 
             return deviceManagementClient;
         }

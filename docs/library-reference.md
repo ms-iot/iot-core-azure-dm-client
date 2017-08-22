@@ -71,6 +71,7 @@ Certain device management operations are initiated by desired properties set fro
 - [Reboot Management](reboot-management.md)
 - [Time Management](time-management.md)
 - [WiFi](wifi-management.md)
+- [Windows Telemetry Management](windows-telemetry-management.md)
 - [Windows Update Management](windows-update-management.md)
 
 ### General

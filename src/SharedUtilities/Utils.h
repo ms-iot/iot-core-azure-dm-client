@@ -60,7 +60,11 @@ namespace Utils
 
     // Registry helpers
     void WriteRegistryValue(const std::wstring& subKey, const std::wstring& propName, const std::wstring& propValue);
+    void WriteRegistryValue(const std::wstring& subKey, const std::wstring& propName, unsigned long propValue);
+
     LSTATUS TryReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, std::wstring& propValue);
+    LSTATUS TryReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, unsigned long& propValue);
+
     std::wstring ReadRegistryValue(const std::wstring& subKey, const std::wstring& propName);
     std::wstring ReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, const std::wstring& propDefaultValue);
 

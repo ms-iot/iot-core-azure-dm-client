@@ -14,18 +14,14 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 using Newtonsoft.Json.Linq;
+using Microsoft.Devices.Management.DMDataContract;
 using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
-    class TimeServiceHandler : IClientPropertyHandler
+    class WindowsTelemetryHandler : IClientPropertyHandler
     {
-        const string JsonSectionName = "timeService";
-        const string JsonEnabled = "enabled";
-        const string JsonStartup = "startup";
-        const string JsonStarted = "started";
-
-        public TimeServiceHandler(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy)
+        public WindowsTelemetryHandler(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             this._systemConfiguratorProxy = systemConfiguratorProxy;
             this._callback = callback;
@@ -36,28 +32,34 @@ namespace Microsoft.Devices.Management
         {
             get
             {
-                return JsonSectionName; // todo: constant in data contract?
+                return WindowsTelemetryDataContract.SectionName;
             }
         }
 
         // IClientPropertyHandler
         public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
         {
-            Message.TimeServiceData data = new Message.TimeServiceData();
+            if (!(desiredValue is JObject))
+            {
+                throw new Error(ErrorCodes.INVALID_DESIRED_JSON_VALUE, "Invalid json value type for the " + PropertySectionName + " node.");
+            }
+
+            WindowsTelemetryDataContract.DesiredProperties desiredProperties = new WindowsTelemetryDataContract.DesiredProperties();
+            desiredProperties.LoadFrom((JObject)desiredValue);
+
+            Message.WindowsTelemetryData data = new Message.WindowsTelemetryData();
 
             JObject subProperties = (JObject)desiredValue;
 
-            data.enabled = subProperties.Property(JsonEnabled).Value.ToString();
-            data.startup = subProperties.Property(JsonStartup).Value.ToString();
-            data.started = subProperties.Property(JsonStarted).Value.ToString();
+            data.level = desiredProperties.level;
 
             // Construct the request and send it...
-            var request = new Message.SetTimeServiceRequest(data);
+            var request = new Message.SetWindowsTelemetryRequest(data);
             await this._systemConfiguratorProxy.SendCommandAsync(request);
 
             // Report to the device twin....
-            var reportedProperties = await GetTimeServiceAsync();
-            await this._callback.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties.data));
+            var reportedProperties = await GetReportedPropertyAsync();
+            await this._callback.ReportPropertiesAsync(PropertySectionName, reportedProperties);
 
             return CommandStatus.Committed;
         }
@@ -65,15 +67,12 @@ namespace Microsoft.Devices.Management
         // IClientPropertyHandler
         public async Task<JObject> GetReportedPropertyAsync()
         {
-            var response = await GetTimeServiceAsync();
-            return JObject.FromObject(response.data);
-        }
+            var request = new Message.GetWindowsTelemetryRequest();
+            var response = await _systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsTelemetryResponse;
 
-        public async Task<Message.GetTimeServiceResponse> GetTimeServiceAsync()
-        {
-            var request = new Message.GetTimeServiceRequest();
-            var response = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return response as Message.GetTimeServiceResponse;
+            WindowsTelemetryDataContract.ReportedProperties reportedProperties = new WindowsTelemetryDataContract.ReportedProperties();
+            reportedProperties.level = response.data.level;
+            return JObject.FromObject(reportedProperties);
         }
 
         private ISystemConfiguratorProxy _systemConfiguratorProxy;

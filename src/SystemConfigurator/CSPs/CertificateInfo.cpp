@@ -210,7 +210,7 @@ CertificateFile::CertificateFile(const std::wstring& certFileName)
     PCCERT_CONTEXT certContext = CertCreateCertificateContext(X509_ASN_ENCODING, reinterpret_cast<BYTE*>(certEncoded.data()), static_cast<DWORD>(certEncoded.size()));
     if (!certContext)
     {
-        throw new DMException("Error: CertCreateCertificateContext() failed.", GetLastError());
+        throw DMException("Error: CertCreateCertificateContext() failed.", GetLastError());
     }
 
     DWORD thumbPrintSize = 512;
@@ -239,7 +239,7 @@ CertificateFile::CertificateFile(const std::wstring& certFileName)
 
     if (!result)
     {
-        throw new DMException("Error: CryptHashCertificate() failed.", GetLastError());
+        throw DMException("Error: CryptHashCertificate() failed.", GetLastError());
     }
 
     _fullFileName = certFileName;

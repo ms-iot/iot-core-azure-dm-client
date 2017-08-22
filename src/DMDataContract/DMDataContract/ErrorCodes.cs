@@ -41,5 +41,9 @@ namespace Microsoft.Devices.Management.DMDataContract
         public static int INVALID_FILE_PARAM = unchecked((int)0xA0000102);
         public static int INVALID_CONNECTION_STRING_PARAM = unchecked((int)0xA0000103);
         public static int INVALID_CONTAINER_PARAM = unchecked((int)0xA0000104);
+
+
+        // DM System Configurator 8000-FFFF
+
     }
 }

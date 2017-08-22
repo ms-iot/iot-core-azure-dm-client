@@ -23,5 +23,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\DMMessage\DMGarbageCollectorTempFolder.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ErrorCodes.h" />
   </ItemGroup>
 </Project>

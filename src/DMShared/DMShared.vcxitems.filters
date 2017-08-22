@@ -16,5 +16,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\DMMessage\DMGarbageCollectorTempFolder.h" />
+    <ClInclude Include="D:\Projs\DM.00821.D\iot-core-azure-dm-client\src\DMShared\ErrorCodes.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
