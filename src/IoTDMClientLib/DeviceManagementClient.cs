@@ -34,7 +34,6 @@ namespace Microsoft.Devices.Management
     // This is the main entry point into DM
     public class DeviceManagementClient : IClientHandlerCallBack
     {
-        const string MethodReportAllDeviceProperties = DMJSonConstants.DTWindowsIoTNameSpace + ".reportAllDeviceProperties";
         const string MethodStartAppSelfUpdate = DMJSonConstants.DTWindowsIoTNameSpace + ".startAppSelfUpdate";
         const string MethodGetCertificateDetails = DMJSonConstants.DTWindowsIoTNameSpace + ".getCertificateDetails";
         const string MethodManageAppLifeCycle = DMJSonConstants.DTWindowsIoTNameSpace + ".manageAppLifeCycle";
@@ -121,7 +120,7 @@ namespace Microsoft.Devices.Management
             IClientHandlerCallBack clientCallback = deviceManagementClient;
 
             // Attach methods...
-            await deviceTwin.SetMethodHandlerAsync(MethodReportAllDeviceProperties, deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
+            await deviceTwin.SetMethodHandlerAsync(CommonDataContract.ReportAllAsync, deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
             await deviceTwin.SetMethodHandlerAsync(MethodStartAppSelfUpdate, deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync(MethodGetCertificateDetails, deviceManagementClient.GetCertificateDetailsHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync(MethodManageAppLifeCycle, deviceManagementClient.ManageAppLifeCycleHandlerAsync);
@@ -176,6 +175,9 @@ namespace Microsoft.Devices.Management
                 clientCallback,
                 systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(windowsTelemetryHandler);
+
+            var deviceInfoHandler = new DeviceInfoHandler(systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(deviceInfoHandler);
 
             return deviceManagementClient;
         }
@@ -557,12 +559,6 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetCertificateConfigurationResponse);
         }
 
-        private async Task<Message.GetDeviceInfoResponse> GetDeviceInfoAsync()
-        {
-            var request = new Message.GetDeviceInfoRequest();
-            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetDeviceInfoResponse);
-        }
-
         private async Task<Message.GetWindowsUpdatesResponse> GetWindowsUpdatesAsync()
         {
             var request = new Message.GetWindowsUpdatesRequest();
@@ -576,10 +572,7 @@ namespace Microsoft.Devices.Management
             Logger.Log("Querying device state...", LoggingLevel.Information);
 
             Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await GetCertificateConfigurationAsync();
-            Message.GetDeviceInfoResponse deviceInfoResponse = await GetDeviceInfoAsync();
             Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
-
-            Logger.Log("Done querying device state.", LoggingLevel.Information);
 
             JObject windowsObj = new JObject();
             foreach (var handler in this._desiredPropertyMap.Values)
@@ -587,8 +580,20 @@ namespace Microsoft.Devices.Management
                 // TODO: how do we ensure that only Reported=yes sections report results?
                 windowsObj[handler.PropertySectionName] = await handler.GetReportedPropertyAsync();
             }
-            windowsObj["certificates"] = JObject.Parse(JsonConvert.SerializeObject(certificateConfigurationResponse));
-            windowsObj["deviceInfo"] = JObject.Parse(JsonConvert.SerializeObject(deviceInfoResponse));
+
+            // ToDo: Temporary fix.
+            CertificatesDataContract.ReportedProperties reportedProperties = new CertificatesDataContract.ReportedProperties();
+            reportedProperties.certificateStore_CA_System = certificateConfigurationResponse.configuration.certificateStore_CA_System;
+            reportedProperties.certificateStore_My_System = certificateConfigurationResponse.configuration.certificateStore_My_System;
+            reportedProperties.certificateStore_My_User = certificateConfigurationResponse.configuration.certificateStore_My_User;
+            reportedProperties.certificateStore_Root_System = "<too long to store in device twin>"; // certificateConfigurationResponse.configuration.certificateStore_Root_System;
+            reportedProperties.rootCATrustedCertificates_CA = certificateConfigurationResponse.configuration.rootCATrustedCertificates_CA;
+            reportedProperties.rootCATrustedCertificates_Root = "<too long to store in device twin>"; ; // certificateConfigurationResponse.configuration.rootCATrustedCertificates_Root;
+            reportedProperties.rootCATrustedCertificates_TrustedPeople = certificateConfigurationResponse.configuration.rootCATrustedCertificates_TrustedPeople;
+            reportedProperties.rootCATrustedCertificates_TrustedPublisher = certificateConfigurationResponse.configuration.rootCATrustedCertificates_TrustedPublisher;
+
+            // windowsObj["certificates"] = JObject.Parse(JsonConvert.SerializeObject(certificateConfigurationResponse));
+            windowsObj["certificates"] = JObject.FromObject(reportedProperties);
             windowsObj["windowsUpdates"] = JObject.Parse(JsonConvert.SerializeObject(windowsUpdatesResponse));
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
@@ -600,11 +605,12 @@ namespace Microsoft.Devices.Management
 
         private Task<string> ReportAllDevicePropertiesMethodHandler(string jsonParam)
         {
-            Logger.Log("Handling direct method " + MethodReportAllDeviceProperties + " ...", LoggingLevel.Verbose);
+            Logger.Log("Handling direct method " + CommonDataContract.ReportAllAsync + " ...", LoggingLevel.Verbose);
 
             ReportAllDeviceProperties().FireAndForget();
 
-            return new Task<string>(() => { return JsonConvert.SerializeObject(new { response = "success" }); });
+            StatusSection status = new StatusSection(StatusSection.StateType.Pending);
+            return Task.FromResult<string>(status.AsJsonObject().ToString());
         }
 
         // Data members

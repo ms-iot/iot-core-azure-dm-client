@@ -33,7 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Certificates.cs" />
+    <Compile Include="Common.cs" />
     <Compile Include="DeviceHealthAttestation.cs" />
+    <Compile Include="DeviceInfo.cs" />
     <Compile Include="DMJSonConstants.cs" />
     <Compile Include="ErrorCodes.cs" />
     <Compile Include="FactoryReset.cs" />

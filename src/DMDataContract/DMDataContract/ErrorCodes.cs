@@ -22,6 +22,7 @@ namespace Microsoft.Devices.Management.DMDataContract
 
         // Generic errors
         public static int INVALID_DESIRED_JSON_VALUE = unchecked((int)0xA0000000);
+        public static int INVALID_DESIRED_NOT_SUPPORTED = unchecked((int)0xA0000001);
 
         // App management error codes 0081-0100
         public static int INVALID_DESIRED_VERSION = unchecked((int)0xA0000080);

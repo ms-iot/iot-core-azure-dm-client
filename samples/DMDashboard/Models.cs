@@ -17,69 +17,6 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Devices.Management
 {
-    namespace RebootInfo
-    {
-        public class GetResponse
-        {
-            public string lastBootTime;
-            public string lastRebootCmdTime;
-            public string lastRebootCmdStatus;
-            public string singleRebootTime;
-            public string dailyRebootTime;
-        }
-
-        public class SetParams
-        {
-            public string SectionName
-            {
-                get
-                {
-                    return "scheduledReboot";
-                }
-            }
-
-            public DateTime singleRebootTime;
-            public DateTime dailyRebootTime;
-
-            public string ToJson()
-            {
-                return "\"scheduledReboot\" : " + JsonConvert.SerializeObject(this);
-            }
-        }
-    }
-
-    public struct DeviceInfo
-    {
-        public string id;
-        public string manufacturer;
-        public string model;
-        public string dmVer;
-        public string lang;
-
-        public string type;
-        public string oem;
-        public string hwVer;
-        public string fwVer;
-        public string osVer;
-
-        public string platform;
-        public string processorType;
-        public string radioSwVer;
-        public string displayResolution;
-        public string commercializationOperator;
-
-        public string processorArchitecture;
-        public string name;
-        public string totalStorage;
-        public string totalMemory;
-        public string secureBootState;
-
-        public string osEdition;
-        public string batteryStatus;
-        public string batteryRemaining;
-        public string batteryRuntime;
-    }
-
     namespace WindowsUpdates
     {
         public class GetResponse

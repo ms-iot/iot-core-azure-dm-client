@@ -148,6 +148,9 @@
     <Compile Include="DeviceHealthAttestation\DeviceHealthAttestationReportedStateControl.xaml.cs">
       <DependentUpon>DeviceHealthAttestationReportedStateControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DeviceInfo\DeviceInfoReportedStateControl.xaml.cs">
+      <DependentUpon>DeviceInfoReportedStateControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DiagnosticLogs\CollectorDesiredStateControl.xaml.cs">
       <DependentUpon>CollectorDesiredStateControl.xaml</DependentUpon>
     </Compile>
@@ -284,6 +287,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="DeviceHealthAttestation\DeviceHealthAttestationReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DeviceInfo\DeviceInfoReportedStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

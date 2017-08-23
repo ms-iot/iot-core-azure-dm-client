@@ -101,6 +101,7 @@
     <Compile Include="Handlers\DeviceHealthAttestationHandler.cs" />
     <Compile Include="DeviceManagementClient.cs" />
     <Compile Include="DirectMethodGuard.cs" />
+    <Compile Include="Handlers\DeviceInfoHandler.cs" />
     <Compile Include="Handlers\EventTracingHandler.cs" />
     <Compile Include="Handlers\ExternalStorageHandler.cs" />
     <Compile Include="Handlers\FactoryResetHandler.cs" />
@@ -110,11 +111,11 @@
     <Compile Include="Handlers\TimeServiceHandler.cs" />
     <Compile Include="Handlers\TimeSettingsHandler.cs" />
     <Compile Include="Handlers\WindowsTelemetryHandler.cs" />
-    <Compile Include="IDeviceManagementClientHandler.cs" />
-    <Compile Include="ISystemConfiguratorProxy.cs" />
+    <Compile Include="Interfaces\IDeviceManagementClientHandler.cs" />
+    <Compile Include="Interfaces\ISystemConfiguratorProxy.cs" />
     <Compile Include="SystemConfiguratorProxy.cs" />
-    <Compile Include="IDeviceManagementRequestHandler.cs" />
-    <Compile Include="IDeviceTwin.cs" />
+    <Compile Include="Interfaces\IDeviceManagementRequestHandler.cs" />
+    <Compile Include="Interfaces\IDeviceTwin.cs" />
     <Compile Include="OnPremDeviceTwinProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TpmDevice.cs" />

@@ -13,33 +13,11 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using Microsoft.Devices.Management.DMDataContract;
-using Newtonsoft.Json.Linq;
-using System.Windows.Controls;
-
-namespace DMDashboard
+namespace Microsoft.Devices.Management.DMDataContract
 {
-    public partial class WindowsTelemetryReportedStateControl : UserControl
+    public class CommonDataContract
     {
-        public string SectionName
-        {
-            get
-            {
-                return WindowsTelemetryDataContract.SectionName;
-            }
-        }
-
-        public WindowsTelemetryReportedStateControl()
-        {
-            InitializeComponent();
-        }
-
-        public void FromJson(JObject json)
-        {
-            WindowsTelemetryDataContract.ReportedProperties reportedProperties = new WindowsTelemetryDataContract.ReportedProperties();
-            reportedProperties.LoadFrom(json);
-
-            Level.Text = reportedProperties.level;
-        }
+        public static readonly string NotFound = "<not found>";
+        public static readonly string ReportAllAsync = DMJSonConstants.DTWindowsIoTNameSpace + ".reportAllAsync";
     }
 }
