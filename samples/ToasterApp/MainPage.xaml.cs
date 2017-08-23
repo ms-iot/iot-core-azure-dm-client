@@ -257,5 +257,42 @@ namespace Toaster
         {
             FactoryReset();
         }
+
+        private async void SetWindowsTelemetryAsync()
+        {
+            try
+            {
+                await this.deviceManagementClient.SetWindowsTelemetryLevelAsync((WindowsTelemetryLevel)RequestedWindowsTelemetryLevel.SelectedIndex);
+                StatusText.Text = "Set Windows Telemetry Level -> Success";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Set Windows Telemetry Level -> Error: " + ex.HResult + " - " + ex.Message;
+            }
+        }
+
+        private async void GetWindowsTelemetryAsync()
+        {
+            try
+            {
+                WindowsTelemetryLevel level = await this.deviceManagementClient.GetWindowsTelemetryLevelAsync();
+                CurrentWindowsTelemetryLevel.Text = level.ToString();
+                StatusText.Text = "Get Windows Telemetry Level -> Success";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Get Windows Telemetry Level -> Error: " + ex.HResult + " - " + ex.Message;
+            }
+        }
+
+        private void OnSetWindowsTelemetry(object sender, RoutedEventArgs e)
+        {
+            SetWindowsTelemetryAsync();
+        }
+
+        private void OnGetWindowsTelemetry(object sender, RoutedEventArgs e)
+        {
+            GetWindowsTelemetryAsync();
+        }
     }
 }

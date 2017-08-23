@@ -21,14 +21,14 @@ namespace Microsoft.Devices.Management.DMDataContract
 {
     public class WindowsTelemetryDataContract
     {
-        public static readonly string NotFound = "<not found>";
-        public static readonly string SectionName = "windowsTelemetry";
+        public const string NotFound = "<not found>";
+        public const string SectionName = "windowsTelemetry";
 
-        public static readonly string JsonLevel = "level";
-        public static readonly string JsonSecurity = "security";
-        public static readonly string JsonBasic = "basic";
-        public static readonly string JsonEnhanced = "enhanced";
-        public static readonly string JsonFull = "full";
+        public const string JsonLevel = "level";
+        public const string JsonSecurity = "security";
+        public const string JsonBasic = "basic";
+        public const string JsonEnhanced = "enhanced";
+        public const string JsonFull = "full";
 
         public class DesiredProperties
         {

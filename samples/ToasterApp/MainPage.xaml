@@ -40,18 +40,37 @@
             <StackPanel Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Vertical">
                 <Button x:Name ="buttonRestart" Width="150" Margin="3" Content="Reboot" Click="OnSystemRestart"/>
                 <Button x:Name ="buttonReset" Width="150" Margin="3" Content="Factory Reset" Click="OnFactoryReset" />
-
+                <TextBlock Text="Windows Telemetry" Margin="3"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Row="0" Grid.Column="0" Margin="13,3,3,3" Content="Set Level" Click="OnSetWindowsTelemetry"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="3" x:Name="RequestedWindowsTelemetryLevel" SelectedIndex="2">
+                        <ComboBoxItem>Security</ComboBoxItem>
+                        <ComboBoxItem>Basic</ComboBoxItem>
+                        <ComboBoxItem>Enhanced</ComboBoxItem>
+                        <ComboBoxItem>Full</ComboBoxItem>
+                    </ComboBox>
+                    <Button Grid.Row="1" Grid.Column="0" Margin="13,3,3,3" Content="Get Level" Click="OnGetWindowsTelemetry"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" x:Name="CurrentWindowsTelemetryLevel" VerticalAlignment="Center"/>
+                </Grid>
                 <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                 <Grid x:Name="StatusGrid">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="100"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Status:"/>
-                    <TextBlock Grid.Column="1" x:Name="StatusText"/>
+                    <TextBlock Grid.Column="0" Margin="3" Text="Status:"/>
+                    <TextBlock Grid.Column="1" Margin="3" x:Name="StatusText"/>
                 </Grid>
             </StackPanel>
         </Grid>
