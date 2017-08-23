@@ -2,13 +2,12 @@
 
 The **Device Information** functionality allows the operator to inspect various device properties.
 
-The format of the `"reported.microsoft.management.deviceInfo"` reported property is as follows:
+The format of the `"reported.windows.deviceInfo"` reported property is as follows:
 
 <pre>
-    "reported" : {
-      "microsoft": {
-        "management": {
-          "deviceInfo": {
+"reported" : {
+    "windows": {
+        "deviceInfo": {
             "osEdition": "<i>OS edition</i>",
             "secureBootState": "<i>secureBootStateValue</i>",
             "totalMemory": "<i>available memory in MBs</i>",
@@ -33,10 +32,9 @@ The format of the `"reported.microsoft.management.deviceInfo"` reported property
             "batteryStatus": "<i>batteryStatus</i>",
             "batteryRemaining": "<i>batteryRemaining</i>",
             "batteryRuntime": "<i>batteryRuntime</i>",
-          }
         }
-      }
     }
+}
 </pre>
 
 **Notes**
@@ -65,11 +63,10 @@ The format of the `"reported.microsoft.management.deviceInfo"` reported property
 
 To configure the device to Pacifict Standard Time, the <i>timeInfo</i> is set to:
 
-```
-    "reported" : {
-      "microsoft": {
-        "management": {
-          "deviceInfo": {
+<pre>
+"reported" : {
+    "windows": {
+        "deviceInfo": {
             "osEdition": "123",
             "secureBootState": "0",
             "totalMemory": "1024",
@@ -94,11 +91,10 @@ To configure the device to Pacifict Standard Time, the <i>timeInfo</i> is set to
             "batteryStatus": "1",
             "batteryRuntime": "-1",
             "batteryRemaining": "-1",
-          }
         }
-      }
     }
-```
+}
+</pre>
 
 ----
 
