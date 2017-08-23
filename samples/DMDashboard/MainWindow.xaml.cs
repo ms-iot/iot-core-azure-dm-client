@@ -231,17 +231,17 @@ namespace DMDashboard
             }
         }
 
-        private void CertificatesInfoToUI(Microsoft.Devices.Management.Certificates certificatesInfo)
+        private void CertificatesInfoToUI(CertificatesDataContract.ReportedProperties certificatesInfo)
         {
-            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_CA, Reported_RootCATrustedCertificates_CA);
-            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_Root, Reported_RootCATrustedCertificates_Root);
-            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_TrustedPublisher, Reported_RootCATrustedCertificates_TrustedPublisher);
-            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_TrustedPeople, Reported_RootCATrustedCertificates_TrustedPeople);
+            CertificateInfoToUI(certificatesInfo.rootCATrustedCertificates_CA, Reported_RootCATrustedCertificates_CA);
+            CertificateInfoToUI(certificatesInfo.rootCATrustedCertificates_Root, Reported_RootCATrustedCertificates_Root);
+            CertificateInfoToUI(certificatesInfo.rootCATrustedCertificates_TrustedPublisher, Reported_RootCATrustedCertificates_TrustedPublisher);
+            CertificateInfoToUI(certificatesInfo.rootCATrustedCertificates_TrustedPeople, Reported_RootCATrustedCertificates_TrustedPeople);
 
-            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_CA_System, Reported_CertificateStore_CA_System);
-            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_Root_System, Reported_CertificateStore_Root_System);
-            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_My_User, Reported_CertificateStore_My_User);
-            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_My_System, Reported_CertificateStore_My_System);
+            CertificateInfoToUI(certificatesInfo.certificateStore_CA_System, Reported_CertificateStore_CA_System);
+            CertificateInfoToUI(certificatesInfo.certificateStore_Root_System, Reported_CertificateStore_Root_System);
+            CertificateInfoToUI(certificatesInfo.certificateStore_My_User, Reported_CertificateStore_My_User);
+            CertificateInfoToUI(certificatesInfo.certificateStore_My_System, Reported_CertificateStore_My_System);
         }
 
         private async void ReadDTReported()
@@ -268,15 +268,23 @@ namespace DMDashboard
                 {
                     TimeSvcReportedState.FromJson((JObject)jsonProp.Value);
                 }
-                else if (jsonProp.Name == "certificates")
+                else if (jsonProp.Name == CertificatesDataContract.SectionName && jsonProp.Value.Type == JTokenType.Object)
                 {
-                    Microsoft.Devices.Management.Certificates certificatesInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.Certificates>(jsonProp.Value.ToString());
-                    CertificatesInfoToUI(certificatesInfo);
+                    CertificatesDataContract.ReportedProperties reportedProperties = new CertificatesDataContract.ReportedProperties();
+                    reportedProperties.LoadFrom((JObject)jsonProp.Value);
+                    CertificatesInfoToUI(reportedProperties);
                 }
-                else if (jsonProp.Name == "deviceInfo")
+                else if (jsonProp.Name == DeviceInfoDataContract.SectionName)
                 {
-                    Microsoft.Devices.Management.DeviceInfo deviceInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.DeviceInfo>(jsonProp.Value.ToString());
-                    DeviceStatusModelToUI(deviceInfo);
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    if (jsonProp.Value is JObject)
+                    {
+                        DeviceInfoReportedState.FromJson((JObject)jsonProp.Value);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Expected json object as a value for " + DeviceInfoReportedState.SectionName);
+                    }
                 }
                 else if (jsonProp.Name == RebootInfoDataContract.SectionName)
                 {
@@ -365,34 +373,6 @@ namespace DMDashboard
             ToggleUIElementVisibility(DeviceHealthAttestationGrid);
         }
 
-        private void DeviceStatusModelToUI(Microsoft.Devices.Management.DeviceInfo deviceInfo)
-        {
-            DevInfoId.Text = deviceInfo.id;
-            DevInfoManufacturer.Text = deviceInfo.manufacturer;
-            DevInfoModel.Text = deviceInfo.model;
-            DevInfoDmVer.Text = deviceInfo.dmVer;
-            DevInfoLang.Text = deviceInfo.lang;
-            DevInfoType.Text = deviceInfo.type;
-            DevInfoOEM.Text = deviceInfo.oem;
-            DevInfoHwVer.Text = deviceInfo.hwVer;
-            DevInfoFwVer.Text = deviceInfo.fwVer;
-            DevInfoOSVer.Text = deviceInfo.osVer;
-            DevInfoPlatform.Text = deviceInfo.platform;
-            DevInfoProcessorType.Text = deviceInfo.processorType;
-            DevInfoRadioSwVer.Text = deviceInfo.radioSwVer;
-            DevInfoDisplayResolution.Text = deviceInfo.displayResolution;
-            DevInfoCommercializationOperator.Text = deviceInfo.commercializationOperator;
-            DevInfoProcessorArchitecture.Text = deviceInfo.processorArchitecture;
-            DevInfoName.Text = deviceInfo.name;
-            DevInfoTotalStorage.Text = deviceInfo.totalStorage;
-            DevInfoTotalMemory.Text = deviceInfo.totalMemory;
-            DevInfoSecureBootState.Text = deviceInfo.secureBootState;
-            DevInfoOSEdition.Text = deviceInfo.osEdition;
-            DevInfoBatteryStatus.Text = deviceInfo.batteryStatus;
-            DevInfoBatteryRemaining.Text = deviceInfo.batteryRemaining;
-            DevInfoBatteryRuntime.Text = deviceInfo.batteryRuntime;
-        }
-
         private async void RebootSystemAsync()
         {
             CancellationToken cancellationToken = new CancellationToken();
@@ -439,8 +419,8 @@ namespace DMDashboard
         private async void UpdateDTReportedAsync()
         {
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(DMJSonConstants.DTWindowsIoTNameSpace + ".reportAllDeviceProperties", "{}", new TimeSpan(0, 0, 30), cancellationToken);
-            // ToDo: it'd be nice to show the result in the UI.
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(CommonDataContract.ReportAllAsync, "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            MessageBox.Show("UpdateDTReportedAsync Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
         private void OnUpdateDTReported(object sender, RoutedEventArgs e)
