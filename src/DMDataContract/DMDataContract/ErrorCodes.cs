@@ -36,13 +36,15 @@ namespace Microsoft.Devices.Management.DMDataContract
         public static int CANNOT_UNINSTALL_DM_APPLICATION = unchecked((int)0xA0000088);
         public static int CANNOT_REVERT_DM_APPLICATION = unchecked((int)0xA0000089);
 
-        // DM Storage management error codes 0100-0120
+        // DM Storage management error codes 0100-011F
         public static int INVALID_PARAMS = unchecked((int)0xA0000100);
         public static int INVALID_FOLDER_PARAM = unchecked((int)0xA0000101);
         public static int INVALID_FILE_PARAM = unchecked((int)0xA0000102);
         public static int INVALID_CONNECTION_STRING_PARAM = unchecked((int)0xA0000103);
         public static int INVALID_CONTAINER_PARAM = unchecked((int)0xA0000104);
 
+        // DM Windows Telemetry management error codes 0120-013F
+        public static int INVALID_WINDOWS_TELEMETRY_LEVEL = unchecked((int)0xA0000120);
 
         // DM System Configurator 8000-FFFF
 

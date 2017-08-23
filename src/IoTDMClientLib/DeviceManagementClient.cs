@@ -171,10 +171,10 @@ namespace Microsoft.Devices.Management
                 deviceManagementClient._desiredCache);
             deviceManagementClient.AddPropertyHandler(rebootInfoHandler);
 
-            var windowsTelemetryHandler = new WindowsTelemetryHandler(
+            deviceManagementClient._windowsTelemetryHandler = new WindowsTelemetryHandler(
                 clientCallback,
                 systemConfiguratorProxy);
-            deviceManagementClient.AddPropertyHandler(windowsTelemetryHandler);
+            deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsTelemetryHandler);
 
             var deviceInfoHandler = new DeviceInfoHandler(systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceInfoHandler);
@@ -262,7 +262,6 @@ namespace Microsoft.Devices.Management
             return (response as Message.CheckForUpdatesResponse).UpdatesAvailable;
         }
         */
-
 
         public async Task RebootAsync()
         {
@@ -376,6 +375,16 @@ namespace Microsoft.Devices.Management
         public async Task StartFactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
         {
             await _factoryResetHandler.StartFactoryResetAsync(clearTPM, recoveryPartitionGUID);
+        }
+
+        public async Task SetWindowsTelemetryLevelAsync(WindowsTelemetryLevel level)
+        {
+            await _windowsTelemetryHandler.SetLevelAsync(level);
+        }
+
+        public async Task<WindowsTelemetryLevel> GetWindowsTelemetryLevelAsync()
+        {
+            return await _windowsTelemetryHandler.GetLevelAsync();
         }
 
         private Task<string> ManageAppLifeCycleHandlerAsync(string jsonParam)
@@ -620,6 +629,7 @@ namespace Microsoft.Devices.Management
         WindowsUpdatePolicyHandler _windowsUpdatePolicyHandler;
         RebootCmdHandler _rebootCmdHandler;
         ExternalStorageHandler _externalStorageHandler;
+        WindowsTelemetryHandler _windowsTelemetryHandler;
         IDeviceManagementRequestHandler _hostAppHandler;
         IDeviceTwin _deviceTwin;
         string _externalStorageConnectionString;
