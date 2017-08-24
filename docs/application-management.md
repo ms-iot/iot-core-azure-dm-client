@@ -11,34 +11,32 @@ The following functionality is implemented:
 
 ## Managing Application State and Reporting
 
-Device Management client supports declarative app management with Azure IoT Hub device twin. The `"desired.microsoft.management.apps"` property represents the desired state of the apps installed on the device as well as how to report the state to the device twin.
+Device Management client supports declarative app management with Azure IoT Hub device twin. The `"desired.windows.apps"` property represents the desired state of the apps installed on the device as well as how to report the state to the device twin.
 The DM client compares that state with the actual state (by performing an inventory of the apps installed on the device) and makes up the difference.
 
-The `"desired.microsoft.management.apps"` may contain two types of nodes:
+The `"desired.windows.apps"` may contain two types of nodes:
 
 - `"packageFamilyId"` nodes describe the desired state of a given application.
 - `"?"` node describes whether the DM client should report store and/or non-store installed applications to the device twin or not.
 
 ### Desired Properties - Application Desired State
 
-The `"desired.microsoft.management.apps"` property is defined like this:
+The `"desired.windows.apps"` property is defined like this:
 
 <pre>
 "desired" : {
-    "microsoft" : {
-        "management" : {
-            "apps" : {
-                "<i>packageFamilyId</i>" : {
-                    "pkgFamilyName" : "<i>packageFamilyName</i>",
-                    "version" : "<i>see below</i>",
-                    "startUp" : "none|foreground|background",
-                    "appxSource" : "<i>see below</i>",
-                    "depsSources" : "<i>see below</i>",
-                    "certSource" : "<i>see below</i>",
-                    "certStore" : "<i>see below</i>",
-                }
-                <i>[,...]</i>
+    "windows" : {
+        "apps" : {
+            "<i>packageFamilyId</i>" : {
+                "pkgFamilyName" : "<i>packageFamilyName</i>",
+                "version" : "<i>see below</i>",
+                "startUp" : "none|foreground|background",
+                "appxSource" : "<i>see below</i>",
+                "depsSources" : "<i>see below</i>",
+                "certSource" : "<i>see below</i>",
+                "certStore" : "<i>see below</i>",
             }
+            <i>[,...]</i>
         }
     }
 }
@@ -46,7 +44,7 @@ The `"desired.microsoft.management.apps"` property is defined like this:
 
 #### Details
 
-The `"desired.microsoft.management.apps"` property has a list of apps that are reported (though not necessarily installed) on the device. 
+The `"desired.windows.apps"` property has a list of apps that are reported (though not necessarily installed) on the device. 
 
 Each app is identified by its `"packageFamilyId"` - which is its package family name in a form that can be used as a json property name (for example, you can replace illegal characters with underscores).
 
@@ -81,13 +79,11 @@ By default, only the application explicitly specified by the packageFamilyId in 
 
 <pre>
 "desired" : {
-    "microsoft" : {
-        "management" : {
-            "apps" : {
-                "?" : {
-                    "store" : "<i>true|false</i>"
-                    "nonStore" : "<i>true|false</i>",
-                }
+    "windows" : {
+        "apps" : {
+            "?" : {
+                "store" : "<i>true|false</i>"
+                "nonStore" : "<i>true|false</i>",
             }
         }
     }
@@ -100,31 +96,29 @@ Note that the `"?"` can be combined with `"packageFamilyId"` elements. The repor
 
 ### Store Update Frequency
 
-The DM client performs the update check according to the [Store Update Configuration](store-update-config.md). The update check is not performed each time a value in `"desired.microsoft.management.apps"` changes.
+The DM client performs the update check according to the [Store Update Configuration](store-update-config.md). The update check is not performed each time a value in `"desired.windows.apps"` changes.
 
 ### Reported Properties
 
-The DM client maintains the inventory of installed apps in the `"reported.microsoft.management.apps"` property. Only the apps listed in the `"desired.microsoft.management.apps"` property with non-`null` value are reported.
+The DM client maintains the inventory of installed apps in the `"reported.windows.apps"` property. Only the apps listed in the `"desired.windows.apps"` property with non-`null` value are reported.
 
-<b>Note:</b> The contents of the `"reported.microsoft.management.apps"` will be set to `"refreshing"` to indicate that the sub-tree is being reconstructed. This allows the removal of stale elements in the list. Should you query the node and find its value set to `"refreshing"`, wait for a few seconds and try again until it has the list of applications.
+<b>Note:</b> The contents of the `"reported.windows.apps"` will be set to `"refreshing"` to indicate that the sub-tree is being reconstructed. This allows the removal of stale elements in the list. Should you query the node and find its value set to `"refreshing"`, wait for a few seconds and try again until it has the list of applications.
 
 #### Example of A Successful Case
 
-If the DM client is able to bring the actual state in compliance with the desired state, the format of the `"reported.microsoft.management.apps"` property is as follows:
+If the DM client is able to bring the actual state in compliance with the desired state, the format of the `"reported.windows.apps"` property is as follows:
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "apps" : {
-                "<i>packageFamilyId</i>" : {
-                    "pkgFamilyName" : "<i>see below</i>",
-                    "version" : "<i>see below</i>",
-                    "startUp" : "none|foreground|background",
-                    "installDate" : "<i>Datetime in ISO 8601 format, UTC</i>"
-                }
-                <i>[,...]</i>
+    "windows" : {
+        "apps" : {
+            "<i>packageFamilyId</i>" : {
+                "pkgFamilyName" : "<i>see below</i>",
+                "version" : "<i>see below</i>",
+                "startUp" : "none|foreground|background",
+                "installDate" : "<i>Datetime in ISO 8601 format, UTC</i>"
             }
+            <i>[,...]</i>
         }
     }
 }
@@ -139,22 +133,20 @@ The reported `"installDate"` property is not present if the value of `"version"`
 
 #### Example of An Unsuccessful Case
 
-If the DM client is not able to bring the actual state in compliance with the desired state, the failure is reported in the `"reported.microsoft.management.apps"` property for each app. For example, this happens if the DM client is not able to install a requested version of the app, or when the app could not be uninstalled. 
+If the DM client is not able to bring the actual state in compliance with the desired state, the failure is reported in the `"reported.windows.apps"` property for each app. For example, this happens if the DM client is not able to install a requested version of the app, or when the app could not be uninstalled. 
 
 The format of the unsuccessful is as follows:
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "apps" : {
-                "<i>packageFamilyId</i>" : {
-                    ...
-                    "errorCode" : "<i>see below</i>"
-                    "errorMessage" : "<i>see below</i>"
-                }
-                <i>[,...]</i>
+    "windows" : {
+        "apps" : {
+            "<i>packageFamilyId</i>" : {
+                ...
+                "errorCode" : "<i>see below</i>"
+                "errorMessage" : "<i>see below</i>"
             }
+            <i>[,...]</i>
         }
     }
 }
@@ -188,32 +180,30 @@ The operator wishes to ensure that the Toaster app (with package family name `23
 
 <pre>
 "desired" : {
-    "microsoft" : {
-        "management" : {
-            "apps" : { 
-                "23983CETAthensQuality_IoTToasterSample" : {
-                    "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample"
-                    "version" : "1.1.0.0",
-                    "startUp" : "none",
-                    "appxSource" : "apps\\IoTToasterSample.1.1.0.0.appx"
-                    "depsSources": "apps\\Microsoft.NET.CoreRuntime.1.1.appx;apps\\Microsoft.VCLibs.x86.Debug.14.00.appx",
-                    "certSource": "apps\\IoTToasterSample.cer",
-                    "certStore": "./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
-                },
-                "GardenSprinkler_kay8908908" : {
-                    "pkgFamilyName" : "GardenSprinkler.kay8908908"
-                    "startUp" : "foreground",
-                    "version" : "2.0.0.0",
-                },
-                "DogFeeder_80615fge" : {
-                    "pkgFamilyName" : "DogFeeder.80615fge"
-                    "startUp" : "background",
-                    "version" : "not installed",
-                },
-                "?" {
-                    "store": true,
-                    "nonStore": false
-                }
+    "windows" : {
+        "apps" : { 
+            "23983CETAthensQuality_IoTToasterSample" : {
+                "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample"
+                "version" : "1.1.0.0",
+                "startUp" : "none",
+                "appxSource" : "apps\\IoTToasterSample.1.1.0.0.appx"
+                "depsSources": "apps\\Microsoft.NET.CoreRuntime.1.1.appx;apps\\Microsoft.VCLibs.x86.Debug.14.00.appx",
+                "certSource": "apps\\IoTToasterSample.cer",
+                "certStore": "./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
+            },
+            "GardenSprinkler_kay8908908" : {
+                "pkgFamilyName" : "GardenSprinkler.kay8908908"
+                "startUp" : "foreground",
+                "version" : "2.0.0.0",
+            },
+            "DogFeeder_80615fge" : {
+                "pkgFamilyName" : "DogFeeder.80615fge"
+                "startUp" : "background",
+                "version" : "not installed",
+            },
+            "?" {
+                "store": true,
+                "nonStore": false
             }
         }
     }
@@ -223,37 +213,35 @@ The operator wishes to ensure that the Toaster app (with package family name `23
 Note that for the `"GardenSprinkler_kay8908908"` application no sources were specified. This indicates that the target action is to update from the store if the currently installed version is older than 2.0.0.0.
 Also note that BirdFeeder_80615fge is included in the reported list because the user has `"?"` in the desired list.
 
-The client determines the required set of actions, performs them and updates the `"reported.microsoft.management.apps"` property as follows:
+The client determines the required set of actions, performs them and updates the `"reported.windows.apps"` property as follows:
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "apps" : { 
-                "23983CETAthensQuality.IoTToasterSample" : {
-                    "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample"
-                    "version" : "1.1.0.0",
-                    "startUp" : "none",
-                    "installDate" : "2017-02-25T09:00:00+00:00"
-                },
-                "GardenSprinkler_kay8908908" : {
-                    "pkgFamilyName" : "GardenSprinkler.kay8908908"
-                    "version" : "2.0.0.0",
-                    "startUp" : "foreground",
-                    "installDate" : "2017-02-25T09:15:00+00:00"
-                },
-                "DogFeeder_80615fge" : {
-                    "pkgFamilyName" : "DogFeeder.80615fge"
-                    "version" : "not installed",
-                    "startUp" : "background",
-                    "installDate" : null
-                },
-                "BirdFeeder_80615fge" : {
-                    "pkgFamilyName" : "BirdFeeder.80615fge"
-                    "version" : "1.0.0.0",
-                    "startUp" : "none",
-                    "installDate" : null
-                },
+    "windows" : {
+        "apps" : { 
+            "23983CETAthensQuality.IoTToasterSample" : {
+                "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample"
+                "version" : "1.1.0.0",
+                "startUp" : "none",
+                "installDate" : "2017-02-25T09:00:00+00:00"
+            },
+            "GardenSprinkler_kay8908908" : {
+                "pkgFamilyName" : "GardenSprinkler.kay8908908"
+                "version" : "2.0.0.0",
+                "startUp" : "foreground",
+                "installDate" : "2017-02-25T09:15:00+00:00"
+            },
+            "DogFeeder_80615fge" : {
+                "pkgFamilyName" : "DogFeeder.80615fge"
+                "version" : "not installed",
+                "startUp" : "background",
+                "installDate" : null
+            },
+            "BirdFeeder_80615fge" : {
+                "pkgFamilyName" : "BirdFeeder.80615fge"
+                "version" : "1.0.0.0",
+                "startUp" : "none",
+                "installDate" : null
             }
         }
     }
@@ -266,14 +254,12 @@ In the following example, the operator wishes to stop tracking the state of the 
 
 <pre>
 "desired" : {
-    "microsoft" : {
-        "management" : {
-            "apps" : { 
-                "DogFeeder_80615fge" : null,
-                "?" {
-                    "store": true,
-                    "nonStore": false
-                }
+    "windows" : {
+        "apps" : { 
+            "DogFeeder_80615fge" : null,
+            "?" {
+                "store": true,
+                "nonStore": false
             }
         }
     }
@@ -284,28 +270,26 @@ Given that the DogFeeder application is a nonStore application, after setting th
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "apps" : { 
-                "23983CETAthensQuality.IoTToasterSample" : {
-                    "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample"
-                    "version" : "1.1.0.0",
-                    "startUp" : "none",
-                    "installDate" : "2017-02-25T09:00:00+00:00"
-                },
-                "GardenSprinkler_kay8908908" : {
-                    "pkgFamilyName" : "GardenSprinkler.kay8908908"
-                    "version" : "2.0.0.0",
-                    "startUp" : "foreground",
-                    "installDate" : "2017-02-25T09:15:00+00:00"
-                },
-                "DogFeeder_80615fge" : null,
-                "BirdFeeder_80615fge" : {
-                    "pkgFamilyName" : "BirdFeeder.80615fge"
-                    "version" : "1.0.0.0",
-                    "startUp" : "none",
-                    "installDate" : null
-                },
+    "windows" : {
+        "apps" : { 
+            "23983CETAthensQuality.IoTToasterSample" : {
+                "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample"
+                "version" : "1.1.0.0",
+                "startUp" : "none",
+                "installDate" : "2017-02-25T09:00:00+00:00"
+            },
+            "GardenSprinkler_kay8908908" : {
+                "pkgFamilyName" : "GardenSprinkler.kay8908908"
+                "version" : "2.0.0.0",
+                "startUp" : "foreground",
+                "installDate" : "2017-02-25T09:15:00+00:00"
+            },
+            "DogFeeder_80615fge" : null,
+            "BirdFeeder_80615fge" : {
+                "pkgFamilyName" : "BirdFeeder.80615fge"
+                "version" : "1.0.0.0",
+                "startUp" : "none",
+                "installDate" : null
             }
         }
     }
@@ -318,21 +302,19 @@ Next, the operator wishes to upgrade the Toaster app to version 2.0.0.0 using th
 
 <pre>
 "desired" : {
-    "microsoft" : {
-        "management" : {
-            "apps" : { 
-                "23983CETAthensQuality_IoTToasterSample" : {
-                    "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample",
-                    "appxSource" : "AppContainer/Toaster.appx",
-                    "version" : "2.0.0.0",
-                    "startUp" : "none",
-                    "appxSource" : "apps\\IoTToasterSample.2.0.0.0.appx"
-                    "depsSources": "apps\\Microsoft.NET.CoreRuntime.1.1.appx;apps\\Microsoft.VCLibs.x86.Debug.14.00.appx",
-                    "certSource": "apps\\IoTToasterSample.cer",
-                    "certStore": "./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
-                },
-                ...
-            }
+    "windows" : {
+        "apps" : { 
+            "23983CETAthensQuality_IoTToasterSample" : {
+                "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample",
+                "appxSource" : "AppContainer/Toaster.appx",
+                "version" : "2.0.0.0",
+                "startUp" : "none",
+                "appxSource" : "apps\\IoTToasterSample.2.0.0.0.appx"
+                "depsSources": "apps\\Microsoft.NET.CoreRuntime.1.1.appx;apps\\Microsoft.VCLibs.x86.Debug.14.00.appx",
+                "certSource": "apps\\IoTToasterSample.cer",
+                "certStore": "./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
+            },
+            ...
         }
     }
 }
@@ -342,19 +324,17 @@ If the installation fails (for example, if Toaster.appx specified in the `"sourc
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "apps" : { 
-                "23983CETAthensQuality_IoTToasterSample" : {
-                    "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample",
-                    "version" : "1.5.0.0",
-                    "startUp" : "none",
-                    "installDate" : "2017-02-25T09:15:00+00:00"
-                    "errorCode" : "<i>OS error</i>",
-                    "errorMessage" : "Cannot install app; The app version in Toaster.appx is 1.5.0.0; desired version is 2.0.0.0"
-                },
-                ...             
-            }
+    "windows" : {
+        "apps" : { 
+            "23983CETAthensQuality_IoTToasterSample" : {
+                "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample",
+                "version" : "1.5.0.0",
+                "startUp" : "none",
+                "installDate" : "2017-02-25T09:15:00+00:00"
+                "errorCode" : "<i>OS error</i>",
+                "errorMessage" : "Cannot install app; The app version in Toaster.appx is 1.5.0.0; desired version is 2.0.0.0"
+            },
+            ...             
         }
     }
 }
@@ -366,15 +346,13 @@ When an operator needs to determine the version of an app (usually because it wa
 
 <pre>
 "desired" : {
-    "microsoft" : {
-        "management" : {
-            "apps" : { 
-                "HumiditySensor_76590kat" : {
-                    "pkgFamilyName" : "HumiditySensor_76590kat",
-                    "version" : "?"
-                },
-                ...
-            }
+    "windows" : {
+        "apps" : { 
+            "HumiditySensor_76590kat" : {
+                "pkgFamilyName" : "HumiditySensor_76590kat",
+                "version" : "?"
+            },
+            ...
         }
     }
 }
@@ -384,17 +362,15 @@ The state of the HumiditySensor app is then reported like this:
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "apps" : { 
-                "HumiditySensor_76590kat" : {
-                    "pkgFamilyName" : "HumiditySensor_76590kat",
-                    "version" : "5.1.0.0",
-                    "startUp" : "none",
-                    "installDate" : "2016-04-21T05:00:00+00:00"
-                },
-                ...
-            }
+    "windows" : {
+        "apps" : { 
+            "HumiditySensor_76590kat" : {
+                "pkgFamilyName" : "HumiditySensor_76590kat",
+                "version" : "5.1.0.0",
+                "startUp" : "none",
+                "installDate" : "2016-04-21T05:00:00+00:00"
+            },
+            ...
         }
     }
 }
@@ -402,12 +378,41 @@ The state of the HumiditySensor app is then reported like this:
 
 ## Start/Stop Applications on The Device
 
-To start or stop an install application on the device, the immediate method `"microsoft.management.manageAppLifeCycle"` can be called with the following parameters:
+To start or stop an install application on the device, the immediate method `"windows.manageAppLifeCycleAsync"` can be called with the following parameters:
 
 <pre>
 {
     "action" : "start|stop",
     "pkgFamilyName" : "<i>pkgFamilyName</i>"
+}
+</pre>
+
+#### Output Payload
+
+`windows.manageAppLifeCycleAsync` returns a <i>Status Object</i> (see [Status Reporting](status-reporting.md)). The `state` field is pending to indicate that the work is still in progress (async call).
+To monitor the progress of the call, check the `manageAppLifeCycleCmd` section in the device twin reported properties (below).
+
+<pre>
+{
+    "status" : {
+        &lt;<i>Status Object</i>&gt;
+    }
+}
+</pre>
+
+For details on <i>Status Object</i>, see [Error Reporting](error-reporting.md).
+
+#### Device Twin Reporting
+
+As the method executes, it will also update the device twin with its current status and its final state.
+
+<pre>
+"reported" : {
+    "windows" : {
+        "manageAppLifeCycleCmd": {
+            "lastChange" = &lt;<i>Status Object</i>&gt;
+        }
+    }
 }
 </pre>
 
