@@ -33,8 +33,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Wtsapi32.h"
 // EnumProcesses
 #include "Psapi.h"
-// SHGetFolderPath
-#include "Shlobj.h"
 
 using namespace std;
 using namespace Microsoft::WRL;
