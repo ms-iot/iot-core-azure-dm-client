@@ -40,39 +40,37 @@ namespace Microsoft.Devices.Management.DMDataContract
             RejectedByApp
         }
 
-        public RebootCmdDataContract()
-        {
-        }
-
-        public RebootCmdDataContract(ResponseValue r)
-        {
-            response = ToString(r);
-        }
-
-        public static string ToString(ResponseValue status)
-        {
-            switch (status)
-            {
-                case ResponseValue.Allowed: return JsonAllowed;
-                case ResponseValue.Scheduled: return JsonScheduled;
-                case ResponseValue.Disabled: return JsonDisabled;
-                case ResponseValue.InActiveHours: return JsonInActiveHours;
-                case ResponseValue.RejectedByApp: return JsonRejectedByApp;
-            }
-            return status.ToString();
-        }
-
         public class ReportedProperties
         {
-            public string response;
+            public ReportedProperties()
+            {
+            }
+
+            public ReportedProperties(ResponseValue r)
+            {
+                response = ToString(r);
+            }
+
+            public static string ToString(ResponseValue status)
+            {
+                switch (status)
+                {
+                    case ResponseValue.Allowed: return JsonAllowed;
+                    case ResponseValue.Scheduled: return JsonScheduled;
+                    case ResponseValue.Disabled: return JsonDisabled;
+                    case ResponseValue.InActiveHours: return JsonInActiveHours;
+                    case ResponseValue.RejectedByApp: return JsonRejectedByApp;
+                }
+                return status.ToString();
+            }
 
             public void LoadFrom(JObject json)
             {
                 response = Utils.GetString(json, JsonResponse, NotFound);
             }
-        }
 
-        public string response;
+            public string response;
+        }
     }
 
 }

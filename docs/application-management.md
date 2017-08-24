@@ -413,83 +413,50 @@ To start or stop an install application on the device, the immediate method `"mi
 
 ## Triggering Self-Update for the Device Management Store Application 
 
-The **Trigger Application Self-Update** operation is initiated by the device receiving the `microsoft.management.startAppSelfUpdate` method.
+The **Trigger Application Self-Update** operation is initiated by the device receiving the `windows.startDmAppStoreUpdateAsync` method.
 
 ### Input Payload 
 Input payload is empty
 
 ### Output Payload
-The device responds immediately with the following JSON payload:
+`windows.startDmAppStoreUpdateAsync ` returns a <i>Status Object</i> (see [Status Reporting](status-reporting.md)).
 
 <pre>
-"response" : value (<i>See below</i>)
+{
+    "status" : {
+        &lt;<i>Status Object</i>&gt;
+    }
+}
 </pre>
 
-Possible `"response"` values are: 
-- `"success"` - The request was accepted and scheduled. The device will attempt check for available update. If any update are found, it will download and install them.
-- `"failure"` - The device failed to schedule the update check.
-
-The state of the latest update check attempt is communicated to the back-end via 
-reported properties as described in [Device Twin Communication](#define-twin-communication) below.
-
-**Examples:**
-
-Successful response:
-
-<pre>
-"response" : "success"
-</pre>
+For details on <i>Status Object</i>, see [Error Reporting](error-reporting.md). The state of the latest update check attempt is communicated to the device twin reported properties as described below.
 
 ### Device Twin Communication
 
 After responding to the method call, the application attempts to check for available updates. The result
-of the attempt is recorded in the reported property `"reported.microsoft.management.appUpdate"`, which
-is a JSON object with two key/value pairs defined as follows:
+of the attempt is recorded in the reported property `"reported.windows.dmAppStoreUpdate"`.
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "appUpdate" : {
-                "lastCheck" : "<i>Datetime in ISO 8601 format, UTC</i>"
-                "status" : "checkStarting" <i>or</i> "noUpdates" <i>or</i> "updatesDownloadingAndInstalling" <i>or</i> "installed" <i>or</i> "failed"
-            }
+    "windows": {
+        "dmAppStoreUpdate": {
+            "lastChange": {
+                &lt;<i>Status Object</i>&gt;
+                },
+            "response": "checking|noUpdates|downloadingAndInstalling|installed|failed",
+            "lastCheck": "<i>time stamp the request was received</i>"
         }
     }
 }
 </pre>
 
-**Examples:**
-
-Update in progress:
-
-<pre>
-"reported" : {
-    "microsoft" : {
-        "management" : {
-            "appUpdate" : {
-                "lastCheck" : "2017-01-25T13:27:33+04:00",
-                "status" : "updatesDownloadingAndInstalling"
-            }
-        }
-    }
-}
-</pre>
-
-Successful update response:
-
-<pre>
-"reported" : {
-    "microsoft" : {
-        "management" : {
-            "appUpdate" : {
-                "lastCheck" : "2017-01-25T13:27:33+04:00",
-                "status" : "installed"
-            }
-        }
-    }
-}
-</pre>
+- `response`: shows which state the operation is at:
+  - `checking`: about to start checking whether there are available store updates for the application or not.
+  - `noUpdate`: indicates the check is done and no updates have been found.
+  - `downloadingAndInstalling`: updates have been found, and downloading and installing them is in progress.
+  - `installed`: downloading and installation have completed successfully.
+  - `failed`: downloading or installation has failed.
+- `lastCheck`: this is the time stamp of when the last 'check for updates' operation started.
 
 ----
 
