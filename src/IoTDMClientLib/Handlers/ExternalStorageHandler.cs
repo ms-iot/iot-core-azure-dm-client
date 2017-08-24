@@ -13,7 +13,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using Newtonsoft.Json;
+using Microsoft.Devices.Management.DMDataContract;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 
@@ -21,37 +21,52 @@ namespace Microsoft.Devices.Management
 {
     class ExternalStorageHandler : IClientPropertyHandler
     {
-        const string JsonSectionName = "externalStorage";
-        const string JsonConnectionString = "connectionString";
-        const string JsonNotSet = "<not set>";
-
         // IClientPropertyHandler
         public string PropertySectionName
         {
             get
             {
-                return JsonSectionName; // todo: constant in data contract?
+                return ExternalStorageDataContract.SectionName;
             }
         }
 
-        // IClientPropertyHandler
-        public Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
+        public ExternalStorageHandler(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
-            if (desiredValue is JObject)
+            this._systemConfiguratorProxy = systemConfiguratorProxy;
+            this._callback = callback;
+        }
+
+        // IClientPropertyHandler
+        public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
+        {
+            if (!(desiredValue is JObject))
             {
-                JObject jObject = (JObject)desiredValue;
-                _connectionString = (string)jObject.Property(JsonConnectionString).Value;
+                throw new Error(ErrorCodes.INVALID_DESIRED_JSON_VALUE, "Invalid json value type for the " + PropertySectionName + " node.");
             }
 
-            return Task.FromResult(CommandStatus.Committed);
+            ExternalStorageDataContract.DesiredProperties desiredProperties = new ExternalStorageDataContract.DesiredProperties();
+            desiredProperties.LoadFrom((JObject)desiredValue);
+
+            ConnectionString = desiredProperties.connectionString;
+
+            // Report to the device twin....
+            var reportedProperties = await GetReportedPropertyAsync();
+            await _callback.ReportPropertiesAsync(PropertySectionName, reportedProperties);
+
+            return CommandStatus.Committed;
         }
 
         // IClientPropertyHandler
-        public async Task<JObject> GetReportedPropertyAsync()
+        public Task<JObject> GetReportedPropertyAsync()
         {
-            return await Task.Run(() => { return (JObject)JsonConvert.DeserializeObject("{ \"connectionString\" : \"" + _connectionString + "\" }"); });
+            ExternalStorageDataContract.ReportedProperties reportedProperties = new ExternalStorageDataContract.ReportedProperties();
+            reportedProperties.connectionString = ConnectionString;
+            return Task.FromResult<JObject>(JObject.FromObject(reportedProperties));
         }
 
-        private string _connectionString = JsonNotSet;
+        public string ConnectionString { get; private set; }
+
+        private ISystemConfiguratorProxy _systemConfiguratorProxy;
+        private IClientHandlerCallBack _callback;
     }
 }

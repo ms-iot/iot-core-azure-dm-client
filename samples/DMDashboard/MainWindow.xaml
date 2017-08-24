@@ -90,7 +90,10 @@
 
                             <TextBlock Grid.Row="1" Grid.Column="0" Margin="3">Connection String</TextBlock>
                             <Border Grid.Row="1" Grid.Column="1" Margin="3" Background="#F8F8F8">
-                                <TextBox x:Name="AzureStorageConnectionString" HorizontalAlignment="Stretch" Text="&lt;Azure Storage connection string&gt;" />
+                                <TextBox x:Name="AzureStorageDesiredConnectionString" HorizontalAlignment="Stretch" Text="&lt;Azure Storage connection string&gt;" />
+                            </Border>
+                            <Border Grid.Row="1" Grid.Column="2" Margin="3" Background="#F8F8F8">
+                                <TextBlock x:Name="AzureStorageReportedConnectionString" HorizontalAlignment="Stretch"/>
                             </Border>
 
                             <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" >Container Name</TextBlock>
