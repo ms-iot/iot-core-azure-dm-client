@@ -29,20 +29,6 @@ using namespace std;
 
 bool MdmProvision::s_errorVerbosity = false;
 
-wstring GetResourceString(int id)
-{
-    const int bufferSize = 1024;
-    wchar_t buffer[bufferSize];
-    if (!LoadString(GetModuleHandle(NULL), id, buffer, bufferSize))
-    {
-        if (!LoadString(GetModuleHandle(NULL), IDS_OMA_SYNCML_STATUS_UNKNOWN, buffer, bufferSize))
-        {
-            return wstring(L"Unknown OMA SyncML status code.");
-        }
-    }
-    return wstring(buffer);
-}
-
 void MdmProvision::SetErrorVerbosity(bool verbosity) noexcept
 {
     s_errorVerbosity = verbosity;
@@ -607,11 +593,10 @@ void MdmProvision::ReportError(const wstring& syncMLRequest, const wstring& sync
         TRACEP(L"Request:\n", syncMLRequest.c_str());
         TRACEP(L"Response:\n", syncMLResponse.c_str());
         TRACEP(L"Error:\n", errorCode);
-        TRACEP(L"Error Message:\n", GetResourceString(errorCode).c_str());
     }
     else
     {
-        TRACEP(L"Error:\n", GetResourceString(errorCode).c_str());
+        TRACEP(L"Error:\n", errorCode);
     }
 }
 

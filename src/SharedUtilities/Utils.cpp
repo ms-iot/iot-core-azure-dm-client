@@ -161,19 +161,18 @@ namespace Utils
 
     wstring GetDmUserFolder()
     {
+        WCHAR szPath[MAX_PATH];
         wstring folder(L"");
-        GetDmUserInfo([&folder](HANDLE token, PTOKEN_USER /*tokenUser*/) {
-            WCHAR szPath[MAX_PATH];
-            HRESULT hr = SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, token, 0, szPath);
-            if (SUCCEEDED(hr))
-            {
-                folder = szPath;
-            }
-            else
-            {
-                throw DMExceptionWithErrorCode("SHGetFolderPath failed.", hr);
-            }
-        });
+        
+        DWORD result = GetTempPath(MAX_PATH, szPath);
+        if (result)
+        {
+            folder = szPath;
+        }
+        else
+        {
+            throw DMExceptionWithErrorCode("GetTempPath failed.", GetLastError());
+        }
 
         return folder;
     }

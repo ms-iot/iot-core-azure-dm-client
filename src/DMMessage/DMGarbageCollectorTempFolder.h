@@ -14,6 +14,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #pragma once
 
-#define IOTDM_RELATIVE_PATH     L"\\Temp\\IotDm\\"
+#define IOTDM_RELATIVE_PATH     L"\\IotDm\\"
 #define LOGFILE_EXT             L".etl"
 #define HOURS_UNTIL_GC          24
