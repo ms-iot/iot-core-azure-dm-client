@@ -56,8 +56,8 @@ namespace Microsoft.Devices.Management
         {
             Logger.Log("ReportRebootCmdStatus() invoked.", LoggingLevel.Verbose);
 
-            RebootCmdDataContract response = new RebootCmdDataContract(status);
-            await _deviceManagementClient.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(response));
+            RebootCmdDataContract.ReportedProperties reportedProperties = new RebootCmdDataContract.ReportedProperties(status);
+            await _deviceManagementClient.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties));
 
             StatusSection statusSection = new StatusSection(StatusSection.StateType.Completed);
             await _deviceManagementClient.ReportStatusAsync(PropertySectionName, statusSection);

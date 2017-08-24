@@ -286,6 +286,18 @@ namespace DMDashboard
                         MessageBox.Show("Expected json object as a value for " + DeviceInfoReportedState.SectionName);
                     }
                 }
+                else if (jsonProp.Name == DmAppStoreUpdateDataContract.SectionName)
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    if (jsonProp.Value is JObject)
+                    {
+                        DmAppStoreUpdateReportedState.FromJson((JObject)jsonProp.Value);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Expected json object as a value for " + DmAppStoreUpdateDataContract.SectionName);
+                    }
+                }
                 else if (jsonProp.Name == RebootInfoDataContract.SectionName)
                 {
                     Debug.WriteLine(jsonProp.Value.ToString());
@@ -396,7 +408,7 @@ namespace DMDashboard
 
             CancellationToken cancellationToken = new CancellationToken();
             DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(FactoryResetDataContract.StartFactoryResetAsync, resetParamsString, new TimeSpan(0, 0, 30), cancellationToken);
-            System.Windows.MessageBox.Show("FactoryReset Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
+            MessageBox.Show("FactoryReset Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
         private void OnFactoryReset(object sender, RoutedEventArgs e)
@@ -404,16 +416,16 @@ namespace DMDashboard
             FactoryResetAsync();
         }
 
-        private async void StartAppSelfUpdate()
+        private async void StartDmAppStoreUpdateAsync()
         {
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(DMJSonConstants.DTWindowsIoTNameSpace + ".startAppSelfUpdate", "{}", new TimeSpan(0, 0, 30), cancellationToken);
-            StartAppSelfUpdateResult.Text = result.Payload;
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(DmAppStoreUpdateDataContract.StartDmAppStoreUpdateAsync, "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            MessageBox.Show("FactoryReset Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
-        private void OnStartAppSelfUpdate(object sender, RoutedEventArgs e)
+        private void OnStartDmAppStoreUpdate(object sender, RoutedEventArgs e)
         {
-            StartAppSelfUpdate();
+            StartDmAppStoreUpdateAsync();
         }
 
         private async void UpdateDTReportedAsync()

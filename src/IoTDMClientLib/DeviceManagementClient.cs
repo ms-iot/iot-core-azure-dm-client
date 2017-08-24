@@ -25,8 +25,6 @@ using Windows.Foundation.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Services.Store;
 using Windows.Storage;
 
 namespace Microsoft.Devices.Management
@@ -34,7 +32,6 @@ namespace Microsoft.Devices.Management
     // This is the main entry point into DM
     public class DeviceManagementClient : IClientHandlerCallBack
     {
-        const string MethodStartAppSelfUpdate = DMJSonConstants.DTWindowsIoTNameSpace + ".startAppSelfUpdate";
         const string MethodGetCertificateDetails = DMJSonConstants.DTWindowsIoTNameSpace + ".getCertificateDetails";
         const string MethodManageAppLifeCycle = DMJSonConstants.DTWindowsIoTNameSpace + ".manageAppLifeCycle";
 
@@ -121,7 +118,6 @@ namespace Microsoft.Devices.Management
 
             // Attach methods...
             await deviceTwin.SetMethodHandlerAsync(CommonDataContract.ReportAllAsync, deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
-            await deviceTwin.SetMethodHandlerAsync(MethodStartAppSelfUpdate, deviceManagementClient.StartAppSelfUpdateMethodHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync(MethodGetCertificateDetails, deviceManagementClient.GetCertificateDetailsHandlerAsync);
             await deviceTwin.SetMethodHandlerAsync(MethodManageAppLifeCycle, deviceManagementClient.ManageAppLifeCycleHandlerAsync);
 
@@ -178,6 +174,9 @@ namespace Microsoft.Devices.Management
 
             var deviceInfoHandler = new DeviceInfoHandler(systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceInfoHandler);
+
+            var dmAppStoreUpdate = new DmAppStoreUpdateHandler(clientCallback, systemConfiguratorProxy);
+            await deviceManagementClient.AddDirectMethodHandlerAsync(dmAppStoreUpdate);
 
             return deviceManagementClient;
         }
@@ -266,60 +265,6 @@ namespace Microsoft.Devices.Management
         public async Task RebootAsync()
         {
             await _rebootCmdHandler.RebootAsync();
-        }
-
-        private void ReportSelfUpdateStatus(string lastCheckValue, string statusValue)
-        {
-            Dictionary<string, object> collection = new Dictionary<string, object>();
-            collection[DMJSonConstants.DTWindowsIoTNameSpace] = new
-            {
-                appUpdate = new
-                {
-                    lastCheck = lastCheckValue,
-                    status = statusValue,
-                }
-            };
-            _deviceTwin.ReportProperties(collection);
-        }
-
-        private async Task StartAppSelfUpdate()
-        {
-            Debug.WriteLine("Check for updates...");
-            StoreContext context = StoreContext.GetDefault();
-
-            // Check for updates...
-            string lastCheck = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ");
-
-            ReportSelfUpdateStatus(lastCheck, "checkStarting");
-
-            IReadOnlyList<StorePackageUpdate> updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
-            if (updates.Count == 0)
-            {
-                ReportSelfUpdateStatus(lastCheck, "noUpdates");
-                return;
-            }
-
-            // Download and install the updates...
-            IAsyncOperationWithProgress<StorePackageUpdateResult, StorePackageUpdateStatus> downloadOperation =
-                context.RequestDownloadAndInstallStorePackageUpdatesAsync(updates);
-
-            ReportSelfUpdateStatus(lastCheck, "updatesDownloadingAndInstalling");
-
-            // Wait for completion...
-            StorePackageUpdateResult result = await downloadOperation.AsTask();
-
-            ReportSelfUpdateStatus(lastCheck, result.OverallState == StorePackageUpdateState.Completed ? "installed" : "failed");
-
-            return;
-        }
-
-        private Task<string> StartAppSelfUpdateMethodHandlerAsync(string jsonParam)
-        {
-            Debug.WriteLine("StartAppSelfUpdateMethodHandlerAsync");
-
-            StartAppSelfUpdate().FireAndForget();
-
-            return Task.FromResult(JsonConvert.SerializeObject(new { response = "succeeded" }));
         }
 
         private async Task GetCertificateDetailsAsync(string jsonParam)

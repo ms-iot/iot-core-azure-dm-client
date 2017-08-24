@@ -33,6 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DmAppStoreUpdate.cs" />
     <Compile Include="Certificates.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="DeviceHealthAttestation.cs" />
