@@ -42,18 +42,6 @@ namespace DMDashboard
         const string IotHubConnectionString = "IotHubConnectionString";
         const string StorageConnectionString = "StorageConnectionString";
 
-        enum AppLifeCycleAction
-        {
-            startApp,
-            stopApp
-        }
-
-        class AppLifeCycleParameters
-        {
-            public string pkgFamilyName;
-            public string action;
-        }
-
         Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
         public MainWindow()
@@ -101,51 +89,6 @@ namespace DMDashboard
             {
                 element.Visibility = Visibility.Collapsed;
             }
-        }
-
-        private void OnExpandAzureStorage(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(AzureStorageGrid);
-        }
-
-        private void OnExpandDeviceStorage(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(DeviceStorageGrid);
-        }
-
-        private void OnExpandWindowsUpdatePolicy(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(WindowsUpdatePolicyGrid);
-        }
-
-        private void OnExpandWindowsUpdates(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(WindowsUpdatesGrid);
-        }
-
-        private void OnExpandWindowsTelemetry(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(WindowsTelemetryGrid);
-        }
-
-        private void OnExpandDiagnosticLogs(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(DiagnosticLogsGrid);
-        }
-
-        private void OnExpandCertificates(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(CertificateStackPanel);
-        }
-
-        private void OnExpandTimeInfo(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(TimeInfoGrid);
-        }
-
-        private void OnExpandTimeService(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(TimeServiceGrid);
         }
 
         private async void ListDevices(string connectionString)
@@ -374,30 +317,6 @@ namespace DMDashboard
             ReadDTReported();
         }
 
-        private void OnExpandRebootCmd(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(RebootCmdGrid);
-        }
-
-        private void OnExpandRebootInfo(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(RebootInfoGrid);
-        }
-
-        private void OnExpandFactoryReset(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(FactoryResetGrid);
-        }
-
-        private void OnExpandDeviceInfo(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(DeviceInfoGrid);
-        }
-
-        private void OnExpandDeviceHealthAttestation(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(DeviceHealthAttestationGrid);
-        }
 
         private async void RebootSystemAsync()
         {
@@ -608,11 +527,6 @@ namespace DMDashboard
             UpdateTwinData(DTRefreshing, json.ToString()).FireAndForget();
         }
 
-        private void OnExpandApps(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(AppsGrid);
-        }
-
         private async void UploadAppx(string connectionString, string container, string appxLocalPath, string dep0LocalPath, string dep1LocalPath, string certLocalPath)
         {
             // Retrieve storage account from connection string.
@@ -719,11 +633,6 @@ namespace DMDashboard
         private void ExportCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
         {
             ExportCertificateDetailsAsync(sender, certificateData);
-        }
-
-        private void OnExpandWifi(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(WifiGrid);
         }
 
         private void OnSetWifiConfiguration(object sender, RoutedEventArgs e)
