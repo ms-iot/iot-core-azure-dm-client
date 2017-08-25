@@ -624,23 +624,14 @@ IResponse^ HandleTransferFile(IRequest^ request)
 
 IResponse^ HandleAppLifecycle(IRequest^ request)
 {
-    try
-    {
-        auto appLifecycle = dynamic_cast<AppLifecycleRequest^>(request);
-        auto info = appLifecycle->AppLifecycleInfo;
-        auto appId = (wstring)info->AppId->Data();
-        bool start = info->Start;
+    auto appLifecycle = dynamic_cast<AppLifecycleRequest^>(request);
+    auto info = appLifecycle->AppLifecycleInfo;
+    auto appId = (wstring)info->AppId->Data();
+    bool start = info->Start;
 
-        if (start) AppCfg::StartApp(appId);
-        else AppCfg::StopApp(appId);
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (Platform::Exception^ e)
-    {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleAppLifecycle: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    if (start) AppCfg::StartApp(appId);
+    else AppCfg::StopApp(appId);
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleStartApp(IRequest^ request)

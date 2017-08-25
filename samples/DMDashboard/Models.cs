@@ -49,24 +49,6 @@ namespace Microsoft.Devices.Management
         }
     }
 
-    class ExternalStorage
-    {
-        public string SectionName
-        {
-            get
-            {
-                return "externalStorage";
-            }
-        }
-
-        public string connectionString;
-
-        public string ToJson()
-        {
-            return "\"externalStorage\" : " + JsonConvert.SerializeObject(this);
-        }
-    }
-
     class Certificates
     {
         public class CertificateConfiguration

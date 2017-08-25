@@ -47,7 +47,7 @@ namespace DMDashboard
                     var profileName = wifiProfile.Name;
                     mainWindow.ExportWifiProfileDetails(
                         profileName,
-                        mainWindow.AzureStorageConnectionString.Text,
+                        mainWindow.AzureStorageDesiredConnectionString.Text,
                         mainWindow.AzureStorageContainerName.Text,
                         GetBlobName(profileName));
                     return;
@@ -63,7 +63,7 @@ namespace DMDashboard
                 var mainWindow = parent as MainWindow;
                 if (mainWindow != null)
                 {
-                    var storageConnectionString = mainWindow.AzureStorageConnectionString.Text;
+                    var storageConnectionString = mainWindow.AzureStorageDesiredConnectionString.Text;
                     var storageContainerName = mainWindow.AzureStorageContainerName.Text;
                     var wifiProfile = DataContext as WifiProfileConfiguration;
                     string blobName = GetBlobName(wifiProfile.Name);

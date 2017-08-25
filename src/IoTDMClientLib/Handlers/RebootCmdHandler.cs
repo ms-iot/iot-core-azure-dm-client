@@ -100,7 +100,7 @@ namespace Microsoft.Devices.Management
             {
                 var request = new ImmediateRebootRequest();
                 request.lastRebootCmdTime = rebootCmdTime;
-                // await this._systemConfiguratorProxy.SendCommandAsync(request);
+                await this._systemConfiguratorProxy.SendCommandAsync(request);
 
                 response = RebootCmdDataContract.ResponseValue.Scheduled;
                 await ReportRebootCmdStatus(response, rebootCmdTime);

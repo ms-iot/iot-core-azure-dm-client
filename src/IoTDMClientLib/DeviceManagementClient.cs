@@ -33,7 +33,6 @@ namespace Microsoft.Devices.Management
     public class DeviceManagementClient : IClientHandlerCallBack
     {
         const string MethodGetCertificateDetails = DMJSonConstants.DTWindowsIoTNameSpace + ".getCertificateDetails";
-        const string MethodManageAppLifeCycle = DMJSonConstants.DTWindowsIoTNameSpace + ".manageAppLifeCycle";
 
         public IDeviceTwin DeviceTwin { get { return _deviceTwin; } }
 
@@ -44,17 +43,6 @@ namespace Microsoft.Devices.Management
             public string connectionString;
             public string containerName;
             public string blobName;
-        }
-
-        class AppLifeCycleParameters
-        {
-            public string pkgFamilyName = "";
-            public string action = "";
-        }
-
-        class StartupApps
-        {
-            public string foreground = "";
         }
 
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler hostAppHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
@@ -119,10 +107,9 @@ namespace Microsoft.Devices.Management
             // Attach methods...
             await deviceTwin.SetMethodHandlerAsync(CommonDataContract.ReportAllAsync, deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
             await deviceTwin.SetMethodHandlerAsync(MethodGetCertificateDetails, deviceManagementClient.GetCertificateDetailsHandlerAsync);
-            await deviceTwin.SetMethodHandlerAsync(MethodManageAppLifeCycle, deviceManagementClient.ManageAppLifeCycleHandlerAsync);
 
             // Create/Attach handlers...
-            deviceManagementClient._externalStorageHandler = new ExternalStorageHandler();
+            deviceManagementClient._externalStorageHandler = new ExternalStorageHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceManagementClient._externalStorageHandler);
 
             var deviceHealthAttestationHandler = new DeviceHealthAttestationHandler(clientCallback, systemConfiguratorProxy);
@@ -141,6 +128,9 @@ namespace Microsoft.Devices.Management
 
             var appxHandler = new AppxManagement(clientCallback, systemConfiguratorProxy, deviceManagementClient._desiredCache);
             deviceManagementClient.AddPropertyHandler(appxHandler);
+
+            var appxLifeCycleHandler = new AppxLifeCycleHandler(clientCallback, systemConfiguratorProxy);
+            await deviceManagementClient.AddDirectMethodHandlerAsync(appxLifeCycleHandler);
 
             var eventTracingHandler = new EventTracingHandler(clientCallback, systemConfiguratorProxy, deviceManagementClient._desiredCache);
             deviceManagementClient.AddPropertyHandler(eventTracingHandler);
@@ -167,9 +157,7 @@ namespace Microsoft.Devices.Management
                 deviceManagementClient._desiredCache);
             deviceManagementClient.AddPropertyHandler(rebootInfoHandler);
 
-            deviceManagementClient._windowsTelemetryHandler = new WindowsTelemetryHandler(
-                clientCallback,
-                systemConfiguratorProxy);
+            deviceManagementClient._windowsTelemetryHandler = new WindowsTelemetryHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsTelemetryHandler);
 
             var deviceInfoHandler = new DeviceInfoHandler(systemConfiguratorProxy);
@@ -332,29 +320,6 @@ namespace Microsoft.Devices.Management
             return await _windowsTelemetryHandler.GetLevelAsync();
         }
 
-        private Task<string> ManageAppLifeCycleHandlerAsync(string jsonParam)
-        {
-            Debug.WriteLine("ManageAppLifeCycleHandlerAsync");
-
-            var response = new { response = "succeeded", reason = "" };
-            try
-            {
-                AppLifeCycleParameters appLifeCycleParameters = JsonConvert.DeserializeObject<AppLifeCycleParameters>(jsonParam);
-
-                Message.AppLifecycleInfo appLifeCycleInfo = new Message.AppLifecycleInfo();
-                appLifeCycleInfo.AppId = appLifeCycleParameters.pkgFamilyName;
-                appLifeCycleInfo.Start = appLifeCycleParameters.action == "start";
-                var request = new Message.AppLifecycleRequest(appLifeCycleInfo);
-                _systemConfiguratorProxy.SendCommandAsync(request);
-            }
-            catch (Exception e)
-            {
-                response = new { response = "rejected:", reason = e.Message };
-            }
-
-            return Task.FromResult(JsonConvert.SerializeObject(response));
-        }
-
         private static async Task ProcessDesiredCertificateConfigurationAsync(
             ISystemConfiguratorProxy systemConfiguratorProxy,
             string connectionString,
@@ -457,14 +422,6 @@ namespace Microsoft.Devices.Management
                     }
                     switch (sectionProp.Name)
                     {
-                        case "externalStorage":
-                            {
-                                Debug.WriteLine("externalStorage = " + sectionProp.Value.ToString());
-
-                                JObject subProperties = (JObject)sectionProp.Value;
-                                _externalStorageConnectionString = (string)subProperties.Property("connectionString").Value;
-                            }
-                            break;
                         case "certificates":
                             {
                                 // Capture the configuration here.
@@ -480,14 +437,6 @@ namespace Microsoft.Devices.Management
                                 await this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
                             }
                             break;
-                        case "startupApps":
-                            {
-                                Debug.WriteLine("startupApps = " + sectionProp.Value.ToString());
-                                var startupApps = JsonConvert.DeserializeObject<StartupApps>(sectionProp.Value.ToString());
-                                StartupAppInfo foregroundApp = new StartupAppInfo(startupApps.foreground, false /*!background*/);
-                                await this._systemConfiguratorProxy.SendCommandAsync(new AddStartupAppRequest(foregroundApp));
-                            }
-                            break;
                         default:
                             // Not supported
                             break;
@@ -498,11 +447,11 @@ namespace Microsoft.Devices.Management
             // Now, handle the operations that depend on others in the necessary order.
             // By now, Azure storage information should have been captured.
 
-            if (!String.IsNullOrEmpty(_externalStorageConnectionString))
+            if (!String.IsNullOrEmpty(_externalStorageHandler.ConnectionString))
             {
                 if (certificateConfiguration != null)
                 {
-                    await ProcessDesiredCertificateConfigurationAsync(_systemConfiguratorProxy, _externalStorageConnectionString, "certificates", certificateConfiguration);
+                    await ProcessDesiredCertificateConfigurationAsync(_systemConfiguratorProxy, _externalStorageHandler.ConnectionString, "certificates", certificateConfiguration);
                 }
             }
         }
@@ -577,7 +526,6 @@ namespace Microsoft.Devices.Management
         WindowsTelemetryHandler _windowsTelemetryHandler;
         IDeviceManagementRequestHandler _hostAppHandler;
         IDeviceTwin _deviceTwin;
-        string _externalStorageConnectionString;
         Dictionary<string, IClientPropertyHandler> _desiredPropertyMap;
         Dictionary<string, List<IClientPropertyDependencyHandler>> _desiredPropertyDependencyMap;
         CommandStatus _lastCommandStatus = CommandStatus.NotStarted;

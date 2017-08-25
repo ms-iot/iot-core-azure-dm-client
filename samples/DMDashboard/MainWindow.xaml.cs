@@ -188,25 +188,25 @@ namespace DMDashboard
             SelectedDeviceName.Text = deviceIdString;
         }
 
-        private async void OnManageAppLifeCycle(AppLifeCycleAction appLifeCycleAction, string packageFamilyName)
+        private async void OnManageAppLifeCycle(string appLifeCycleAction, string packageFamilyName)
         {
-            AppLifeCycleParameters parameters = new AppLifeCycleParameters();
-            parameters.action = appLifeCycleAction == AppLifeCycleAction.startApp ? "start" : "stop";
+            AppxLifeCycleDataContract.ManageAppLifeCycleParams parameters = new AppxLifeCycleDataContract.ManageAppLifeCycleParams();
+            parameters.action = appLifeCycleAction;
             parameters.pkgFamilyName = packageFamilyName;
             string parametersString = JsonConvert.SerializeObject(parameters);
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(DMJSonConstants.DTWindowsIoTNameSpace + ".manageAppLifeCycle", parametersString, new TimeSpan(0, 0, 30), cancellationToken);
-            MessageBox.Show("ManageAppLifeCycle Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(AppxLifeCycleDataContract.ManageAppLifeCycleAsync, parametersString, new TimeSpan(0, 0, 30), cancellationToken);
+            MessageBox.Show("ManageAppLifeCycle(start) Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
         private void OnStartApplication(object sender, RoutedEventArgs e)
         {
-            OnManageAppLifeCycle(AppLifeCycleAction.startApp, LifeCyclePkgFamilyName.Text);
+            OnManageAppLifeCycle(AppxLifeCycleDataContract.JsonStart, LifeCyclePkgFamilyName.Text);
         }
 
         private void OnStopApplication(object sender, RoutedEventArgs e)
         {
-            OnManageAppLifeCycle(AppLifeCycleAction.stopApp, LifeCyclePkgFamilyName.Text);
+            OnManageAppLifeCycle(AppxLifeCycleDataContract.JsonStop, LifeCyclePkgFamilyName.Text);
         }
 
         private void CertificateInfoToUI(string hashesString, CertificateSelector certificateSelector)
@@ -280,6 +280,20 @@ namespace DMDashboard
                     if (jsonProp.Value is JObject)
                     {
                         DeviceInfoReportedState.FromJson((JObject)jsonProp.Value);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Expected json object as a value for " + DeviceInfoReportedState.SectionName);
+                    }
+                }
+                else if (jsonProp.Name == ExternalStorageDataContract.SectionName)
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    if (jsonProp.Value is JObject)
+                    {
+                        ExternalStorageDataContract.ReportedProperties reportedProperties = new ExternalStorageDataContract.ReportedProperties();
+                        reportedProperties.LoadFrom((JObject)jsonProp.Value);
+                        AzureStorageReportedConnectionString.Text = reportedProperties.connectionString;
                     }
                     else
                     {
@@ -475,17 +489,11 @@ namespace DMDashboard
             SetDesired(TimeSvcDesiredState.SectionName, TimeSvcDesiredState.ToJson()).FireAndForget();
         }
 
-        private ExternalStorage UIToExternalStorageModel()
-        {
-            ExternalStorage externalStorage = new ExternalStorage();
-            externalStorage.connectionString = AzureStorageConnectionString.Text;
-            return externalStorage;
-        }
-
         private void OnSetExternalStorageInfo(object sender, RoutedEventArgs e)
         {
-            ExternalStorage externalStorage = UIToExternalStorageModel();
-            SetDesired(externalStorage.SectionName, externalStorage.ToJson()).FireAndForget();
+            ExternalStorageDataContract.DesiredProperties desiredProperties = new ExternalStorageDataContract.DesiredProperties();
+            desiredProperties.connectionString = AzureStorageDesiredConnectionString.Text;
+            SetDesired(ExternalStorageDataContract.SectionName, desiredProperties.ToJson()).FireAndForget();
         }
 
         private void OnSetWindowsUpdatePolicyInfo(object sender, RoutedEventArgs e)
@@ -580,8 +588,6 @@ namespace DMDashboard
             StringBuilder json = new StringBuilder();
 
             json.Append("{");
-            json.Append(UIToExternalStorageModel().ToJson());
-            json.Append(",");
             json.Append(TimeDesiredState.ToJson());
             json.Append(",");
             json.Append(UIToCertificateConfiguration().ToJson());
@@ -691,7 +697,7 @@ namespace DMDashboard
         {
             System.Windows.MessageBox.Show("Exporting certificate details from the device to Azure storage...");
             string targetFileName = certificateData.Hash + ".json";
-            DeviceMethodReturnValue result = await RequestCertificateDetailsAsync(AzureStorageConnectionString.Text, AzureStorageContainerName.Text, sender.CertificatesPath, certificateData.Hash, targetFileName);
+            DeviceMethodReturnValue result = await RequestCertificateDetailsAsync(AzureStorageDesiredConnectionString.Text, AzureStorageContainerName.Text, sender.CertificatesPath, certificateData.Hash, targetFileName);
             GetCertificateDetailsResponse response = JsonConvert.DeserializeObject<GetCertificateDetailsResponse>(result.Payload);
             if (response == null || response.Status != 0)
             {
@@ -700,7 +706,7 @@ namespace DMDashboard
             }
 
             CertificateExportDetails.CertificateExportDetailsData certificateExportDetailsData = new CertificateExportDetails.CertificateExportDetailsData();
-            certificateExportDetailsData.ConnectionString = AzureStorageConnectionString.Text;
+            certificateExportDetailsData.ConnectionString = AzureStorageDesiredConnectionString.Text;
             certificateExportDetailsData.ContainerName = AzureStorageContainerName.Text;
             certificateExportDetailsData.BlobName = targetFileName;
 
@@ -748,7 +754,7 @@ namespace DMDashboard
             if (jToken != null && jToken is JValue)
             {
                 JValue jConnectionString = (JValue)jToken;
-                AzureStorageConnectionString.Text = (string)jConnectionString;
+                AzureStorageDesiredConnectionString.Text = (string)jConnectionString;
             }
         }
 
