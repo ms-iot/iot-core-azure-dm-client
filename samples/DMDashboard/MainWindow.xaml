@@ -8,6 +8,40 @@
         xmlns:DeviceHealthAttestation="clr-namespace:DMDashboard.DeviceHealthAttestation"
         mc:Ignorable="d"
         Title="MainWindow" Height="700" Width="1400">
+    <Window.Resources>
+        <ResourceDictionary>
+            <local:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
+            <Style TargetType="CheckBox" x:Key="ExpandCheckbox">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type CheckBox}">
+                            <Border Background="Transparent" HorizontalAlignment="Stretch">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="40"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" x:Name="Txt" Text="+" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <ContentPresenter Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Txt" Property="Text" Value="-"/>
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="False">
+                                    <Setter TargetName="Txt" Property="Text" Value="+"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -52,6 +86,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0" Grid.Column="0" Height="40">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" >
@@ -62,248 +97,12 @@
                 <Button Grid.Row="1" Grid.Column="0" Margin="3" Width="150" HorizontalAlignment="Left" Content="Load Desired Profile" Click="OnLoadProfile"/>
                 <ScrollViewer Grid.Row="2" Grid.Column="0">
                     <StackPanel Orientation="Vertical" x:Name="ConnectedProperties" IsEnabled="False" Grid.RowSpan="2">
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Azure Storage" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandAzureStorage" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="AzureStorageGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-
-                            <TextBlock Grid.Row="1" Grid.Column="0" Margin="3">Connection String</TextBlock>
-                            <Border Grid.Row="1" Grid.Column="1" Margin="3" Background="#F8F8F8">
-                                <TextBox x:Name="AzureStorageDesiredConnectionString" HorizontalAlignment="Stretch" Text="&lt;Azure Storage connection string&gt;" />
-                            </Border>
-                            <Border Grid.Row="1" Grid.Column="2" Margin="3" Background="#F8F8F8">
-                                <TextBlock x:Name="AzureStorageReportedConnectionString" HorizontalAlignment="Stretch"/>
-                            </Border>
-
-                            <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" >Container Name</TextBlock>
-                            <Border Grid.Row="2" Grid.Column="1" Margin="3" Background="#F8F8F8">
-                                <TextBox x:Name="AzureStorageContainerName" HorizontalAlignment="Stretch" Text="certificates"/>
-                            </Border>
-
-                            <Button Grid.Row="3" Grid.Column="1" Margin="3" Content="Set External Storage Info" Click="OnSetExternalStorageInfo" />
-
-                        </Grid>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Device Storage" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandDeviceStorage" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="DeviceStorageGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="Delete File" Click="OnDeviceDeleteFile" />
-                            <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Upload File" Click="OnDeviceUploadFile" />
-                        </Grid>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Grid.Column="0" Click="OnExpandDiagnosticLogs" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Diagnostic Logs" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                        </Grid>
-                        <Grid x:Name="DiagnosticLogsGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-
-                            <local:CollectorsDesiredStateControl Grid.Row="1" Grid.Column="1" Margin="3" x:Name="DesiredDiagnosticLogs"/>
-                            <local:CollectorsReportedStateControl Grid.Row="1" Grid.Column="2" Margin="3" x:Name="ReportedDiagnosticLogs"/>
-
-                            <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Configure Diagnostic Logs" Click="OnSetDiagnosticLogsInfo" />
-                        </Grid>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Grid.Column="0" Click="OnExpandWindowsUpdatePolicy" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Windows Update Policy" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                        </Grid>
-                        <Grid x:Name="WindowsUpdatePolicyGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-
-                            <local:WindowsUpdatePolicyDesiredStateControl Grid.Row="1" Grid.Column="1" Margin="3" x:Name="WindowsUpdatePolicyDesiredState"/>
-                            <local:WindowsUpdatePolicyReportedStateControl Grid.Row="1" Grid.Column="2" Margin="3" x:Name="WindowsUpdatePolicyReportedState" />
-                            <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Set Windows Update Policy" Click="OnSetWindowsUpdatePolicyInfo" />
-                        </Grid>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Windows Updates" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandWindowsUpdates" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="WindowsUpdatesGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-
-                            <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Installed"/>
-                            <Border Grid.Row="1" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                                <TextBlock x:Name="ReportedInstalled"/>
-                            </Border>
-
-                            <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Approved"/>
-                            <Border Grid.Row="2" Grid.Column="1" Background="#F8F8F8" Margin="3">
-                                <TextBox x:Name="DesiredApproved"/>
-                            </Border>
-                            <Border Grid.Row="2" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                                <TextBlock x:Name="ReportedApproved"/>
-                            </Border>
-
-                            <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Failed"/>
-                            <Border Grid.Row="3" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                                <TextBlock x:Name="ReportedFailed"/>
-                            </Border>
-
-                            <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Installable"/>
-                            <Border Grid.Row="4" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                                <TextBlock x:Name="ReportedInstallable"/>
-                            </Border>
-
-                            <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Pending Reboot"/>
-                            <Border Grid.Row="5" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                                <TextBlock x:Name="ReportedPendingReboot"/>
-                            </Border>
-
-                            <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Last Scan Time"/>
-                            <Border Grid.Row="6" Grid.Column="2" Background="#F8F8F8" Margin="3">
-                                <TextBlock x:Name="ReportedLastScanTime"/>
-                            </Border>
-
-                            <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Defer Upgrade"/>
-                            <CheckBox Grid.Row="7" Grid.Column="2" Margin="3" x:Name="ReportedDeferUpgrade"/>
-
-                            <Button Grid.Row="8" Grid.Column="1" Margin="3" Content="Set Windows Updates" Click="OnSetWindowsUpdatesInfo" />
-                        </Grid>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Windows Telemetry" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandWindowsTelemetry" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="WindowsTelemetryGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-                            <local:WindowsTelemetryDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="WindowsTelemetryDesiredState"/>
-                            <local:WindowsTelemetryReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="WindowsTelemetryReportedState"/>
-
-                            <Button Grid.Row="3" Grid.Column="1" Margin="2" Content="Set Windows Telemetry" Click="OnSetWindowsTelemetry" />
-                        </Grid>
-
-
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Certificates" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandCertificates" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <StackPanel x:Name="CertificateStackPanel" Orientation="Vertical" Visibility="Collapsed">
-                            <TextBlock Margin="3,10,3,3">./Device/Vendor/MSFT/RootCATrustedCertificates</TextBlock>
-                            <Grid>
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="AzureStorageVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Azure Storage" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="AzureStorageGrid" Visibility="{Binding IsChecked, ElementName=AzureStorageVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
@@ -318,15 +117,223 @@
                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                                 <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Margin="20,3,3,3">Root</TextBlock>
-                                <local:CertificateSelector Grid.Row="2" Grid.Column="1"
+                                <TextBlock Grid.Row="1" Grid.Column="0" Margin="3">Connection String</TextBlock>
+                                <Border Grid.Row="1" Grid.Column="1" Margin="3" Background="#F8F8F8">
+                                    <TextBox x:Name="AzureStorageDesiredConnectionString" HorizontalAlignment="Stretch" Text="&lt;Azure Storage connection string&gt;" />
+                                </Border>
+                                <Border Grid.Row="1" Grid.Column="2" Margin="3" Background="#F8F8F8">
+                                    <TextBlock x:Name="AzureStorageReportedConnectionString" HorizontalAlignment="Stretch"/>
+                                </Border>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" >Container Name</TextBlock>
+                                <Border Grid.Row="2" Grid.Column="1" Margin="3" Background="#F8F8F8">
+                                    <TextBox x:Name="AzureStorageContainerName" HorizontalAlignment="Stretch" Text="certificates"/>
+                                </Border>
+                                <Button Grid.Row="3" Grid.Column="1" Margin="3" Content="Set External Storage Info" Click="OnSetExternalStorageInfo" />
+                            </Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="DeviceStorageVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Device Storage" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="DeviceStorageGrid" Visibility="{Binding IsChecked, ElementName=DeviceStorageVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="Delete File" Click="OnDeviceDeleteFile" />
+                                <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Upload File" Click="OnDeviceUploadFile" />
+                            </Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="DiagnosticLogsVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Diagnostic Logs" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="DiagnosticLogsGrid" Visibility="{Binding IsChecked, ElementName=DiagnosticLogsVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                                <local:CollectorsDesiredStateControl Grid.Row="1" Grid.Column="1" Margin="3" x:Name="DesiredDiagnosticLogs"/>
+                                <local:CollectorsReportedStateControl Grid.Row="1" Grid.Column="2" Margin="3" x:Name="ReportedDiagnosticLogs"/>
+
+                                <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Configure Diagnostic Logs" Click="OnSetDiagnosticLogsInfo" />
+                            </Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="WindowsUpdatePolicyVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Windows Update Policy" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="WindowsUpdatePolicyGrid" Visibility="{Binding IsChecked, ElementName=WindowsUpdatePolicyVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                                <local:WindowsUpdatePolicyDesiredStateControl Grid.Row="1" Grid.Column="1" Margin="3" x:Name="WindowsUpdatePolicyDesiredState"/>
+                                <local:WindowsUpdatePolicyReportedStateControl Grid.Row="1" Grid.Column="2" Margin="3" x:Name="WindowsUpdatePolicyReportedState" />
+                                <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Set Windows Update Policy" Click="OnSetWindowsUpdatePolicyInfo" />
+                            </Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="WindowsUpdatesVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Windows Updates" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="WindowsUpdatesGrid"  Visibility="{Binding IsChecked, ElementName=WindowsUpdatesVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Installed"/>
+                                <Border Grid.Row="1" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                                    <TextBlock x:Name="ReportedInstalled"/>
+                                </Border>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Approved"/>
+                                <Border Grid.Row="2" Grid.Column="1" Background="#F8F8F8" Margin="3">
+                                    <TextBox x:Name="DesiredApproved"/>
+                                </Border>
+                                <Border Grid.Row="2" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                                    <TextBlock x:Name="ReportedApproved"/>
+                                </Border>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Failed"/>
+                                <Border Grid.Row="3" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                                    <TextBlock x:Name="ReportedFailed"/>
+                                </Border>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Installable"/>
+                                <Border Grid.Row="4" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                                    <TextBlock x:Name="ReportedInstallable"/>
+                                </Border>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Pending Reboot"/>
+                                <Border Grid.Row="5" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                                    <TextBlock x:Name="ReportedPendingReboot"/>
+                                </Border>
+
+                                <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Last Scan Time"/>
+                                <Border Grid.Row="6" Grid.Column="2" Background="#F8F8F8" Margin="3">
+                                    <TextBlock x:Name="ReportedLastScanTime"/>
+                                </Border>
+
+                                <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Defer Upgrade"/>
+                                <CheckBox Grid.Row="7" Grid.Column="2" Margin="3" x:Name="ReportedDeferUpgrade"/>
+
+                                <Button Grid.Row="8" Grid.Column="1" Margin="3" Content="Set Windows Updates" Click="OnSetWindowsUpdatesInfo" />
+                            </Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+                        
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="WindowsTelemetryVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Windows Telemetry" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="WindowsTelemetryGrid" Visibility="{Binding IsChecked, ElementName=WindowsTelemetryVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                                <local:WindowsTelemetryDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="WindowsTelemetryDesiredState"/>
+                                <local:WindowsTelemetryReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="WindowsTelemetryReportedState"/>
+
+                                <Button Grid.Row="3" Grid.Column="1" Margin="2" Content="Set Windows Telemetry" Click="OnSetWindowsTelemetry" />
+                            </Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+                        
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="CertificateVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Certificates" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <StackPanel x:Name="CertificateStackPanel" Orientation="Vertical"  Visibility="{Binding IsChecked, ElementName=CertificateVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <TextBlock Margin="3,10,3,3">./Device/Vendor/MSFT/RootCATrustedCertificates</TextBlock>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="300"/>
+                                        <ColumnDefinition Width="400"/>
+                                        <ColumnDefinition Width="400"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="20,3,3,3">Root</TextBlock>
+                                    <local:CertificateSelector Grid.Row="2" Grid.Column="1"
                                                            x:Name="Desired_RootCATrustedCertificates_Root"
                                                            CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/Root"
                                                            ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                            ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
                                                            EnableExport="False"
                                                            FileNamesString=""/>
-                                <local:CertificateSelector Grid.Row="2" Grid.Column="2"
+                                    <local:CertificateSelector Grid.Row="2" Grid.Column="2"
                                                            x:Name="Reported_RootCATrustedCertificates_Root"
                                                            CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/Root"
                                                            ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
@@ -335,15 +342,15 @@
                                                            EnableFileName="False"
                                                            FileNamesString=""/>
 
-                                <TextBlock Grid.Row="3" Grid.Column="0" Margin="20,3,3,3">CA</TextBlock>
-                                <local:CertificateSelector Grid.Row="3" Grid.Column="1"
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Margin="20,3,3,3">CA</TextBlock>
+                                    <local:CertificateSelector Grid.Row="3" Grid.Column="1"
                                                            x:Name="Desired_RootCATrustedCertificates_CA"
                                                            CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/CA"
                                                            ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                            ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
                                                            EnableExport="False"
                                                            FileNamesString=""/>
-                                <local:CertificateSelector Grid.Row="3" Grid.Column="2"
+                                    <local:CertificateSelector Grid.Row="3" Grid.Column="2"
                                                            x:Name="Reported_RootCATrustedCertificates_CA"
                                                            CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/CA"
                                                            ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
@@ -352,15 +359,15 @@
                                                            EnableFileName="False"
                                                            FileNamesString=""/>
 
-                                <TextBlock Grid.Row="4" Grid.Column="0" Margin="20,3,3,3">TrustedPublisher</TextBlock>
-                                <local:CertificateSelector Grid.Row="4" Grid.Column="1"
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Margin="20,3,3,3">TrustedPublisher</TextBlock>
+                                    <local:CertificateSelector Grid.Row="4" Grid.Column="1"
                                                            x:Name="Desired_RootCATrustedCertificates_TrustedPublisher"
                                                            CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher"
                                                            ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                            ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
                                                            EnableExport="False"
                                                            FileNamesString=""/>
-                                <local:CertificateSelector Grid.Row="4" Grid.Column="2"
+                                    <local:CertificateSelector Grid.Row="4" Grid.Column="2"
                                                            x:Name="Reported_RootCATrustedCertificates_TrustedPublisher"
                                                            CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher"
                                                            ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
@@ -369,15 +376,15 @@
                                                            EnableFileName="False"
                                                            FileNamesString=""/>
 
-                                <TextBlock Grid.Row="5" Grid.Column="0" Margin="20,3,3,3">TrustedPeople</TextBlock>
-                                <local:CertificateSelector Grid.Row="5" Grid.Column="1"
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Margin="20,3,3,3">TrustedPeople</TextBlock>
+                                    <local:CertificateSelector Grid.Row="5" Grid.Column="1"
                                                            x:Name="Desired_RootCATrustedCertificates_TrustedPeople"
                                                            CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
                                                            ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
                                                            ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
                                                            EnableExport="False"
                                                            FileNamesString=""/>
-                                <local:CertificateSelector Grid.Row="5" Grid.Column="2"
+                                    <local:CertificateSelector Grid.Row="5" Grid.Column="2"
                                                            x:Name="Reported_RootCATrustedCertificates_TrustedPeople"
                                                            CertificatesPath="./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
                                                            ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
@@ -385,9 +392,307 @@
                                                            EnableAddRemove="False"
                                                            EnableFileName="False"
                                                            FileNamesString=""/>
+                                </Grid>
+                                <TextBlock Margin="3,10,3,3">./Vendor/MSFT/CertificateStore</TextBlock>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="300"/>
+                                        <ColumnDefinition Width="400"/>
+                                        <ColumnDefinition Width="400"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="20,3,3,3">CA/System</TextBlock>
+                                    <local:CertificateSelector Grid.Row="2" Grid.Column="1"
+                                                           x:Name="Desired_CertificateStore_CA_System"
+                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/CA/System"
+                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                           EnableExport="False"
+                                                           FileNamesString=""/>
+                                    <local:CertificateSelector Grid.Row="2" Grid.Column="2"
+                                                           x:Name="Reported_CertificateStore_CA_System"
+                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/CA/System"
+                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                           EnableAddRemove="False"
+                                                           EnableFileName="False"
+                                                           FileNamesString=""/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Margin="20,3,3,3" >Root/System</TextBlock>
+                                    <local:CertificateSelector Grid.Row="3" Grid.Column="1"
+                                                           x:Name="Desired_CertificateStore_Root_System"
+                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/Root/System"
+                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                           EnableExport="False"
+                                                           FileNamesString=""/>
+                                    <local:CertificateSelector Grid.Row="3" Grid.Column="2"
+                                                           x:Name="Reported_CertificateStore_Root_System"
+                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/Root/System"
+                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                           EnableAddRemove="False"
+                                                           EnableFileName="False"
+                                                           FileNamesString=""/>
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Margin="20,3,3,3" >My/User</TextBlock>
+                                    <local:CertificateSelector Grid.Row="4" Grid.Column="1"
+                                                           x:Name="Desired_CertificateStore_My_User"
+                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/My/User"
+                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                           EnableExport="False"
+                                                           FileNamesString=""/>
+                                    <local:CertificateSelector Grid.Row="4" Grid.Column="2"
+                                                           x:Name="Reported_CertificateStore_My_User"
+                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/My/User"
+                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                           EnableAddRemove="False"
+                                                           EnableFileName="False"
+                                                           FileNamesString=""/>
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Margin="20,3,3,3" >My/System</TextBlock>
+                                    <ListView Grid.Row="5" Grid.Column="2" Margin="3" Height="150" VerticalAlignment="Top" 
+                                                            x:Name="ReportedCertificateStore_My_System"/>
+                                    <local:CertificateSelector Grid.Row="5" Grid.Column="1"
+                                                           x:Name="Desired_CertificateStore_My_System"
+                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/My/System"
+                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                           EnableExport="False"
+                                                           FileNamesString=""/>
+                                    <local:CertificateSelector Grid.Row="5" Grid.Column="2"
+                                                           x:Name="Reported_CertificateStore_My_System"
+                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/My/System"
+                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
+                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
+                                                           EnableAddRemove="False"
+                                                           EnableFileName="False"
+                                                           FileNamesString=""/>
+
+                                    <Button Grid.Row="6" Grid.Column="1" Margin="3,20,3,3" Content="Set Certificate Configuration" Click="OnSetCertificateConfiguration" />
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+                        
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="RebootInfoVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Reboot Info" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="RebootInfoGrid" Visibility="{Binding IsChecked, ElementName=RebootInfoVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                                <local:RebootInfoDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="RebootInfoDesiredState"/>
+                                <local:RebootInfoReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="RebootInfoReportedState"/>
+                                <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Set Reboot Info" Click="OnSetRebootInfo" />
                             </Grid>
-                            <TextBlock Margin="3,10,3,3">./Vendor/MSFT/CertificateStore</TextBlock>
-                            <Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+                        
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="RebootCmdVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Reboot Command" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="RebootCmdGrid"  Visibility="{Binding IsChecked, ElementName=RebootCmdVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                                <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Reboot Now" Click="OnRebootSystem"/>
+                                <local:RebootCmdReportedStateControl Grid.Row="1" Grid.Column="2" Margin="3" x:Name="RebootCmdReportedState"/>
+                            </Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+                        
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="TimeInfoVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Time Info" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="TimeInfoGrid"  Visibility="{Binding IsChecked, ElementName=TimeInfoVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                                <local:TimeDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="TimeDesiredState"/>
+                                <local:TimeReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="TimeReportedState"/>
+                                <Button Grid.Row="3" Grid.Column="1" Margin="2" Content="Set Time Info" Click="OnSetTimeInfo" />
+                            </Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+                        
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="TimeServiceVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Time Service" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="TimeServiceGrid"  Visibility="{Binding IsChecked, ElementName=TimeServiceVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                                <local:TimeSvcDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="TimeSvcDesiredState"/>
+                                <local:TimeSvcReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="TimeSvcReportedState"/>
+
+                                <Button Grid.Row="3" Grid.Column="1" Margin="2" Content="Set Time Service" Click="OnSetTimeService" />
+                            </Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+                        
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="FactoryResetVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Factory Reset" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="FactoryResetGrid" Visibility="{Binding IsChecked, ElementName=FactoryResetVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Clear TPM"/>
+                                <CheckBox Grid.Row="1" Grid.Column="1" Margin="3" x:Name="DesiredClearTPM"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Recovery Partition GUID"/>
+                                <TextBox Grid.Row="2" Grid.Column="1" Margin="3" x:Name="DesiredRecoveryPartitionGUID" Text="a5935ff2-32ba-4617-bf36-5ac314b3f9bf"/>
+
+                                <Button Grid.Row="3" Grid.Column="1" Margin="3" Content="Reset" Click="OnFactoryReset" />
+                            </Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+                        
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="AppsVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Apps" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="AppsGrid" Visibility="{Binding IsChecked, ElementName=AppsVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" Text="Primary DM App" />
+                                <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Start App Self Update" Click="OnStartDmAppStoreUpdate" VerticalAlignment="Top"/>
+                                <local:DmAppStoreUpdateReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="DmAppStoreUpdateReportedState"/>
+
+                                <Border Grid.Row="2" Grid.Column="1" BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="300" Height="1" />
+                                <Border Grid.Row="2" Grid.Column="2" BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="300" Height="1" />
+
+                                <Grid Grid.Row="3" Grid.Column="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="50"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Margin="3" Text="Pkg Family Name" />
+                                    <TextBox Grid.Column="1" Margin="3" x:Name="LifeCyclePkgFamilyName"/>
+                                    <Button Grid.Column="2" Margin="3" Click="OnStartApplication" Content="Start"/>
+                                    <Button Grid.Column="3" Margin="3" Click="OnStopApplication" Content="Stop"/>
+                                </Grid>
+
+                                <Border Grid.Row="4" Grid.Column="1" BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="300" Height="1" />
+                                <Border Grid.Row="4" Grid.Column="2" BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="300" Height="1" />
+
+                                <local:AppsDesiredStateControl Grid.Row="5" Grid.Column="1" x:Name="TheAppsConfigurator"/>
+                                <local:AppsReportedStateControl Grid.Row="5" Grid.Column="2" x:Name="TheAppsStatus"/>
+
+                                <Button Grid.Row="6" Grid.Column="1" Margin="3" Content="Set Apps Configuration" Click="OnSetAppsConfiguration" />
+                            </Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+                        
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="DeviceInfoVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Device Info" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="DeviceInfoGrid" Visibility="{Binding IsChecked, ElementName=DeviceInfoVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                                <local:DeviceInfoReportedStateControl Grid.Row="0" Grid.Column="2" x:Name="DeviceInfoReportedState"/>
+                            </Grid>
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+                        
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="DeviceHealthAttestationVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Device Health Attestation" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="DeviceHealthAttestationGrid" Visibility="{Binding IsChecked, ElementName=DeviceHealthAttestationVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
@@ -405,385 +710,58 @@
 
                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
                                 <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                                <DeviceHealthAttestation:DeviceHealthAttestationDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="DeviceHealthAttestationDesiredState"/>
+                                <DeviceHealthAttestation:DeviceHealthAttestationReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="DeviceHealthAttestationReportedState"/>
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Margin="20,3,3,3">CA/System</TextBlock>
-                                <local:CertificateSelector Grid.Row="2" Grid.Column="1"
-                                                           x:Name="Desired_CertificateStore_CA_System"
-                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/CA/System"
-                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
-                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                           EnableExport="False"
-                                                           FileNamesString=""/>
-                                <local:CertificateSelector Grid.Row="2" Grid.Column="2"
-                                                           x:Name="Reported_CertificateStore_CA_System"
-                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/CA/System"
-                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
-                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                           EnableAddRemove="False"
-                                                           EnableFileName="False"
-                                                           FileNamesString=""/>
-
-                                <TextBlock Grid.Row="3" Grid.Column="0" Margin="20,3,3,3" >Root/System</TextBlock>
-                                <local:CertificateSelector Grid.Row="3" Grid.Column="1"
-                                                           x:Name="Desired_CertificateStore_Root_System"
-                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/Root/System"
-                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
-                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                           EnableExport="False"
-                                                           FileNamesString=""/>
-                                <local:CertificateSelector Grid.Row="3" Grid.Column="2"
-                                                           x:Name="Reported_CertificateStore_Root_System"
-                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/Root/System"
-                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
-                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                           EnableAddRemove="False"
-                                                           EnableFileName="False"
-                                                           FileNamesString=""/>
-
-                                <TextBlock Grid.Row="4" Grid.Column="0" Margin="20,3,3,3" >My/User</TextBlock>
-                                <local:CertificateSelector Grid.Row="4" Grid.Column="1"
-                                                           x:Name="Desired_CertificateStore_My_User"
-                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/My/User"
-                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
-                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                           EnableExport="False"
-                                                           FileNamesString=""/>
-                                <local:CertificateSelector Grid.Row="4" Grid.Column="2"
-                                                           x:Name="Reported_CertificateStore_My_User"
-                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/My/User"
-                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
-                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                           EnableAddRemove="False"
-                                                           EnableFileName="False"
-                                                           FileNamesString=""/>
-
-                                <TextBlock Grid.Row="5" Grid.Column="0" Margin="20,3,3,3" >My/System</TextBlock>
-                                <ListView Grid.Row="5" Grid.Column="2" Margin="3" Height="150" VerticalAlignment="Top" 
-                                                            x:Name="ReportedCertificateStore_My_System"/>
-                                <local:CertificateSelector Grid.Row="5" Grid.Column="1"
-                                                           x:Name="Desired_CertificateStore_My_System"
-                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/My/System"
-                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
-                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                           EnableExport="False"
-                                                           FileNamesString=""/>
-                                <local:CertificateSelector Grid.Row="5" Grid.Column="2"
-                                                           x:Name="Reported_CertificateStore_My_System"
-                                                           CertificatesPath="./Vendor/MSFT/CertificateStore/My/System"
-                                                           ConnectionString="{Binding ElementName=AzureStorageConnectionString, Path=Text}"
-                                                           ContainerName="{Binding ElementName=AzureStorageContainerName, Path=Text}"
-                                                           EnableAddRemove="False"
-                                                           EnableFileName="False"
-                                                           FileNamesString=""/>
-
-                                <Button Grid.Row="6" Grid.Column="1" Margin="3,20,3,3" Content="Set Certificate Configuration" Click="OnSetCertificateConfiguration" />
+                                <Button Grid.Row="2" Grid.Column="1" Margin="3" Click="DeviceHealthAttestationSetInfoButtonAsync" HorizontalAlignment="Stretch" x:Name="DeviceHealthAttestationSetInfoButton">Set Device Health Attestation Info</Button>
+                                <Button Grid.Row="2" Grid.Column="2" Margin="3" Click="DeviceHealthAttestationReportButtonAsync" HorizontalAlignment="Stretch" x:Name="DeviceHealthAttestationReportButton">Report Now</Button>
                             </Grid>
                         </StackPanel>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Reboot Info" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandRebootInfo" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="RebootInfoGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-                            <local:RebootInfoDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="RebootInfoDesiredState"/>
-                            <local:RebootInfoReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="RebootInfoReportedState"/>
-                            <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Set Reboot Info" Click="OnSetRebootInfo" />
-                        </Grid>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Reboot Command" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandRebootCmd" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="RebootCmdGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-                            <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Reboot Now" Click="OnRebootSystem"/>
-                            <local:RebootCmdReportedStateControl Grid.Row="1" Grid.Column="2" Margin="3" x:Name="RebootCmdReportedState"/>
-                        </Grid>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Time Info" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandTimeInfo" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="TimeInfoGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-                            <local:TimeDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="TimeDesiredState"/>
-                            <local:TimeReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="TimeReportedState"/>
-                            <Button Grid.Row="3" Grid.Column="1" Margin="2" Content="Set Time Info" Click="OnSetTimeInfo" />
-                        </Grid>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Time Service" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandTimeService" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="TimeServiceGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-                            <local:TimeSvcDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="TimeSvcDesiredState"/>
-                            <local:TimeSvcReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="TimeSvcReportedState"/>
-
-                            <Button Grid.Row="3" Grid.Column="1" Margin="2" Content="Set Time Service" Click="OnSetTimeService" />
-                        </Grid>
-
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Factory Reset" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandFactoryReset" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="FactoryResetGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-
-                            <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Clear TPM"/>
-                            <CheckBox Grid.Row="1" Grid.Column="1" Margin="3" x:Name="DesiredClearTPM"/>
-
-                            <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Recovery Partition GUID"/>
-                            <TextBox Grid.Row="2" Grid.Column="1" Margin="3" x:Name="DesiredRecoveryPartitionGUID" Text="a5935ff2-32ba-4617-bf36-5ac314b3f9bf"/>
-
-                            <Button Grid.Row="3" Grid.Column="1" Margin="3" Content="Reset" Click="OnFactoryReset" />
-                        </Grid>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Apps" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandApps" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="AppsGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="30"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-
-                            <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" Text="Primary DM App" />
-                            <Button Grid.Row="1" Grid.Column="1" Margin="3" Content="Start App Self Update" Click="OnStartDmAppStoreUpdate" VerticalAlignment="Top"/>
-                            <local:DmAppStoreUpdateReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="DmAppStoreUpdateReportedState"/>
-
-                            <Border Grid.Row="2" Grid.Column="1" BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="300" Height="1" />
-                            <Border Grid.Row="2" Grid.Column="2" BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="300" Height="1" />
-
-                            <Grid Grid.Row="3" Grid.Column="1">
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
+                        
+                        <StackPanel Margin="10" Orientation="Vertical" Background="Transparent">
+                            <CheckBox Grid.Column="0" Style="{StaticResource ExpandCheckbox}" HorizontalAlignment="Stretch" VerticalAlignment="Top" x:Name="WifiVisibilityBtn" IsThreeState="False">
+                                <TextBlock Margin="3" Text="Wifi" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
+                            </CheckBox>
+                            <Grid x:Name="WifiGrid" Visibility="{Binding IsChecked, ElementName=WifiVisibilityBtn, Converter={StaticResource booleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100"/>
-                                    <ColumnDefinition Width="200"/>
-                                    <ColumnDefinition Width="50"/>
-                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="400"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Margin="3" Text="Pkg Family Name" />
-                                <TextBox Grid.Column="1" Margin="3" x:Name="LifeCyclePkgFamilyName"/>
-                                <Button Grid.Column="2" Margin="3" Click="OnStartApplication" Content="Start"/>
-                                <Button Grid.Column="3" Margin="3" Click="OnStopApplication" Content="Stop"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+
+                                <local:WifiProfilesDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="WifiDesiredState"/>
+                                <local:WifiProfilesReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="WifiReportedState"/>
+
+                                <Button Grid.Row="4" Grid.Column="1" Margin="10,0,10,3" Content="Set Wifi Configuration" Click="OnSetWifiConfiguration" />
                             </Grid>
-
-                            <Border Grid.Row="4" Grid.Column="1" BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="300" Height="1" />
-                            <Border Grid.Row="4" Grid.Column="2" BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="300" Height="1" />
-
-                            <local:AppsDesiredStateControl Grid.Row="5" Grid.Column="1" x:Name="TheAppsConfigurator"/>
-                            <local:AppsReportedStateControl Grid.Row="5" Grid.Column="2" x:Name="TheAppsStatus"/>
-
-                            <Button Grid.Row="6" Grid.Column="1" Margin="3" Content="Set Apps Configuration" Click="OnSetAppsConfiguration" />
-                        </Grid>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Device Info" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandDeviceInfo" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="DeviceInfoGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-                            <local:DeviceInfoReportedStateControl Grid.Row="0" Grid.Column="2" x:Name="DeviceInfoReportedState"/>
-                        </Grid>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Device Health Attestation" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandDeviceHealthAttestation" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="DeviceHealthAttestationGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-                            <DeviceHealthAttestation:DeviceHealthAttestationDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="DeviceHealthAttestationDesiredState"/>
-                            <DeviceHealthAttestation:DeviceHealthAttestationReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="DeviceHealthAttestationReportedState"/>
-
-                            <Button Grid.Row="2" Grid.Column="1" Margin="3" Click="DeviceHealthAttestationSetInfoButtonAsync" HorizontalAlignment="Stretch" x:Name="DeviceHealthAttestationSetInfoButton">Set Device Health Attestation Info</Button>
-                            <Button Grid.Row="2" Grid.Column="2" Margin="3" Click="DeviceHealthAttestationReportButtonAsync" HorizontalAlignment="Stretch" x:Name="DeviceHealthAttestationReportButton">Report Now</Button>
-
-                        </Grid>
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="1" Margin="3" Text="Wifi" FontSize="12" FontWeight="Bold" Width="200" HorizontalAlignment="Left"/>
-                            <Button Grid.Column="0" Click="OnExpandWifi" Width="30" Content="+/-" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <Grid x:Name="WifiGrid" Visibility="Collapsed">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="30"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
-
-                            <local:WifiProfilesDesiredStateControl Grid.Row="1" Grid.Column="1" x:Name="WifiDesiredState"/>
-                            <local:WifiProfilesReportedStateControl Grid.Row="1" Grid.Column="2" x:Name="WifiReportedState"/>
-
-                            <Button Grid.Row="4" Grid.Column="1" Margin="10,0,10,3" Content="Set Wifi Configuration" Click="OnSetWifiConfiguration" />
-                        </Grid>
-
-                        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="300"/>
-                                <ColumnDefinition Width="400"/>
-                                <ColumnDefinition Width="400"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="Apply Desired to DT and Device" Click="OnSetAllDesiredProperties"/>
-                            <Button Grid.Row="0" Grid.Column="2" Margin="3" Content="Update DT Reported from Device" Click="OnUpdateDTReported" />
-                            <Button Grid.Row="1" Grid.Column="2" Margin="3" Content="Read Reported from DT" Click="OnReadDTReported" />
-                        </Grid>
-
+                        </StackPanel>
+                        <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
                     </StackPanel>
                 </ScrollViewer>
+                <Grid Grid.Row="3" Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="400"/>
+                        <ColumnDefinition Width="400"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Button Grid.Row="0" Grid.Column="1" Margin="3" Content="Apply Desired to DT and Device" Click="OnSetAllDesiredProperties"/>
+                    <Button Grid.Row="0" Grid.Column="2" Margin="3" Content="Update DT Reported from Device" Click="OnUpdateDTReported" />
+                    <Button Grid.Row="1" Grid.Column="2" Margin="3" Content="Read Reported from DT" Click="OnReadDTReported" />
+                </Grid>
             </Grid>
         </Grid>
         <Grid Grid.Row="2" Grid.Column="0">

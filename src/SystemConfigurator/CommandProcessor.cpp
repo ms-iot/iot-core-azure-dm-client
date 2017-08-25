@@ -280,183 +280,126 @@ IResponse^ HandleSetCertificateConfiguration(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto setCertificateConfigurationRequest = dynamic_cast<SetCertificateConfigurationRequest^>(request);
-        CertificateConfiguration^ configuration = setCertificateConfigurationRequest->configuration;
+    auto setCertificateConfigurationRequest = dynamic_cast<SetCertificateConfigurationRequest^>(request);
+    CertificateConfiguration^ configuration = setCertificateConfigurationRequest->configuration;
 
-        CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/CA/System", configuration->certificateStore_CA_System->Data());
-        CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/Root/System", configuration->certificateStore_Root_System->Data());
-        CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/My/User", configuration->certificateStore_My_User->Data());
-        CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/My/System", configuration->certificateStore_My_System->Data());
+    CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/CA/System", configuration->certificateStore_CA_System->Data());
+    CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/Root/System", configuration->certificateStore_Root_System->Data());
+    CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/My/User", configuration->certificateStore_My_User->Data());
+    CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/My/System", configuration->certificateStore_My_System->Data());
 
-        CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/Root", configuration->rootCATrustedCertificates_Root->Data());
-        CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/CA", configuration->rootCATrustedCertificates_CA->Data());
-        CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher", configuration->rootCATrustedCertificates_TrustedPublisher->Data());
-        CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople", configuration->rootCATrustedCertificates_TrustedPeople->Data());
+    CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/Root", configuration->rootCATrustedCertificates_Root->Data());
+    CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/CA", configuration->rootCATrustedCertificates_CA->Data());
+    CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher", configuration->rootCATrustedCertificates_TrustedPublisher->Data());
+    CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople", configuration->rootCATrustedCertificates_TrustedPeople->Data());
 
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleSetCertificateConfiguration: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetCertificateDetails(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto getCertificateDetailsRequest = dynamic_cast<GetCertificateDetailsRequest^>(request);
-        wstring path = getCertificateDetailsRequest->path->Data();
-        wstring hash = getCertificateDetailsRequest->hash->Data();
-        TRACEP(L"path = ", path.c_str());
-        TRACEP(L"hash = ", hash.c_str());
-        CertificateInfo certificateInfo(path + L"/" + hash);
+    auto getCertificateDetailsRequest = dynamic_cast<GetCertificateDetailsRequest^>(request);
+    wstring path = getCertificateDetailsRequest->path->Data();
+    wstring hash = getCertificateDetailsRequest->hash->Data();
+    TRACEP(L"path = ", path.c_str());
+    TRACEP(L"hash = ", hash.c_str());
+    CertificateInfo certificateInfo(path + L"/" + hash);
 
-        GetCertificateDetailsResponse^ getCertificateDetailsResponse = ref new GetCertificateDetailsResponse(ResponseStatus::Success);
-        getCertificateDetailsResponse->issuedBy = ref new String(certificateInfo.GetIssuedBy().c_str());
-        getCertificateDetailsResponse->issuedTo = ref new String(certificateInfo.GetIssuedTo().c_str());
-        getCertificateDetailsResponse->validFrom = ref new String(certificateInfo.GetValidFrom().c_str());
-        getCertificateDetailsResponse->validTo = ref new String(certificateInfo.GetValidTo().c_str());
-        getCertificateDetailsResponse->base64Encoding = ref new String(certificateInfo.GetCertificateInBase64().c_str());
-        getCertificateDetailsResponse->templateName = ref new String(certificateInfo.GetTemplateName().c_str());
+    GetCertificateDetailsResponse^ getCertificateDetailsResponse = ref new GetCertificateDetailsResponse(ResponseStatus::Success);
+    getCertificateDetailsResponse->issuedBy = ref new String(certificateInfo.GetIssuedBy().c_str());
+    getCertificateDetailsResponse->issuedTo = ref new String(certificateInfo.GetIssuedTo().c_str());
+    getCertificateDetailsResponse->validFrom = ref new String(certificateInfo.GetValidFrom().c_str());
+    getCertificateDetailsResponse->validTo = ref new String(certificateInfo.GetValidTo().c_str());
+    getCertificateDetailsResponse->base64Encoding = ref new String(certificateInfo.GetCertificateInBase64().c_str());
+    getCertificateDetailsResponse->templateName = ref new String(certificateInfo.GetTemplateName().c_str());
 
-        return getCertificateDetailsResponse;
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleGetCertificateDetails: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    return getCertificateDetailsResponse;
 }
 
 IResponse^ HandleGetWifiConfiguration(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto profiles = WifiCSP::GetProfiles();
+    auto profiles = WifiCSP::GetProfiles();
 
-        auto configuration = ref new WifiConfiguration();
-        configuration->ReportToDeviceTwin = ref new Platform::String(L"yes");
-        for each (auto profile in profiles)
-        {
-            auto profileConfig = ref new WifiProfileConfiguration();
-            profileConfig->Name = ref new Platform::String(profile.c_str());
-            TRACEP(L"Wifi profile found: ", profileConfig->Name->Data());
-            configuration->Profiles->Append(profileConfig);
-        }
-        auto response = ref new GetWifiConfigurationResponse(ResponseStatus::Success, configuration);
-        return response;
-    }
-    catch (const DMException& e)
+    auto configuration = ref new WifiConfiguration();
+    configuration->ReportToDeviceTwin = ref new Platform::String(L"yes");
+    for each (auto profile in profiles)
     {
-        TRACEP("ERROR DMCommand::HandleGetWifiConfiguration: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+        auto profileConfig = ref new WifiProfileConfiguration();
+        profileConfig->Name = ref new Platform::String(profile.c_str());
+        TRACEP(L"Wifi profile found: ", profileConfig->Name->Data());
+        configuration->Profiles->Append(profileConfig);
     }
+    return ref new GetWifiConfigurationResponse(ResponseStatus::Success, configuration);
 }
 
 IResponse^ HandleSetWifiConfiguration(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto wifiRequest = dynamic_cast<SetWifiConfigurationRequest^>(request);
-        auto configuration = wifiRequest->Configuration;
+    auto wifiRequest = dynamic_cast<SetWifiConfigurationRequest^>(request);
+    auto configuration = wifiRequest->Configuration;
 
-        if (configuration != nullptr)
+    if (configuration != nullptr)
+    {
+        for each (auto profile in configuration->Profiles)
         {
-            for each (auto profile in configuration->Profiles)
+            std::wstring profileName = profile->Name->Data();
+            TRACEP(L"DMCommand::HandleSetWifiConfiguration handle profile: ", profileName);
+            TRACEP("DMCommand::HandleSetWifiConfiguration uninstall? ", profile->Uninstall);
+            if (profile->Uninstall)
             {
-                std::wstring profileName = profile->Name->Data();
-                TRACEP(L"DMCommand::HandleSetWifiConfiguration handle profile: ", profileName);
-                TRACEP("DMCommand::HandleSetWifiConfiguration uninstall? ", profile->Uninstall);
-                if (profile->Uninstall)
-                {
-                    WifiCSP::DeleteProfile(profileName);
-                }
-                else
-                {
-                    std::wstring profileXml = profile->Xml->Data();
-                    WifiCSP::AddProfile(profileName, profileXml);
-                }
+                WifiCSP::DeleteProfile(profileName);
+            }
+            else
+            {
+                std::wstring profileXml = profile->Xml->Data();
+                WifiCSP::AddProfile(profileName, profileXml);
             }
         }
+    }
 
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleSetWifiConfiguration: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetWifiDetails(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto getWifiDetailsRequest = dynamic_cast<GetWifiDetailsRequest^>(request);
-        wstring profileName = getWifiDetailsRequest->profileName->Data();
-        auto xml = WifiCSP::GetProfile(profileName);
+    auto getWifiDetailsRequest = dynamic_cast<GetWifiDetailsRequest^>(request);
+    wstring profileName = getWifiDetailsRequest->profileName->Data();
+    auto xml = WifiCSP::GetProfile(profileName);
 
-        GetWifiDetailsResponse^ getWifiDetailsResponse = ref new GetWifiDetailsResponse(ResponseStatus::Success);
-        getWifiDetailsResponse->Name = getWifiDetailsRequest->profileName;
-        getWifiDetailsResponse->Xml = ref new Platform::String(xml.c_str());
+    GetWifiDetailsResponse^ getWifiDetailsResponse = ref new GetWifiDetailsResponse(ResponseStatus::Success);
+    getWifiDetailsResponse->Name = getWifiDetailsRequest->profileName;
+    getWifiDetailsResponse->Xml = ref new Platform::String(xml.c_str());
 
-        return getWifiDetailsResponse;
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleGetWifiDetails: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    return getWifiDetailsResponse;
 }
 
 IResponse^ HandleGetRebootInfo(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        GetRebootInfoResponse^ response = ref new GetRebootInfoResponse(ResponseStatus::Success);
-        response->singleRebootTime = ref new String(RebootCSP::GetSingleScheduleTime().data());
-        response->dailyRebootTime = ref new String(RebootCSP::GetDailyScheduleTime().data());
-        response->lastBootTime = ref new String(RebootCSP::GetLastRebootTime().data());
-        response->lastRebootCmdTime = ref new String(RebootCSP::GetLastRebootCmdTime().data());
-        return response;
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleGetRebootInfo: ", e.what());
-        return ref new GetRebootInfoResponse(ResponseStatus::Failure);
-    }
+    GetRebootInfoResponse^ response = ref new GetRebootInfoResponse(ResponseStatus::Success);
+    response->singleRebootTime = ref new String(RebootCSP::GetSingleScheduleTime().data());
+    response->dailyRebootTime = ref new String(RebootCSP::GetDailyScheduleTime().data());
+    response->lastBootTime = ref new String(RebootCSP::GetLastRebootTime().data());
+    response->lastRebootCmdTime = ref new String(RebootCSP::GetLastRebootCmdTime().data());
+    return response;
 }
 
 IResponse^ HandleSetRebootInfo(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto setRebootInfoRequest = dynamic_cast<SetRebootInfoRequest^>(request);
-        RebootCSP::SetSingleScheduleTime(setRebootInfoRequest->singleRebootTime->Data());
-        RebootCSP::SetDailyScheduleTime(setRebootInfoRequest->dailyRebootTime->Data());
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleSetRebootInfo: ", e.what());
-        return ref new GetRebootInfoResponse(ResponseStatus::Failure);
-    }
+    auto setRebootInfoRequest = dynamic_cast<SetRebootInfoRequest^>(request);
+    RebootCSP::SetSingleScheduleTime(setRebootInfoRequest->singleRebootTime->Data());
+    RebootCSP::SetDailyScheduleTime(setRebootInfoRequest->dailyRebootTime->Data());
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetTimeInfo(IRequest^ request)
@@ -469,17 +412,9 @@ IResponse^ HandleImmediateReboot(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto immediateRebootRequest = dynamic_cast<ImmediateRebootRequest^>(request);
-        RebootCSP::ExecRebootNow(immediateRebootRequest->lastRebootCmdTime->Data());
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleImmediateReboot: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    auto immediateRebootRequest = dynamic_cast<ImmediateRebootRequest^>(request);
+    RebootCSP::ExecRebootNow(immediateRebootRequest->lastRebootCmdTime->Data());
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleCheckUpdates(IRequest^ request)
@@ -597,29 +532,20 @@ IResponse^ HandleTransferFile(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto transferRequest = dynamic_cast<AzureFileTransferRequest^>(request);
-        auto info = transferRequest->AzureFileTransferInfo;
-        auto upload = info->Upload;
-        auto localPath = (wstring)info->LocalPath->Data();
-        auto appLocalDataPath = (wstring)info->AppLocalDataPath->Data();
+    auto transferRequest = dynamic_cast<AzureFileTransferRequest^>(request);
+    auto info = transferRequest->AzureFileTransferInfo;
+    auto upload = info->Upload;
+    auto localPath = (wstring)info->LocalPath->Data();
+    auto appLocalDataPath = (wstring)info->AppLocalDataPath->Data();
 
-        TRACEP(L"Local path     = ", localPath.c_str());
-        TRACEP(L"App local path = ", appLocalDataPath.c_str());
+    TRACEP(L"Local path     = ", localPath.c_str());
+    TRACEP(L"App local path = ", appLocalDataPath.c_str());
 
-        std::ifstream  src((upload) ? localPath : appLocalDataPath, std::ios::binary);
-        std::ofstream  dst((!upload) ? localPath : appLocalDataPath, std::ios::binary);
-        dst << src.rdbuf();
+    std::ifstream  src((upload) ? localPath : appLocalDataPath, std::ios::binary);
+    std::ofstream  dst((!upload) ? localPath : appLocalDataPath, std::ios::binary);
+    dst << src.rdbuf();
 
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (Platform::Exception^ e)
-    {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleTransferFile: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleAppLifecycle(IRequest^ request)
@@ -648,62 +574,35 @@ IResponse^ HandleAddRemoveAppForStartup(StartupAppInfo^ info, DMMessageKind tag,
 {
     TRACE(__FUNCTION__);
 
-    try
+    auto pkgFamilyName = (wstring)info->AppId->Data();
+
+    TRACEP(L"pkgFamilyName = ", pkgFamilyName.c_str());
+
+    auto isBackgroundApp = info->IsBackgroundApplication;
+
+    if (add)
     {
-        auto pkgFamilyName = (wstring)info->AppId->Data();
-
-        TRACEP(L"pkgFamilyName = ", pkgFamilyName.c_str());
-
-        auto isBackgroundApp = info->IsBackgroundApplication;
-
-        if (add)
-        {
-            CustomDeviceUiCSP::AddAsStartupApp(pkgFamilyName, isBackgroundApp);
-        }
-        else
-        {
-            CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(pkgFamilyName);
-        }
-        return ref new StatusCodeResponse(ResponseStatus::Success, tag);
+        CustomDeviceUiCSP::AddAsStartupApp(pkgFamilyName, isBackgroundApp);
     }
-    catch (Platform::Exception^ e)
+    else
     {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, tag);
+        CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(pkgFamilyName);
     }
+    return ref new StatusCodeResponse(ResponseStatus::Success, tag);
 }
 
 IResponse^ HandleAddStartupApp(IRequest^ request)
 {
-    try
-    {
-        auto startupApp = dynamic_cast<AddStartupAppRequest^>(request);
-        auto info = startupApp->StartupAppInfo;
-        return HandleAddRemoveAppForStartup(info, request->Tag, true);
-    }
-    catch (Platform::Exception^ e)
-    {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleAddAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    auto startupApp = dynamic_cast<AddStartupAppRequest^>(request);
+    auto info = startupApp->StartupAppInfo;
+    return HandleAddRemoveAppForStartup(info, request->Tag, true);
 }
 
 IResponse^ HandleRemoveStartupApp(IRequest^ request)
 {
-    try
-    {
-        auto startupApp = dynamic_cast<RemoveStartupAppRequest^>(request);
-        auto info = startupApp->StartupAppInfo;
-        return HandleAddRemoveAppForStartup(info, request->Tag, false);
-    }
-    catch (Platform::Exception^ e)
-    {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    auto startupApp = dynamic_cast<RemoveStartupAppRequest^>(request);
+    auto info = startupApp->StartupAppInfo;
+    return HandleAddRemoveAppForStartup(info, request->Tag, false);
 }
 
 IResponse^ HandleGetStartupForegroundApp(IRequest^ request)
@@ -742,46 +641,20 @@ IResponse^ HandleListApps(IRequest^ request)
 IResponse^ HandleTpmGetServiceUrl(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-    String^ errorMessage = L"unknown error";
-    try
-    {
-        uint32_t logicalDeviceId = dynamic_cast<TpmGetServiceUrlRequest^>(request)->LogicalDeviceId;
-        std::string serviceUrl = Tpm::GetServiceUrl(logicalDeviceId);
-        auto serviceUrlW = Utils::MultibyteToWide(serviceUrl.c_str());
-        return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(serviceUrlW.c_str()), request->Tag);
-    }
-    catch (DMException e)
-    {
-        errorMessage = ref new String(Utils::MultibyteToWide(e.what()).c_str());
-    }
-    catch (...)
-    {
-    }
-    TRACE(errorMessage->Data());
-    return ref new StringResponse(ResponseStatus::Failure, errorMessage, request->Tag);
+    uint32_t logicalDeviceId = dynamic_cast<TpmGetServiceUrlRequest^>(request)->LogicalDeviceId;
+    std::string serviceUrl = Tpm::GetServiceUrl(logicalDeviceId);
+    auto serviceUrlW = Utils::MultibyteToWide(serviceUrl.c_str());
+    return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(serviceUrlW.c_str()), request->Tag);
 }
 
 IResponse^ HandleTpmGetSASToken(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-    String^ errorMessage = L"unknown error";
-    try
-    {
-        uint32_t logicalDeviceId = dynamic_cast<TpmGetSASTokenRequest^>(request)->LogicalDeviceId;
-        TRACEP(L"logicalDeviceId=", logicalDeviceId);
-        std::string sasToken = Tpm::GetSASToken(logicalDeviceId);
-        auto sasTokenW = Utils::MultibyteToWide(sasToken.c_str());
-        return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(sasTokenW.c_str()), request->Tag);
-    }
-    catch (DMException e)
-    {
-        errorMessage = ref new String(Utils::MultibyteToWide(e.what()).c_str());
-    }
-    catch (...)
-    {
-    }
-    TRACE(errorMessage->Data());
-    return ref new StringResponse(ResponseStatus::Failure, errorMessage, request->Tag);
+    uint32_t logicalDeviceId = dynamic_cast<TpmGetSASTokenRequest^>(request)->LogicalDeviceId;
+    TRACEP(L"logicalDeviceId=", logicalDeviceId);
+    std::string sasToken = Tpm::GetSASToken(logicalDeviceId);
+    auto sasTokenW = Utils::MultibyteToWide(sasToken.c_str());
+    return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(sasTokenW.c_str()), request->Tag);
 }
 
 IResponse^ HandleGetWindowsUpdatePolicy(IRequest^ request)
@@ -859,129 +732,105 @@ IResponse^ HandleSetWindowsUpdatePolicy(IRequest^ request)
     // - apply all or nothing.
     // - apply as much as we can and report and error.
 
-    try
-    {
-        auto updatePolicyRequest = dynamic_cast<SetWindowsUpdatePolicyRequest^>(request);
-        WindowsUpdatePolicyConfiguration^ data = updatePolicyRequest->data;
+    auto updatePolicyRequest = dynamic_cast<SetWindowsUpdatePolicyRequest^>(request);
+    WindowsUpdatePolicyConfiguration^ data = updatePolicyRequest->data;
 
-        if (data != nullptr && updatePolicyRequest->ApplyFromDeviceTwin == JsonYes)
+    if (data != nullptr && updatePolicyRequest->ApplyFromDeviceTwin == JsonYes)
+    {
+        unsigned int activeFields = data->activeFields;
+
+        if (activeFields & (unsigned int)ActiveFields::ActiveHoursStart)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", static_cast<int>(data->activeHoursStart));
+
+        if (activeFields & (unsigned int)ActiveFields::ActiveHoursEnd)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", static_cast<int>(data->activeHoursEnd));
+
+        if (activeFields & (unsigned int)ActiveFields::AllowAutoUpdate)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", static_cast<int>(data->allowAutoUpdate));
+
+        if (activeFields & (unsigned int)ActiveFields::AllowUpdateService)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", static_cast<int>(data->allowUpdateService));
+
+        if (activeFields & (unsigned int)ActiveFields::BranchReadinessLevel)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", static_cast<int>(data->branchReadinessLevel));
+
+        if (activeFields & (unsigned int)ActiveFields::DeferFeatureUpdatesPeriod)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", static_cast<int>(data->deferFeatureUpdatesPeriod));
+
+        if (activeFields & (unsigned int)ActiveFields::DeferQualityUpdatesPeriod)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", static_cast<int>(data->deferQualityUpdatesPeriod));
+
+        if (activeFields & (unsigned int)ActiveFields::PauseFeatureUpdates)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", static_cast<int>(data->pauseFeatureUpdates));
+
+        if (activeFields & (unsigned int)ActiveFields::PauseQualityUpdates)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", static_cast<int>(data->pauseQualityUpdates));
+
+        if (activeFields & (unsigned int)ActiveFields::ScheduledInstallDay)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", static_cast<int>(data->scheduledInstallDay));
+
+        if (activeFields & (unsigned int)ActiveFields::ScheduledInstallTime)
+            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", static_cast<int>(data->scheduledInstallTime));
+
+        if (activeFields & (unsigned int)ActiveFields::Ring)
         {
-            unsigned int activeFields = data->activeFields;
+            wstring registryRoot = L"MACHINE";
+            wstring registryKey = registryRoot + L"\\" + WURingRegistrySubKey;
+            wstring propertyValue = data->ring->Data();
 
-            if (activeFields & (unsigned int)ActiveFields::ActiveHoursStart)
-                MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", static_cast<int>(data->activeHoursStart));
-
-            if (activeFields & (unsigned int)ActiveFields::ActiveHoursEnd)
-                MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", static_cast<int>(data->activeHoursEnd));
-
-            if (activeFields & (unsigned int)ActiveFields::AllowAutoUpdate)
-                MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", static_cast<int>(data->allowAutoUpdate));
-
-            if (activeFields & (unsigned int)ActiveFields::AllowUpdateService)
-                MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", static_cast<int>(data->allowUpdateService));
-
-            if (activeFields & (unsigned int)ActiveFields::BranchReadinessLevel)
-                MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", static_cast<int>(data->branchReadinessLevel));
-
-            if (activeFields & (unsigned int)ActiveFields::DeferFeatureUpdatesPeriod)
-                MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", static_cast<int>(data->deferFeatureUpdatesPeriod));
-
-            if (activeFields & (unsigned int)ActiveFields::DeferQualityUpdatesPeriod)
-                MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", static_cast<int>(data->deferQualityUpdatesPeriod));
-
-            if (activeFields & (unsigned int)ActiveFields::PauseFeatureUpdates)
-                MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", static_cast<int>(data->pauseFeatureUpdates));
-
-            if (activeFields & (unsigned int)ActiveFields::PauseQualityUpdates)
-                MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", static_cast<int>(data->pauseQualityUpdates));
-
-            if (activeFields & (unsigned int)ActiveFields::ScheduledInstallDay)
-                MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", static_cast<int>(data->scheduledInstallDay));
-
-            if (activeFields & (unsigned int)ActiveFields::ScheduledInstallTime)
-                MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", static_cast<int>(data->scheduledInstallTime));
-
-            if (activeFields & (unsigned int)ActiveFields::Ring)
+            PermissionsManager::ModifyProtected(registryKey, SE_REGISTRY_KEY, [propertyValue]()
             {
-                wstring registryRoot = L"MACHINE";
-                wstring registryKey = registryRoot + L"\\" + WURingRegistrySubKey;
-                wstring propertyValue = data->ring->Data();
-
-                PermissionsManager::ModifyProtected(registryKey, SE_REGISTRY_KEY, [propertyValue]()
-                {
-                    TRACEP(L"........Writing registry: key name: ", WURingRegistrySubKey);
-                    TRACEP(L"........Writing registry: key value: ", propertyValue.c_str());
-                    Utils::WriteRegistryValue(WURingRegistrySubKey, WURingPropertyName, propertyValue);
-                });
-            }
+                TRACEP(L"........Writing registry: key name: ", WURingRegistrySubKey);
+                TRACEP(L"........Writing registry: key value: ", propertyValue.c_str());
+                Utils::WriteRegistryValue(WURingRegistrySubKey, WURingPropertyName, propertyValue);
+            });
         }
-        Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdatePolicySectionReporting, updatePolicyRequest->ReportToDeviceTwin->Data());
+    }
+    Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdatePolicySectionReporting, updatePolicyRequest->ReportToDeviceTwin->Data());
 
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleSetWindowsUpdatePolicy: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetWindowsUpdateRebootPolicy(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto configuration = ref new WindowsUpdateRebootPolicyConfiguration();
+    auto configuration = ref new WindowsUpdateRebootPolicyConfiguration();
 
-        wstring value;
-        if (ERROR_SUCCESS == Utils::TryReadRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed, value))
-        {
-            configuration->allow = value == IoTDMRegistryTrue;
-        }
-        else
-        {
-            // default is to allow rebooting.
-            configuration->allow = true;
-        }
-
-        return ref new GetWindowsUpdateRebootPolicyResponse(ResponseStatus::Success, configuration);
-    }
-    catch (const DMException& e)
+    wstring value;
+    if (ERROR_SUCCESS == Utils::TryReadRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed, value))
     {
-        TRACEP("ERROR DMCommand::HandleGetWindowsUpdateRebootPolicy: ", e.what());
-        return ref new GetWindowsUpdateRebootPolicyResponse(ResponseStatus::Failure, ref new WindowsUpdateRebootPolicyConfiguration());
+        configuration->allow = value == IoTDMRegistryTrue;
     }
+    else
+    {
+        // default is to allow rebooting.
+        configuration->allow = true;
+    }
+
+    return ref new GetWindowsUpdateRebootPolicyResponse(ResponseStatus::Success, configuration);
 }
 
 IResponse^ HandleSetWindowsUpdateRebootPolicy(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto windowsUpdateRebootPolicy = dynamic_cast<SetWindowsUpdateRebootPolicyRequest^>(request);
-        assert(windowsUpdateRebootPolicy != nullptr);
+    auto windowsUpdateRebootPolicy = dynamic_cast<SetWindowsUpdateRebootPolicyRequest^>(request);
+    assert(windowsUpdateRebootPolicy != nullptr);
 
-        unsigned long returnCode;
-        string output;
-        wstring command = Utils::GetSystemRootFolder() + L"\\ApplyUpdate.exe ";
-        command += windowsUpdateRebootPolicy->configuration->allow ? L"-blockrebootoff" : L"-blockrebooton";
-        Utils::LaunchProcess(command, returnCode, output);
-        if (returnCode != 0)
-        {
-            throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
-        }
-        Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed,
-            windowsUpdateRebootPolicy->configuration->allow ? IoTDMRegistryTrue : IoTDMRegistryFalse);
-
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
+    unsigned long returnCode;
+    string output;
+    wstring command = Utils::GetSystemRootFolder() + L"\\ApplyUpdate.exe ";
+    command += windowsUpdateRebootPolicy->configuration->allow ? L"-blockrebootoff" : L"-blockrebooton";
+    Utils::LaunchProcess(command, returnCode, output);
+    if (returnCode != 0)
     {
-        TRACEP("ERROR DMCommand::HandleSetWindowsUpdateRebootPolicy: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+        throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
     }
+    Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed,
+        windowsUpdateRebootPolicy->configuration->allow ? IoTDMRegistryTrue : IoTDMRegistryFalse);
+
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetWindowsUpdates(IRequest^ request)
@@ -1020,156 +869,87 @@ IResponse^ HandleSetWindowsUpdates(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto windowsUpdatesRequest = dynamic_cast<SetWindowsUpdatesRequest^>(request);
-        assert(windowsUpdatesRequest != nullptr);
+    auto windowsUpdatesRequest = dynamic_cast<SetWindowsUpdatesRequest^>(request);
+    assert(windowsUpdatesRequest != nullptr);
 
-        MdmProvision::RunAdd(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", windowsUpdatesRequest->configuration->approved->Data());
+    MdmProvision::RunAdd(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", windowsUpdatesRequest->configuration->approved->Data());
 
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleSetWindowsUpdates: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleDeviceHealthAttestationVerifyHealth(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
+    auto verifyHealthRequest = dynamic_cast<DeviceHealthAttestationVerifyHealthRequest^>(request);
+    assert(verifyHealthRequest != nullptr);
+
+    DeviceHealthAttestationCSP::SetHASEndpoint(verifyHealthRequest->HealthAttestationServerEndpoint->Data());
+    DeviceHealthAttestationCSP::ExecVerifyHealth();
+
+    auto healthAttestationStatus = DeviceHealthAttestationCSP::GetStatus();
+    for (int i = 0; i < 5 && healthAttestationStatus == 1 /*HEALTHATTESTATION_CERT_RETRIEVAL_REQUESTED*/; i++)
     {
-        auto verifyHealthRequest = dynamic_cast<DeviceHealthAttestationVerifyHealthRequest^>(request);
-        assert(verifyHealthRequest != nullptr);
-
-        DeviceHealthAttestationCSP::SetHASEndpoint(verifyHealthRequest->HealthAttestationServerEndpoint->Data());
-        DeviceHealthAttestationCSP::ExecVerifyHealth();
-
-        auto healthAttestationStatus = DeviceHealthAttestationCSP::GetStatus();
-        for (int i = 0; i < 5 && healthAttestationStatus == 1 /*HEALTHATTESTATION_CERT_RETRIEVAL_REQUESTED*/; i++)
-        {
-            /* HEALTHATTESTATION_CERT_RETRIEVAL_REQUESTED signifies that the call on the node VerifyHealth 
-               has been triggered and now the OS is trying to retrieve DHA-EncBlob from DHA-Server.*/
-            Sleep(200);
-            healthAttestationStatus = DeviceHealthAttestationCSP::GetStatus();
-        }
-
-        if (healthAttestationStatus != 3 /*HEALTHATTESTATION_CERT_RETRIEVAL_COMPLETE*/)
-        {
-            wstringstream ws;
-            ws << L"VerifyHealth failed: 0x" << hex << healthAttestationStatus;
-            auto errorMessageCStr = ws.str();
-            auto errorMessage = ref new String(errorMessageCStr.c_str(), static_cast<unsigned int>(errorMessageCStr.length()));
-            return ref new StringResponse(ResponseStatus::Failure, errorMessage, DMMessageKind::ErrorResponse);
-        }
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+        /* HEALTHATTESTATION_CERT_RETRIEVAL_REQUESTED signifies that the call on the node VerifyHealth 
+            has been triggered and now the OS is trying to retrieve DHA-EncBlob from DHA-Server.*/
+        Sleep(200);
+        healthAttestationStatus = DeviceHealthAttestationCSP::GetStatus();
     }
-    catch (const DMException& e)
+
+    if (healthAttestationStatus != 3 /*HEALTHATTESTATION_CERT_RETRIEVAL_COMPLETE*/)
     {
-        TRACEP("ERROR DMCommand::HandleDeviceHealthAttestationVerifyHealth: ", e.what());
-        auto errorMessageCStr = Utils::MultibyteToWide(e.what());
+        wstringstream ws;
+        ws << L"VerifyHealth failed: 0x" << hex << healthAttestationStatus;
+        auto errorMessageCStr = ws.str();
         auto errorMessage = ref new String(errorMessageCStr.c_str(), static_cast<unsigned int>(errorMessageCStr.length()));
         return ref new StringResponse(ResponseStatus::Failure, errorMessage, DMMessageKind::ErrorResponse);
     }
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleDeviceHealthAttestationGetReport(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto certificateRequest = dynamic_cast<DeviceHealthAttestationGetReportRequest^>(request);
-        assert(certificateRequest != nullptr);
+    auto certificateRequest = dynamic_cast<DeviceHealthAttestationGetReportRequest^>(request);
+    assert(certificateRequest != nullptr);
 
-        DeviceHealthAttestationCSP::SetNonce(certificateRequest->Nonce->Data());
-        auto certificateCStr = DeviceHealthAttestationCSP::GetCertificate();
-        auto certificate = ref new Platform::String(certificateCStr.c_str(), static_cast<unsigned int>(certificateCStr.length()));
-        auto correlationIdCStr = DeviceHealthAttestationCSP::GetCorrelationId();
-        auto correlationId = ref new Platform::String(correlationIdCStr.c_str(), static_cast<unsigned int>(correlationIdCStr.length()));
+    DeviceHealthAttestationCSP::SetNonce(certificateRequest->Nonce->Data());
+    auto certificateCStr = DeviceHealthAttestationCSP::GetCertificate();
+    auto certificate = ref new Platform::String(certificateCStr.c_str(), static_cast<unsigned int>(certificateCStr.length()));
+    auto correlationIdCStr = DeviceHealthAttestationCSP::GetCorrelationId();
+    auto correlationId = ref new Platform::String(correlationIdCStr.c_str(), static_cast<unsigned int>(correlationIdCStr.length()));
 
-        return ref new DeviceHealthAttestationGetReportResponse(certificate, correlationId);
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleDeviceHealthAttestationGetCertificate: ", e.what());
-        auto errorMessageCStr = Utils::MultibyteToWide(e.what());
-        auto errorMessage = ref new String(errorMessageCStr.c_str(), static_cast<unsigned int>(errorMessageCStr.length()));
-        return ref new StringResponse(ResponseStatus::Failure, errorMessage, DMMessageKind::ErrorResponse);
-    }
+    return ref new DeviceHealthAttestationGetReportResponse(certificate, correlationId);
 }
 
 IResponse^ HandleGetEventTracingConfiguration(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-
-    try
-    {
-        return DiagnosticLogCSP::HandleGetEventTracingConfiguration(request);
-    }
-    catch (const DMException& e)
-    {
-        return ReportError("DMCommand::HandleGetEventTracingConfiguration: ", e);
-    }
+    return DiagnosticLogCSP::HandleGetEventTracingConfiguration(request);
 }
 
 IResponse^ HandleSetEventTracingConfiguration(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-
-    try
-    {
-        return DiagnosticLogCSP::HandleSetEventTracingConfiguration(request);
-    }
-    catch (const DMException& e)
-    {
-        return ReportError("DMCommand::HandleSetEventTracingConfiguration: ", e);
-    }
+    return DiagnosticLogCSP::HandleSetEventTracingConfiguration(request);
 }
 
 IResponse^ HandleGetDMFolders(IRequest^ request)
 {
-    TRACE(__FUNCTION__);
-
-    try
-    {
-        return DMStorage::HandleGetDMFolders(request);
-    }
-    catch (const DMException& e)
-    {
-        return ReportError("DMCommand::HandleGetDMFolders: ", e);
-    }
+    return DMStorage::HandleGetDMFolders(request);
 }
 
 IResponse^ HandleGetDMFiles(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-
-    try
-    {
-        return DMStorage::HandleGetDMFiles(request);
-    }
-    catch (const DMException& e)
-    {
-        return ReportError("DMCommand::HandleGetDMFiles: ", e);
-    }
+    return DMStorage::HandleGetDMFiles(request);
 }
 
 IResponse^ HandleDeleteDMFile(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-
-    try
-    {
-        return DMStorage::HandleDeleteDMFile(request);
-    }
-    catch (const DMException& e)
-    {
-        return ReportError("DMCommand::HandleDeleteDMFile: ", e);
-    }
+    return DMStorage::HandleDeleteDMFile(request);
 }
 
 // Get request and produce a response
