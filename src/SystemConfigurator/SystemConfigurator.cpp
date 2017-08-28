@@ -27,7 +27,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Platform::MTAThread]
 int wmain(int argc, wchar_t *argv[])
 {
-    Utils::EnsureFolderExists(SC_CLEANUP_FOLDER);
+    Utils::EnsureFolderExists(Utils::GetDmTempFolder());
 
     TRACE("Entering wmain...");
 

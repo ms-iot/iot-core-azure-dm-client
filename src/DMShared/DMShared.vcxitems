@@ -14,8 +14,9 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\DMMessageHelper.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\DMGarbageCollector.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\DMMessageHelper.cpp" >
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\SerializationHelper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\DMMessage\Blob.cpp">
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>

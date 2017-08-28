@@ -29,6 +29,11 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DMException.h"
 #include "Logger.h"
 
+// WTSQueryUserToken
+#include "Wtsapi32.h"
+// EnumProcesses
+#include "Psapi.h"
+
 using namespace std;
 using namespace Microsoft::WRL;
 using namespace Windows::ApplicationModel;
@@ -40,41 +45,135 @@ using namespace Windows::System::Profile;
 
 namespace Utils
 {
-    wstring GetSidForAccount(const wchar_t* userAccount)
+    void GetDmUserInfo(TOKEN_HANDLER handler)
     {
-        wstring sidString = L"";
+        const size_t processNameLength = wcslen(IoTDMSihostExe);
+        vector<DWORD> spProcessIds(1024);
+        DWORD bytesReturned = 0;
+        WCHAR imageFileName[MAX_PATH];
 
-        BYTE userSidBytes[SECURITY_MAX_SID_SIZE] = {};
-        PSID userSid = reinterpret_cast<PSID>(userSidBytes);
-        DWORD sidSize = ARRAYSIZE(userSidBytes);
-        wchar_t domainNameUnused[MAX_PATH] = {};
-        DWORD domainSizeUnused = ARRAYSIZE(domainNameUnused);
-        SID_NAME_USE sidTypeUnused = SidTypeInvalid;
-
-        if (!LookupAccountName(
-                nullptr,
-                userAccount,
-                &userSid,
-                &sidSize,
-                domainNameUnused,
-                &domainSizeUnused,
-                &sidTypeUnused
-            ))
+        if (EnumProcesses(
+            &spProcessIds.front(),
+            static_cast<unsigned int>(spProcessIds.size() * sizeof(DWORD)),
+            &bytesReturned))
         {
-            throw DMExceptionWithErrorCode("Error: Utils::GetSidForAccount LookupAccountName failed.", GetLastError());
-        }
-        LPWSTR pString = nullptr;
-        if (!ConvertSidToStringSid(
-                &userSid,
-                &pString
-            ))
-        { 
-            throw DMExceptionWithErrorCode("Error: Utils::GetSidForAccount ConvertSidToStringSid failed.", GetLastError());
-        }
-        sidString = pString;
-        LocalFree(pString);
+            auto actualProcessIds = bytesReturned / sizeof(unsigned int);
 
-        return sidString;
+            for (unsigned int i = 0; i < actualProcessIds; i++)
+            {
+                DWORD error = 0;
+                AutoCloseHandle processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, spProcessIds[i]);
+                if (processHandle.Get() == INVALID_HANDLE_VALUE) continue;
+
+                auto imageFileNameLength = GetProcessImageFileNameW(processHandle.Get(), imageFileName, _countof(imageFileName));
+                if ((imageFileNameLength < processNameLength) || (_wcsicmp(IoTDMSihostExe, &imageFileName[imageFileNameLength - processNameLength]) != 0)) continue;
+
+                AutoCloseHandle processTokenHandle;
+                error = OpenProcessToken(processHandle.Get(), TOKEN_READ, processTokenHandle.GetAddress());
+                if (FAILED(error))
+                {
+                    TRACEP(L"OpenProcessToken failed. Code: ", error);
+                    continue;
+                }
+
+                DWORD sessionID = 0;
+                DWORD size = 0;
+                if (!GetTokenInformation(processTokenHandle.Get(), TokenSessionId, &sessionID, sizeof(sessionID), &size))
+                {
+                    TRACEP(L"GetTokenInformation(TokenSessionId) failed. Code: ", GetLastError());
+                    continue;
+                }
+
+                BYTE buffer[SECURITY_MAX_SID_SIZE];
+                PTOKEN_USER tokenUser = reinterpret_cast<PTOKEN_USER>(buffer);
+                DWORD tokenUserSize = sizeof(buffer);
+                if (!GetTokenInformation(processTokenHandle.Get(), TokenUser, tokenUser, tokenUserSize, &tokenUserSize))
+                {
+                    TRACEP(L"GetTokenInformation(TokenUser) failed. Code: ", GetLastError());
+                    continue;
+                }
+
+                handler(processTokenHandle.Get(), tokenUser);
+                return;
+            }
+        }
+        else
+        {
+            throw DMExceptionWithErrorCode("EnumProcesses failed.", GetLastError());
+        }
+
+        throw DMExceptionWithErrorCode("GetDmUserInfo: no user process found.", E_FAIL);
+    }
+
+    wstring GetDmUserSid() 
+    {
+        wstring sid(L"");
+        GetDmUserInfo([&sid](HANDLE /*token*/, PTOKEN_USER tokenUser) {
+            WCHAR *pCOwner = NULL;
+            if (ConvertSidToStringSid(tokenUser->User.Sid, &pCOwner))
+            {
+                sid = pCOwner;
+                LocalFree(pCOwner);
+            }
+            else
+            {
+                throw DMExceptionWithErrorCode("ConvertSidToStringSid failed.", GetLastError());
+            }
+        });
+
+        return sid;
+    }
+
+    wstring GetDmUserName() 
+    {
+        wstring name(L"");
+        GetDmUserInfo([&name](HANDLE /*token*/, PTOKEN_USER tokenUser) {
+            DWORD cchDomainName = 0, cchAccountName = 0;
+            SID_NAME_USE AccountType = SidTypeUnknown;
+            LookupAccountSid(NULL, tokenUser->User.Sid, NULL, &cchAccountName, NULL, &cchDomainName, &AccountType);
+            if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+            {
+                vector<wchar_t> DomainName(cchDomainName);
+                vector<wchar_t> AccountName(cchAccountName);
+                if (LookupAccountSid(NULL, tokenUser->User.Sid, AccountName.data(), &cchAccountName, DomainName.data(), &cchDomainName, &AccountType))
+                {
+                    name = AccountName.data();
+                }
+                else
+                {
+                    throw DMExceptionWithErrorCode("LookupAccountSid failed.", GetLastError());
+                }
+            }
+            else
+            {
+                throw DMExceptionWithErrorCode("LookupAccountSid(NULL) failed.", GetLastError());
+            }
+        });
+
+        return name;
+    }
+
+    wstring GetDmUserFolder()
+    {
+        WCHAR szPath[MAX_PATH];
+        wstring folder(L"");
+        
+        DWORD result = GetTempPath(MAX_PATH, szPath);
+        if (result)
+        {
+            folder = szPath;
+        }
+        else
+        {
+            throw DMExceptionWithErrorCode("GetTempPath failed.", GetLastError());
+        }
+
+        return folder;
+    }
+
+    wstring GetDmTempFolder()
+    {
+        return GetDmUserFolder() + IOTDM_RELATIVE_PATH;
     }
 
     wstring GetCurrentDateTimeString()

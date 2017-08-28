@@ -263,7 +263,7 @@ void DMService::ServiceWorkerThread(void* context)
 static VOID CALLBACK CleanupTemporaryFiles(PVOID /*ParameterPtr*/, BOOLEAN)
 {
     // handle garbage collection
-    wstring gcFolder = SC_CLEANUP_FOLDER;
+    wstring gcFolder = Utils::GetDmTempFolder();
     if (filesystem::exists(gcFolder))
     {
         auto now = filesystem::file_time_type::clock::now();

@@ -184,7 +184,7 @@ ApplicationInfo EnterpriseModernAppManagementCSP::InstallApp(const std::wstring&
     _snwprintf_s(buff.data(), bufsize, bufsize, syncML, packageFamilyName.c_str(), packageFamilyName.c_str(), appxLocalPath.c_str(), applicationContent.c_str());
 
     std::wstring output;
-    std::wstring sid = Utils::GetSidForAccount(L"DefaultAccount");
+    std::wstring sid = Utils::GetDmUserSid();
     MdmProvision::RunSyncML(sid, buff.data(), output);
 
     ApplicationInfo applicationInfo = GetInstalledAppInfo(packageFamilyName, AppSourceType::NonStore);
@@ -225,6 +225,6 @@ void EnterpriseModernAppManagementCSP::UninstallApp(const std::wstring& packageF
     _snwprintf_s(buff.data(), bufsize, bufsize, syncML, appLocation.c_str(), packageFamilyName.c_str());
 
     std::wstring output;
-    std::wstring sid = Utils::GetSidForAccount(L"DefaultAccount");
+    std::wstring sid = Utils::GetDmUserSid();
     MdmProvision::RunSyncML(sid, buff.data(), output);
 }

@@ -164,13 +164,17 @@ ApplicationInfo AppCfg::InstallAppInternal(const wstring& packageFamilyName, con
     Impersonator impersonator;
     impersonator.ImpersonateShellHost();
 
+    auto filePathBase = Utils::GetDmTempFolder() + L"\\";
+
     Vector<Uri^>^ appxDepPkgs = ref new Vector<Uri^>();
     for (const wstring& depSource : dependentPackages)
     {
-        appxDepPkgs->Append(ref new Uri(ref new String(depSource.c_str())));
+        auto fullpath = filePathBase + depSource;
+        appxDepPkgs->Append(ref new Uri(ref new String(fullpath.c_str())));
     }
 
-    Uri^ packageUri = ref new Uri(ref new Platform::String(appxLocalPath.c_str()));
+    auto fullappxpath = filePathBase + appxLocalPath;
+    Uri^ packageUri = ref new Uri(ref new Platform::String(fullappxpath.c_str()));
 
     PackageManager^ packageManager = ref new PackageManager;
 
@@ -221,8 +225,10 @@ ApplicationInfo AppCfg::InstallApp(const wstring& packageFamilyName, const wstri
     TRACE(__FUNCTION__);
     TRACEP(L"Installing app: ", packageFamilyName.c_str());
 
+    auto filePathBase = Utils::GetDmTempFolder() + L"\\";
+
     TRACEP(L"Installing certificate to ", certStore.c_str());
-    CertificateFile certificateFile(certFileName);
+    CertificateFile certificateFile(filePathBase + certFileName);
     certificateFile.Install(certStore);
 
     if (isDMSelfUpdate)

@@ -25,7 +25,6 @@ namespace Microsoft.Devices.Management
 {
     static class Constants
     {
-        public const string IoTDMFolder = "C:\\Data\\Users\\DefaultAccount\\AppData\\Local\\Temp\\IotDm";
         public const string ETWGuid = "D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897";   // Use this guid with xperf, the CSP, etc.
         public const string ETWChannelName = "AzureDM";
     }

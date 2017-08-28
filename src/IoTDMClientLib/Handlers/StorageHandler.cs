@@ -212,7 +212,7 @@ namespace Microsoft.Devices.Management
                 info.ContainerName = GetParameter(jsonParamsObject, JsonContainer, ErrorCodes.INVALID_CONTAINER_PARAM, "Invalid or missing container parameter.");
                 info.BlobName = fileName;
                 info.Upload = true;
-                info.LocalPath = Constants.IoTDMFolder + "\\" + folderName + "\\" + fileName;
+                info.RelativeLocalPath = folderName + "\\" + fileName;
                 info.AppLocalDataPath = ApplicationData.Current.TemporaryFolder.Path + "\\" + fileName;
 
                 AzureFileTransferRequest request = new AzureFileTransferRequest(info);
