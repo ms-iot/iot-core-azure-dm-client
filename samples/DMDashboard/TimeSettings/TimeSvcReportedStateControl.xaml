@@ -11,6 +11,7 @@
             <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Enabled"/>
         <Border Grid.Row="0" Grid.Column="1" Background="#F8F8F8" Margin="3">
@@ -25,6 +26,11 @@
         <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Started"/>
         <Border Grid.Row="2" Grid.Column="1" Background="#F8F8F8" Margin="3">
             <TextBlock Width="200" x:Name="ServiceStarted" HorizontalAlignment="Left"/>
+        </Border>
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Priority"/>
+        <Border Grid.Row="3" Grid.Column="1" Background="#F8F8F8" Margin="3">
+            <TextBlock Width="200" x:Name="ServicePriority" HorizontalAlignment="Left"/>
         </Border>
 
     </Grid>

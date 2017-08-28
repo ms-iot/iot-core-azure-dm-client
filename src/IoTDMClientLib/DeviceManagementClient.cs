@@ -141,8 +141,8 @@ namespace Microsoft.Devices.Management
             var timeSettingsHandler = new TimeSettingsHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(timeSettingsHandler);
 
-            var timeServiceHandler = new TimeServiceHandler(clientCallback, systemConfiguratorProxy);
-            deviceManagementClient.AddPropertyHandler(timeServiceHandler);
+            deviceManagementClient._timeServiceHandler = new TimeServiceHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(deviceManagementClient._timeServiceHandler);
 
             deviceManagementClient._rebootCmdHandler = new RebootCmdHandler(
                 clientCallback,
@@ -318,6 +318,16 @@ namespace Microsoft.Devices.Management
         public async Task<WindowsTelemetryLevel> GetWindowsTelemetryLevelAsync()
         {
             return await _windowsTelemetryHandler.GetLevelAsync();
+        }
+
+        public async Task SetTimeServiceAsync(bool enabled, ServiceStartup startup, bool started, SettingsPriority settingsPriority)
+        {
+            await _timeServiceHandler.SetTimeServiceAsync(enabled, startup, started, settingsPriority);
+        }
+
+        public async Task<TimeServiceState> GetTimeServiceStateAsync()
+        {
+            return await _timeServiceHandler.GetTimeServiceStateAsync();
         }
 
         private static async Task ProcessDesiredCertificateConfigurationAsync(
@@ -523,6 +533,7 @@ namespace Microsoft.Devices.Management
         WindowsUpdatePolicyHandler _windowsUpdatePolicyHandler;
         RebootCmdHandler _rebootCmdHandler;
         ExternalStorageHandler _externalStorageHandler;
+        TimeServiceHandler _timeServiceHandler;
         WindowsTelemetryHandler _windowsTelemetryHandler;
         IDeviceManagementRequestHandler _hostAppHandler;
         IDeviceTwin _deviceTwin;

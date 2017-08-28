@@ -22,8 +22,10 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "..\SharedUtilities\JsonHelpers.h"
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMException.h"
+#include "..\SharedUtilities\PolicyHelper.h"
 #include "CSPs\MdmProvision.h"
 #include "ServiceManager.h"
+#include "..\DMShared\ErrorCodes.h"
 
 #include "Models\TimeInfo.h"
 
@@ -213,7 +215,7 @@ GetTimeInfoResponse^ TimeCfg::Get()
     return ref new GetTimeInfoResponse(ResponseStatus::Success, data);
 }
 
-TimeServiceData^ TimeCfg::GetTimeServiceState()
+TimeServiceData^ TimeService::GetState()
 {
     TRACE(__FUNCTION__);
 
@@ -245,29 +247,124 @@ TimeServiceData^ TimeCfg::GetTimeServiceState()
 
         data->started = ref new String((status == SERVICE_RUNNING) ? JsonYes : JsonNo);
     }
+    data->policy = PolicyHelper::LoadFromRegistry(RegTimeService);
 
     return data;
 }
 
-void TimeCfg::SetTimeServiceState(TimeServiceData^ data)
+void TimeService::SaveState(TimeServiceData^ data)
 {
-    if (data->enabled == JsonNo)
+    TRACE(__FUNCTION__);
+
+    if (!data->policy)
+    {
+        throw DMExceptionWithErrorCode("Policy unspecified while storing Time Service settings", ERROR_DM_TIME_SERVICE_MISSING_POLICY);
+    }
+
+    // Save source priorities...
+    PolicyHelper::SaveToRegistry(data->policy, RegTimeService);
+
+    // Save remote/local properties...
+    if (data->policy->source == PolicySource::Remote)
+    {
+        TRACE("Writing remote policy...");
+        Utils::WriteRegistryValue(RegRemoteTimeService, RegTimeServiceEnabled, data->enabled->Data());
+        Utils::WriteRegistryValue(RegRemoteTimeService, RegTimeServiceStartup, data->startup->Data());
+        Utils::WriteRegistryValue(RegRemoteTimeService, RegTimeServiceStarted, data->started->Data());
+    }
+    else
+    {
+        TRACE("Writing local policy...");
+        Utils::WriteRegistryValue(RegLocalTimeService, RegTimeServiceEnabled, data->enabled->Data());
+        Utils::WriteRegistryValue(RegLocalTimeService, RegTimeServiceStartup, data->startup->Data());
+        Utils::WriteRegistryValue(RegLocalTimeService, RegTimeServiceStarted, data->started->Data());
+    }
+}
+
+TimeServiceData^ TimeService::GetActiveDesiredState()
+{
+    TRACE(__FUNCTION__);
+
+    Policy^ policy = PolicyHelper::LoadFromRegistry(RegTimeService);
+    if (!policy)
+    {
+        TRACE("Active desired state for Time Service is not set.");
+        return nullptr;
+    }
+
+    for each(PolicySource p in policy->sourcePriorities)
+    {
+        wstring regSectionRoot = L"";
+        switch (p)
+        {
+            case PolicySource::Local:
+                TRACE("Reading local policy for Time Service.");
+                regSectionRoot = RegLocalTimeService;
+                break;
+            case PolicySource::Remote:
+                TRACE("Reading remote policy for Time Service.");
+                regSectionRoot = RegRemoteTimeService;
+                break;
+        }
+
+        bool success = true;
+
+        wstring enabled;
+        success &= ERROR_SUCCESS == Utils::TryReadRegistryValue(regSectionRoot.c_str(), RegTimeServiceEnabled, enabled);
+
+        wstring startup;
+        success &= ERROR_SUCCESS == Utils::TryReadRegistryValue(regSectionRoot.c_str(), RegTimeServiceStartup, startup);
+
+        wstring started;
+        success &= ERROR_SUCCESS == Utils::TryReadRegistryValue(regSectionRoot.c_str(), RegTimeServiceStarted, started);
+
+        if (!success)
+        {
+            TRACE("Did not find one or more attributes in the registry.");
+
+            // Try reading the next policy...
+            continue;
+        }
+
+        TRACE("Found all Time Service attributes in the registry.");
+
+        TimeServiceData^ data = ref new TimeServiceData();
+        data->enabled = ref new String(enabled.c_str());
+        data->startup = ref new String(startup.c_str());
+        data->started = ref new String(started.c_str());
+        data->policy = policy;
+        return data;
+    }
+
+    TRACE("Could not find active desired state for Time Service.");
+    return nullptr;
+}
+
+void TimeService::SetState(TimeServiceData^ data)
+{
+    TRACE(__FUNCTION__);
+
+    SaveState(data);
+    TimeServiceData^ activeDesiredState = GetActiveDesiredState();
+
+    TRACE("Applying active desired state");
+    if (activeDesiredState->enabled == JsonNo)
     {
         ServiceManager::Stop(TimeServiceName);
         ServiceManager::SetStartType(TimeServiceName, SERVICE_DISABLED);
     }
     else
     {
-        if (data->startup == JsonAuto)
+        if (activeDesiredState->startup == JsonAuto)
         {
             ServiceManager::SetStartType(TimeServiceName, SERVICE_AUTO_START);
         }
-        else if (data->startup == JsonManual)
+        else if (activeDesiredState->startup == JsonManual)
         {
             ServiceManager::SetStartType(TimeServiceName, SERVICE_DEMAND_START);
         }
 
-        if (data->started == JsonYes)
+        if (activeDesiredState->started == JsonYes)
         {
             ServiceManager::Start(TimeServiceName);
         }

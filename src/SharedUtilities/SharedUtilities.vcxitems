@@ -16,6 +16,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseHandle.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseBase.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Constants.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DMException.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DMRequest.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ETWLogger.h" />
@@ -25,6 +26,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Permissions\PermissionsManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Permissions\PermissionsSnapshot.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Permissions\PermissionsTracer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PolicyHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SecurityAttributes.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)StringUtils.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SystemConfiguratorPipe.h" />
@@ -40,6 +42,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Permissions\PermissionsManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Permissions\PermissionsSnapshot.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Permissions\PermissionsTracer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)PolicyHelper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)SecurityAttributes.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)StringUtils.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)SystemConfiguratorPipe.cpp" />

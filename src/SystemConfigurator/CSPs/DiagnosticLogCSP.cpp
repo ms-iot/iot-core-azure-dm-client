@@ -129,16 +129,16 @@ IResponse^ DiagnosticLogCSP::HandleGetEventTracingConfiguration(IRequest^ reques
         map<wstring, CollectorReportedConfiguration^>::iterator it = encounteredCollectorsMap.find(cspCollectorName);
         if (it == encounteredCollectorsMap.end())
         {
-            wstring collectorRegistryPath = IoTDMRegistryEventTracing;
+            wstring collectorRegistryPath = RegEventTracing;
             collectorRegistryPath += L"\\";
             collectorRegistryPath += cspCollectorName.c_str();
 
             currentCollector = ref new CollectorReportedConfiguration();
             currentCollector->Name = ref new String(cspCollectorName.c_str());
 
-            wstring reportToDeviceTwin = Utils::ReadRegistryValue(collectorRegistryPath, IoTDMRegistryReportToDeviceTwin, JsonNoString /*default*/);
+            wstring reportToDeviceTwin = Utils::ReadRegistryValue(collectorRegistryPath, RegReportToDeviceTwin, JsonNoString /*default*/);
             currentCollector->ReportToDeviceTwin = ref new String(reportToDeviceTwin.c_str());
-            currentCollector->CSPConfiguration->LogFileFolder = ref new String(Utils::ReadRegistryValue(collectorRegistryPath, IoTDMRegistryEventTracingLogFileFolder, cspCollectorName /*default*/).c_str());
+            currentCollector->CSPConfiguration->LogFileFolder = ref new String(Utils::ReadRegistryValue(collectorRegistryPath, RegEventTracingLogFileFolder, cspCollectorName /*default*/).c_str());
 
             // Add it to the collectors list...
             response->Collectors->Append(currentCollector);
@@ -369,14 +369,14 @@ void DiagnosticLogCSP::ApplyCollectorConfiguration(const wstring& cspRoot, Colle
     const wstring collectorCSPPath = cspRoot + L"/" + collector->Name->Data();
     const wstring providersCSPPath = collectorCSPPath + L"/" + CSPProvidersNode;
 
-    wstring collectorRegistryPath = IoTDMRegistryEventTracing;
+    wstring collectorRegistryPath = RegEventTracing;
     collectorRegistryPath += L"\\";
     collectorRegistryPath += collector->Name->Data();
 
     // Add CSP node and set its properties...
     MdmProvision::RunAdd(cspRoot, collector->Name->Data());
-    Utils::WriteRegistryValue(collectorRegistryPath, IoTDMRegistryReportToDeviceTwin, collector->ReportToDeviceTwin->Data());
-    Utils::WriteRegistryValue(collectorRegistryPath, IoTDMRegistryEventTracingLogFileFolder, collector->CSPConfiguration->LogFileFolder->Data());
+    Utils::WriteRegistryValue(collectorRegistryPath, RegReportToDeviceTwin, collector->ReportToDeviceTwin->Data());
+    Utils::WriteRegistryValue(collectorRegistryPath, RegEventTracingLogFileFolder, collector->CSPConfiguration->LogFileFolder->Data());
     MdmProvision::RunSet(collectorCSPPath + L"/LogFileSizeLimitMB", collector->CSPConfiguration->LogFileSizeLimitMB);
     MdmProvision::RunSet(collectorCSPPath + L"/TraceLogFileMode", collector->CSPConfiguration->TraceLogFileMode == L"sequential" ? 1 : 2);
 

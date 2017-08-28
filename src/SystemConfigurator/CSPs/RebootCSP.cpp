@@ -42,7 +42,7 @@ void RebootCSP::ExecRebootNow(const wstring& lastRebootCmdTime)
 {
     TRACE(__FUNCTION__);
 
-    Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryLastRebootCmd, lastRebootCmdTime);
+    Utils::WriteRegistryValue(IoTDMRegistryRoot, RegLastRebootCmd, lastRebootCmdTime);
 
     TRACE(L"\n---- Run Reboot Now\n");
     MdmProvision::RunExec(L"./Device/Vendor/MSFT/Reboot/RebootNow");
@@ -55,7 +55,7 @@ wstring RebootCSP::GetLastRebootCmdTime()
     wstring lastRebootCmdTime = L"";
     try
     {
-        Utils::ReadRegistryValue(IoTDMRegistryRoot, IoTDMRegistryLastRebootCmd);
+        Utils::ReadRegistryValue(IoTDMRegistryRoot, RegLastRebootCmd);
     }
     catch (DMException&)
     {

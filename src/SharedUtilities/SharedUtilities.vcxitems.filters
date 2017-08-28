@@ -57,6 +57,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)SystemConfiguratorPipe.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseHandle.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseBase.h" />
+    <ClInclude Include="D:\Projs\DM.0825.1.D\iot-core-azure-dm-client\src\SharedUtilities\Constants.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Projs\DM.0825.1.D\iot-core-azure-dm-client\src\SharedUtilities\PolicyHelper.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)DMException.cpp">
@@ -96,5 +102,8 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)SystemConfiguratorPipe.cpp" />
+    <ClCompile Include="D:\Projs\DM.0825.1.D\iot-core-azure-dm-client\src\SharedUtilities\PolicyHelper.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

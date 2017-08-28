@@ -24,16 +24,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <windows.h>
 #include "StringUtils.h"
 #include "AutoCloseHandle.h"
-
-#define IoTDMRegistryRoot L"Software\\Microsoft\\IoTDM"
-#define IoTDMRegistryLastRebootCmd L"LastRebootCmd"
-#define IoTDMRegistryWindowsUpdateRebootAllowed L"WindowsUpdateRebootAllowed"
-#define IoTDMRegistryWindowsUpdatePolicySectionReporting L"WindowsUpdatePolicySectionReporting"
-#define IoTDMRegistryEventTracing IoTDMRegistryRoot L"\\EventTracingConfiguration";
-#define IoTDMRegistryEventTracingLogFileFolder L"LogFileFolder"
-#define IoTDMRegistryReportToDeviceTwin L"ReportToDeviceTwin"
-#define IoTDMRegistryTrue L"True"
-#define IoTDMRegistryFalse L"False"
+#include "Constants.h"
 
 namespace Utils
 {

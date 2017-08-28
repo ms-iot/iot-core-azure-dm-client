@@ -227,7 +227,7 @@ IResponse^ HandleGetTimeService(IRequest^ request)
     TRACE(__FUNCTION__);
 
     auto timeServiceRequest = dynamic_cast<GetTimeServiceRequest^>(request);
-    TimeServiceData^ data = TimeCfg::GetTimeServiceState();
+    TimeServiceData^ data = TimeService::GetState();
     return ref new GetTimeServiceResponse(ResponseStatus::Success, data);
 }
 
@@ -236,7 +236,7 @@ IResponse^ HandleSetTimeService(IRequest^ request)
     TRACE(__FUNCTION__);
 
     auto timeServiceRequest = dynamic_cast<SetTimeServiceRequest^>(request);
-    TimeCfg::SetTimeServiceState(timeServiceRequest->data);
+    TimeService::SetState(timeServiceRequest->data);
     return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
@@ -698,7 +698,7 @@ IResponse^ HandleGetWindowsUpdatePolicy(IRequest^ request)
 
     Utils::TryReadRegistryValue(WURingRegistrySubKey, WURingPropertyName, ring);
 
-    Utils::TryReadRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdatePolicySectionReporting, reportToDeviceTwin);
+    Utils::TryReadRegistryValue(IoTDMRegistryRoot, RegWindowsUpdatePolicySectionReporting, reportToDeviceTwin);
 
     // Populate the response...
     auto data = ref new WindowsUpdatePolicyConfiguration();
@@ -786,7 +786,7 @@ IResponse^ HandleSetWindowsUpdatePolicy(IRequest^ request)
             });
         }
     }
-    Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdatePolicySectionReporting, updatePolicyRequest->ReportToDeviceTwin->Data());
+    Utils::WriteRegistryValue(IoTDMRegistryRoot, RegWindowsUpdatePolicySectionReporting, updatePolicyRequest->ReportToDeviceTwin->Data());
 
     return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
@@ -798,9 +798,9 @@ IResponse^ HandleGetWindowsUpdateRebootPolicy(IRequest^ request)
     auto configuration = ref new WindowsUpdateRebootPolicyConfiguration();
 
     wstring value;
-    if (ERROR_SUCCESS == Utils::TryReadRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed, value))
+    if (ERROR_SUCCESS == Utils::TryReadRegistryValue(IoTDMRegistryRoot, RegWindowsUpdateRebootAllowed, value))
     {
-        configuration->allow = value == IoTDMRegistryTrue;
+        configuration->allow = value == RegTrue;
     }
     else
     {
@@ -827,8 +827,8 @@ IResponse^ HandleSetWindowsUpdateRebootPolicy(IRequest^ request)
     {
         throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
     }
-    Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed,
-        windowsUpdateRebootPolicy->configuration->allow ? IoTDMRegistryTrue : IoTDMRegistryFalse);
+    Utils::WriteRegistryValue(IoTDMRegistryRoot, RegWindowsUpdateRebootAllowed,
+        windowsUpdateRebootPolicy->configuration->allow ? RegTrue : RegFalse);
 
     return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
