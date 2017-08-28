@@ -138,14 +138,18 @@
     <ClCompile Include="CSPs\ClientCertificateInstallCSP.cpp" />
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp" />
     <ClCompile Include="CSPs\DeviceHealthAttestationCSP.cpp" />
-    <ClCompile Include="CSPs\DiagnosticLogCSP.cpp" />
+    <ClCompile Include="CSPs\DiagnosticLogCSP.cpp" >
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="CSPs\EnterpriseModernAppManagementCSP.cpp" />
     <ClCompile Include="CSPs\MdmProvision.cpp" />
     <ClCompile Include="CSPs\RebootCSP.cpp" />
     <ClCompile Include="CSPs\RemoteWipeCSP.cpp" />
     <ClCompile Include="CSPs\WifiCSP.cpp" />
     <ClCompile Include="DMService.cpp" />
-    <ClCompile Include="DMStorage.cpp" />
+    <ClCompile Include="DMStorage.cpp" >
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="ServiceManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

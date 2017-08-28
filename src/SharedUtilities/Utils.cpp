@@ -58,7 +58,6 @@ namespace Utils
             &bytesReturned))
         {
             auto actualProcessIds = bytesReturned / sizeof(unsigned int);
-            auto activeSessionId = WTSGetActiveConsoleSessionId();
 
             for (unsigned int i = 0; i < actualProcessIds; i++)
             {
@@ -84,9 +83,6 @@ namespace Utils
                     TRACEP(L"GetTokenInformation(TokenSessionId) failed. Code: ", GetLastError());
                     continue;
                 }
-
-                // Make sure the process is running in the active session
-                if (activeSessionId != sessionID) continue;
 
                 BYTE buffer[SECURITY_MAX_SID_SIZE];
                 PTOKEN_USER tokenUser = reinterpret_cast<PTOKEN_USER>(buffer);
