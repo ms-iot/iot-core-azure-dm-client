@@ -54,13 +54,19 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ETWLogger.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)SystemConfiguratorPipe.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseHandle.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseBase.h" />
-    <ClInclude Include="D:\Projs\DM.0825.1.D\iot-core-azure-dm-client\src\SharedUtilities\Constants.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Constants.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="D:\Projs\DM.0825.1.D\iot-core-azure-dm-client\src\SharedUtilities\PolicyHelper.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)PolicyHelper.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseBase.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseHandle.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)SystemConfiguratorPipe.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
@@ -101,8 +107,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ETWLogger.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)SystemConfiguratorPipe.cpp" />
-    <ClCompile Include="D:\Projs\DM.0825.1.D\iot-core-azure-dm-client\src\SharedUtilities\PolicyHelper.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)PolicyHelper.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)SystemConfiguratorPipe.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

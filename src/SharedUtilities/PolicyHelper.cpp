@@ -16,9 +16,9 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "stdafx.h"
 #include "PolicyHelper.h"
 #include "../DMShared/ErrorCodes.h"
-#include "../SharedUtilities/Constants.h"
-#include "../SharedUtilities/Utils.h"
-#include "../SharedUtilities/DMException.h"
+#include "Constants.h"
+#include "Utils.h"
+#include "DMException.h"
 
 using namespace std;
 using namespace Microsoft::Devices::Management::Message;
