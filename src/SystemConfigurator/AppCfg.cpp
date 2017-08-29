@@ -148,8 +148,10 @@ bool AppCfg::IsAppRunning(const wstring& packageFamilyName)
     return running;
 }
 
-ApplicationInfo AppCfg::InstallAppInternal(const wstring& packageFamilyName, const wstring& appxLocalPath, const vector<wstring>& dependentPackages, const wstring& certFileName, const wstring& certStore)
+ApplicationInfo AppCfg::InstallAppInternal(const wstring& packageFamilyName, const wstring& appxLocalPath, const vector<wstring>& dependentPackages, const wstring& /*certFileName*/, const wstring& /*certStore*/)
 {
+    // IsAppRunning uses PackageManager:FindPackages which needs to be run
+    // as admin, not as the Impersonated user
     bool launchApp = IsAppRunning(packageFamilyName);
 
     Utils::AutoCloseHandle completedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -160,62 +162,65 @@ ApplicationInfo AppCfg::InstallAppInternal(const wstring& packageFamilyName, con
     }
 
     TRACE("Installing appx and its dependencies...");
-
-    Impersonator impersonator;
-    impersonator.ImpersonateShellHost();
-
-    auto filePathBase = Utils::GetDmTempFolder() + L"\\";
-
-    Vector<Uri^>^ appxDepPkgs = ref new Vector<Uri^>();
-    for (const wstring& depSource : dependentPackages)
     {
-        auto fullpath = filePathBase + depSource;
-        appxDepPkgs->Append(ref new Uri(ref new String(fullpath.c_str())));
+        Impersonator impersonator;
+        impersonator.ImpersonateShellHost();
+
+        auto filePathBase = Utils::GetDmUserFolder() + L"\\";
+
+        Vector<Uri^>^ appxDepPkgs = ref new Vector<Uri^>();
+        for (const wstring& depSource : dependentPackages)
+        {
+            auto fullpath = filePathBase + depSource;
+            appxDepPkgs->Append(ref new Uri(ref new String(fullpath.c_str())));
+        }
+
+        auto fullappxpath = filePathBase + appxLocalPath;
+        Uri^ packageUri = ref new Uri(ref new Platform::String(fullappxpath.c_str()));
+
+        PackageManager^ packageManager = ref new PackageManager;
+
+        auto installTask = packageManager->AddPackageAsync(packageUri, appxDepPkgs, DeploymentOptions::ForceApplicationShutdown);
+
+        installTask->Completed = ref new AsyncOperationWithProgressCompletedHandler<DeploymentResult^, DeploymentProgress>(
+            [&](IAsyncOperationWithProgress<DeploymentResult^, DeploymentProgress>^ operation, AsyncStatus)
+        {
+            TRACE("Firing 'install completed' event.");
+            SetEvent(completedEvent.Get());
+        });
+
+        TRACE("Waiting for installing to complete...");
+        WaitForSingleObject(completedEvent.Get(), INFINITE);
+
+        TRACE("Install task completed.");
+        if (installTask->Status == AsyncStatus::Completed)
+        {
+            TRACE("Succeeded.");
+        }
+        else if (installTask->Status == AsyncStatus::Started)
+        {
+            // This should never happen...
+            throw DMExceptionWithErrorCode("Error: failed to wait for installation to complete.", -1);
+        }
+        else if (installTask->Status == AsyncStatus::Error)
+        {
+            auto deploymentResult = installTask->GetResults();
+            string context = Utils::WideToMultibyte(deploymentResult->ErrorText->Data());
+            throw DMExceptionWithErrorCode(context.c_str(), installTask->ErrorCode.Value);
+        }
+        else if (installTask->Status == AsyncStatus::Canceled)
+        {
+            throw DMExceptionWithErrorCode("Error: application installation task cancelled.", -1);
+        }
+
+        if (launchApp)
+        {
+            StartApp(packageFamilyName);
+        }
     }
 
-    auto fullappxpath = filePathBase + appxLocalPath;
-    Uri^ packageUri = ref new Uri(ref new Platform::String(fullappxpath.c_str()));
-
-    PackageManager^ packageManager = ref new PackageManager;
-
-    auto installTask = packageManager->AddPackageAsync(packageUri, appxDepPkgs, DeploymentOptions::ForceApplicationShutdown);
-
-    installTask->Completed = ref new AsyncOperationWithProgressCompletedHandler<DeploymentResult^, DeploymentProgress>(
-        [&](IAsyncOperationWithProgress<DeploymentResult^, DeploymentProgress>^ operation, AsyncStatus)
-    {
-        TRACE("Firing 'install completed' event.");
-        SetEvent(completedEvent.Get());
-    });
-
-    TRACE("Waiting for installing to complete...");
-    WaitForSingleObject(completedEvent.Get(), INFINITE);
-
-    TRACE("Install task completed.");
-    if (installTask->Status == AsyncStatus::Completed)
-    {
-        TRACE("Succeeded.");
-    }
-    else if (installTask->Status == AsyncStatus::Started)
-    {
-        // This should never happen...
-        throw DMExceptionWithErrorCode("Error: failed to wait for installation to complete.", -1);
-    }
-    else if (installTask->Status == AsyncStatus::Error)
-    {
-        auto deploymentResult = installTask->GetResults();
-        string context = Utils::WideToMultibyte(deploymentResult->ErrorText->Data());
-        throw DMExceptionWithErrorCode(context.c_str(), installTask->ErrorCode.Value);
-    }
-    else if (installTask->Status == AsyncStatus::Canceled)
-    {
-        throw DMExceptionWithErrorCode("Error: application installation task cancelled.", -1);
-    }
-
-    if (launchApp)
-    {
-        StartApp(packageFamilyName);
-    }
-
+    // BuildOperationResult uses PackageManager:FindPackages which needs to be run
+    // as admin, not as the Impersonated user
     return BuildOperationResult(packageFamilyName);
 }
 
@@ -225,7 +230,7 @@ ApplicationInfo AppCfg::InstallApp(const wstring& packageFamilyName, const wstri
     TRACE(__FUNCTION__);
     TRACEP(L"Installing app: ", packageFamilyName.c_str());
 
-    auto filePathBase = Utils::GetDmTempFolder() + L"\\";
+    auto filePathBase = Utils::GetDmUserFolder() + L"\\";
 
     TRACEP(L"Installing certificate to ", certStore.c_str());
     CertificateFile certificateFile(filePathBase + certFileName);
@@ -292,48 +297,52 @@ ApplicationInfo AppCfg::UninstallApp(const wstring& packageFamilyName)
 
     TRACE("Uninstalling appx...");
 
-    Impersonator impersonator;
-    impersonator.ImpersonateShellHost();
-
+    // FindApp uses PackageManager:FindPackages which needs to be run
+    // as admin, not as the Impersonated user
     Package^ package = FindApp(packageFamilyName);
     if (!package)
     {
         TRACE("Warning: failed to find the specified package.");
         return ApplicationInfo(packageFamilyName, L"", L"not installed", L"", 0, L"", false /*not pending*/);
     }
+    {
+        Impersonator impersonator;
+        impersonator.ImpersonateShellHost();
 
-    PackageManager^ packageManager = ref new PackageManager;
-    auto uninstallTask = packageManager->RemovePackageAsync(package->Id->FullName);
-    uninstallTask->Completed = ref new AsyncOperationWithProgressCompletedHandler<DeploymentResult^, DeploymentProgress>(
-        [&](IAsyncOperationWithProgress<DeploymentResult^, DeploymentProgress>^ operation, AsyncStatus)
+        PackageManager^ packageManager = ref new PackageManager;
+        auto uninstallTask = packageManager->RemovePackageAsync(package->Id->FullName);
+        uninstallTask->Completed = ref new AsyncOperationWithProgressCompletedHandler<DeploymentResult^, DeploymentProgress>(
+            [&](IAsyncOperationWithProgress<DeploymentResult^, DeploymentProgress>^ operation, AsyncStatus)
         {
             TRACE("Firing 'uninstall completed' event.");
             SetEvent(completedEvent.Get());
         });
 
-    TRACE("Waiting for uninstalling to complete...");
-    WaitForSingleObject(completedEvent.Get(), INFINITE);
+        TRACE("Waiting for uninstalling to complete...");
+        WaitForSingleObject(completedEvent.Get(), INFINITE);
 
-    TRACE("Uninstall task completed.");
-    if (uninstallTask->Status == AsyncStatus::Completed)
-    {
-        TRACE("Succeeded.");
+        TRACE("Uninstall task completed.");
+        if (uninstallTask->Status == AsyncStatus::Completed)
+        {
+            TRACE("Succeeded.");
+        }
+        else if (uninstallTask->Status == AsyncStatus::Started)
+        {
+            // This should never happen...
+            throw DMExceptionWithErrorCode("Error: failed to wait for uninstallation to complete.", -1);
+        }
+        else if (uninstallTask->Status == AsyncStatus::Error)
+        {
+            auto deploymentResult = uninstallTask->GetResults();
+            string context = Utils::WideToMultibyte(deploymentResult->ErrorText->Data());
+            throw DMExceptionWithErrorCode(context.c_str(), uninstallTask->ErrorCode.Value);
+        }
+        else if (uninstallTask->Status == AsyncStatus::Canceled)
+        {
+            throw DMExceptionWithErrorCode("Error: application installation task cancelled.", -1);
+        }
     }
-    else if (uninstallTask->Status == AsyncStatus::Started)
-    {
-        // This should never happen...
-        throw DMExceptionWithErrorCode("Error: failed to wait for uninstallation to complete.", -1);
-    }
-    else if (uninstallTask->Status == AsyncStatus::Error)
-    {
-        auto deploymentResult = uninstallTask->GetResults();
-        string context = Utils::WideToMultibyte(deploymentResult->ErrorText->Data());
-        throw DMExceptionWithErrorCode(context.c_str(), uninstallTask->ErrorCode.Value);
-    }
-    else if (uninstallTask->Status == AsyncStatus::Canceled)
-    {
-        throw DMExceptionWithErrorCode("Error: application installation task cancelled.", -1);
-    }
-
+    // BuildOperationResult uses PackageManager:FindPackages which needs to be run
+    // as admin, not as the Impersonated user
     return BuildOperationResult(packageFamilyName);
 }

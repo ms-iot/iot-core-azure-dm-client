@@ -27,7 +27,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Platform::MTAThread]
 int wmain(int argc, wchar_t *argv[])
 {
-    Utils::EnsureFolderExists(Utils::GetDmTempFolder());
+    Utils::EnsureFolderExists(Utils::GetDmUserFolder());
 
     TRACE("Entering wmain...");
 
@@ -48,10 +48,23 @@ int wmain(int argc, wchar_t *argv[])
         {
             DMService::Uninstall(SERVICE_NAME);
         }
+#ifdef _DEBUG
         else if (_wcsicmp(L"debug", argv[1] + 1) == 0)
         {
             Listen();
         }
+        else if (_wcsicmp(L"dmuserinfo", argv[1] + 1) == 0)
+        {
+            auto name = Utils::GetDmUserName();
+            printf("user name: %S\r\n", name.c_str());
+            auto sid = Utils::GetDmUserSid();
+            printf("user  sid: %S\r\n", sid.c_str());
+            auto temp = Utils::GetDmTempFolder();
+            printf("temp folder: %S\r\n", temp.c_str());
+            auto user = Utils::GetDmUserFolder();
+            printf("user folder: %S\r\n", user.c_str());
+        }
+#endif // _DEBUG
     }
     else
     {

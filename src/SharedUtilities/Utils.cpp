@@ -33,6 +33,8 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Wtsapi32.h"
 // EnumProcesses
 #include "Psapi.h"
+// SHGetFolderPath
+#include "Shlobj.h"
 
 using namespace std;
 using namespace Microsoft::WRL;
@@ -153,11 +155,11 @@ namespace Utils
         return name;
     }
 
-    wstring GetDmUserFolder()
+    wstring GetDmTempFolder()
     {
         WCHAR szPath[MAX_PATH];
         wstring folder(L"");
-        
+
         DWORD result = GetTempPath(MAX_PATH, szPath);
         if (result)
         {
@@ -171,9 +173,26 @@ namespace Utils
         return folder;
     }
 
-    wstring GetDmTempFolder()
+    wstring GetDmUserFolder()
     {
-        return GetDmUserFolder() + IOTDM_RELATIVE_PATH;
+        // this works on IoT Core and IoT Enterprise (not IoT Enterprise 
+        // Mobile ... SHGetFolderPath not implemented there)
+        wstring folder(L"");
+        GetDmUserInfo([&folder](HANDLE token, PTOKEN_USER /*tokenUser*/) {
+            WCHAR szPath[MAX_PATH];
+            HRESULT hr = SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, token, 0, szPath);
+            if (SUCCEEDED(hr))
+            {
+                folder = szPath;
+                folder += L"\\Temp\\";
+            }
+            else
+            {
+                TRACEP(L"SHGetFolderPath failed. Code: ", hr);
+            }
+        });
+
+        return folder;
     }
 
     wstring GetCurrentDateTimeString()
