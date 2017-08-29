@@ -117,14 +117,13 @@ namespace Toaster
             IDeviceManagementRequestHandler appRequestHandler = new ToasterDeviceManagementRequestHandler(this);
 
             // Create the DeviceManagementClient, the main entry point into device management
-            var newDeviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwin, appRequestHandler);
+            this.deviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwin, appRequestHandler);
 
             await EnableDeviceManagementUiAsync(true);
 
             // Tell the deviceManagementClient to sync the device with the current desired state.
-            await newDeviceManagementClient.ApplyDesiredStateAsync();
+            await this.deviceManagementClient.ApplyDesiredStateAsync();
 
-            this.deviceManagementClient = newDeviceManagementClient;
             Logger.Log("ResetConnectionAsync end", LoggingLevel.Verbose);
         }
 

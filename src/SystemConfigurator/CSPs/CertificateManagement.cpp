@@ -38,7 +38,7 @@ void CertificateManagement::SyncCertificates(const std::wstring& path, const std
     vector<CertificateFile> desiredCertificates;
     for (const wstring& desiredCertificateFile : desiredCertificateFilesVector)
     {
-        wstring fullFileName = Utils::GetDmTempFolder() + L"\\" + desiredCertificateFile;
+        wstring fullFileName = Utils::GetDmUserFolder() + L"\\" + desiredCertificateFile;
         TRACEP(L"Reading: ", fullFileName.c_str());
         desiredCertificates.push_back(CertificateFile(fullFileName));
     }

@@ -52,7 +52,7 @@ IResponse^ DMStorage::HandleGetDMFolders(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    wstring path = Utils::GetDmTempFolder();
+    wstring path = Utils::GetDmUserFolder();
 
     StringListResponse^ response = ref new StringListResponse(ResponseStatus::Success);
     response->List = GetFSObjectNames(path, file_type::directory);
@@ -66,7 +66,7 @@ IResponse^ DMStorage::HandleGetDMFiles(IRequest^ request)
     GetDMFilesRequest^ filesRequest = dynamic_cast<GetDMFilesRequest^>(request);
 
     wstring path;
-    path += Utils::GetDmTempFolder();
+    path += Utils::GetDmUserFolder();
     path += L"\\";
     path += filesRequest->DMFolderName->Data();
 
@@ -82,7 +82,7 @@ IResponse^ DMStorage::HandleDeleteDMFile(IRequest^ request)
     DeleteDMFileRequest^ deleteRequest = dynamic_cast<DeleteDMFileRequest^>(request);
 
     wstring fullFileName;
-    fullFileName += Utils::GetDmTempFolder();
+    fullFileName += Utils::GetDmUserFolder();
     fullFileName += L"\\";
     fullFileName += deleteRequest->DMFolderName->Data();
     fullFileName += L"\\";

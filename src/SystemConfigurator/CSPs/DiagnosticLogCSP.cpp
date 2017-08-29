@@ -72,7 +72,7 @@ public:
         _xperfExe(L"C:\\windows\\system32\\xperf.exe"),
         _xperfSession(L"DMAddProviderSession")
     {
-        _dummyEtlFileName = Utils::GetDmTempFolder() + L"\\DMAddProviderSession.etl";
+        _dummyEtlFileName = Utils::GetDmUserFolder() + L"\\DMAddProviderSession.etl";
         _dummyXperfStartCmd = _xperfExe + L" -start " + _xperfSession + L" -f " + _dummyEtlFileName + L" -on " + providerGuid;
         _dummyXperfStopCmd += _xperfExe + L" -stop " + _xperfSession;
     }
@@ -310,7 +310,7 @@ void DiagnosticLogCSP::CreateEtlFile(CollectorDesiredConfiguration^ collector)
 
     // Make sure the target folder exists...
     wstring etlFolderName;
-    etlFolderName += Utils::GetDmTempFolder();
+    etlFolderName += Utils::GetDmUserFolder();
     etlFolderName += L"\\";
     etlFolderName += collector->CSPConfiguration->LogFileFolder->Data();
     CreateDirectory(etlFolderName.c_str(), NULL);
