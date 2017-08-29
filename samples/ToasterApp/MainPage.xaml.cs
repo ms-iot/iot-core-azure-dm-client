@@ -299,9 +299,13 @@ namespace Toaster
         {
             try
             {
-                bool started = RequestedTimeServiceStartedState.SelectedIndex == 0;
-                SettingsPriority settingsPriority = RequestedTimeServicePriorityState.SelectedIndex == 0 ? SettingsPriority.Local : SettingsPriority.Remote;
-                await this.deviceManagementClient.SetTimeServiceAsync(true /*enabled*/, ServiceStartup.Auto, started, settingsPriority);
+                TimeServiceState timeServiceState = new TimeServiceState();
+                timeServiceState.enabled = true;
+                timeServiceState.startup = ServiceStartup.Auto;
+                timeServiceState.started = RequestedTimeServiceStartedState.SelectedIndex == 0;
+                timeServiceState.settingsPriority = RequestedTimeServicePriorityState.SelectedIndex == 0 ? SettingsPriority.Local : SettingsPriority.Remote;
+
+                await this.deviceManagementClient.SetTimeServiceAsync(timeServiceState);
                 StatusText.Text = "Set Time Service Started -> Success";
             }
             catch (Exception ex)

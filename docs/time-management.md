@@ -4,7 +4,7 @@ The **Time** functionality allows the operator to configure the following:
 
 - The time zone.
 - The time synchronization server.
-- The time service on the Windows machine.
+- The Time Service on the Windows machine.
 
 ### Time Zone and Synchronization Server
 
@@ -107,7 +107,31 @@ The reported settings will looks something like this:
 
 ### Time Service
 
-#### Setting
+The desired state of the *Time Service* can be set:
+
+- Remotely through the Device Twin.
+- Locally through a .Net API interface. This interface can be called by the hosting UWP application.
+
+Both, the remote configuration and the local configuration, can co-exist on the same device - however, only one of them can be applied. To specify which one, a priority has to be set. The priority can be set by either interface.
+
+For example, consider the following:
+
+- The administrator wants all devices to have the Time Service running.
+- The administrator wants to give the option to the application user (on the device) to turn off the Time Service.
+- The application exposes a way to turn on and off the Time Service.
+
+For the above scenario, 
+
+- The administrator will set the device twin properties to have the Time Service started and set the priority to `local`.
+- The application can then call the .Net API (see below), and start/stop the service.
+
+Should the administrator decided to take ownership, and override the application settings, the administrator can set the priority to `remote`, and then apply the desired settings.
+
+Note that both the device twin and the .Net API can control the priority property - which gives them equal rights.
+
+When reporting, it is the current state of the service that is reported - regardless of whether it is configured using the local or the remote settings.
+
+#### Device Twin Setting
 
 <pre>
 "desired" : {
@@ -116,12 +140,13 @@ The reported settings will looks something like this:
             "enabled": "yes|no",
             "startup": "auto|manual",
             "started": "yes|no",
+            "sourcePriority": "local|remote"
         }
     }
 }
 </pre>
 
-#### Reporting
+#### Device Twin Reporting
 
 <pre>
 "desired" : {
@@ -130,6 +155,7 @@ The reported settings will looks something like this:
             "enabled": "yes|no",
             "startup": "auto|manual|n/a",
             "started": "yes|no|n/a",
+            "sourcePriority": "local|remote",
             "lastChange": {
                 "time" : "<i>timestamp</i>",
                 "state" : "<i>status</i>"
@@ -138,6 +164,49 @@ The reported settings will looks something like this:
     }
 }
 </pre>
+
+#### .Net API
+
+<pre>
+    <b>Namespace</b>:
+    Microsoft.Devices.Management
+</pre>
+
+<pre>
+    public enum ServiceStartup
+    {
+        Manual,
+        Auto
+    }
+
+    public enum SettingsPriority
+    {
+        Unknown,
+        Local,
+        Remote
+    }
+
+    public class TimeServiceState
+    {
+        public bool enabled;
+        public ServiceStartup startup;
+        public bool started;
+        public SettingsPriority settingsPriority;
+    }
+</pre>
+
+<pre>
+    <b>Class</b>:
+    DeviceManagementClient
+</pre>
+
+<pre>
+    <b>Methods</b>:
+    public async Task SetTimeServiceAsync(TimeServiceState desiredState);
+    public async Task&lt;TimeServiceState&gt; GetTimeServiceStateAsync();
+</pre>
+
+
 
 ----
 

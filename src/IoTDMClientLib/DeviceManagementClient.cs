@@ -320,9 +320,9 @@ namespace Microsoft.Devices.Management
             return await _windowsTelemetryHandler.GetLevelAsync();
         }
 
-        public async Task SetTimeServiceAsync(bool enabled, ServiceStartup startup, bool started, SettingsPriority settingsPriority)
+        public async Task SetTimeServiceAsync(TimeServiceState desiredState)
         {
-            await _timeServiceHandler.SetTimeServiceAsync(enabled, startup, started, settingsPriority);
+            await _timeServiceHandler.SetTimeServiceAsync(desiredState);
         }
 
         public async Task<TimeServiceState> GetTimeServiceStateAsync()

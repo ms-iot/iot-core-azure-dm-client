@@ -121,17 +121,17 @@ namespace Microsoft.Devices.Management
             return JObject.FromObject(response);
         }
 
-        public async Task SetTimeServiceAsync(bool enabled, ServiceStartup startup, bool started, SettingsPriority settingsPriority)
+        public async Task SetTimeServiceAsync(TimeServiceState desiredState)
         {
             // Construct the request and send it...
             Message.Policy policy = new Message.Policy();
             policy.source = Message.PolicySource.Local;
-            policy.sourcePriorities = settingsPriority == SettingsPriority.Local ? _priorityLocal : _priorityRemote;
+            policy.sourcePriorities = desiredState.settingsPriority == SettingsPriority.Local ? _priorityLocal : _priorityRemote;
 
             Message.TimeServiceData data = new Message.TimeServiceData();
-            data.enabled = enabled ? TimeServiceDataContract.JsonYes : TimeServiceDataContract.JsonNo;
-            data.startup = startup == ServiceStartup.Auto ? TimeServiceDataContract.JsonAuto : TimeServiceDataContract.JsonManual;
-            data.started = started ? TimeServiceDataContract.JsonYes : TimeServiceDataContract.JsonNo;
+            data.enabled = desiredState.enabled ? TimeServiceDataContract.JsonYes : TimeServiceDataContract.JsonNo;
+            data.startup = desiredState.startup == ServiceStartup.Auto ? TimeServiceDataContract.JsonAuto : TimeServiceDataContract.JsonManual;
+            data.started = desiredState.started ? TimeServiceDataContract.JsonYes : TimeServiceDataContract.JsonNo;
             data.policy = policy;
 
             var setRequest = new Message.SetTimeServiceRequest(data);
