@@ -27,12 +27,10 @@ namespace Microsoft.Devices.Management
 {
     public class TpmDevice
     {
-        UInt32 logicalDeviceId = 0;
         SystemConfiguratorProxy systemConfiguratorProxy;
 
-        public TpmDevice(UInt32 logicalDeviceId)
+        public TpmDevice()
         {
-            this.logicalDeviceId = logicalDeviceId;
             this.systemConfiguratorProxy = new SystemConfiguratorProxy();
         }
 
@@ -55,7 +53,7 @@ namespace Microsoft.Devices.Management
 
         public async Task<string> GetSASTokenAsync(uint validity = 3600)
         {
-            var result = await RunProxyAndGetResult(new Message.TpmGetSASTokenRequest(logicalDeviceId, validity));
+            var result = await RunProxyAndGetResult(new Message.TpmGetSASTokenRequest(validity));
             return (result as Message.StringResponse).Response;
         }
 
@@ -79,7 +77,7 @@ namespace Microsoft.Devices.Management
             if (heldData == string.Empty)
             {
                 // Not retrieved yet, retrieve
-                var result = await RunProxyAndGetResult(new Message.TpmGetServiceUrlRequest(logicalDeviceId));
+                var result = await RunProxyAndGetResult(new Message.TpmGetServiceUrlRequest());
                 heldData = (result as Message.StringResponse).Response;
             }
             return heldData;

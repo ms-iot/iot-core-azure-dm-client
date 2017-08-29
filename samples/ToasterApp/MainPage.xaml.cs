@@ -55,7 +55,7 @@ namespace Toaster
 
         private async Task<string> GetConnectionStringAsync()
         {
-            var tpmDevice = new TpmDevice(0);
+            var tpmDevice = new TpmDevice();
 
             string connectionString = "";
 
