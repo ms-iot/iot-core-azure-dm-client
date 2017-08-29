@@ -108,12 +108,11 @@ namespace IoTDMBackground
             IDeviceManagementRequestHandler appRequestHandler = new DeviceManagementRequestHandler();
 
             // Create the DeviceManagementClient, the main entry point into device management
-            var newDeviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwin, appRequestHandler);
+            this._dmClient = await DeviceManagementClient.CreateAsync(deviceTwin, appRequestHandler);
 
             // Tell the deviceManagementClient to sync the device with the current desired state.
-            await newDeviceManagementClient.ApplyDesiredStateAsync();
+            await this._dmClient.ApplyDesiredStateAsync();
 
-            this._dmClient = newDeviceManagementClient;
             Logger.Log("ResetConnectionAsync end", LoggingLevel.Verbose);
         }
 
