@@ -61,7 +61,7 @@ wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
 {
     TRACE(__FUNCTION__);
 #ifdef IOT_ENTERPRISE
-	auto data = ref new Windows::Data::Json::JsonArray(); 
+    auto data = ref new Windows::Data::Json::JsonArray(); 
 #else
     // REQUEST
     //    ./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch?list=Struct

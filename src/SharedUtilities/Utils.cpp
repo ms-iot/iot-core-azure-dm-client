@@ -175,24 +175,24 @@ namespace Utils
 
     wstring GetDmUserFolder()
     {
-		// this works on IoT Core and IoT Enterprise (not IoT Enterprise 
-		// Mobile ... SHGetFolderPath not implemented there)
-		wstring folder(L"");
-		GetDmUserInfo([&folder](HANDLE token, PTOKEN_USER /*tokenUser*/) {
-			WCHAR szPath[MAX_PATH];
-			HRESULT hr = SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, token, 0, szPath);
-			if (SUCCEEDED(hr))
-			{
-				folder = szPath;
-				folder += L"\\Temp\\";
-			}
-			else
-			{
-				TRACEP(L"SHGetFolderPath failed. Code: ", hr);
-			}
-		});
+        // this works on IoT Core and IoT Enterprise (not IoT Enterprise 
+        // Mobile ... SHGetFolderPath not implemented there)
+        wstring folder(L"");
+        GetDmUserInfo([&folder](HANDLE token, PTOKEN_USER /*tokenUser*/) {
+            WCHAR szPath[MAX_PATH];
+            HRESULT hr = SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, token, 0, szPath);
+            if (SUCCEEDED(hr))
+            {
+                folder = szPath;
+                folder += L"\\Temp\\";
+            }
+            else
+            {
+                TRACEP(L"SHGetFolderPath failed. Code: ", hr);
+            }
+        });
 
-		return folder;
+        return folder;
     }
 
     wstring GetCurrentDateTimeString()

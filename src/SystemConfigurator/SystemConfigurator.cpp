@@ -65,7 +65,7 @@ int wmain(int argc, wchar_t *argv[])
             printf("user folder: %S\r\n", user.c_str());
         }
 #endif // _DEBUG
-	}
+    }
     else
     {
         TRACE(L"Parameters:");
