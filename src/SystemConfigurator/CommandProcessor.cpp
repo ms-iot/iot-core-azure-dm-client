@@ -41,6 +41,9 @@ using namespace std;
 using namespace Windows::Data::Json;
 using namespace Windows::Foundation::Collections;
 
+const wchar_t* TpmSlotRegistrySubKey = L"SYSTEM\\CurrentControlSet\\Services\\IotCoreDpsClient\\parameters";
+const wchar_t* TpmSlotPropertyName = L"tpm_slot";
+
 const wchar_t* WURingRegistrySubKey = L"SYSTEM\\Platform\\DeviceTargetingInfo";
 const wchar_t* WURingPropertyName = L"TargetRing";
 
@@ -644,8 +647,11 @@ IResponse^ HandleListApps(IRequest^ request)
 IResponse^ HandleTpmGetServiceUrl(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-    uint32_t logicalDeviceId = dynamic_cast<TpmGetServiceUrlRequest^>(request)->LogicalDeviceId;
-    std::string serviceUrl = Tpm::GetServiceUrl(logicalDeviceId);
+    unsigned long logicalDeviceId = 0;
+    Utils::TryReadRegistryValue(TpmSlotRegistrySubKey, TpmSlotPropertyName, logicalDeviceId);
+    TRACEP(L"logicalDeviceId=", logicalDeviceId);
+
+    std::string serviceUrl = Tpm::GetServiceUrl((uint32_t)logicalDeviceId);
     auto serviceUrlW = Utils::MultibyteToWide(serviceUrl.c_str());
     return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(serviceUrlW.c_str()), request->Tag);
 }
@@ -653,8 +659,10 @@ IResponse^ HandleTpmGetServiceUrl(IRequest^ request)
 IResponse^ HandleTpmGetSASToken(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-    uint32_t logicalDeviceId = dynamic_cast<TpmGetSASTokenRequest^>(request)->LogicalDeviceId;
+    unsigned long logicalDeviceId = 0;
+    Utils::TryReadRegistryValue(TpmSlotRegistrySubKey, TpmSlotPropertyName, logicalDeviceId);
     TRACEP(L"logicalDeviceId=", logicalDeviceId);
+    
     std::string sasToken = Tpm::GetSASToken(logicalDeviceId);
     auto sasTokenW = Utils::MultibyteToWide(sasToken.c_str());
     return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(sasTokenW.c_str()), request->Tag);
