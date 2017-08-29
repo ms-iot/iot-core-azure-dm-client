@@ -30,6 +30,7 @@ wstring CustomDeviceUiCSP::GetStartupAppId()
 {
     TRACE(__FUNCTION__);
 #ifdef IOT_ENTERPRISE
+    // TODO: need Enterprise solution
     wstring appId = L"";
 #else
     // REQUEST
@@ -61,7 +62,8 @@ wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
 {
     TRACE(__FUNCTION__);
 #ifdef IOT_ENTERPRISE
-    auto data = ref new Windows::Data::Json::JsonArray(); 
+    // TODO: need Enterprise solution
+    auto data = ref new Windows::Data::Json::JsonArray();
 #else
     // REQUEST
     //    ./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch?list=Struct
@@ -111,6 +113,7 @@ void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add
 {
     TRACE(__FUNCTION__);
 #ifdef IOT_ENTERPRISE
+    // TODO: need Enterprise solution
 #else
     const wchar_t* syncML_forApp = LR"(
   <SyncBody>      
@@ -182,6 +185,7 @@ void CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(const wstring& a
 {
     TRACE(__FUNCTION__);
 #ifdef IOT_ENTERPRISE
+    // TODO: need Enterprise solution
 #else
     HandleStartupApp(appId, true, false /*replace/delete*/);
 #endif // IOT_ENTERPRISE
@@ -191,6 +195,7 @@ bool CustomDeviceUiCSP::IsForeground(const std::wstring& pkgFamilyName)
 {
     TRACE(__FUNCTION__);
 #ifdef IOT_ENTERPRISE
+    // TODO: need Enterprise solution
     return false;
 #else
     wstring forgroundAppId = CustomDeviceUiCSP::GetStartupAppId();
@@ -202,6 +207,7 @@ bool CustomDeviceUiCSP::IsBackground(const std::wstring& pkgFamilyName)
 {
     TRACE(__FUNCTION__);
 #ifdef IOT_ENTERPRISE
+    // TODO: need Enterprise solution
     return false;
 #else
     wstring backgroundTasks = CustomDeviceUiCSP::GetBackgroundTasksToLaunch();
