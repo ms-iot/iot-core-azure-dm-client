@@ -31,30 +31,20 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 {
     public ref class TpmGetServiceUrlRequest sealed : public IRequest
     {
-        uint32_t logicalDeviceId;
     public:
-
-        TpmGetServiceUrlRequest(uint32_t logicalDeviceId) : logicalDeviceId(logicalDeviceId) {}
-
         virtual Blob^ Serialize() {
             JsonObject^ jsonObject = ref new JsonObject();
-            jsonObject->Insert("LogicalDeviceId", JsonValue::CreateNumberValue(logicalDeviceId));
             return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
 
         static IDataPayload^ Deserialize(Blob^ blob) {
             String^ str = SerializationHelper::GetStringFromBlob(blob);
             JsonObject^ jsonObject = JsonObject::Parse(str);
-            uint32_t logicalDeviceId = (uint32_t)jsonObject->Lookup("LogicalDeviceId")->GetNumber();
-            return ref new TpmGetServiceUrlRequest(logicalDeviceId);
+            return ref new TpmGetServiceUrlRequest();
         }
 
         virtual property DMMessageKind Tag {
             DMMessageKind get();
-        }
-
-        property int LogicalDeviceId {
-            int get() { return logicalDeviceId; }
         }
     };
 
