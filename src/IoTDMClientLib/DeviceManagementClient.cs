@@ -45,7 +45,7 @@ namespace Microsoft.Devices.Management
             public string blobName;
         }
 
-        public struct GetWindowsUpdateStatus
+        public struct WindowsUpdateStatus
         {
             public string installed;
             public string approved;
@@ -195,41 +195,7 @@ namespace Microsoft.Devices.Management
 
             var systemConfiguratorProxy = new SystemConfiguratorProxy();
             DeviceManagementClient deviceManagementClient = Create(systemConfiguratorProxy);
-            IClientHandlerCallBack clientCallback = deviceManagementClient;
-
-            var deviceHealthAttestationHandler = new DeviceHealthAttestationHandler(clientCallback, systemConfiguratorProxy);
-            deviceManagementClient.AddPropertyHandler(deviceHealthAttestationHandler);
-
-            deviceManagementClient._windowsUpdatePolicyHandler = new WindowsUpdatePolicyHandler(clientCallback, systemConfiguratorProxy);
-            deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsUpdatePolicyHandler);
-
-            var wifiHandler = new WifiHandler(clientCallback, systemConfiguratorProxy);
-            deviceManagementClient.AddPropertyHandler(wifiHandler);
-
-            var appxHandler = new AppxManagement(clientCallback, systemConfiguratorProxy, deviceManagementClient._desiredCache);
-            deviceManagementClient.AddPropertyHandler(appxHandler);
-
-            var eventTracingHandler = new EventTracingHandler(clientCallback, systemConfiguratorProxy, deviceManagementClient._desiredCache);
-            deviceManagementClient.AddPropertyHandler(eventTracingHandler);
-
-            var timeSettingsHandler = new TimeSettingsHandler(clientCallback, systemConfiguratorProxy);
-            deviceManagementClient.AddPropertyHandler(timeSettingsHandler);
-
-            var timeServiceHandler = new TimeServiceHandler(clientCallback, systemConfiguratorProxy);
-            deviceManagementClient.AddPropertyHandler(timeServiceHandler);
-
-            var rebootInfoHandler = new RebootInfoHandler(
-                clientCallback,
-                systemConfiguratorProxy,
-                deviceManagementClient._desiredCache);
-            deviceManagementClient.AddPropertyHandler(rebootInfoHandler);
-
-            deviceManagementClient._windowsTelemetryHandler = new WindowsTelemetryHandler(clientCallback, systemConfiguratorProxy);
-            deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsTelemetryHandler);
-
-            var deviceInfoHandler = new DeviceInfoHandler(systemConfiguratorProxy);
-            deviceManagementClient.AddPropertyHandler(deviceInfoHandler);
-
+            
             return deviceManagementClient;
         }
 
@@ -537,11 +503,18 @@ namespace Microsoft.Devices.Management
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse);
         }
 
-        public async Task<GetWindowsUpdateStatus> WindowsUpdateStatus()
+        public async Task<WindowsUpdateStatus> ReportWindowsUpdateStatus()
         {
             Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
 
-            GetWindowsUpdateStatus status = JsonConvert.DeserializeObject<GetWindowsUpdateStatus>(JsonConvert.SerializeObject(windowsUpdatesResponse.configuration));
+            WindowsUpdateStatus status;
+            status.approved = windowsUpdatesResponse.configuration.approved;
+            status.installable = windowsUpdatesResponse.configuration.installable;
+            status.installed = windowsUpdatesResponse.configuration.installed;
+            status.lastScanTime = windowsUpdatesResponse.configuration.lastScanTime;
+            status.pendingReboot = windowsUpdatesResponse.configuration.pendingReboot;
+            status.failed = windowsUpdatesResponse.configuration.failed;
+            status.deferUpgrade = windowsUpdatesResponse.configuration.deferUpgrade; 
             return status;
         }
 
