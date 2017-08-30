@@ -45,12 +45,32 @@ namespace Microsoft.Devices.Management
             public string blobName;
         }
 
+        public struct GetWindowsUpdateStatus
+        {
+            public string installed;
+            public string approved;
+            public string failed;
+            public string installable;
+            public string pendingReboot;
+            public string lastScanTime;
+            public bool deferUpgrade;
+        }
+
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler hostAppHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             Logger.Log("Entering DeviceManagementClient constructor.", LoggingLevel.Verbose);
 
             this._deviceTwin = deviceTwin;
             this._hostAppHandler = hostAppHandler;
+            this._systemConfiguratorProxy = systemConfiguratorProxy;
+            this._desiredPropertyMap = new Dictionary<string, IClientPropertyHandler>();
+            this._desiredPropertyDependencyMap = new Dictionary<string, List<IClientPropertyDependencyHandler>>();
+        }
+
+        private DeviceManagementClient(ISystemConfiguratorProxy systemConfiguratorProxy)
+        {
+            Logger.Log("Entering DeviceManagementClient constructor without Azure connection.", LoggingLevel.Verbose);
+
             this._systemConfiguratorProxy = systemConfiguratorProxy;
             this._desiredPropertyMap = new Dictionary<string, IClientPropertyHandler>();
             this._desiredPropertyDependencyMap = new Dictionary<string, List<IClientPropertyDependencyHandler>>();
@@ -169,9 +189,58 @@ namespace Microsoft.Devices.Management
             return deviceManagementClient;
         }
 
+        public static DeviceManagementClient CreateWithoutAzure()
+        {
+            Logger.Log("Creating Device Management objects without Azure connection.", LoggingLevel.Verbose);
+
+            var systemConfiguratorProxy = new SystemConfiguratorProxy();
+            DeviceManagementClient deviceManagementClient = Create(systemConfiguratorProxy);
+            IClientHandlerCallBack clientCallback = deviceManagementClient;
+
+            var deviceHealthAttestationHandler = new DeviceHealthAttestationHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(deviceHealthAttestationHandler);
+
+            deviceManagementClient._windowsUpdatePolicyHandler = new WindowsUpdatePolicyHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsUpdatePolicyHandler);
+
+            var wifiHandler = new WifiHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(wifiHandler);
+
+            var appxHandler = new AppxManagement(clientCallback, systemConfiguratorProxy, deviceManagementClient._desiredCache);
+            deviceManagementClient.AddPropertyHandler(appxHandler);
+
+            var eventTracingHandler = new EventTracingHandler(clientCallback, systemConfiguratorProxy, deviceManagementClient._desiredCache);
+            deviceManagementClient.AddPropertyHandler(eventTracingHandler);
+
+            var timeSettingsHandler = new TimeSettingsHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(timeSettingsHandler);
+
+            var timeServiceHandler = new TimeServiceHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(timeServiceHandler);
+
+            var rebootInfoHandler = new RebootInfoHandler(
+                clientCallback,
+                systemConfiguratorProxy,
+                deviceManagementClient._desiredCache);
+            deviceManagementClient.AddPropertyHandler(rebootInfoHandler);
+
+            deviceManagementClient._windowsTelemetryHandler = new WindowsTelemetryHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsTelemetryHandler);
+
+            var deviceInfoHandler = new DeviceInfoHandler(systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(deviceInfoHandler);
+
+            return deviceManagementClient;
+        }
+
         internal static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             return new DeviceManagementClient(deviceTwin, requestHandler, systemConfiguratorProxy);
+        }
+
+        internal static DeviceManagementClient Create(ISystemConfiguratorProxy systemConfiguratorProxy)
+        {
+            return new DeviceManagementClient(systemConfiguratorProxy);
         }
 
         // IClientHandlerCallBack.ReportPropertiesAsync
@@ -466,6 +535,14 @@ namespace Microsoft.Devices.Management
         {
             var request = new Message.GetWindowsUpdatesRequest();
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse);
+        }
+
+        public async Task<GetWindowsUpdateStatus> WindowsUpdateStatus()
+        {
+            Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
+
+            GetWindowsUpdateStatus status = JsonConvert.DeserializeObject<GetWindowsUpdateStatus>(JsonConvert.SerializeObject(windowsUpdatesResponse.configuration));
+            return status;
         }
 
         private async Task ReportAllDeviceProperties()
