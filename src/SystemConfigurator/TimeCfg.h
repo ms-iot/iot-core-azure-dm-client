@@ -32,10 +32,18 @@ public:
     static Microsoft::Devices::Management::Message::GetTimeInfoResponse^ Get();
     static void Set(Microsoft::Devices::Management::Message::SetTimeInfoRequest^ request);
 
-    static Microsoft::Devices::Management::Message::TimeServiceData^ GetTimeServiceState();
-    static void SetTimeServiceState(Microsoft::Devices::Management::Message::TimeServiceData^ request);
-
 private:
     static void Get(TimeInfo& info);
     static void SetNtpServer(const std::wstring& ntpServer);
+};
+
+class TimeService
+{
+public:
+    static Microsoft::Devices::Management::Message::TimeServiceData^ GetState();
+    static void SetState(Microsoft::Devices::Management::Message::TimeServiceData^ request);
+
+private:
+    static void SaveState(Microsoft::Devices::Management::Message::TimeServiceData^ data);
+    static Microsoft::Devices::Management::Message::TimeServiceData^ GetActiveDesiredState();
 };

@@ -123,6 +123,9 @@
     <ClInclude Include="Models\WindowsTelemetry.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="Models\Policy.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Models\ModelsInfo.dat" />

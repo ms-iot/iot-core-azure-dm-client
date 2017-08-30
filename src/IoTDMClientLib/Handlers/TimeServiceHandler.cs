@@ -13,18 +13,60 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using Microsoft.Devices.Management.DMDataContract;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
+    public enum ServiceStartup
+    {
+        Manual,
+        Auto
+    }
+
+    public enum SettingsPriority
+    {
+        Unknown,
+        Local,
+        Remote
+    }
+
+    public class TimeServiceState
+    {
+        public bool enabled;
+        public ServiceStartup startup;
+        public bool started;
+        public SettingsPriority settingsPriority;
+    }
+
+    static class TimeServiceHandlerHelpers
+    {
+        public static SettingsPriority SettingsPriorityFromString(string s)
+        {
+            switch (s)
+            {
+                case TimeServiceDataContract.JsonLocal:
+                    return SettingsPriority.Local;
+                case TimeServiceDataContract.JsonRemote:
+                    return SettingsPriority.Remote;
+            }
+            return SettingsPriority.Unknown;
+        }
+
+        public static TimeServiceState AsState(this TimeServiceDataContract.ReportedProperties reportedProperties)
+        {
+            TimeServiceState state = new TimeServiceState();
+            state.enabled = reportedProperties.enabled == TimeServiceDataContract.JsonYes;
+            state.startup = reportedProperties.startup == TimeServiceDataContract.JsonAuto ? ServiceStartup.Auto : ServiceStartup.Manual;
+            state.started = reportedProperties.started == TimeServiceDataContract.JsonYes;
+            state.settingsPriority = SettingsPriorityFromString(reportedProperties.sourcePriority);
+            return state;
+        }
+    }
+
     class TimeServiceHandler : IClientPropertyHandler
     {
-        const string JsonSectionName = "timeService";
-        const string JsonEnabled = "enabled";
-        const string JsonStartup = "startup";
-        const string JsonStarted = "started";
-
         public TimeServiceHandler(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             this._systemConfiguratorProxy = systemConfiguratorProxy;
@@ -36,28 +78,38 @@ namespace Microsoft.Devices.Management
         {
             get
             {
-                return JsonSectionName; // todo: constant in data contract?
+                return TimeServiceDataContract.SectionName;
             }
         }
 
         // IClientPropertyHandler
         public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
         {
-            Message.TimeServiceData data = new Message.TimeServiceData();
+            if (!(desiredValue is JObject))
+            {
+                throw new Error(ErrorCodes.INVALID_DESIRED_JSON_VALUE, "Invalid json value type for the " + PropertySectionName + " node.");
+            }
 
-            JObject subProperties = (JObject)desiredValue;
-
-            data.enabled = subProperties.Property(JsonEnabled).Value.ToString();
-            data.startup = subProperties.Property(JsonStartup).Value.ToString();
-            data.started = subProperties.Property(JsonStarted).Value.ToString();
+            TimeServiceDataContract.DesiredProperties desiredProperties = new TimeServiceDataContract.DesiredProperties();
+            desiredProperties.LoadFrom((JObject)desiredValue);
 
             // Construct the request and send it...
+            Message.Policy policy = new Message.Policy();
+            policy.source = Message.PolicySource.Remote;
+            policy.sourcePriorities = desiredProperties.sourcePriority == TimeServiceDataContract.JsonLocal ? _priorityLocal : _priorityRemote;
+
+            Message.TimeServiceData data = new Message.TimeServiceData();
+            data.enabled = desiredProperties.enabled;
+            data.startup = desiredProperties.startup;
+            data.started = desiredProperties.started;
+            data.policy = policy;
+
             var request = new Message.SetTimeServiceRequest(data);
             await this._systemConfiguratorProxy.SendCommandAsync(request);
 
             // Report to the device twin....
             var reportedProperties = await GetTimeServiceAsync();
-            await this._callback.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties.data));
+            await this._callback.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties));
 
             return CommandStatus.Committed;
         }
@@ -66,15 +118,79 @@ namespace Microsoft.Devices.Management
         public async Task<JObject> GetReportedPropertyAsync()
         {
             var response = await GetTimeServiceAsync();
-            return JObject.FromObject(response.data);
+            return JObject.FromObject(response);
         }
 
-        public async Task<Message.GetTimeServiceResponse> GetTimeServiceAsync()
+        public async Task SetTimeServiceAsync(TimeServiceState desiredState)
         {
-            var request = new Message.GetTimeServiceRequest();
-            var response = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return response as Message.GetTimeServiceResponse;
+            // Construct the request and send it...
+            Message.Policy policy = new Message.Policy();
+            policy.source = Message.PolicySource.Local;
+            policy.sourcePriorities = desiredState.settingsPriority == SettingsPriority.Local ? _priorityLocal : _priorityRemote;
+
+            Message.TimeServiceData data = new Message.TimeServiceData();
+            data.enabled = desiredState.enabled ? TimeServiceDataContract.JsonYes : TimeServiceDataContract.JsonNo;
+            data.startup = desiredState.startup == ServiceStartup.Auto ? TimeServiceDataContract.JsonAuto : TimeServiceDataContract.JsonManual;
+            data.started = desiredState.started ? TimeServiceDataContract.JsonYes : TimeServiceDataContract.JsonNo;
+            data.policy = policy;
+
+            var setRequest = new Message.SetTimeServiceRequest(data);
+            await this._systemConfiguratorProxy.SendCommandAsync(setRequest);
+
+            // Get the current state....
+            TimeServiceDataContract.ReportedProperties reportedProperties = await GetTimeServiceAsync();
+            await this._callback.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties));
         }
+
+        private static string SourcePriorityFromPolicy(Message.Policy policy)
+        {
+            if (policy == null || policy.sourcePriorities == null || policy.sourcePriorities.Count == 0)
+            {
+                return TimeServiceDataContract.JsonUnknown;
+            }
+
+            if (policy.sourcePriorities[0] == Message.PolicySource.Local)
+            {
+                return TimeServiceDataContract.JsonLocal;
+            }
+            else if (policy.sourcePriorities[0] == Message.PolicySource.Remote)
+            {
+                return TimeServiceDataContract.JsonRemote;
+            }
+            return TimeServiceDataContract.JsonUnknown;
+        }
+
+        private async Task<TimeServiceDataContract.ReportedProperties> GetTimeServiceAsync()
+        {
+            // Get the current state....
+            var getRequest = new Message.GetTimeServiceRequest();
+            var response = await this._systemConfiguratorProxy.SendCommandAsync(getRequest) as Message.GetTimeServiceResponse;
+
+            // Report it to the device twin...
+            TimeServiceDataContract.ReportedProperties reportedProperties = new TimeServiceDataContract.ReportedProperties();
+            reportedProperties.started = response.data.started;
+            reportedProperties.startup = response.data.startup;
+            reportedProperties.enabled = response.data.enabled;
+            reportedProperties.sourcePriority = SourcePriorityFromPolicy(response.data.policy);
+
+            return reportedProperties;
+        }
+
+        public async Task<TimeServiceState> GetTimeServiceStateAsync()
+        {
+            TimeServiceDataContract.ReportedProperties reportedProperties = await GetTimeServiceAsync();
+            return reportedProperties.AsState();
+        }
+
+        private readonly Message.PolicySource[] _priorityLocal = {
+            Message.PolicySource.Local, // local takes precedence
+            Message.PolicySource.Remote
+        };
+
+        private readonly Message.PolicySource[] _priorityRemote = {
+            Message.PolicySource.Remote, // remote takes precedence
+            Message.PolicySource.Local
+        };
 
         private ISystemConfiguratorProxy _systemConfiguratorProxy;
         private IClientHandlerCallBack _callback;

@@ -293,5 +293,49 @@ namespace Toaster
         {
             GetWindowsTelemetryAsync();
         }
+
+        private async void SetTimeServiceStartedAsync()
+        {
+            try
+            {
+                TimeServiceState timeServiceState = new TimeServiceState();
+                timeServiceState.enabled = true;
+                timeServiceState.startup = ServiceStartup.Auto;
+                timeServiceState.started = RequestedTimeServiceStartedState.SelectedIndex == 0;
+                timeServiceState.settingsPriority = RequestedTimeServicePriorityState.SelectedIndex == 0 ? SettingsPriority.Local : SettingsPriority.Remote;
+
+                await this.deviceManagementClient.SetTimeServiceAsync(timeServiceState);
+                StatusText.Text = "Set Time Service Started -> Success";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Set Time Service Started -> Error: " + ex.HResult + " - " + ex.Message;
+            }
+        }
+
+        private async void GetTimeServiceStartedAsync()
+        {
+            try
+            {
+                TimeServiceState state = await this.deviceManagementClient.GetTimeServiceStateAsync();
+                CurrentTimeServiceStartedState.Text = state.started ? "started" : "stopped";
+                CurrentTimeServicePriorityState.Text = state.settingsPriority.ToString();
+                StatusText.Text = "Get Time Service Started -> Success";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Get Time Service Started -> Error: " + ex.HResult + " - " + ex.Message;
+            }
+        }
+
+        private void OnSetTimeService(object sender, RoutedEventArgs e)
+        {
+            SetTimeServiceStartedAsync();
+        }
+
+        private void OnGetTimeServiceStarted(object sender, RoutedEventArgs e)
+        {
+            GetTimeServiceStartedAsync();
+        }
     }
 }

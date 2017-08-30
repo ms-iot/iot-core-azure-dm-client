@@ -105,6 +105,7 @@
     <ClInclude Include="Models\FileTransfer.h" />
     <ClInclude Include="Models\ListApps.h" />
     <ClInclude Include="Models\ModelHelper.h" />
+    <ClInclude Include="Models\Policy.h" />
     <ClInclude Include="Models\Reboot.h" />
     <ClInclude Include="Models\StartupApp.h" />
     <ClInclude Include="Models\StatusCodeResponse.h" />

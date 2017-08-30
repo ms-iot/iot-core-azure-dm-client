@@ -25,7 +25,7 @@ namespace DMDashboard
         {
             get
             {
-                return "timeService";
+                return TimeServiceDataContract.SectionName;
             }
         }
 
@@ -36,10 +36,13 @@ namespace DMDashboard
 
         public void FromJson(JObject json)
         {
-            string notFound = "<not found>";
-            ServiceEnabled.Text = Utils.GetString(json, "enabled", notFound);
-            ServiceStartup.Text = Utils.GetString(json, "startup", notFound);
-            ServiceStarted.Text = Utils.GetString(json, "started", notFound);
+            TimeServiceDataContract.ReportedProperties reportedProperties = new TimeServiceDataContract.ReportedProperties();
+            reportedProperties.LoadFrom(json);
+
+            ServiceEnabled.Text = reportedProperties.enabled;
+            ServiceStartup.Text = reportedProperties.startup;
+            ServiceStarted.Text = reportedProperties.started;
+            ServicePriority.Text = reportedProperties.sourcePriority;
         }
     }
 }

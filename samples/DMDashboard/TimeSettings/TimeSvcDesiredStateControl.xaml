@@ -12,6 +12,7 @@
                 <RowDefinition Height="30"/>
                 <RowDefinition Height="30"/>
                 <RowDefinition Height="30"/>
+                <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="100" />
@@ -34,6 +35,12 @@
             <ComboBox Grid.Row="2" Grid.Column="1" Margin="3" SelectedIndex="1" x:Name="DesiredTimeServiceStarted">
                 <ComboBoxItem Content="Yes" />
                 <ComboBoxItem Content="No" />
+            </ComboBox>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Margin="15,3,3,3" Text="Priority"/>
+            <ComboBox Grid.Row="3" Grid.Column="1" Margin="3" SelectedIndex="1" x:Name="DesiredTimeServiceSourcePriority">
+                <ComboBoxItem Content="Local" />
+                <ComboBoxItem Content="Remote" />
             </ComboBox>
 
         </Grid>

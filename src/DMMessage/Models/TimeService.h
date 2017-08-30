@@ -19,6 +19,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DMMessageKind.h"
 #include "StatusCodeResponse.h"
 #include "Blob.h"
+#include "Policy.h"
 
 using namespace Platform;
 using namespace Platform::Metadata;
@@ -26,19 +27,27 @@ using namespace Windows::Data::Json;
 
 namespace Microsoft { namespace Devices { namespace Management { namespace Message
 {
+    [Windows::Foundation::Metadata::WebHostHidden]
     public ref class TimeServiceData sealed
     {
     public:
+        property Policy^ policy;
         property String^ enabled;
         property String^ startup;
         property String^ started;
 
-        Blob^ Serialize(uint32_t tag) {
+        Blob^ Serialize(uint32_t tag)
+        {
             JsonObject^ jsonObject = ref new JsonObject();
 
             jsonObject->Insert("enabled", JsonValue::CreateStringValue(enabled));
             jsonObject->Insert("startup", JsonValue::CreateStringValue(startup));
             jsonObject->Insert("started", JsonValue::CreateStringValue(started));
+
+            if (policy)
+            {
+                policy->Serialize(jsonObject);
+            }
 
             return SerializationHelper::CreateBlobFromJson((uint32_t)tag, jsonObject);
         }
@@ -51,11 +60,13 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             result->enabled = jsonObject->Lookup("enabled")->GetString();
             result->startup = jsonObject->Lookup("startup")->GetString();
             result->started = jsonObject->Lookup("started")->GetString();
+            result->policy = Policy::Deserialize(jsonObject);
 
             return result;
         }
     };
 
+    [Windows::Foundation::Metadata::WebHostHidden]
     public ref class SetTimeServiceRequest sealed : public IRequest
     {
     public:
@@ -80,6 +91,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
     };
 
+    [Windows::Foundation::Metadata::WebHostHidden]
     public ref class GetTimeServiceRequest sealed : public IRequest
     {
     public:
@@ -96,6 +108,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
     };
 
+    [Windows::Foundation::Metadata::WebHostHidden]
     public ref class GetTimeServiceResponse sealed : public IResponse
     {
         StatusCodeResponse statusCodeResponse;

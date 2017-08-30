@@ -6,7 +6,7 @@ The **Windows Telemetry Management** allows control over what telemetry data Win
 
 ### Configuration
 
-The **Windows Update Policy** can be configured through the ```"windowsUpdatePolicy"``` node in the desired properties section as follows:
+The **Windows Telemetry** can be configured through the ```"windowsTelemetry"``` node in the desired properties section as follows:
 
 <pre>
 "desired" : {

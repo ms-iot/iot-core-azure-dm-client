@@ -54,9 +54,21 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ETWLogger.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)SystemConfiguratorPipe.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseHandle.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseBase.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Constants.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)PolicyHelper.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseBase.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseHandle.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)SystemConfiguratorPipe.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)DMException.cpp">
@@ -95,6 +107,11 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ETWLogger.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)SystemConfiguratorPipe.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)PolicyHelper.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)SystemConfiguratorPipe.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

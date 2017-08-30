@@ -12,14 +12,29 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #pragma once
 
-// Generic errors 0xA0008000 - 0xA00080FF
-#define ERROR_DM_INVALID_POLICY_SOURCE 0xA0008000
+#include <string>
+#include "../DMMessage/Models/Policy.h"
 
-// Windows Telemetry 0xA0008100 - 0xA00081FF
-#define ERROR_DM_WINDOWS_TELEMETRY_INVALID_LEVEL 0xA0008100
-#define ERROR_DM_WINDOWS_TELEMETRY_MISSING_LEVEL 0xA0008101
 
-// Windows Time Service 0xA0008200 - 0xA00082FF
-#define ERROR_DM_TIME_SERVICE_MISSING_POLICY 0xA000200
+namespace Utils
+{
+    class PolicyHelper
+    {
+    public:
+
+        static std::wstring PolicyToRegString(
+            Microsoft::Devices::Management::Message::PolicySource source);
+
+        static Microsoft::Devices::Management::Message::PolicySource RegStringToPolicy(
+            const std::wstring& source);
+
+        static void SaveToRegistry(
+            Microsoft::Devices::Management::Message::Policy^ policy, const std::wstring& regSectionRoot);
+
+        static Microsoft::Devices::Management::Message::Policy^ LoadFromRegistry(
+            const std::wstring& regSectionRoot);
+    };
+}
