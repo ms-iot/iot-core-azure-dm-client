@@ -103,10 +103,6 @@ namespace Toaster
             // as well as device management
             var newDeviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
 
-            // Set the callback for desired properties update. The callback will be invoked
-            // for all desired properties -- including those specific to device management
-            await newDeviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdated, null);
-
             // IDeviceTwin abstracts away communication with the back-end.
             // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
             IDeviceTwin deviceTwin = new AzureIoTHubDeviceTwinProxy(newDeviceClient, ResetConnectionAsync, Logger.Log);
@@ -120,6 +116,10 @@ namespace Toaster
             this.deviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwin, appRequestHandler);
 
             await EnableDeviceManagementUiAsync(true);
+
+            // Set the callback for desired properties update. The callback will be invoked
+            // for all desired properties -- including those specific to device management
+            await newDeviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdated, null);
 
             // Tell the deviceManagementClient to sync the device with the current desired state.
             await this.deviceManagementClient.ApplyDesiredStateAsync();

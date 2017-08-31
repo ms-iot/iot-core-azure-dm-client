@@ -26,6 +26,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage;
+using System.Threading;
 
 namespace Microsoft.Devices.Management
 {
@@ -49,6 +50,7 @@ namespace Microsoft.Devices.Management
         {
             Logger.Log("Entering DeviceManagementClient constructor.", LoggingLevel.Verbose);
 
+            this._lastDesiredPropertyVersion = -1;
             this._deviceTwin = deviceTwin;
             this._hostAppHandler = hostAppHandler;
             this._systemConfiguratorProxy = systemConfiguratorProxy;
@@ -218,10 +220,17 @@ namespace Microsoft.Devices.Management
             Logger.Log("Retrieving desired state from device twin...", LoggingLevel.Verbose);
 
             Dictionary<string, object> desiredProperties = await this._deviceTwin.GetDesiredPropertiesAsync();
+            object versionValue = null;
+            long version = 0;
+            if (desiredProperties.TryGetValue(DMJSonConstants.DTVersionString, out versionValue) && versionValue != null && versionValue is long)
+            {
+                version = (long)versionValue;
+            }
+
             object windowsPropValue = null;
             if (desiredProperties.TryGetValue(DMJSonConstants.DTWindowsIoTNameSpace, out windowsPropValue) && windowsPropValue != null && windowsPropValue is JObject)
             {
-                await ApplyDesiredStateAsync((JObject)windowsPropValue);
+                await ApplyDesiredStateAsync(version, (JObject)windowsPropValue);
             }
         }
 
@@ -232,7 +241,8 @@ namespace Microsoft.Devices.Management
             try
             {
                 JObject windowsPropValue = (JObject)desiredProperties[DMJSonConstants.DTWindowsIoTNameSpace];
-                ApplyDesiredStateAsync(windowsPropValue).FireAndForget();
+                JObject versionValue = (JObject)desiredProperties[DMJSonConstants.DTVersionString];
+                ApplyDesiredStateAsync((long)versionValue, windowsPropValue).FireAndForget();
             }
             catch (Exception)
             {
@@ -347,122 +357,143 @@ namespace Microsoft.Devices.Management
             await _rebootCmdHandler.AllowReboots(allowReboots);
         }
 
-        public async Task ApplyDesiredStateAsync(JObject windowsPropValue)
+        public async Task ApplyDesiredStateAsync(long version, JObject windowsPropValue)
         {
-            Logger.Log("Applying " + DMJSonConstants.DTWindowsIoTNameSpace + " node desired state...", LoggingLevel.Verbose);
+            Logger.Log(string.Format("Applying {0} node desired state for version {1} ...", DMJSonConstants.DTWindowsIoTNameSpace, version), LoggingLevel.Verbose);
 
-            // ToDo: We should not throw here. All problems need to be logged.
-            Message.CertificateConfiguration certificateConfiguration = null;
-
-            foreach (var sectionProp in windowsPropValue.Children().OfType<JProperty>())
+            try
             {
-                // Handle any dependencies first
-                List<IClientPropertyDependencyHandler> handlers;
-                if (this._desiredPropertyDependencyMap.TryGetValue(sectionProp.Name, out handlers))
+                await _desiredPropertiesLock.WaitAsync();
+
+                // Ensure that no version of the desired state is missed.  If the current version
+                // is not one more than the last version processed, retrieve the entire set of 
+                // desired properties.
+                if (_lastDesiredPropertyVersion != -1 && version != _lastDesiredPropertyVersion + 1)
                 {
-                    handlers.ForEach((handler) =>
-                    {
-                        try
-                        {
-                            Debug.WriteLine($"{sectionProp.Name} = {sectionProp.Value.ToString()}");
-                            if (sectionProp.Value is JObject)
-                            {
-                                handler.OnDesiredPropertyDependencyChange(sectionProp.Name, (JObject)sectionProp.Value);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.WriteLine($"Exception caught while handling desired property - {sectionProp.Name}");
-                            Debug.WriteLine(e);
-                            throw;
-                        }
-                    });
-                }
-            }
-
-            foreach (var sectionProp in windowsPropValue.Children().OfType<JProperty>())
-            {
-                // If we've been told to stop, we should not process any desired properties...
-                if (_lastCommandStatus == CommandStatus.PendingDMAppRestart)
-                {
-                    break;
-                }
-
-                IClientPropertyHandler handler;
-                if (this._desiredPropertyMap.TryGetValue(sectionProp.Name, out handler))
-                {
-                    StatusSection statusSection = new StatusSection(StatusSection.StateType.Pending);
-                    await ReportStatusAsync(sectionProp.Name, statusSection);
-
-                    try
-                    {
-                        Debug.WriteLine($"{sectionProp.Name} = {sectionProp.Value.ToString()}");
-                        if (sectionProp.Value is JValue && sectionProp.Value.Type == JTokenType.String && (string)sectionProp.Value == "refreshing")
-                        {
-                            continue;
-                        }
-
-                        _lastCommandStatus = await handler.OnDesiredPropertyChange(sectionProp.Value);
-
-                        statusSection.State = StatusSection.StateType.Completed;
-                        await ReportStatusAsync(sectionProp.Name, statusSection);
-                    }
-                    catch (Error e)
-                    {
-                        statusSection.State = StatusSection.StateType.Failed;
-                        statusSection.TheError = e;
-
-                        Logger.Log(statusSection.ToString(), LoggingLevel.Error);
-                        await ReportStatusAsync(sectionProp.Name, statusSection);
-                    }
-                    catch (Exception e)
-                    {
-                        statusSection.State = StatusSection.StateType.Failed;
-                        statusSection.TheError = new Error(ErrorSubSystem.Unknown, e.HResult, e.Message);
-
-                        Logger.Log(statusSection.ToString(), LoggingLevel.Error);
-                        await ReportStatusAsync(sectionProp.Name, statusSection);
-                    }
+                    Dictionary<string, object> desiredProperties = await this._deviceTwin.GetDesiredPropertiesAsync();
                 }
                 else
                 {
-                    if (sectionProp.Value.Type != JTokenType.Object)
+                    _lastDesiredPropertyVersion = version;
+                }
+
+                // ToDo: We should not throw here. All problems need to be logged.
+                Message.CertificateConfiguration certificateConfiguration = null;
+
+                foreach (var sectionProp in windowsPropValue.Children().OfType<JProperty>())
+                {
+                    // Handle any dependencies first
+                    List<IClientPropertyDependencyHandler> handlers;
+                    if (this._desiredPropertyDependencyMap.TryGetValue(sectionProp.Name, out handlers))
                     {
-                        continue;
+                        handlers.ForEach((handler) =>
+                        {
+                            try
+                            {
+                                Debug.WriteLine($"{sectionProp.Name} = {sectionProp.Value.ToString()}");
+                                if (sectionProp.Value is JObject)
+                                {
+                                    handler.OnDesiredPropertyDependencyChange(sectionProp.Name, (JObject)sectionProp.Value);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine($"Exception caught while handling desired property - {sectionProp.Name}");
+                                Debug.WriteLine(e);
+                                throw;
+                            }
+                        });
                     }
-                    switch (sectionProp.Name)
+                }
+
+                foreach (var sectionProp in windowsPropValue.Children().OfType<JProperty>())
+                {
+                    // If we've been told to stop, we should not process any desired properties...
+                    if (_lastCommandStatus == CommandStatus.PendingDMAppRestart)
                     {
-                        case "certificates":
+                        break;
+                    }
+
+                    IClientPropertyHandler handler;
+                    if (this._desiredPropertyMap.TryGetValue(sectionProp.Name, out handler))
+                    {
+                        StatusSection statusSection = new StatusSection(StatusSection.StateType.Pending);
+                        await ReportStatusAsync(sectionProp.Name, statusSection);
+
+                        try
+                        {
+                            Debug.WriteLine($"{sectionProp.Name} = {sectionProp.Value.ToString()}");
+                            if (sectionProp.Value is JValue && sectionProp.Value.Type == JTokenType.String && (string)sectionProp.Value == "refreshing")
                             {
-                                // Capture the configuration here.
-                                // To apply the configuration we need to wait until externalStorage has been configured too.
-                                Debug.WriteLine("CertificateConfiguration = " + sectionProp.Value.ToString());
-                                certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(sectionProp.Value.ToString());
+                                continue;
                             }
-                            break;
-                        case "windowsUpdates":
-                            {
-                                Debug.WriteLine("windowsUpdates = " + sectionProp.Value.ToString());
-                                var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(sectionProp.Value.ToString());
-                                await this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
-                            }
-                            break;
-                        default:
-                            // Not supported
-                            break;
+
+                            _lastCommandStatus = await handler.OnDesiredPropertyChange(sectionProp.Value);
+
+                            statusSection.State = StatusSection.StateType.Completed;
+                            await ReportStatusAsync(sectionProp.Name, statusSection);
+                        }
+                        catch (Error e)
+                        {
+                            statusSection.State = StatusSection.StateType.Failed;
+                            statusSection.TheError = e;
+
+                            Logger.Log(statusSection.ToString(), LoggingLevel.Error);
+                            await ReportStatusAsync(sectionProp.Name, statusSection);
+                        }
+                        catch (Exception e)
+                        {
+                            statusSection.State = StatusSection.StateType.Failed;
+                            statusSection.TheError = new Error(ErrorSubSystem.Unknown, e.HResult, e.Message);
+
+                            Logger.Log(statusSection.ToString(), LoggingLevel.Error);
+                            await ReportStatusAsync(sectionProp.Name, statusSection);
+                        }
+                    }
+                    else
+                    {
+                        if (sectionProp.Value.Type != JTokenType.Object)
+                        {
+                            continue;
+                        }
+                        switch (sectionProp.Name)
+                        {
+                            case "certificates":
+                                {
+                                    // Capture the configuration here.
+                                    // To apply the configuration we need to wait until externalStorage has been configured too.
+                                    Debug.WriteLine("CertificateConfiguration = " + sectionProp.Value.ToString());
+                                    certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(sectionProp.Value.ToString());
+                                }
+                                break;
+                            case "windowsUpdates":
+                                {
+                                    Debug.WriteLine("windowsUpdates = " + sectionProp.Value.ToString());
+                                    var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(sectionProp.Value.ToString());
+                                    await this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
+                                }
+                                break;
+                            default:
+                                // Not supported
+                                break;
+                        }
+                    }
+                }
+
+                // Now, handle the operations that depend on others in the necessary order.
+                // By now, Azure storage information should have been captured.
+
+                if (!String.IsNullOrEmpty(_externalStorageHandler.ConnectionString))
+                {
+                    if (certificateConfiguration != null)
+                    {
+                        await ProcessDesiredCertificateConfigurationAsync(_systemConfiguratorProxy, _externalStorageHandler.ConnectionString, "certificates", certificateConfiguration);
                     }
                 }
             }
-
-            // Now, handle the operations that depend on others in the necessary order.
-            // By now, Azure storage information should have been captured.
-
-            if (!String.IsNullOrEmpty(_externalStorageHandler.ConnectionString))
+            finally
             {
-                if (certificateConfiguration != null)
-                {
-                    await ProcessDesiredCertificateConfigurationAsync(_systemConfiguratorProxy, _externalStorageHandler.ConnectionString, "certificates", certificateConfiguration);
-                }
+                this._desiredPropertiesLock.Release();
             }
         }
 
@@ -540,6 +571,8 @@ namespace Microsoft.Devices.Management
         Dictionary<string, IClientPropertyHandler> _desiredPropertyMap;
         Dictionary<string, List<IClientPropertyDependencyHandler>> _desiredPropertyDependencyMap;
         CommandStatus _lastCommandStatus = CommandStatus.NotStarted;
+        long _lastDesiredPropertyVersion = -1;
+        SemaphoreSlim _desiredPropertiesLock = new SemaphoreSlim(1);
     }
 
 }
