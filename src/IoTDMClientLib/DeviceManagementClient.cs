@@ -215,13 +215,12 @@ namespace Microsoft.Devices.Management
             await ReportPropertiesAsync(sectionName, actualValue);
         }
 
-        public async Task ApplyDesiredStateAsync()
+        public void ExtractInfoFromDesiredProperties(Dictionary<string, object> desiredProperties, out long version, out JObject windowsProperties)
         {
-            Logger.Log("Retrieving desired state from device twin...", LoggingLevel.Verbose);
+            windowsProperties = null;
+            version = -1;
 
-            Dictionary<string, object> desiredProperties = await this._deviceTwin.GetDesiredPropertiesAsync();
             object versionValue = null;
-            long version = 0;
             if (desiredProperties.TryGetValue(DMJSonConstants.DTVersionString, out versionValue) && versionValue != null && versionValue is long)
             {
                 version = (long)versionValue;
@@ -230,7 +229,22 @@ namespace Microsoft.Devices.Management
             object windowsPropValue = null;
             if (desiredProperties.TryGetValue(DMJSonConstants.DTWindowsIoTNameSpace, out windowsPropValue) && windowsPropValue != null && windowsPropValue is JObject)
             {
-                await ApplyDesiredStateAsync(version, (JObject)windowsPropValue);
+                windowsProperties = (JObject)windowsPropValue;
+            }
+        }
+
+        public async Task ApplyDesiredStateAsync()
+        {
+            Logger.Log("Retrieving desired state from device twin...", LoggingLevel.Verbose);
+
+            JObject windowsProperties = null;
+            long version = -1;
+
+            Dictionary<string, object> desiredProperties = await this._deviceTwin.GetDesiredPropertiesAsync();
+            ExtractInfoFromDesiredProperties(desiredProperties, out version, out windowsProperties);
+            if (windowsProperties != null)
+            {
+                await ApplyDesiredStateAsync(version, windowsProperties);
             }
         }
 
@@ -363,6 +377,7 @@ namespace Microsoft.Devices.Management
 
             try
             {
+                // Only one set of updates at a time...
                 await _desiredPropertiesLock.WaitAsync();
 
                 // Ensure that no version of the desired state is missed.  If the current version
@@ -371,6 +386,7 @@ namespace Microsoft.Devices.Management
                 if (_lastDesiredPropertyVersion != -1 && version != _lastDesiredPropertyVersion + 1)
                 {
                     Dictionary<string, object> desiredProperties = await this._deviceTwin.GetDesiredPropertiesAsync();
+                    ExtractInfoFromDesiredProperties(desiredProperties, out version, out windowsPropValue);
                 }
                 else
                 {
