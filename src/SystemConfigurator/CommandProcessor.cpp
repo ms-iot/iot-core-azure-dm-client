@@ -1058,6 +1058,8 @@ void EnsureErrorsLogged(const function<void()>& func)
 
 bool ProcessClientConnection(Utils::AutoCloseHandle& pipeHandle)
 {
+    Utils::EnsureFolderExists(Utils::GetDmUserFolder());
+
     bool exit = false;
     // If the connection code throws, there's no way to communicate that the pipe...
     // But we can still log it...
