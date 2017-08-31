@@ -38,53 +38,22 @@ bool Impersonator::ImpersonateShellHost()
 
     Close();
 
-    _snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
-    if (!_snapshot)
-    {
-        TRACE("Error: Failed to create snapshot...");
-        Close();
-        return false;
-    }
-
-    TRACE("Finding sihost.exe process...");
-
     bool result = false;
-    PROCESSENTRY32 entry;
-    entry.dwSize = sizeof(PROCESSENTRY32);
-    if (Process32First(_snapshot, &entry) == TRUE)
-    {
-        while (Process32Next(_snapshot, &entry) == TRUE)
+    Utils::GetDmUserInfo([&result](HANDLE token, PTOKEN_USER /*tokenUser*/) {
+        if (!ImpersonateLoggedOnUser(token))
         {
-            if (_wcsicmp(entry.szExeFile, L"sihost.exe") == 0)
-            {
-                TRACE("Found sihost.exe");
-
-                _hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID);
-                if (!_hProcess)
-                {
-                    TRACE("Error: Failed to open process...");
-                    Close();
-                    return false;
-                }
-
-                if (!OpenProcessToken(_hProcess, TOKEN_ALL_ACCESS, &_hToken))
-                {
-                    TRACE("Error: Failed to open process token...");
-                    Close();
-                    return false;
-                }
-
-                if (!ImpersonateLoggedOnUser(_hToken))
-                {
-                    TRACE("Error: Failed to impersonate user...");
-                    Close();
-                }
-
-                result = true;
-            }
+            TRACE("Error: Failed to impersonate user...");
         }
-    }
+        else
+        {
+            result = true;
+        }
+    });
 
+    if (!result)
+    {
+        Close();
+    }
     if (result)
     {
         TRACE("Impersonating succeeded!");
