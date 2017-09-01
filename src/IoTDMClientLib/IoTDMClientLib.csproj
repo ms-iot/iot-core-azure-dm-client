@@ -94,6 +94,7 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DeviceManagement.cs" />
     <Compile Include="Handlers\AppxLifeCycleHandler.cs" />
     <Compile Include="Handlers\AppxManagement.cs" />
     <Compile Include="AzureBlobFileTransfer.cs" />

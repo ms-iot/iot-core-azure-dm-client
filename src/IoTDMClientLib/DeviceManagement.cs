@@ -44,17 +44,12 @@ namespace Microsoft.Devices.Management
             Logger.Log("Creating Device Management objects without Azure connection.", LoggingLevel.Verbose);
 
             var systemConfiguratorProxy = new SystemConfiguratorProxy();
-            DeviceManagement DeviceManagement = Create(systemConfiguratorProxy);
+            DeviceManagement DeviceManagement = new DeviceManagement(systemConfiguratorProxy); ;
             
             return DeviceManagement;
         }
 
-        internal static DeviceManagement Create(ISystemConfiguratorProxy systemConfiguratorProxy)
-        {
-            return new DeviceManagement(systemConfiguratorProxy);
-        }
-
-        public async Task<WindowsUpdateStatus> ReportWindowsUpdateStatus()
+        public async Task<WindowsUpdateStatus> ReportWindowsUpdateStatusAsync()
         {
             var request = new Message.GetWindowsUpdatesRequest();
             Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse;
