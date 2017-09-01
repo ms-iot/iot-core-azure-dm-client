@@ -44,6 +44,7 @@ namespace Microsoft.Devices.Management
             public string containerName;
             public string blobName;
         }
+
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler hostAppHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             Logger.Log("Entering DeviceManagementClient constructor.", LoggingLevel.Verbose);
@@ -167,6 +168,7 @@ namespace Microsoft.Devices.Management
 
             return deviceManagementClient;
         }
+
         internal static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             return new DeviceManagementClient(deviceTwin, requestHandler, systemConfiguratorProxy);
