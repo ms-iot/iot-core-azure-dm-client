@@ -254,9 +254,13 @@ namespace Microsoft.Devices.Management
 
             try
             {
-                JObject windowsPropValue = (JObject)desiredProperties[DMJSonConstants.DTWindowsIoTNameSpace];
-                JObject versionValue = (JObject)desiredProperties[DMJSonConstants.DTVersionString];
-                ApplyDesiredStateAsync((long)versionValue, windowsPropValue).FireAndForget();
+                JObject windowsProps = null;
+                if (desiredProperties.Contains(DMJSonConstants.DTWindowsIoTNameSpace))
+                {
+                    windowsProps = (JObject)desiredProperties[DMJSonConstants.DTWindowsIoTNameSpace];
+                }
+                var version = (long)desiredProperties[DMJSonConstants.DTVersionString];
+                ApplyDesiredStateAsync(version, windowsProps).FireAndForget();
             }
             catch (Exception)
             {
@@ -388,10 +392,7 @@ namespace Microsoft.Devices.Management
                     Dictionary<string, object> desiredProperties = await this._deviceTwin.GetDesiredPropertiesAsync();
                     ExtractInfoFromDesiredProperties(desiredProperties, out version, out windowsPropValue);
                 }
-                else
-                {
-                    _lastDesiredPropertyVersion = version;
-                }
+                _lastDesiredPropertyVersion = version;
 
                 // ToDo: We should not throw here. All problems need to be logged.
                 Message.CertificateConfiguration certificateConfiguration = null;
