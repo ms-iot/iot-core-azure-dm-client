@@ -44,33 +44,12 @@ namespace Microsoft.Devices.Management
             public string containerName;
             public string blobName;
         }
-
-        public struct WindowsUpdateStatus
-        {
-            public string installed;
-            public string approved;
-            public string failed;
-            public string installable;
-            public string pendingReboot;
-            public string lastScanTime;
-            public bool deferUpgrade;
-        }
-
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler hostAppHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             Logger.Log("Entering DeviceManagementClient constructor.", LoggingLevel.Verbose);
 
             this._deviceTwin = deviceTwin;
             this._hostAppHandler = hostAppHandler;
-            this._systemConfiguratorProxy = systemConfiguratorProxy;
-            this._desiredPropertyMap = new Dictionary<string, IClientPropertyHandler>();
-            this._desiredPropertyDependencyMap = new Dictionary<string, List<IClientPropertyDependencyHandler>>();
-        }
-
-        private DeviceManagementClient(ISystemConfiguratorProxy systemConfiguratorProxy)
-        {
-            Logger.Log("Entering DeviceManagementClient constructor without Azure connection.", LoggingLevel.Verbose);
-
             this._systemConfiguratorProxy = systemConfiguratorProxy;
             this._desiredPropertyMap = new Dictionary<string, IClientPropertyHandler>();
             this._desiredPropertyDependencyMap = new Dictionary<string, List<IClientPropertyDependencyHandler>>();
@@ -188,25 +167,9 @@ namespace Microsoft.Devices.Management
 
             return deviceManagementClient;
         }
-
-        public static DeviceManagementClient CreateWithoutAzure()
-        {
-            Logger.Log("Creating Device Management objects without Azure connection.", LoggingLevel.Verbose);
-
-            var systemConfiguratorProxy = new SystemConfiguratorProxy();
-            DeviceManagementClient deviceManagementClient = Create(systemConfiguratorProxy);
-            
-            return deviceManagementClient;
-        }
-
         internal static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             return new DeviceManagementClient(deviceTwin, requestHandler, systemConfiguratorProxy);
-        }
-
-        internal static DeviceManagementClient Create(ISystemConfiguratorProxy systemConfiguratorProxy)
-        {
-            return new DeviceManagementClient(systemConfiguratorProxy);
         }
 
         // IClientHandlerCallBack.ReportPropertiesAsync
@@ -501,21 +464,6 @@ namespace Microsoft.Devices.Management
         {
             var request = new Message.GetWindowsUpdatesRequest();
             return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse);
-        }
-
-        public async Task<WindowsUpdateStatus> ReportWindowsUpdateStatus()
-        {
-            Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
-
-            WindowsUpdateStatus status;
-            status.approved = windowsUpdatesResponse.configuration.approved;
-            status.installable = windowsUpdatesResponse.configuration.installable;
-            status.installed = windowsUpdatesResponse.configuration.installed;
-            status.lastScanTime = windowsUpdatesResponse.configuration.lastScanTime;
-            status.pendingReboot = windowsUpdatesResponse.configuration.pendingReboot;
-            status.failed = windowsUpdatesResponse.configuration.failed;
-            status.deferUpgrade = windowsUpdatesResponse.configuration.deferUpgrade; 
-            return status;
         }
 
         private async Task ReportAllDeviceProperties()
