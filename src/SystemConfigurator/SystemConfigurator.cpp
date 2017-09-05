@@ -16,6 +16,9 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CommandProcessor.h"
 #include "DMService.h"
 #include "..\SharedUtilities\Logger.h"
+#ifdef _DEBUG
+#include "..\SharedUtilities\Impersonator.h"
+#endif // _DEBUG
 
 #define SERVICE_NAME             L"SystemConfigurator"
 #define SERVICE_DISPLAY_NAME     L"System Configurator"
@@ -27,8 +30,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Platform::MTAThread]
 int wmain(int argc, wchar_t *argv[])
 {
-    Utils::EnsureFolderExists(Utils::GetDmUserFolder());
-
     TRACE("Entering wmain...");
 
     if ((argc > 1) && ((*argv[1] == L'-' || (*argv[1] == L'/'))))
@@ -63,6 +64,11 @@ int wmain(int argc, wchar_t *argv[])
             printf("temp folder: %S\r\n", temp.c_str());
             auto user = Utils::GetDmUserFolder();
             printf("user folder: %S\r\n", user.c_str());
+        }
+        else if (_wcsicmp(L"testImpersonateShellHost", argv[1] + 1) == 0)
+        {
+            Impersonator impersonator;
+            impersonator.ImpersonateShellHost();
         }
 #endif // _DEBUG
     }

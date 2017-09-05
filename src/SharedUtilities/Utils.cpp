@@ -29,12 +29,10 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DMException.h"
 #include "Logger.h"
 
-// WTSQueryUserToken
-#include "Wtsapi32.h"
-// EnumProcesses
-#include "Psapi.h"
 // SHGetFolderPath
 #include "Shlobj.h"
+// CreateToolhelp32Snapshot, etc
+#include <tlhelp32.h>
 
 using namespace std;
 using namespace Microsoft::WRL;
@@ -47,70 +45,57 @@ using namespace Windows::System::Profile;
 
 namespace Utils
 {
-    void GetDmUserInfo(TOKEN_HANDLER handler)
+    void GetShellUserInfo(TOKEN_HANDLER handler)
     {
-        const size_t processNameLength = wcslen(IoTDMSihostExe);
-        vector<DWORD> spProcessIds(1024);
-        DWORD bytesReturned = 0;
-        WCHAR imageFileName[MAX_PATH];
+        PROCESSENTRY32 entry;
+        entry.dwSize = sizeof(PROCESSENTRY32);
 
-        if (EnumProcesses(
-            &spProcessIds.front(),
-            static_cast<unsigned int>(spProcessIds.size() * sizeof(DWORD)),
-            &bytesReturned))
+        AutoCloseHandle snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+        if (!snapshot.Get())
         {
-            auto actualProcessIds = bytesReturned / sizeof(unsigned int);
+            throw DMExceptionWithErrorCode("Error: Failed to create snapshot...", E_FAIL);
+        }
 
-            for (unsigned int i = 0; i < actualProcessIds; i++)
+        if (Process32First(snapshot.Get(), &entry) == TRUE)
+        {
+            while (Process32Next(snapshot.Get(), &entry) == TRUE)
             {
-                DWORD error = 0;
-                AutoCloseHandle processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, spProcessIds[i]);
-                if (processHandle.Get() == INVALID_HANDLE_VALUE) continue;
-
-                auto imageFileNameLength = GetProcessImageFileNameW(processHandle.Get(), imageFileName, _countof(imageFileName));
-                if ((imageFileNameLength < processNameLength) || (_wcsicmp(IoTDMSihostExe, &imageFileName[imageFileNameLength - processNameLength]) != 0)) continue;
-
-                AutoCloseHandle processTokenHandle;
-                error = OpenProcessToken(processHandle.Get(), TOKEN_READ, processTokenHandle.GetAddress());
-                if (FAILED(error))
+                if (_wcsicmp(entry.szExeFile, IoTDMSihostExe) == 0)
                 {
-                    TRACEP(L"OpenProcessToken failed. Code: ", error);
-                    continue;
-                }
+                    AutoCloseHandle processHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID);
+                    if (processHandle.Get() == INVALID_HANDLE_VALUE) continue;
 
-                DWORD sessionID = 0;
-                DWORD size = 0;
-                if (!GetTokenInformation(processTokenHandle.Get(), TokenSessionId, &sessionID, sizeof(sessionID), &size))
-                {
-                    TRACEP(L"GetTokenInformation(TokenSessionId) failed. Code: ", GetLastError());
-                    continue;
-                }
+                    AutoCloseHandle processTokenHandle;
+                    auto error = OpenProcessToken(processHandle.Get(), TOKEN_ALL_ACCESS, processTokenHandle.GetAddress());
+                    if (FAILED(error))
+                    {
+                        TRACEP(L"OpenProcessToken failed. Code: ", error);
+                        continue;
+                    }
 
-                BYTE buffer[SECURITY_MAX_SID_SIZE];
-                PTOKEN_USER tokenUser = reinterpret_cast<PTOKEN_USER>(buffer);
-                DWORD tokenUserSize = sizeof(buffer);
-                if (!GetTokenInformation(processTokenHandle.Get(), TokenUser, tokenUser, tokenUserSize, &tokenUserSize))
-                {
-                    TRACEP(L"GetTokenInformation(TokenUser) failed. Code: ", GetLastError());
-                    continue;
-                }
+                    BYTE buffer[SECURITY_MAX_SID_SIZE];
+                    PTOKEN_USER tokenUser = reinterpret_cast<PTOKEN_USER>(buffer);
+                    DWORD tokenUserSize = sizeof(buffer);
+                    if (!GetTokenInformation(processTokenHandle.Get(), TokenUser, tokenUser, tokenUserSize, &tokenUserSize))
+                    {
+                        TRACEP(L"GetTokenInformation(TokenUser) failed. Code: ", GetLastError());
+                        continue;
+                    }
 
-                handler(processTokenHandle.Get(), tokenUser);
-                return;
+                    handler(processTokenHandle.Get(), tokenUser);
+
+                    return;
+                }
             }
         }
-        else
-        {
-            throw DMExceptionWithErrorCode("EnumProcesses failed.", GetLastError());
-        }
 
-        throw DMExceptionWithErrorCode("GetDmUserInfo: no user process found.", E_FAIL);
+        throw DMExceptionWithErrorCode("GetShellUserInfo: no user process found.", E_FAIL);
     }
 
     wstring GetDmUserSid() 
     {
         wstring sid(L"");
-        GetDmUserInfo([&sid](HANDLE /*token*/, PTOKEN_USER tokenUser) {
+        GetShellUserInfo([&sid](HANDLE /*token*/, PTOKEN_USER tokenUser) {
             WCHAR *pCOwner = NULL;
             if (ConvertSidToStringSid(tokenUser->User.Sid, &pCOwner))
             {
@@ -129,7 +114,7 @@ namespace Utils
     wstring GetDmUserName() 
     {
         wstring name(L"");
-        GetDmUserInfo([&name](HANDLE /*token*/, PTOKEN_USER tokenUser) {
+        GetShellUserInfo([&name](HANDLE /*token*/, PTOKEN_USER tokenUser) {
             DWORD cchDomainName = 0, cchAccountName = 0;
             SID_NAME_USE AccountType = SidTypeUnknown;
             LookupAccountSid(NULL, tokenUser->User.Sid, NULL, &cchAccountName, NULL, &cchDomainName, &AccountType);
@@ -178,7 +163,7 @@ namespace Utils
         // this works on IoT Core and IoT Enterprise (not IoT Enterprise 
         // Mobile ... SHGetFolderPath not implemented there)
         wstring folder(L"");
-        GetDmUserInfo([&folder](HANDLE token, PTOKEN_USER /*tokenUser*/) {
+        GetShellUserInfo([&folder](HANDLE token, PTOKEN_USER /*tokenUser*/) {
             WCHAR szPath[MAX_PATH];
             HRESULT hr = SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, token, 0, szPath);
             if (SUCCEEDED(hr))
