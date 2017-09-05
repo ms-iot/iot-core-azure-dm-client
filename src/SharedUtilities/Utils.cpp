@@ -45,7 +45,7 @@ using namespace Windows::System::Profile;
 
 namespace Utils
 {
-    void GetDmUserInfo(TOKEN_HANDLER handler)
+    void GetShellUserInfo(TOKEN_HANDLER handler)
     {
         PROCESSENTRY32 entry;
         entry.dwSize = sizeof(PROCESSENTRY32);
@@ -89,13 +89,13 @@ namespace Utils
             }
         }
 
-        throw DMExceptionWithErrorCode("GetDmUserInfo: no user process found.", E_FAIL);
+        throw DMExceptionWithErrorCode("GetShellUserInfo: no user process found.", E_FAIL);
     }
 
     wstring GetDmUserSid() 
     {
         wstring sid(L"");
-        GetDmUserInfo([&sid](HANDLE /*token*/, PTOKEN_USER tokenUser) {
+        GetShellUserInfo([&sid](HANDLE /*token*/, PTOKEN_USER tokenUser) {
             WCHAR *pCOwner = NULL;
             if (ConvertSidToStringSid(tokenUser->User.Sid, &pCOwner))
             {
@@ -114,7 +114,7 @@ namespace Utils
     wstring GetDmUserName() 
     {
         wstring name(L"");
-        GetDmUserInfo([&name](HANDLE /*token*/, PTOKEN_USER tokenUser) {
+        GetShellUserInfo([&name](HANDLE /*token*/, PTOKEN_USER tokenUser) {
             DWORD cchDomainName = 0, cchAccountName = 0;
             SID_NAME_USE AccountType = SidTypeUnknown;
             LookupAccountSid(NULL, tokenUser->User.Sid, NULL, &cchAccountName, NULL, &cchDomainName, &AccountType);
@@ -163,7 +163,7 @@ namespace Utils
         // this works on IoT Core and IoT Enterprise (not IoT Enterprise 
         // Mobile ... SHGetFolderPath not implemented there)
         wstring folder(L"");
-        GetDmUserInfo([&folder](HANDLE token, PTOKEN_USER /*tokenUser*/) {
+        GetShellUserInfo([&folder](HANDLE token, PTOKEN_USER /*tokenUser*/) {
             WCHAR szPath[MAX_PATH];
             HRESULT hr = SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, token, 0, szPath);
             if (SUCCEEDED(hr))
