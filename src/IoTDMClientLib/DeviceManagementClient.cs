@@ -236,16 +236,7 @@ namespace Microsoft.Devices.Management
         public async Task ApplyDesiredStateAsync()
         {
             Logger.Log("Retrieving desired state from device twin...", LoggingLevel.Verbose);
-
-            JObject windowsProperties = null;
-            long version = -1;
-
-            Dictionary<string, object> desiredProperties = await this._deviceTwin.GetDesiredPropertiesAsync();
-            ExtractInfoFromDesiredProperties(desiredProperties, out version, out windowsProperties);
-            if (windowsProperties != null)
-            {
-                await ApplyDesiredStateAsync(version, windowsProperties);
-            }
+            await ApplyDesiredStateAsync(-1, new JObject(), true);
         }
 
         public void ApplyDesiredStateAsync(TwinCollection desiredProperties)
@@ -260,7 +251,7 @@ namespace Microsoft.Devices.Management
                     windowsProps = (JObject)desiredProperties[DMJSonConstants.DTWindowsIoTNameSpace];
                 }
                 var version = (long)desiredProperties[DMJSonConstants.DTVersionString];
-                ApplyDesiredStateAsync(version, windowsProps).FireAndForget();
+                ApplyDesiredStateAsync(version, windowsProps, false).FireAndForget();
             }
             catch (Exception)
             {
@@ -375,7 +366,7 @@ namespace Microsoft.Devices.Management
             await _rebootCmdHandler.AllowReboots(allowReboots);
         }
 
-        public async Task ApplyDesiredStateAsync(long version, JObject windowsPropValue)
+        public async Task ApplyDesiredStateAsync(long version, JObject windowsPropValue, bool forceFullTwinUpdate)
         {
             Logger.Log(string.Format("Applying {0} node desired state for version {1} ...", DMJSonConstants.DTWindowsIoTNameSpace, version), LoggingLevel.Verbose);
 
@@ -384,13 +375,20 @@ namespace Microsoft.Devices.Management
                 // Only one set of updates at a time...
                 await _desiredPropertiesLock.WaitAsync();
 
-                // Ensure that no version of the desired state is missed.  If the current version
-                // is not one more than the last version processed, retrieve the entire set of 
-                // desired properties.
-                if (_lastDesiredPropertyVersion != -1 && version != _lastDesiredPropertyVersion + 1)
+                // If we force a full twin update OR 
+                //    we haven't processed any updates yet OR
+                //    we missed a version ...
+                // Then, get all of the twin's properties
+                if (forceFullTwinUpdate || _lastDesiredPropertyVersion == -1 || version > (_lastDesiredPropertyVersion + 1))
                 {
                     Dictionary<string, object> desiredProperties = await this._deviceTwin.GetDesiredPropertiesAsync();
                     ExtractInfoFromDesiredProperties(desiredProperties, out version, out windowsPropValue);
+                }
+                else if (version <= _lastDesiredPropertyVersion)
+                {
+                    // If this version is older (or the same) than the last we processed ...
+                    // Then, skip this update
+                    return;
                 }
                 _lastDesiredPropertyVersion = version;
 
