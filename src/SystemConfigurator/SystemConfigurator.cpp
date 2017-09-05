@@ -65,7 +65,7 @@ int wmain(int argc, wchar_t *argv[])
             auto user = Utils::GetDmUserFolder();
             printf("user folder: %S\r\n", user.c_str());
         }
-        else if (_wcsicmp(L"impersonate", argv[1] + 1) == 0)
+        else if (_wcsicmp(L"testImpersonateShellHost", argv[1] + 1) == 0)
         {
             Impersonator impersonator;
             impersonator.ImpersonateShellHost();

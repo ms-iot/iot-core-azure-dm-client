@@ -36,7 +36,7 @@ namespace Utils
 
 
     // User helper
-    void GetDmUserInfo(TOKEN_HANDLER handler);
+    void GetShellUserInfo(TOKEN_HANDLER handler);
     std::wstring GetDmUserSid();
     std::wstring GetDmUserName();
     std::wstring GetDmUserFolder();

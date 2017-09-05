@@ -39,7 +39,7 @@ bool Impersonator::ImpersonateShellHost()
     Close();
 
     bool result = false;
-    Utils::GetDmUserInfo([&result](HANDLE token, PTOKEN_USER /*tokenUser*/) {
+    Utils::GetShellUserInfo([&result](HANDLE token, PTOKEN_USER /*tokenUser*/) {
         if (!ImpersonateLoggedOnUser(token))
         {
             TRACE("Error: Failed to impersonate user...");
