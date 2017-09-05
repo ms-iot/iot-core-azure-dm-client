@@ -18,6 +18,7 @@ namespace Microsoft.Devices.Management.DMDataContract
     public class DMJSonConstants
     {
         public const string DTWindowsIoTNameSpace = "windows";
+        public const string DTVersionString = "$version";
 
         public const string ApplyPropertiesString = "applyProperties";
         public const string ReportPropertiesString = "reportProperties";

@@ -24,6 +24,7 @@ using System;
 using Microsoft.Azure.Devices.Client.Exceptions;
 using Windows.Foundation.Diagnostics;
 using Windows.Networking.Connectivity;
+using Microsoft.Devices.Management.DMDataContract;
 
 namespace Microsoft.Devices.Management
 {
@@ -93,6 +94,7 @@ namespace Microsoft.Devices.Management
                 {
                     desiredProperties[p.Key] = p.Value;
                 }
+                desiredProperties[DMJSonConstants.DTVersionString] = twin.Properties.Desired.Version;
             }
             catch (IotHubCommunicationException e)
             {

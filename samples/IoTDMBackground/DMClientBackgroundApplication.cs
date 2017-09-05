@@ -94,10 +94,6 @@ namespace IoTDMBackground
             // as well as device management
             var newDeviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
 
-            // Set the callback for desired properties update. The callback will be invoked
-            // for all desired properties -- including those specific to device management
-            await newDeviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdate, null);
-
             // IDeviceTwin abstracts away communication with the back-end.
             // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
             IDeviceTwin deviceTwin = new AzureIoTHubDeviceTwinProxy(newDeviceClient, ResetConnectionAsync, Logger.Log);
@@ -109,6 +105,10 @@ namespace IoTDMBackground
 
             // Create the DeviceManagementClient, the main entry point into device management
             this._dmClient = await DeviceManagementClient.CreateAsync(deviceTwin, appRequestHandler);
+
+            // Set the callback for desired properties update. The callback will be invoked
+            // for all desired properties -- including those specific to device management
+            await newDeviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdate, null);
 
             // Tell the deviceManagementClient to sync the device with the current desired state.
             await this._dmClient.ApplyDesiredStateAsync();
