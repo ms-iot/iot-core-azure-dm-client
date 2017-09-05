@@ -366,7 +366,7 @@ namespace Microsoft.Devices.Management
             await _rebootCmdHandler.AllowReboots(allowReboots);
         }
 
-        public async Task ApplyDesiredStateAsync(long version, JObject windowsPropValue, bool forceFullTwinUpdate)
+        private async Task ApplyDesiredStateAsync(long version, JObject windowsPropValue, bool forceFullTwinUpdate)
         {
             Logger.Log(string.Format("Applying {0} node desired state for version {1} ...", DMJSonConstants.DTWindowsIoTNameSpace, version), LoggingLevel.Verbose);
 
