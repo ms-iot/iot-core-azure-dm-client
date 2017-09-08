@@ -25,13 +25,6 @@ namespace Microsoft.Devices.Management
         Auto
     }
 
-    public enum SettingsPriority
-    {
-        Unknown,
-        Local,
-        Remote
-    }
-
     public class TimeServiceState
     {
         public bool enabled;
@@ -42,25 +35,13 @@ namespace Microsoft.Devices.Management
 
     static class TimeServiceHandlerHelpers
     {
-        public static SettingsPriority SettingsPriorityFromString(string s)
-        {
-            switch (s)
-            {
-                case TimeServiceDataContract.JsonLocal:
-                    return SettingsPriority.Local;
-                case TimeServiceDataContract.JsonRemote:
-                    return SettingsPriority.Remote;
-            }
-            return SettingsPriority.Unknown;
-        }
-
         public static TimeServiceState AsState(this TimeServiceDataContract.ReportedProperties reportedProperties)
         {
             TimeServiceState state = new TimeServiceState();
             state.enabled = reportedProperties.enabled == TimeServiceDataContract.JsonYes;
             state.startup = reportedProperties.startup == TimeServiceDataContract.JsonAuto ? ServiceStartup.Auto : ServiceStartup.Manual;
             state.started = reportedProperties.started == TimeServiceDataContract.JsonYes;
-            state.settingsPriority = SettingsPriorityFromString(reportedProperties.sourcePriority);
+            state.settingsPriority = PolicyHelpers.SettingsPriorityFromString(reportedProperties.sourcePriority);
             return state;
         }
     }
@@ -96,7 +77,7 @@ namespace Microsoft.Devices.Management
             // Construct the request and send it...
             Message.Policy policy = new Message.Policy();
             policy.source = Message.PolicySource.Remote;
-            policy.sourcePriorities = desiredProperties.sourcePriority == TimeServiceDataContract.JsonLocal ? _priorityLocal : _priorityRemote;
+            policy.sourcePriorities = desiredProperties.sourcePriority == PolicyDataContract.JsonLocal ? _priorityLocal : _priorityRemote;
 
             Message.TimeServiceData data = new Message.TimeServiceData();
             data.enabled = desiredProperties.enabled;
@@ -121,17 +102,17 @@ namespace Microsoft.Devices.Management
             return JObject.FromObject(response);
         }
 
-        public async Task SetTimeServiceAsync(TimeServiceState desiredState)
+        public async Task SetTimeServiceAsync(TimeServiceState userDesiredState)
         {
             // Construct the request and send it...
             Message.Policy policy = new Message.Policy();
             policy.source = Message.PolicySource.Local;
-            policy.sourcePriorities = desiredState.settingsPriority == SettingsPriority.Local ? _priorityLocal : _priorityRemote;
+            policy.sourcePriorities = userDesiredState.settingsPriority == SettingsPriority.Local ? _priorityLocal : _priorityRemote;
 
             Message.TimeServiceData data = new Message.TimeServiceData();
-            data.enabled = desiredState.enabled ? TimeServiceDataContract.JsonYes : TimeServiceDataContract.JsonNo;
-            data.startup = desiredState.startup == ServiceStartup.Auto ? TimeServiceDataContract.JsonAuto : TimeServiceDataContract.JsonManual;
-            data.started = desiredState.started ? TimeServiceDataContract.JsonYes : TimeServiceDataContract.JsonNo;
+            data.enabled = userDesiredState.enabled ? TimeServiceDataContract.JsonYes : TimeServiceDataContract.JsonNo;
+            data.startup = userDesiredState.startup == ServiceStartup.Auto ? TimeServiceDataContract.JsonAuto : TimeServiceDataContract.JsonManual;
+            data.started = userDesiredState.started ? TimeServiceDataContract.JsonYes : TimeServiceDataContract.JsonNo;
             data.policy = policy;
 
             var setRequest = new Message.SetTimeServiceRequest(data);
@@ -140,24 +121,6 @@ namespace Microsoft.Devices.Management
             // Get the current state....
             TimeServiceDataContract.ReportedProperties reportedProperties = await GetTimeServiceAsync();
             await this._callback.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties));
-        }
-
-        private static string SourcePriorityFromPolicy(Message.Policy policy)
-        {
-            if (policy == null || policy.sourcePriorities == null || policy.sourcePriorities.Count == 0)
-            {
-                return TimeServiceDataContract.JsonUnknown;
-            }
-
-            if (policy.sourcePriorities[0] == Message.PolicySource.Local)
-            {
-                return TimeServiceDataContract.JsonLocal;
-            }
-            else if (policy.sourcePriorities[0] == Message.PolicySource.Remote)
-            {
-                return TimeServiceDataContract.JsonRemote;
-            }
-            return TimeServiceDataContract.JsonUnknown;
         }
 
         private async Task<TimeServiceDataContract.ReportedProperties> GetTimeServiceAsync()
@@ -171,7 +134,7 @@ namespace Microsoft.Devices.Management
             reportedProperties.started = response.data.started;
             reportedProperties.startup = response.data.startup;
             reportedProperties.enabled = response.data.enabled;
-            reportedProperties.sourcePriority = SourcePriorityFromPolicy(response.data.policy);
+            reportedProperties.sourcePriority = PolicyHelpers.SourcePriorityFromPolicy(response.data.policy);
 
             return reportedProperties;
         }

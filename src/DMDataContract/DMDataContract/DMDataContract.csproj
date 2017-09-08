@@ -43,12 +43,14 @@
     <Compile Include="ErrorCodes.cs" />
     <Compile Include="ExternalStorage.cs" />
     <Compile Include="FactoryReset.cs" />
+    <Compile Include="Policy.cs" />
     <Compile Include="RebootCmd.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RebootInfo.cs" />
     <Compile Include="TimeService.cs" />
     <Compile Include="WindowsTelemetry.cs" />
     <Compile Include="Utils.cs" />
+    <Compile Include="WindowsUpdatePolicy.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">

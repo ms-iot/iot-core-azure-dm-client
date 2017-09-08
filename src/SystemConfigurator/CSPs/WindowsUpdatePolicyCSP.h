@@ -12,17 +12,27 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #pragma once
 
-// Generic errors 0xA0008000 - 0xA00080FF
-#define ERROR_DM_INVALID_POLICY_SOURCE 0xA0008000
+#include "Models\AllModels.h"
 
-// Windows Telemetry 0xA0008100 - 0xA00081FF
-#define ERROR_DM_WINDOWS_TELEMETRY_INVALID_LEVEL 0xA0008100
-#define ERROR_DM_WINDOWS_TELEMETRY_MISSING_LEVEL 0xA0008101
+class WindowsUpdatePolicyCSP
+{
+public:
+    static Microsoft::Devices::Management::Message::IResponse^
+        Get(Microsoft::Devices::Management::Message::IRequest^ request);
 
-// Windows Time Service 0xA0008200 - 0xA00082FF
-#define ERROR_DM_TIME_SERVICE_MISSING_POLICY 0xA000200
+    static Microsoft::Devices::Management::Message::IResponse^
+        Set(Microsoft::Devices::Management::Message::IRequest^ request);
 
-// Windows Update Policy 0xA0008300 - 0xA00083FF
-#define ERROR_DM_WINDOWS_UPDATE_POLICY_MISSING_POLICY 0xA000200
+private:
+    static void SaveState(
+        Microsoft::Devices::Management::Message::WindowsUpdatePolicyConfiguration^ data);
+
+    static Microsoft::Devices::Management::Message::WindowsUpdatePolicyConfiguration^
+        GetActiveDesiredState();
+
+    static void HandleSetDesiredProperties(
+        Microsoft::Devices::Management::Message::WindowsUpdatePolicyConfiguration^ data);
+};

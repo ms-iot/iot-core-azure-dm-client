@@ -13,6 +13,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using Microsoft.Devices.Management.DMDataContract;
 using Microsoft.Devices.Management.Message;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -27,6 +28,8 @@ namespace Microsoft.Devices.Management
     {
         public const string ETWGuid = "D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897";   // Use this guid with xperf, the CSP, etc.
         public const string ETWChannelName = "AzureDM";
+
+        public const string JsonValueUnspecified = "<unspecified>";
     }
 
     public class Error : Exception
@@ -168,6 +171,13 @@ namespace Microsoft.Devices.Management
         PendingDMAppRestart
     }
 
+    public enum SettingsPriority
+    {
+        Unknown,
+        Local,
+        Remote
+    }
+
     public class Logger
     {
         public static void Log(string message, LoggingLevel level)
@@ -209,4 +219,60 @@ namespace Microsoft.Devices.Management
             }
         }
     }
+
+    static class PolicyHelpers
+    {
+        public static string SourcePriorityFromPolicy(Message.Policy policy)
+        {
+            if (policy == null || policy.sourcePriorities == null || policy.sourcePriorities.Count == 0)
+            {
+                return PolicyDataContract.JsonUnknown;
+            }
+
+            if (policy.sourcePriorities[0] == Message.PolicySource.Local)
+            {
+                return PolicyDataContract.JsonLocal;
+            }
+            else if (policy.sourcePriorities[0] == Message.PolicySource.Remote)
+            {
+                return PolicyDataContract.JsonRemote;
+            }
+            return PolicyDataContract.JsonUnknown;
+        }
+
+        public static SettingsPriority SettingsPriorityFromString(string s)
+        {
+            switch (s)
+            {
+                case PolicyDataContract.JsonLocal:
+                    return SettingsPriority.Local;
+                case PolicyDataContract.JsonRemote:
+                    return SettingsPriority.Remote;
+            }
+            return SettingsPriority.Unknown;
+        }
+
+        public static SettingsPriority SettingsPriorityFromString(Message.PolicySource s)
+        {
+            switch (s)
+            {
+                case PolicySource.Local:
+                    return SettingsPriority.Local;
+                case PolicySource.Remote:
+                    return SettingsPriority.Remote;
+            }
+            return SettingsPriority.Unknown;
+        }
+
+        public static readonly Message.PolicySource[] PriorityLocal = {
+            Message.PolicySource.Local, // local takes precedence
+            Message.PolicySource.Remote
+        };
+
+        public static readonly Message.PolicySource[] PriorityRemote = {
+            Message.PolicySource.Remote, // remote takes precedence
+            Message.PolicySource.Local
+        };
+    }
+
 }

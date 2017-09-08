@@ -337,5 +337,49 @@ namespace Toaster
         {
             GetTimeServiceStartedAsync();
         }
+
+        private async void SetRingAsync()
+        {
+            try
+            {
+                WindowsUpdateRingState ringState = new WindowsUpdateRingState();
+                ringState.ring = RequestedRingState.SelectedIndex == 0 ? WindowsUpdateRing.EarlyAdopter :
+                                 RequestedRingState.SelectedIndex == 1 ? WindowsUpdateRing.GeneralAvailability : WindowsUpdateRing.Preview;
+                ringState.settingsPriority = RequestedRingPriorityState.SelectedIndex == 0 ? SettingsPriority.Local : SettingsPriority.Remote;
+
+                await this.deviceManagementClient.SetWindowsUpdateRing(ringState);
+                StatusText.Text = "Set Windows Update Ring -> Success";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Set Windows Update Ring -> Error: " + ex.HResult + " - " + ex.Message;
+            }
+        }
+
+        private async void GetRingAsync()
+        {
+            try
+            {
+                WindowsUpdateRingState state = await this.deviceManagementClient.GetWindowsUpdateRing();
+                CurrentRingState.Text = state.ring == WindowsUpdateRing.EarlyAdopter ? "Early Adopter" :
+                                                        state.ring == WindowsUpdateRing.GeneralAvailability ? "General Availability" : "Preview";
+                CurrentRingPriorityState.Text = state.settingsPriority.ToString();
+                StatusText.Text = "Get Windows Update Ring -> Success";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Get Windows Update Ring -> Error: " + ex.HResult + " - " + ex.Message;
+            }
+        }
+
+        private void OnSetRing(object sender, RoutedEventArgs e)
+        {
+            SetRingAsync();
+        }
+
+        private void OnGetRing(object sender, RoutedEventArgs e)
+        {
+            GetRingAsync();
+        }
     }
 }

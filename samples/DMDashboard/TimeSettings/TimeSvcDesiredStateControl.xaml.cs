@@ -39,7 +39,7 @@ namespace DMDashboard
             desiredProperties.enabled = DesiredTimeServiceEnabled.SelectedIndex == 0 ? TimeServiceDataContract.JsonYes : TimeServiceDataContract.JsonNo;
             desiredProperties.startup = DesiredTimeServiceStartup.SelectedIndex == 0 ? TimeServiceDataContract.JsonAuto : TimeServiceDataContract.JsonManual;
             desiredProperties.started = DesiredTimeServiceStarted.SelectedIndex == 0 ? TimeServiceDataContract.JsonYes : TimeServiceDataContract.JsonNo;
-            desiredProperties.sourcePriority = DesiredTimeServiceSourcePriority.SelectedIndex == 0 ? TimeServiceDataContract.JsonLocal : TimeServiceDataContract.JsonRemote;
+            desiredProperties.sourcePriority = DesiredTimeServiceSourcePriority.SelectedIndex == 0 ? PolicyDataContract.JsonLocal : PolicyDataContract.JsonRemote;
             return desiredProperties.ToJson();
         }
     }

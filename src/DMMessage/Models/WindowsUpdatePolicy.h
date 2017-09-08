@@ -20,6 +20,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "StatusCodeResponse.h"
 #include "Blob.h"
 #include "ModelHelper.h"
+#include "Policy.h"
 
 using namespace Platform;
 using namespace Platform::Metadata;
@@ -47,6 +48,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public ref class WindowsUpdatePolicyConfiguration sealed
     {
     public:
+        property Policy^ policy;
         property unsigned int activeFields;
 
         // Optional fields.
@@ -125,6 +127,11 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             if (activeFields & (unsigned int)ActiveFields::Ring)
                 jsonObject->Insert("ring", JsonValue::CreateStringValue(ring));
 
+            if (policy)
+            {
+                policy->Serialize(jsonObject);
+            }
+
             return jsonObject;
         }
 
@@ -144,6 +151,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             SetIfExists(jsonObject, L"scheduledInstallDay", ActiveFields::ScheduledInstallDay, configuration);
             SetIfExists(jsonObject, L"scheduledInstallTime", ActiveFields::ScheduledInstallTime, configuration);
             SetIfExists(jsonObject, L"ring", ActiveFields::Ring, configuration);
+
+            configuration->policy = Policy::Deserialize(jsonObject);
 
             return configuration;
         }

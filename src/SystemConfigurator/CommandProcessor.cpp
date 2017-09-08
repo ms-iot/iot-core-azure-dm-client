@@ -27,11 +27,11 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CSPs\DiagnosticLogCSP.h"
 #include "CSPs\RebootCSP.h"
 #include "CSPs\WifiCsp.h"
+#include "CSPs\WindowsUpdatePolicyCSP.h"
 #include "AppCfg.h"
 #include "DMStorage.h"
 #include "TimeCfg.h"
 #include "TpmSupport.h"
-#include "Permissions\PermissionsManager.h"
 #include "WindowsTelemetry.h"
 
 #include "Models\AllModels.h"
@@ -43,9 +43,6 @@ using namespace Windows::Foundation::Collections;
 
 const wchar_t* TpmSlotRegistrySubKey = L"SYSTEM\\CurrentControlSet\\Services\\IotCoreDpsClient\\parameters";
 const wchar_t* TpmSlotPropertyName = L"tpm_slot";
-
-const wchar_t* WURingRegistrySubKey = L"SYSTEM\\Platform\\DeviceTargetingInfo";
-const wchar_t* WURingPropertyName = L"TargetRing";
 
 StringResponse^ ReportError(const string& context, const DMException& e)
 {
@@ -92,7 +89,6 @@ IResponse^ HandleFactoryReset(IRequest^ request)
 
     return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
-
 
 IResponse^ HandleGetWindowsTelemetry(IRequest^ request)
 {
@@ -672,134 +668,14 @@ IResponse^ HandleGetWindowsUpdatePolicy(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    // Set default values...
-    wstring reportToDeviceTwin = JsonNo->Data();
-
-    unsigned int activeHoursStart = static_cast<unsigned int>(-1);
-    unsigned int activeHoursEnd = static_cast<unsigned int>(-1);
-    unsigned int allowAutoUpdate = static_cast<unsigned int>(-1);
-
-
-    unsigned int allowUpdateService = static_cast<unsigned int>(-1);
-    unsigned int branchReadinessLevel = static_cast<unsigned int>(-1);
-    unsigned int deferFeatureUpdatesPeriod = static_cast<unsigned int>(-1);    // in days
-    unsigned int deferQualityUpdatesPeriod = static_cast<unsigned int>(-1);    // in days
-
-    unsigned int pauseFeatureUpdates = static_cast<unsigned int>(-1);
-    unsigned int pauseQualityUpdates = static_cast<unsigned int>(-1);
-    unsigned int scheduledInstallDay = static_cast<unsigned int>(-1);
-    unsigned int scheduledInstallTime = static_cast<unsigned int>(-1);
-
-    wstring ring = L"<error reading ring>";
-
-    // Read the values...
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ActiveHoursStart", activeHoursStart);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ActiveHoursEnd", activeHoursEnd);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowAutoUpdate", allowAutoUpdate);
-
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowUpdateService", allowUpdateService);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/BranchReadinessLevel", branchReadinessLevel);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferFeatureUpdatesPeriodInDays", deferFeatureUpdatesPeriod);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferQualityUpdatesPeriodInDays", deferQualityUpdatesPeriod);
-
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseFeatureUpdates", pauseFeatureUpdates);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseQualityUpdates", pauseQualityUpdates);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallDay", scheduledInstallDay);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallTime", scheduledInstallTime);
-
-    Utils::TryReadRegistryValue(WURingRegistrySubKey, WURingPropertyName, ring);
-
-    Utils::TryReadRegistryValue(IoTDMRegistryRoot, RegWindowsUpdatePolicySectionReporting, reportToDeviceTwin);
-
-    // Populate the response...
-    auto data = ref new WindowsUpdatePolicyConfiguration();
-
-    data->activeFields = 0xFFFFFFFF;   // We report all fields.
-
-    data->activeHoursStart = activeHoursStart;
-    data->activeHoursEnd = activeHoursEnd;
-    data->allowAutoUpdate = allowAutoUpdate;
-
-    data->allowUpdateService = allowUpdateService;
-    data->branchReadinessLevel = branchReadinessLevel;
-    data->deferFeatureUpdatesPeriod = deferFeatureUpdatesPeriod;
-    data->deferQualityUpdatesPeriod = deferQualityUpdatesPeriod;
-
-    data->pauseFeatureUpdates = pauseFeatureUpdates;
-    data->pauseQualityUpdates = pauseQualityUpdates;
-    data->scheduledInstallDay = scheduledInstallDay;
-    data->scheduledInstallTime = scheduledInstallTime;
-
-    data->ring = ref new String(ring.c_str());
-
-    auto configuration = ref new GetWindowsUpdatePolicyResponse(ResponseStatus::Success, data);
-    configuration->ReportToDeviceTwin = ref new String(reportToDeviceTwin.c_str());
-    return configuration;
+    return WindowsUpdatePolicyCSP::Get(request);
 }
 
 IResponse^ HandleSetWindowsUpdatePolicy(IRequest^ request)
 {
-    // ToDo: We need have a consistent policy on whether we:
-    // - apply all or nothing.
-    // - apply as much as we can and report and error.
+    TRACE(__FUNCTION__);
 
-    auto updatePolicyRequest = dynamic_cast<SetWindowsUpdatePolicyRequest^>(request);
-    WindowsUpdatePolicyConfiguration^ data = updatePolicyRequest->data;
-
-    if (data != nullptr && updatePolicyRequest->ApplyFromDeviceTwin == JsonYes)
-    {
-        unsigned int activeFields = data->activeFields;
-
-        if (activeFields & (unsigned int)ActiveFields::ActiveHoursStart)
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", static_cast<int>(data->activeHoursStart));
-
-        if (activeFields & (unsigned int)ActiveFields::ActiveHoursEnd)
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", static_cast<int>(data->activeHoursEnd));
-
-        if (activeFields & (unsigned int)ActiveFields::AllowAutoUpdate)
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", static_cast<int>(data->allowAutoUpdate));
-
-        if (activeFields & (unsigned int)ActiveFields::AllowUpdateService)
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", static_cast<int>(data->allowUpdateService));
-
-        if (activeFields & (unsigned int)ActiveFields::BranchReadinessLevel)
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", static_cast<int>(data->branchReadinessLevel));
-
-        if (activeFields & (unsigned int)ActiveFields::DeferFeatureUpdatesPeriod)
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", static_cast<int>(data->deferFeatureUpdatesPeriod));
-
-        if (activeFields & (unsigned int)ActiveFields::DeferQualityUpdatesPeriod)
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", static_cast<int>(data->deferQualityUpdatesPeriod));
-
-        if (activeFields & (unsigned int)ActiveFields::PauseFeatureUpdates)
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", static_cast<int>(data->pauseFeatureUpdates));
-
-        if (activeFields & (unsigned int)ActiveFields::PauseQualityUpdates)
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", static_cast<int>(data->pauseQualityUpdates));
-
-        if (activeFields & (unsigned int)ActiveFields::ScheduledInstallDay)
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", static_cast<int>(data->scheduledInstallDay));
-
-        if (activeFields & (unsigned int)ActiveFields::ScheduledInstallTime)
-            MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", static_cast<int>(data->scheduledInstallTime));
-
-        if (activeFields & (unsigned int)ActiveFields::Ring)
-        {
-            wstring registryRoot = L"MACHINE";
-            wstring registryKey = registryRoot + L"\\" + WURingRegistrySubKey;
-            wstring propertyValue = data->ring->Data();
-
-            PermissionsManager::ModifyProtected(registryKey, SE_REGISTRY_KEY, [propertyValue]()
-            {
-                TRACEP(L"........Writing registry: key name: ", WURingRegistrySubKey);
-                TRACEP(L"........Writing registry: key value: ", propertyValue.c_str());
-                Utils::WriteRegistryValue(WURingRegistrySubKey, WURingPropertyName, propertyValue);
-            });
-        }
-    }
-    Utils::WriteRegistryValue(IoTDMRegistryRoot, RegWindowsUpdatePolicySectionReporting, updatePolicyRequest->ReportToDeviceTwin->Data());
-
-    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+    return WindowsUpdatePolicyCSP::Set(request);
 }
 
 IResponse^ HandleGetWindowsUpdateRebootPolicy(IRequest^ request)

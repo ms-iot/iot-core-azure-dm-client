@@ -117,6 +117,7 @@
     <ClInclude Include="CSPs\RebootCSP.h" />
     <ClInclude Include="CSPs\RemoteWipeCSP.h" />
     <ClInclude Include="CSPs\WifiCSP.h" />
+    <ClInclude Include="CSPs\WindowsUpdatePolicyCSP.h" />
     <ClInclude Include="DMService.h" />
     <ClInclude Include="DMStorage.h" />
     <ClInclude Include="resource.h" />
@@ -146,6 +147,7 @@
     <ClCompile Include="CSPs\RebootCSP.cpp" />
     <ClCompile Include="CSPs\RemoteWipeCSP.cpp" />
     <ClCompile Include="CSPs\WifiCSP.cpp" />
+    <ClCompile Include="CSPs\WindowsUpdatePolicy.cpp" />
     <ClCompile Include="DMService.cpp" />
     <ClCompile Include="DMStorage.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
