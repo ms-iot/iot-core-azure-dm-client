@@ -242,7 +242,7 @@ namespace Microsoft.Devices.Management
             return response as Message.GetWindowsUpdatePolicyResponse;
         }
 
-        public async Task SetRing(WindowsUpdateRingState userDesiredState)
+        public async Task SetRingAsync(WindowsUpdateRingState userDesiredState)
         {
             // Construct the request and send it...
             Message.Policy policy = new Message.Policy();
@@ -261,7 +261,7 @@ namespace Microsoft.Devices.Management
             await ReportToDeviceTwin();
         }
 
-        public async Task<WindowsUpdateRingState> GetRing()
+        public async Task<WindowsUpdateRingState> GetRingAsync()
         {
             Message.GetWindowsUpdatePolicyResponse response = await GetWindowsUpdatePolicyAsync();
 

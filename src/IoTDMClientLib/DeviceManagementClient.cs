@@ -330,14 +330,14 @@ namespace Microsoft.Devices.Management
             return await _timeServiceHandler.GetTimeServiceStateAsync();
         }
 
-        public async Task SetWindowsUpdateRing(WindowsUpdateRingState state)
+        public async Task SetWindowsUpdateRingAsync(WindowsUpdateRingState state)
         {
-            await _windowsUpdatePolicyHandler.SetRing(state);
+            await _windowsUpdatePolicyHandler.SetRingAsync(state);
         }
 
-        public async Task<WindowsUpdateRingState> GetWindowsUpdateRing()
+        public async Task<WindowsUpdateRingState> GetWindowsUpdateRingAsync()
         {
-            return await _windowsUpdatePolicyHandler.GetRing();
+            return await _windowsUpdatePolicyHandler.GetRingAsync();
         }
 
         private static async Task ProcessDesiredCertificateConfigurationAsync(

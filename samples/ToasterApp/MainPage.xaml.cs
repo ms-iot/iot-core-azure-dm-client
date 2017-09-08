@@ -347,7 +347,7 @@ namespace Toaster
                                  RequestedRingState.SelectedIndex == 1 ? WindowsUpdateRing.GeneralAvailability : WindowsUpdateRing.Preview;
                 ringState.settingsPriority = RequestedRingPriorityState.SelectedIndex == 0 ? SettingsPriority.Local : SettingsPriority.Remote;
 
-                await this.deviceManagementClient.SetWindowsUpdateRing(ringState);
+                await this.deviceManagementClient.SetWindowsUpdateRingAsync(ringState);
                 StatusText.Text = "Set Windows Update Ring -> Success";
             }
             catch (Exception ex)
@@ -360,7 +360,7 @@ namespace Toaster
         {
             try
             {
-                WindowsUpdateRingState state = await this.deviceManagementClient.GetWindowsUpdateRing();
+                WindowsUpdateRingState state = await this.deviceManagementClient.GetWindowsUpdateRingAsync();
                 CurrentRingState.Text = state.ring == WindowsUpdateRing.EarlyAdopter ? "Early Adopter" :
                                                         state.ring == WindowsUpdateRing.GeneralAvailability ? "General Availability" : "Preview";
                 CurrentRingPriorityState.Text = state.settingsPriority.ToString();
