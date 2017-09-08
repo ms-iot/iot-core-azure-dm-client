@@ -36,6 +36,8 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "Models\AllModels.h"
 
+#include "..\SystemConfiguratorProxy\Server\SystemConfiguratorProxy.h"
+
 using namespace Microsoft::Devices::Management::Message;
 using namespace std;
 using namespace Windows::Data::Json;
@@ -934,57 +936,8 @@ void EnsureErrorsLogged(const function<void()>& func)
 
 bool ProcessClientConnection(Utils::AutoCloseHandle& pipeHandle)
 {
-    Utils::EnsureFolderExists(Utils::GetDmUserFolder());
-
-    bool exit = false;
-    // If the connection code throws, there's no way to communicate that the pipe...
-    // But we can still log it...
-    PipeConnection pipeConnection;
-    TRACE("Waiting for a client to connect...");
-    pipeConnection.Connect(pipeHandle.Get());
-    TRACE("Client connected...");
-
-    IResponse^ response;
-    try
-    {
-        auto requestBlob = Blob::ReadFromNativeHandle(pipeHandle.Get64());
-        TRACE("Request received...");
-        TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)requestBlob->Tag));
-        TRACEP(L"    ", Utils::ConcatString(L"request version:", requestBlob->Version));
-
-        IRequest^ request = requestBlob->MakeIRequest();
-        response = ProcessCommand(request);
-
-        TRACE(L"WriteToNativeHandle() completed successfully.");
-        if (request->Tag == DMMessageKind::ExitDM && response->Status == ResponseStatus::Success)
-        {
-            TRACE(L"Exiting service...");
-            exit = true;
-        }
-    }
-    catch (const DMExceptionWithErrorCode& e)
-    {
-        response = CreateErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), e.what());
-    }
-    catch (const exception& e)  // Note that DMException is just 'exception' with some trace statements.
-    {
-        response = CreateErrorResponse(ErrorSubSystem::DeviceManagement, static_cast<int>(DeviceManagementErrors::GenericError), e.what());
-    }
-    catch (Platform::Exception^ e)
-    {
-        response = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e->HResult, e->Message);
-    }
-    catch (...)
-    {
-        response = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, static_cast<int>(DeviceManagementErrors::GenericError), L"Unknown exception!");
-    }
-
-    EnsureErrorsLogged([&]()
-    {
-        response->Serialize()->WriteToNativeHandle(pipeHandle.Get64());
-    });
-
-    return exit;
+    auto ret = SystemConfiguratorProxyStart();
+    return (ret == S_OK || ret == ERROR_SUCCESS);
 }
 
 void Listen()
