@@ -16,6 +16,8 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define IoTDMRegistryRoot L"Software\\Microsoft\\IoTDM"
 
+#define ValueUnspecified L"<unspecified>"
+
 #define RegTrue L"True"
 #define RegFalse L"False"
 #define RegReportToDeviceTwin L"ReportToDeviceTwin"
@@ -41,3 +43,24 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define RegTimeServiceAuto L"auto"
 #define RegTimeServiceManual L"manual"
+
+#define RegWindowsUpdatePolicy IoTDMRegistryRoot L"\\WindowsUpdatePolicy"
+#define RegRemoteWindowsUpdatePolicy RegWindowsUpdatePolicy L"\\Remote"
+#define RegLocalWindowsUpdatePolicy RegWindowsUpdatePolicy L"\\Local"
+
+#define RegWindowsUpdateActiveHoursStart L"ActiveHoursStart"
+#define RegWindowsUpdateActiveHoursEnd L"ActiveHoursEnd"
+#define RegWindowsUpdateAllowAutoUpdate L"AllowAutoUpdate"
+#define RegWindowsUpdateAllowUpdateService L"AllowUpdateService"
+#define RegWindowsUpdateBranchReadinessLevel L"BranchReadinessLevel"
+#define RegWindowsUpdateDeferFeatureUpdatesPeriod L"DeferFeatureUpdatesPeriod"
+#define RegWindowsUpdateDeferQualityUpdatesPeriod L"DeferQualityUpdatesPeriod"
+#define RegWindowsUpdatePauseFeatureUpdates L"PauseFeatureUpdates"
+#define RegWindowsUpdatePauseQualityUpdates L"PauseQualityUpdates"
+#define RegWindowsUpdateScheduledInstallDay L"ScheduledInstallDay"
+#define RegWindowsUpdateScheduledInstallTime L"ScheduledInstallTime"
+#define RegWindowsUpdatePolicyRing L"Ring"
+
+#define RegWindowsUpdatePolicyEarlyAdopter L"EarlyAdopter"
+#define RegWindowsUpdatePolicyPreview L"Preview"
+#define RegWindowsUpdatePolicyGeneralAvailability L"GeneralAvailability"

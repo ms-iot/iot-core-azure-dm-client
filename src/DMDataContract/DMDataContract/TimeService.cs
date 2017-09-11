@@ -35,10 +35,6 @@ namespace Microsoft.Devices.Management.DMDataContract
         public const string JsonAuto = "auto";
         public const string JsonManual = "manual";
 
-        public const string JsonLocal = "local";
-        public const string JsonRemote = "remote";
-        public const string JsonUnknown = "unknown";
-
         public class DesiredProperties
         {
             public string enabled;

@@ -349,6 +349,16 @@ namespace Microsoft.Devices.Management
             return await _timeServiceHandler.GetTimeServiceStateAsync();
         }
 
+        public async Task SetWindowsUpdateRingAsync(WindowsUpdateRingState state)
+        {
+            await _windowsUpdatePolicyHandler.SetRingAsync(state);
+        }
+
+        public async Task<WindowsUpdateRingState> GetWindowsUpdateRingAsync()
+        {
+            return await _windowsUpdatePolicyHandler.GetRingAsync();
+        }
+
         private static async Task ProcessDesiredCertificateConfigurationAsync(
             ISystemConfiguratorProxy systemConfiguratorProxy,
             string connectionString,

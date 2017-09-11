@@ -41,6 +41,16 @@
             <local:DMTextBox Title="Pause Quality Updates (0-1)" PropertyName="pauseQualityUpdates" PropertyValue="0" IsNumeric="True" IsOptional="True"/>
             <local:DMTextBox Title="Scheduled Install Day (0-7)" PropertyName="scheduledInstallDay" PropertyValue="3" IsNumeric="True" IsOptional="True"/>
             <local:DMTextBox Title="Scheduled Install Time (0-23)" PropertyName="scheduledInstallTime" PropertyValue="2" IsNumeric="True" IsOptional="True"/>
+            <local:DMComboBox Title="Priority" PropertyName="sourcePriority" IsNumeric="False" IsOptional="False">
+                <local:DMComboBox.ValuesList>
+                    <x:Array Type="sys:String">
+                        <sys:String>local</sys:String>
+                        <sys:String>remote</sys:String>
+                    </x:Array>
+                </local:DMComboBox.ValuesList>
+                <local:DMComboBox.PropertyValue>local</local:DMComboBox.PropertyValue>
+                <!-- need to come after ValuesList -->
+            </local:DMComboBox>
         </StackPanel>
         <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="200" Height="1" />
         <local:DMComboBox Title="Report Properties" PropertyName="reportProperties" IsNumeric="False" IsOptional="False" x:Name="ReportPropertiesCombo">

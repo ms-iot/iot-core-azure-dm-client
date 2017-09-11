@@ -10,16 +10,16 @@ The **Windows Update Management** allows control over the following aspects:
 
 ## Windows Update Policy
 
+The *Windows Update Policy* supports [Source Policy](source-policy.md).
+
 ### Configuration
 
 The **Windows Update Policy** can be configured through the ```"windowsUpdatePolicy"``` node in the desired properties section as follows:
 
 <pre>
 "desired" : {
-    "microsoft" : {
-        "management" : {
-            "windowsUpdatePolicy": &lt;<i>see below</i>&gt;
-            }
+    "windows" : {
+        "windowsUpdatePolicy": &lt;<i>see below</i>&gt;
         }
     }
 }
@@ -44,7 +44,8 @@ The **Windows Update Policy** can be configured through the ```"windowsUpdatePol
             "pauseQualityUpdates": &lt;<i>see below</i>&gt;,
             "scheduledInstallDay": &lt;<i>see below</i>&gt;,
             "scheduledInstallTime": &lt;<i>see below</i>&gt;,
-            "ring": &lt;<i>see below</i>&gt;
+            "ring": &lt;<i>see below</i>&gt;,
+            "sourcePriority": "local|remote"
         }
         "reportProperties" : &lt;<i>see below</i>&gt;
     }
@@ -65,10 +66,8 @@ The device current state of the **Windows Update Policy** can be inspected throu
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "windowsUpdatePolicy": &lt;<i>see below</i>&gt;
-        }
+    "windows" : {
+        "windowsUpdatePolicy": &lt;<i>see below</i>&gt;
     }
 }
 </pre>
@@ -91,10 +90,44 @@ The device current state of the **Windows Update Policy** can be inspected throu
     "scheduledInstallDay": &lt;<i>see below</i>&gt;,
     "scheduledInstallTime": &lt;<i>see below</i>&gt;,
     "ring": &lt;<i>see below</i>&gt;,
+    "sourcePriority": "local|remote"
 }
 </pre>
 
 - See documentation of individual properties under the Configuration section above.
+
+#### .Net API
+
+<pre>
+    <b>Namespace</b>:
+    Microsoft.Devices.Management
+</pre>
+
+<pre>
+    public enum WindowsUpdateRing
+    {
+        EarlyAdopter,
+        Preview,
+        GeneralAvailability
+    }
+
+    public class WindowsUpdateRingState
+    {
+        public WindowsUpdateRing ring;
+        public SettingsPriority settingsPriority;
+    }
+</pre>
+
+<pre>
+    <b>Class</b>:
+    DeviceManagementClient
+</pre>
+
+<pre>
+    <b>Methods</b>:
+    public async Task SetWindowsUpdateRing(WindowsUpdateRingState state);
+    public async Task<WindowsUpdateRingState> GetWindowsUpdateRing();
+</pre>
 
 ## Windows Updates
 
@@ -104,11 +137,9 @@ The **Windows Updates** can be configured through the ```"windowsUpdates"``` nod
 
 <pre>
 "desired" : {
-    "microsoft" : {
-        "management" : {
-            "windowsUpdates": {
-                "approved": "&lt;<i>see below</i>&gt;"
-            }
+    "windows" : {
+        "windowsUpdates": {
+            "approved": "&lt;<i>see below</i>&gt;"
         }
     }
 }
@@ -122,17 +153,15 @@ The device current state of the **Windows Updates** can be inspected through the
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "windowsUpdates": {
-                "deferUpgrade": &lt;<i>see below</i>&gt;,
-                "lastScanTime": "&lt;<i>see below</i>&gt;",
-                "pendingReboot": "&lt;<i>see below</i>&gt;",
-                "installable": "&lt;<i>see below</i>&gt;",
-                "failed": "&lt;<i>see below</i>&gt;",
-                "approved": "&lt;<i>see below</i>&gt;",
-                "installed": "&lt;<i>see below</i>&gt;"
-            }
+    "windows" : {
+        "windowsUpdates": {
+            "deferUpgrade": &lt;<i>see below</i>&gt;,
+            "lastScanTime": "&lt;<i>see below</i>&gt;",
+            "pendingReboot": "&lt;<i>see below</i>&gt;",
+            "installable": "&lt;<i>see below</i>&gt;",
+            "failed": "&lt;<i>see below</i>&gt;",
+            "approved": "&lt;<i>see below</i>&gt;",
+            "installed": "&lt;<i>see below</i>&gt;"
         }
     }
 }

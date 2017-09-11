@@ -21,6 +21,7 @@
         <local:DMTextBlock Title="Pause Quality Updates (0-1)" PropertyName="pauseQualityUpdates" IsNumeric="True" IsOptional="False"/>
         <local:DMTextBlock Title="Scheduled Install Day (0-7)" PropertyName="scheduledInstallDay" IsNumeric="True" IsOptional="False"/>
         <local:DMTextBlock Title="Scheduled Install Time (0-23)" PropertyName="scheduledInstallTime" IsNumeric="True" IsOptional="False"/>
+        <local:DMTextBlock Title="Priority" PropertyName="sourcePriority" IsNumeric="False" IsOptional="False"/>
         <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="200" Height="1" />
     </StackPanel>
 </local:DMSectionControl>

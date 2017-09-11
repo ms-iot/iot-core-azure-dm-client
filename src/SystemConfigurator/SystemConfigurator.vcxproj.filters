@@ -102,6 +102,9 @@
     <ClInclude Include="WindowsTelemetry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CSPs\WindowsUpdatePolicyCSP.h">
+      <Filter>Header Files\CSPs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -169,6 +172,9 @@
     </ClCompile>
     <ClCompile Include="WindowsTelemetry.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\WindowsUpdatePolicy.cpp">
+      <Filter>Source Files\CSPs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

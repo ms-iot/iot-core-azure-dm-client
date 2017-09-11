@@ -85,6 +85,32 @@
                     <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="CurrentTimeServicePriorityState" VerticalAlignment="Center"/>
                 </Grid>
 
+                <TextBlock Text="Ring" Margin="3"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="150"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Row="0" Grid.Column="0" Margin="13,3,3,3" HorizontalAlignment="Stretch" Content="Set Ring" Click="OnSetRing"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="3" HorizontalAlignment="Stretch" x:Name="RequestedRingState" SelectedIndex="0">
+                        <ComboBoxItem>Early Adopter</ComboBoxItem>
+                        <ComboBoxItem>General Availability</ComboBoxItem>
+                        <ComboBoxItem>Preview</ComboBoxItem>
+                    </ComboBox>
+                    <ComboBox Grid.Row="0" Grid.Column="2" Margin="3" HorizontalAlignment="Stretch" x:Name="RequestedRingPriorityState" SelectedIndex="0">
+                        <ComboBoxItem>Pri: Local</ComboBoxItem>
+                        <ComboBoxItem>Pri: Remote</ComboBoxItem>
+                    </ComboBox>
+                    <Button Grid.Row="1" Grid.Column="0" Margin="13,3,3,3" HorizontalAlignment="Stretch" Content="Get Ring State" Click="OnGetRing"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" x:Name="CurrentRingState" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="CurrentRingPriorityState" VerticalAlignment="Center"/>
+                </Grid>
+
                 <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                 <Grid x:Name="StatusGrid">
                     <Grid.RowDefinitions>
