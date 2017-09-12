@@ -125,8 +125,8 @@ The device current state of the **Windows Update Policy** can be inspected throu
 
 <pre>
     <b>Methods</b>:
-    public async Task SetWindowsUpdateRing(WindowsUpdateRingState state);
-    public async Task<WindowsUpdateRingState> GetWindowsUpdateRing();
+    public async Task SetWindowsUpdateRingAsync(WindowsUpdateRingState state);
+    public async Task<WindowsUpdateRingState> GetWindowsUpdateRingAsync();
 </pre>
 
 ## Windows Updates
