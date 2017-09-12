@@ -52,7 +52,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             JsonObject^ jsonObject = ref new JsonObject();
             jsonObject->Insert("source", JsonValue::CreateNumberValue(static_cast<int>(source)));
             JsonArray^ jsonArray = ref new JsonArray();
-            for (size_t i = 0; i < sourcePriorities->Size; ++i)
+            for (unsigned int i = 0; i < sourcePriorities->Size; ++i)
             {
                 PolicySource priority = sourcePriorities->GetAt(i);
                 jsonArray->Append(JsonValue::CreateNumberValue(static_cast<int>(priority)));
