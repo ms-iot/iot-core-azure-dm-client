@@ -7,12 +7,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="SystemConfiguratorProxyClient.cpp" />
     <ClCompile Include="SystemConfiguratorProxyInterface.c" />
+    <ClCompile Include="SCProxyClient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
-    <ClInclude Include="SystemConfiguratorProxyClient.h" />
+    <ClInclude Include="SCProxyClient.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SystemConfiguratorProxyClient.SCCD" />

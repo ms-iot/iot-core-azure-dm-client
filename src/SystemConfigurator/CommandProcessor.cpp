@@ -934,7 +934,7 @@ void EnsureErrorsLogged(const function<void()>& func)
     }
 }
 
-bool ProcessClientConnection(Utils::AutoCloseHandle& pipeHandle)
+bool ProcessClientConnection(Utils::AutoCloseHandle& /*pipeHandle*/)
 {
     auto ret = SystemConfiguratorProxyStart();
     return (ret == S_OK || ret == ERROR_SUCCESS);
@@ -946,23 +946,24 @@ void Listen()
 
     EnsureErrorsLogged([&]()
     {
-        SecurityAttributes sa(GENERIC_WRITE | GENERIC_READ);
+        //SecurityAttributes sa(GENERIC_WRITE | GENERIC_READ);
 
-        TRACE("Creating pipe...");
-        Utils::AutoCloseHandle pipeHandle = CreateNamedPipeW(
-            PipeName,
-            PIPE_ACCESS_DUPLEX,
-            PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-            PIPE_UNLIMITED_INSTANCES,
-            PipeBufferSize,
-            PipeBufferSize,
-            NMPWAIT_USE_DEFAULT_WAIT,
-            sa.GetSA());
+        //TRACE("Creating pipe...");
+        //Utils::AutoCloseHandle pipeHandle = CreateNamedPipeW(
+        //    PipeName,
+        //    PIPE_ACCESS_DUPLEX,
+        //    PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
+        //    PIPE_UNLIMITED_INSTANCES,
+        //    PipeBufferSize,
+        //    PipeBufferSize,
+        //    NMPWAIT_USE_DEFAULT_WAIT,
+        //    sa.GetSA());
 
-        if (pipeHandle.Get() == INVALID_HANDLE_VALUE)
-        {
-            throw DMExceptionWithErrorCode("CreateNamedPipe Error: ", GetLastError());
-        }
+        //if (pipeHandle.Get() == INVALID_HANDLE_VALUE)
+        //{
+        //    throw DMExceptionWithErrorCode("CreateNamedPipe Error: ", GetLastError());
+        //}
+        Utils::AutoCloseHandle pipeHandle = nullptr;
 
         bool exit = false;
         while (!exit)

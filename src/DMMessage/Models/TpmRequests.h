@@ -38,8 +38,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         static IDataPayload^ Deserialize(Blob^ blob) {
-            String^ str = SerializationHelper::GetStringFromBlob(blob);
-            JsonObject^ jsonObject = JsonObject::Parse(str);
+            assert(blob->Tag == DMMessageKind::TpmGetServiceUrl);
             return ref new TpmGetServiceUrlRequest();
         }
 
@@ -61,6 +60,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         }
 
         static IDataPayload^ Deserialize(Blob^ blob) {
+            assert(blob->Tag == DMMessageKind::TpmGetSASToken);
             String^ str = SerializationHelper::GetStringFromBlob(blob);
             JsonObject^ jsonObject = JsonObject::Parse(str);
             uint32_t expiration = (uint32_t)jsonObject->Lookup("Expiration")->GetNumber();

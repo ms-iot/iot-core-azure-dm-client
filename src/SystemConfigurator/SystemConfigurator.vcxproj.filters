@@ -105,6 +105,9 @@
     <ClInclude Include="CSPs\WindowsUpdatePolicyCSP.h">
       <Filter>Header Files\CSPs</Filter>
     </ClInclude>
+    <ClInclude Include="SystemConfiguratorProxyServer\SystemConfiguratorProxy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -175,6 +178,12 @@
     </ClCompile>
     <ClCompile Include="CSPs\WindowsUpdatePolicy.cpp">
       <Filter>Source Files\CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemConfiguratorProxyServer\SystemConfiguratorProxy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="\\SystemConfiguratorProxy_s.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -401,6 +401,10 @@ namespace Microsoft.Devices.Management
                     return;
                 }
                 _lastDesiredPropertyVersion = version;
+                if (windowsPropValue == null)
+                {
+                    return;
+                }
 
                 if (windowsPropValue == null)
                 {

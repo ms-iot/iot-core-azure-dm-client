@@ -141,7 +141,7 @@
       <Project>{241582cd-4861-4643-a7a2-21865b779aaf}</Project>
       <Name>DMMessage</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SystemConfiguratorProxy\Client\ServiceConfiguratorProxyClient.vcxproj">
+    <ProjectReference Include="..\SystemConfiguratorProxy\Client\ServiceConfiguratorProxyClientLib.vcxproj">
       <Project>{0213712b-62e6-5546-8d25-79b90244ffa9}</Project>
       <Name>SystemConfiguratorProxyClient</Name>
     </ProjectReference>

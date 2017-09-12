@@ -24,28 +24,41 @@ using Windows.Storage.Streams;
 using Windows.System;
 using Windows.UI.Core;
 
+
 namespace Microsoft.Devices.Management
 {
 
     // This class send requests (DMrequest) to the System Configurator and receives the responses (DMesponse) from it
     class SystemConfiguratorProxy : ISystemConfiguratorProxy
     {
+        SystemConfiguratorProxyClient.SCProxyClient _client;
+        public SystemConfiguratorProxy()
+        {
+            _client = new SystemConfiguratorProxyClient.SCProxyClient();
+            var result = _client.Initialize();
+            if (0 != result)
+            {
+                throw new Error((int)result, "SystemConfiguratorProxyClient failed to initialize, be sure that SystemConfigurator is running.");
+            }
+        }
+
         public async Task<IResponse> SendCommandAsync(IRequest command)
         {
-            SystemConfiguratorProxyClientLib.SystemConfiguratorProxyClient client = 
-                new SystemConfiguratorProxyClientLib.SystemConfiguratorProxyClient();
-            client.Initialize();
-            var response = await client.SendCommandAsync(command);
+            var response = await _client.SendCommandAsync(command);
             return response;
         }
 
         public Task<IResponse> SendCommand(IRequest command)
         {
-            SystemConfiguratorProxyClientLib.SystemConfiguratorProxyClient client =
-                new SystemConfiguratorProxyClientLib.SystemConfiguratorProxyClient();
-            client.Initialize();
-            var response = client.SendCommand(command);
-            return Task.FromResult<IResponse>(response);
+            try
+            {
+                var response = _client.SendCommand(command);
+                return Task.FromResult<IResponse>(response);
+            }
+            catch (Exception ex)
+            {
+                return Task.FromResult<IResponse>(new ErrorResponse(ErrorSubSystem.DeviceManagement, ex.HResult, ex.Message));
+            }
         }
     }
 }

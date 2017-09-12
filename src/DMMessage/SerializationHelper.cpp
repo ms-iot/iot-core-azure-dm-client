@@ -47,6 +47,11 @@ Blob^ SerializationHelper::CreateBlobFromPtrSize(uint32_t tag, const byte* bytep
 Blob^ SerializationHelper::CreateBlobFromJson(uint32_t tag, JsonObject^ jsonObject)
 {
     String^ str = jsonObject->Stringify();
+    return CreateBlobFromString(tag, str);
+}
+
+Blob^ SerializationHelper::CreateBlobFromString(uint32_t tag, String ^str)
+{
     return CreateBlobFromPtrSize(tag, (const byte*)str->Data(), str->Length() * sizeof(wchar_t));
 }
 

@@ -15,15 +15,15 @@
 #pragma push_macro("WINAPI_FAMILY")
 #undef WINAPI_FAMILY
 #define WINAPI_FAMILY WINAPI_FAMILY_DESKTOP_APP
-#include "SystemConfiguratorProxyClient.h"
+#include "SCProxyClient.h"
 #pragma pop_macro("WINAPI_FAMILY")
 
 #include <ppltasks.h>
 
 using namespace concurrency;
-using namespace SystemConfiguratorProxyClientLib;
+using namespace SystemConfiguratorProxyClient;
 
-Windows::Foundation::IAsyncOperation<IResponse^>^ SystemConfiguratorProxyClient::SendCommandAsync(IRequest^ command)
+Windows::Foundation::IAsyncOperation<IResponse^>^ SCProxyClient::SendCommandAsync(IRequest^ command)
 {
     return create_async([this, command]() -> IResponse^ {
 
@@ -32,60 +32,45 @@ Windows::Foundation::IAsyncOperation<IResponse^>^ SystemConfiguratorProxyClient:
     });
 }
 
-IResponse^ SystemConfiguratorProxyClient::SendCommand(IRequest^ command)
+IResponse^ SCProxyClient::SendCommand(IRequest^ command)
 {
     auto blob = command->Serialize();
-    auto bytes = blob->GetByteArrayForSerialization();
-
-    //
-    // TODO: this code is lifted (not shared) from SerializationHelper.cpp ... it should be shared somehow
-    //
-        int PrefixSize = 2 * sizeof(uint32_t);
-        auto blobString = ref new Platform::String(reinterpret_cast<wchar_t*>(bytes->Data + PrefixSize), (bytes->Length - PrefixSize) / sizeof(wchar_t));
-    //
-    //
-    //
-
-    UINT32 requestType = (UINT32)command->Tag;
-    BSTR request = (wchar_t*)blobString->Data();
-
-    UINT responseType = (UINT32)command->Tag;
-    UINT status = (UINT32)0;
-    BSTR response = L"";
-
-    ::SendRequest(
-        /* [in] */ this->hRpcBinding,
-        /* [in] */ requestType,
-        /* [in] */ request,
-        /* [out] */ &responseType,
-        /* [out] */ &response);
+    auto json = blob->PayloadAsString;
+    auto blobTag = blob->Tag;
     
-    auto responseString = ref new Platform::String(response);
 
-    //
-    // TODO: this code is lifted (not shared) from SerializationHelper.cpp ... it should be shared somehow
-    //
-        auto byteptr = (const byte*)responseString->Data();
-        size_t size = responseString->Length() * sizeof(wchar_t);
-        size_t byteCount = PrefixSize + size;
-        auto byteArray = ref new Platform::Array<byte>(static_cast<unsigned int>(byteCount));
-        // First, put out the version (32 bits)
-        uint32_t version = 1; // TODO: CurrentVersion;
-        memcpy_s(byteArray->Data, byteCount, &version, sizeof(version));
-        // Second, put out the 32-bit tag
-        memcpy_s(byteArray->Data + sizeof(version), byteCount, &responseType, sizeof(responseType));
-        // Followed by the serialized object:
-        memcpy_s(byteArray->Data + PrefixSize, byteCount, byteptr, size);
-        auto ret = Blob::CreateFromByteArray(byteArray)->MakeIResponse();
-    //
-    //
-    //
+    auto requestType = (UINT32)command->Tag;
+    BSTR request = SysAllocString((wchar_t*)json->Data());
 
-    return ret;
+    try
+    {
+        UINT responseType = (UINT32)command->Tag;
+        BSTR response = NULL;
+
+        ::SendRequest(
+            /* [in] */ this->hRpcBinding,
+            /* [in] */ requestType,
+            /* [in] */ request,
+            /* [out] */ &responseType,
+            /* [out] */ &response
+        );
+
+        auto responseString = ref new Platform::String(response);
+        auto ret = Blob::CreateFromJson(responseType, responseString)->MakeIResponse();
+        return ret;
+    }
+    catch (Platform::Exception^ e)
+    {
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e->HResult, e->Message);
+    }
+    catch (...)
+    {
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, E_FAIL, L"RPC go BOOM!");
+    }
 }
 
 
-__int64 SystemConfiguratorProxyClient::Initialize()
+__int64 SCProxyClient::Initialize()
 {
     RPC_STATUS status;
     RPC_WSTR pszStringBinding = nullptr;
@@ -135,7 +120,7 @@ error_status:
 }
 
 
-SystemConfiguratorProxyClient::~SystemConfiguratorProxyClient()
+SCProxyClient::~SCProxyClient()
 {
     RPC_STATUS status;
 

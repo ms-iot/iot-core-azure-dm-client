@@ -10,15 +10,15 @@
 
 using namespace Microsoft::Devices::Management::Message;
 
-namespace SystemConfiguratorProxyClientLib
+namespace SystemConfiguratorProxyClient
 {
     /// <summary>
     /// Client side RPC implementation
     /// </summary>
-    public ref class SystemConfiguratorProxyClient sealed
+    public ref class SCProxyClient sealed
     {
     public:
-        virtual ~SystemConfiguratorProxyClient();
+        virtual ~SCProxyClient();
 
         Windows::Foundation::IAsyncOperation<IResponse^>^ SendCommandAsync(IRequest^ command);
         IResponse^ SendCommand(IRequest^ command);

@@ -126,10 +126,7 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="..\..\src\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' == 'x86' And '$(Configuration)' == 'Debug'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\src\$(Platform)\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
+    <Content Include="..\..\src\Win32\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' == 'x86' And '$(Configuration)' == 'Debug'">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\src\$(Platform)\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
@@ -159,6 +156,10 @@
     <ProjectReference Include="..\..\src\IoTDMClientLib\IoTDMClientLib.csproj">
       <Project>{f29e2c50-97be-4c33-b601-e52aab5596e9}</Project>
       <Name>IoTDMClientLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\SystemConfiguratorProxy\Client\ServiceConfiguratorProxyClientLib.vcxproj">
+      <Project>{0213712b-62e6-5546-8d25-79b90244ffa9}</Project>
+      <Name>ServiceConfiguratorProxyClientLib</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
