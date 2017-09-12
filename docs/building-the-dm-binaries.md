@@ -22,10 +22,13 @@ Below are the steps to build these components and have them ready for inclusion 
 ### Build The Nuget Package
 
   - Open a Visual Studio command prompt and 
+    - Make sure `nuget.exe` is on the path.
     - `cd c:\iot-core-azure-dm-client\nuget`
-    - Run `PackIoTDMClientLib.cmd`
+    - Run `PackIoTDMClientLib.cmd 1.4.4 Release`
+      - `1.4.4` is the next available version so that your application can pick it up. If your app has never consumed IoTDMClientLib, this can be set to 1.0.0.
+      - `Release` is the flavor to be packaged. If you intend to debug the IoTDMClientLib code, it is recommended to create the package with `Debug` instead of `Release` in the command above.
 
-This will create `c:\iot-core-azure-dm-client\nuget\IoTDMClientLib.1.0.0.nupkg`.
+This will create `c:\iot-core-azure-dm-client\nuget\IoTDMClientLib.1.4.4.nupkg`.
 
 **Next Step**:
 
