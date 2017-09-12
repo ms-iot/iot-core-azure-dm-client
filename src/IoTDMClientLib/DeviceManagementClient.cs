@@ -402,6 +402,12 @@ namespace Microsoft.Devices.Management
                 }
                 _lastDesiredPropertyVersion = version;
 
+                if (windowsPropValue == null)
+                {
+                    // Nothing to apply.
+                    return;
+                }
+
                 // ToDo: We should not throw here. All problems need to be logged.
                 Message.CertificateConfiguration certificateConfiguration = null;
 
