@@ -64,15 +64,6 @@ using Windows.Foundation.Diagnostics;
     }
 </pre>
 
-- And let's not forget to add an implementation for the callback (`IsSystemRebootAllowed`) in the MainPage:
-
-<pre>
-    public async Task&lt;bool&gt; IsSystemRebootAllowed()
-    {
-        return true;
-    }
-</pre>
-
 - Now, let's code the part that connects the app to Azure, and wires in the DM library:
 
 <pre>
