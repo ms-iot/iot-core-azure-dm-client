@@ -32,6 +32,8 @@
   <Capabilities>
     <Capability Name="internetClient" />
     <iot:Capability Name="systemManagement" />
+<!--
     <uap4:CustomCapability Name="23983CETAthensQuality.iotDeviceManagementCapability_8whstpt5232x0"/>
+-->
   </Capabilities>
 </Package>
