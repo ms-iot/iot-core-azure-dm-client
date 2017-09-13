@@ -126,12 +126,6 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="..\..\src\Win32\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' == 'x86' And '$(Configuration)' == 'Debug'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\src\$(Platform)\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -146,6 +140,12 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\IotDeviceManagementCapability.SCCD">
+      <DeploymentContent>true</DeploymentContent>
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <SDKReference Include="WindowsIoT, Version=10.0.10586.0">

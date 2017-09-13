@@ -1,13 +1,17 @@
-//*********************************************************
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-//*********************************************************
+/*
+Copyright 2017 Microsoft
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+and associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
+THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include <stdlib.h>
@@ -32,7 +36,6 @@ IResponse^ ProcessCommand(IRequest^ request);
 #define RPC_STATIC_ENDPOINT L"IotDmRpcEndpoint"
 const WCHAR* CustomCapabilityName = L"systemManagement";
 
-bool ShutdownRequested;
 static RPC_BINDING_VECTOR* BindingVector = nullptr;
 
 void FreeSidArray(__inout_ecount(cSIDs) PSID* pSIDs, ULONG cSIDs)
@@ -64,7 +67,6 @@ DWORD SystemConfiguratorProxyStart()
     WCHAR* protocolSequence = L"ncalrpc";
     unsigned int minCalls = 1;
     unsigned int dontWait = false;
-    ShutdownRequested = false;
 
     SID_IDENTIFIER_AUTHORITY SIDAuthWorld = SECURITY_WORLD_SID_AUTHORITY;
     PSID everyoneSid = nullptr;
@@ -219,7 +221,7 @@ end:
         LocalFree(acl);
     }
 
-    TRACE("SystemConfiguratorProxyStart ended...");
+    TRACEP("SystemConfiguratorProxyStart ended: ", hResult);
     return hResult;
 }
 
@@ -229,10 +231,8 @@ end:
 void SystemConfiguratorProxyDisconnect()
 {
     TRACE("SystemConfiguratorProxyDisconnect");
-    DWORD hResult = S_OK;
-    ShutdownRequested = true;
-    hResult = RpcServerUnregisterIf(SystemConfiguratorProxyInterface_v1_0_s_ifspec, nullptr, 0);
 
+    RpcServerUnregisterIf(SystemConfiguratorProxyInterface_v1_0_s_ifspec, nullptr, 0);
     RpcEpUnregister(SystemConfiguratorProxyInterface_v1_0_s_ifspec, BindingVector, nullptr);
 
     if (BindingVector != nullptr)

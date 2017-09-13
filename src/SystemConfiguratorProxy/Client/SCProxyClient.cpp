@@ -1,13 +1,17 @@
-//*********************************************************
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-//*********************************************************
+/*
+Copyright 2017 Microsoft
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+and associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
+THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 // There is an error in the system header files that incorrectly
 // places RpcStringBindingCompose in the app partition.
@@ -19,6 +23,7 @@
 #pragma pop_macro("WINAPI_FAMILY")
 
 #include <ppltasks.h>
+#include <atlbase.h>
 
 using namespace concurrency;
 using namespace SystemConfiguratorProxyClient;
@@ -40,12 +45,12 @@ IResponse^ SCProxyClient::SendCommand(IRequest^ command)
     
 
     auto requestType = (UINT32)command->Tag;
-    BSTR request = SysAllocString((wchar_t*)json->Data());
+    CComBSTR request = (wchar_t*)json->Data();
 
     try
     {
         UINT responseType = (UINT32)command->Tag;
-        BSTR response = NULL;
+        CComBSTR response = NULL;
 
         ::SendRequest(
             /* [in] */ this->hRpcBinding,
@@ -65,7 +70,7 @@ IResponse^ SCProxyClient::SendCommand(IRequest^ command)
     }
     catch (...)
     {
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, E_FAIL, L"RPC go BOOM!");
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, E_FAIL, L"Failure in SystemConfigurator SendRequest RPC");
     }
 }
 
@@ -77,7 +82,7 @@ __int64 SCProxyClient::Initialize()
 
     status = RpcStringBindingCompose(
         NULL,
-        reinterpret_cast<RPC_WSTR>(L"ncalrpc"),
+        reinterpret_cast<RPC_WSTR>(RPC_PROTOCOL),
         NULL,
         reinterpret_cast<RPC_WSTR>(RPC_STATIC_ENDPOINT),
         NULL,

@@ -122,12 +122,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="SystemConfiguratorProxyClient.SCCD">
-      <DeploymentContent>true</DeploymentContent>
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <SDKReference Include="WindowsDesktop, Version=10.0.15063.0" />
   </ItemGroup>
   <ItemGroup>

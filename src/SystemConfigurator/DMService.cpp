@@ -18,7 +18,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <assert.h>
 #include "DMService.h"
 #include "..\SharedUtilities\DMException.h"
-#include "..\SharedUtilities\SystemConfiguratorPipe.h"
 #include "CommandProcessor.h"
 
 #include "Models\ExitDM.h"
@@ -27,6 +26,8 @@ using namespace std;
 using namespace std::chrono;
 using namespace std::experimental;
 using namespace Microsoft::Devices::Management::Message;
+
+IResponse^ ProcessCommand(IRequest^ request);
 
 DMService *DMService::s_service = NULL;
 
@@ -310,9 +311,9 @@ void DMService::ServiceWorkerThreadHelper(void)
 void DMService::OnStop()
 {
     TRACE(__FUNCTION__);
-
+    
     IRequest^ request = ref new ExitDMRequest();
-    Utils::SystemConfiguratorPipe::Send(request->Serialize());
+    ProcessCommand(request);
 }
 
 void DMService::Install(

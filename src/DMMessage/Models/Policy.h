@@ -15,11 +15,11 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #pragma once
 #include <collection.h>
-#include "..\IRequestIResponse.h"
-#include "..\SerializationHelper.h"
-#include "..\DMMessageKind.h"
+#include "IRequestIResponse.h"
+#include "SerializationHelper.h"
+#include "DMMessageKind.h"
 #include "StatusCodeResponse.h"
-#include "..\Blob.h"
+#include "Blob.h"
 
 using namespace Platform;
 using namespace Platform::Collections;

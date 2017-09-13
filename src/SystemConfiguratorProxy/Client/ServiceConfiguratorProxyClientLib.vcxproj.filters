@@ -14,7 +14,4 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="SCProxyClient.h" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="SystemConfiguratorProxyClient.SCCD" />
-  </ItemGroup>
 </Project>
