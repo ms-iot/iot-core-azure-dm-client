@@ -37,41 +37,54 @@ Windows::Foundation::IAsyncOperation<IResponse^>^ SCProxyClient::SendCommandAsyn
     });
 }
 
+DWORD DoSendCommand(handle_t binding, BSTR request, UINT requestType, BSTR *pResponse, UINT* pResponseType)
+{
+    if (binding == NULL)
+    {
+        return RPC_S_INVALID_BINDING;
+    }
+
+    RpcTryExcept
+    {
+        return ::SendRequest(
+                /* [in] */ binding,
+                /* [in] */ requestType,
+                /* [in] */ request,
+                /* [out] */ pResponseType,
+                /* [out] */ pResponse);
+    }
+    RpcExcept(1)
+    {
+        // Ignoring the result of RemoteClose as nothing can be
+        // done on the client side with this return code
+        return RpcExceptionCode();
+    }
+    RpcEndExcept
+}
+
 IResponse^ SCProxyClient::SendCommand(IRequest^ command)
 {
     auto blob = command->Serialize();
     auto json = blob->PayloadAsString;
     auto blobTag = blob->Tag;
-    
 
     auto requestType = (UINT32)command->Tag;
     CComBSTR request = (wchar_t*)json->Data();
+    UINT responseType = (UINT32)command->Tag;
+    CComBSTR response = NULL;
 
-    try
+    auto status = DoSendCommand(this->hRpcBinding, request, requestType, &response, &responseType);
+    if (RPC_S_OK != status /*implied: || S_OK != status || ERROR_SUCCESS != status*/)
     {
-        UINT responseType = (UINT32)command->Tag;
-        CComBSTR response = NULL;
+        // Ignoring the result of RemoteClose as nothing can be
+        // done on the client side with this return code
+        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, status, L"Failure in SystemConfigurator SendRequest RPC");
+    }
+            
+    auto responseString = ref new Platform::String(response);
+    auto ret = Blob::CreateFromJson(responseType, responseString)->MakeIResponse();
+    return ret;
 
-        ::SendRequest(
-            /* [in] */ this->hRpcBinding,
-            /* [in] */ requestType,
-            /* [in] */ request,
-            /* [out] */ &responseType,
-            /* [out] */ &response
-        );
-
-        auto responseString = ref new Platform::String(response);
-        auto ret = Blob::CreateFromJson(responseType, responseString)->MakeIResponse();
-        return ret;
-    }
-    catch (Platform::Exception^ e)
-    {
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e->HResult, e->Message);
-    }
-    catch (...)
-    {
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, E_FAIL, L"Failure in SystemConfigurator SendRequest RPC");
-    }
 }
 
 
@@ -102,24 +115,13 @@ __int64 SCProxyClient::Initialize()
         goto error_status;
     }
 
-    status = RpcStringFree(&pszStringBinding);
-
-    if (status)
-    {
-        goto error_status;
-    }
-
-    RpcTryExcept
-    {
-        ::RemoteOpen(hRpcBinding, &phContext);
-    }
-    RpcExcept(1)
-    {
-        status = RpcExceptionCode();
-    }
-    RpcEndExcept
-
 error_status:
+
+    if (pszStringBinding != nullptr)
+    {
+        RpcStringFree(&pszStringBinding);
+    }
+
 
     return status;
 }
@@ -131,18 +133,6 @@ SCProxyClient::~SCProxyClient()
 
     if (hRpcBinding != NULL) 
     {
-        RpcTryExcept
-        {
-            ::RemoteClose(&phContext);
-        }
-        RpcExcept(1)
-        {
-            // Ignoring the result of RemoteClose as nothing can be
-            // done on the client side with this return code
-            status = RpcExceptionCode();
-        }
-        RpcEndExcept
-
         status = RpcBindingFree(&hRpcBinding);
         hRpcBinding = NULL;
     }

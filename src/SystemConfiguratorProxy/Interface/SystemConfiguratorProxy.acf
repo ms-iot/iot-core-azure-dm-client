@@ -16,6 +16,4 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 interface SystemConfiguratorProxyInterface
 {
-    // We need the RPC to call rundown when the client goes away
-    typedef [context_handle_noserialize] PCONTEXT_HANDLE_TYPE;
 }

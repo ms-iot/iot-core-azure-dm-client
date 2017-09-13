@@ -43,6 +43,6 @@ namespace SystemConfiguratorProxyClient
 
     private:
         handle_t hRpcBinding;
-        PCONTEXT_HANDLE_TYPE phContext;
+        //PCONTEXT_HANDLE_TYPE phContext;
     };
 }

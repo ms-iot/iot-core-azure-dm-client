@@ -243,42 +243,10 @@ void SystemConfiguratorProxyDisconnect()
 }
 
 //
-// Rpc method to retrieve client context handle
+// Rpc method to send request to DM service
 //
-void RemoteOpen(
-    _In_ handle_t /*hBinding*/,
-    _Out_ PPCONTEXT_HANDLE_TYPE /*pphContext*/)
-{
-    TRACE("RemoteOpen");
-    //*pphContext = static_cast<PCONTEXT_HANDLE_TYPE *>(midl_user_allocate(sizeof(METERING_CONTEXT)));
-    //METERING_CONTEXT* meteringContext = static_cast<METERING_CONTEXT *>(*pphContext);
-    //meteringContext->metering = new Metering(DEFAULT_METERING_PERIOD);
-}
-
-//
-// Rpc method to close the client context handle
-//
-void RemoteClose(_Inout_ PPCONTEXT_HANDLE_TYPE pphContext)
-{
-    TRACE("RemoteClose");
-    if (*pphContext == nullptr)
-    {
-        //Log error, client tried to close a NULL handle.
-        return;
-    }
-
-    //METERING_CONTEXT* meteringContext = static_cast<METERING_CONTEXT *>(*pphContext);
-    //delete meteringContext->metering;
-    //MIDL_user_free(meteringContext);
-
-    // This tells the run-time, when it is marshalling the out 
-    // parameters, that the context handle has been closed normally.
-    *pphContext = nullptr;
-}
-
-
 HRESULT SendRequest(
-    _In_ PCONTEXT_HANDLE_TYPE /*phContext*/,
+    _In_ handle_t /*phContext*/,
     _In_ UINT32 requestType,
     _In_ BSTR requestJson,
     __RPC__deref_out_opt UINT32* responseType,
@@ -304,6 +272,7 @@ HRESULT SendRequest(
     return S_OK;
 }
 
+/*
 //
 // Routine to cleanup client context when client has died with active 
 // connection with server
@@ -311,9 +280,8 @@ HRESULT SendRequest(
 void __RPC_USER PCONTEXT_HANDLE_TYPE_rundown(
     _In_ PCONTEXT_HANDLE_TYPE phContext)
 {
-    RemoteClose(&phContext);
 }
-
+*/
 
 /******************************************************/
 /*         MIDL allocate and free                     */

@@ -21,6 +21,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CommandProcessor.h"
 
 #include "Models\ExitDM.h"
+#include "SystemConfiguratorProxyServer\SystemConfiguratorProxy.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -314,6 +315,8 @@ void DMService::OnStop()
     
     IRequest^ request = ref new ExitDMRequest();
     ProcessCommand(request);
+
+    SystemConfiguratorProxyDisconnect();
 }
 
 void DMService::Install(

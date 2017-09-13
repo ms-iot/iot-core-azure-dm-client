@@ -864,40 +864,6 @@ IResponse^ ProcessCommand(IRequest^ request)
     }
 }
 
-class PipeConnection
-{
-public:
-
-    PipeConnection() :
-        _pipeHandle(NULL)
-    {}
-
-    void Connect(HANDLE pipeHandle)
-    {
-        TRACE("Connecting to pipe...");
-        if (pipeHandle == NULL || pipeHandle == INVALID_HANDLE_VALUE)
-        {
-            throw DMException("Error: Cannot connect using an invalid pipe handle.");
-        }
-        if (!ConnectNamedPipe(pipeHandle, NULL))
-        {
-            throw DMExceptionWithErrorCode("ConnectNamedPipe Error", GetLastError());
-        }
-        _pipeHandle = pipeHandle;
-    }
-
-    ~PipeConnection()
-    {
-        if (_pipeHandle != NULL)
-        {
-            TRACE("Disconnecting from pipe...");
-            DisconnectNamedPipe(_pipeHandle);
-        }
-    }
-private:
-    HANDLE _pipeHandle;
-};
-
 void EnsureErrorsLogged(const function<void()>& func)
 {
     TRACE(__FUNCTION__);
@@ -934,22 +900,16 @@ void EnsureErrorsLogged(const function<void()>& func)
     }
 }
 
-bool ProcessClientConnection()
-{
-    auto ret = SystemConfiguratorProxyStart();
-    return (ret == S_OK || ret == ERROR_SUCCESS);
-}
-
 void Listen()
 {
     TRACE(__FUNCTION__);
 
     EnsureErrorsLogged([&]()
     {
-        bool exit = false;
-        while (!exit)
+        DWORD ret = ERROR_SUCCESS;
+        while (ret == S_OK || ret == ERROR_SUCCESS)
         {
-            exit = ProcessClientConnection();
+            ret = SystemConfiguratorProxyStart();
         }
     });
 }

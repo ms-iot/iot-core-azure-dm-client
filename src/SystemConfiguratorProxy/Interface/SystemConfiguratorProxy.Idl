@@ -29,16 +29,8 @@ import "unknwn.idl";
 ]
 interface SystemConfiguratorProxyInterface
 {
-
-    // context_handle_noserialize in acf for RPC to call rundown when the client goes away
-    typedef [context_handle] void* PCONTEXT_HANDLE_TYPE;
-    typedef [ref] PCONTEXT_HANDLE_TYPE * PPCONTEXT_HANDLE_TYPE;
-
     //
-    // RPC methods to retrieve/clean client context
+    // Rpc method to send request to DM service
     //
-    void RemoteOpen([in] handle_t hBinding,[out] PPCONTEXT_HANDLE_TYPE pphContext);
-    void RemoteClose([in, out] PPCONTEXT_HANDLE_TYPE pphContext);
-
     HRESULT SendRequest([in] UINT32 requestType, [in] BSTR request, [out] UINT32* responseType, [out] BSTR* response);
 }

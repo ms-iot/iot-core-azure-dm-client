@@ -19,9 +19,4 @@
       <Filter>Source Files</Filter>
     </Midl>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="SystemConfiguratorProxy.acf">
-      <Filter>Source Files</Filter>
-    </None>
-  </ItemGroup>
 </Project>
