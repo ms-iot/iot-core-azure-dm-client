@@ -403,11 +403,6 @@ namespace Microsoft.Devices.Management
                 _lastDesiredPropertyVersion = version;
                 if (windowsPropValue == null)
                 {
-                    return;
-                }
-
-                if (windowsPropValue == null)
-                {
                     // Nothing to apply.
                     return;
                 }
