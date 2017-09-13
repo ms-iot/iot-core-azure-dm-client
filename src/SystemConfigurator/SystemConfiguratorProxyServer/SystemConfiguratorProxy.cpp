@@ -272,17 +272,6 @@ HRESULT SendRequest(
     return S_OK;
 }
 
-/*
-//
-// Routine to cleanup client context when client has died with active 
-// connection with server
-//
-void __RPC_USER PCONTEXT_HANDLE_TYPE_rundown(
-    _In_ PCONTEXT_HANDLE_TYPE phContext)
-{
-}
-*/
-
 /******************************************************/
 /*         MIDL allocate and free                     */
 /******************************************************/
