@@ -315,8 +315,6 @@ void DMService::OnStop()
     
     IRequest^ request = ref new ExitDMRequest();
     ProcessCommand(request);
-
-    SystemConfiguratorProxyDisconnect();
 }
 
 void DMService::Install(

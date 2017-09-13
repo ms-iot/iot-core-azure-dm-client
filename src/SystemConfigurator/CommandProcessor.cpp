@@ -58,6 +58,10 @@ StringResponse^ ReportError(const string& context, const DMException& e)
 IResponse^ HandleExitDM(IRequest^ request)
 {
     TRACE(__FUNCTION__);
+
+    TRACE(L"Disconnecting RPC listener...");
+    SystemConfiguratorProxyDisconnect();
+
     return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
@@ -906,10 +910,6 @@ void Listen()
 
     EnsureErrorsLogged([&]()
     {
-        DWORD ret = ERROR_SUCCESS;
-        while (ret == S_OK || ret == ERROR_SUCCESS)
-        {
-            ret = SystemConfiguratorProxyStart();
-        }
+        SystemConfiguratorProxyStart();
     });
 }

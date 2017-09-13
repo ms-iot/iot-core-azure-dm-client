@@ -234,6 +234,7 @@ void SystemConfiguratorProxyDisconnect()
 
     RpcServerUnregisterIf(SystemConfiguratorProxyInterface_v1_0_s_ifspec, nullptr, 0);
     RpcEpUnregister(SystemConfiguratorProxyInterface_v1_0_s_ifspec, BindingVector, nullptr);
+    RpcMgmtStopServerListening(nullptr);
 
     if (BindingVector != nullptr)
     {
@@ -256,16 +257,14 @@ HRESULT SendRequest(
     TRACE("Request received...");
     TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)requestType));
     TRACEP(L"    ", Utils::ConcatString(L"request json:", requestJson));
-
     auto requestJsonString = ref new String(requestJson);
     auto requestBlob = Blob::CreateFromJson(requestType, requestJsonString);
+
     IRequest^ request = requestBlob->MakeIRequest();
     auto response = ProcessCommand(request);
-
     *responseType = (UINT32)response->Tag;
     auto responseJsonString = response->Serialize()->PayloadAsString;
     *responseJson = SysAllocString(responseJsonString->Data());
-
     TRACE("Response generated...");
     TRACEP(L"    ", Utils::ConcatString(L"response tag:", (uint32_t)responseType));
     TRACEP(L"    ", Utils::ConcatString(L"response json:", responseJson));
