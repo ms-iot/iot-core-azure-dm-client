@@ -25,11 +25,14 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <AclAPI.h>
 #include "SystemConfiguratorProxy.h"
 
+#include "Models\ErrorResponse.h"
+#include "DMException.h"
 #include "Logger.h"
 #include "Utils.h"
 #include "Blob.h"
 
 using namespace Microsoft::Devices::Management::Message;
+using namespace std;
 
 IResponse^ ProcessCommand(IRequest^ request);
 
@@ -254,14 +257,35 @@ HRESULT SendRequest(
     __RPC__deref_out_opt BSTR* responseJson
     )
 {
-    TRACE("Request received...");
-    TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)requestType));
-    TRACEP(L"    ", Utils::ConcatString(L"request json:", requestJson));
-    auto requestJsonString = ref new String(requestJson);
-    auto requestBlob = Blob::CreateFromJson(requestType, requestJsonString);
+    IResponse^ response = nullptr;
+    try
+    {
+        TRACE("Request received...");
+        TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)requestType));
+        TRACEP(L"    ", Utils::ConcatString(L"request json:", requestJson));
+        auto requestJsonString = ref new String(requestJson);
+        auto requestBlob = Blob::CreateFromJson(requestType, requestJsonString);
 
-    IRequest^ request = requestBlob->MakeIRequest();
-    auto response = ProcessCommand(request);
+        IRequest^ request = requestBlob->MakeIRequest();
+        response = ProcessCommand(request);
+    }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        response = CreateErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), e.what());
+    }
+    catch (const exception& e)  // Note that DMException is just 'exception' with some trace statements.
+    {
+        response = CreateErrorResponse(ErrorSubSystem::DeviceManagement, static_cast<int>(DeviceManagementErrors::GenericError), e.what());
+    }
+    catch (Platform::Exception^ e)
+    {
+        response = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e->HResult, e->Message);
+    }
+    catch (...)
+    {
+        response = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, static_cast<int>(DeviceManagementErrors::GenericError), L"Unknown exception!");
+    }
+
     *responseType = (UINT32)response->Tag;
     auto responseJsonString = response->Serialize()->PayloadAsString;
     *responseJson = SysAllocString(responseJsonString->Data());

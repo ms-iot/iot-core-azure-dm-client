@@ -42,23 +42,48 @@ namespace Microsoft.Devices.Management
             }
         }
 
+        private void ThrowError(IResponse response)
+        {
+            if (response == null)
+            {
+                throw new Error(ErrorSubSystem.Unknown, -1, "SystemConfigurator returned a null response.");
+            }
+            else if (response is ErrorResponse)
+            {
+                var errorResponse = response as ErrorResponse;
+                string message = "Sub-system=" + errorResponse.SubSystem.ToString() + ", code=" + errorResponse.ErrorCode + ", messag=" + errorResponse.ErrorMessage;
+                Logger.Log(message, LoggingLevel.Error);
+                Debug.WriteLine(message);
+                throw new Error(errorResponse.SubSystem, errorResponse.ErrorCode, errorResponse.ErrorMessage);
+            }
+            else if (response is StringResponse)
+            {
+                var stringResponse = response as StringResponse;
+                string message = "Error Tag(" + stringResponse.Tag.ToString() + ") : " + stringResponse.Status.ToString() + " : " + stringResponse.Response;
+                Logger.Log(message, LoggingLevel.Error);
+                Debug.WriteLine(message);
+                throw new Error(ErrorSubSystem.Unknown, -1, message);
+            }
+        }
+
         public async Task<IResponse> SendCommandAsync(IRequest command)
         {
             var response = await _client.SendCommandAsync(command);
+            if (response.Status != ResponseStatus.Success)
+            {
+                ThrowError(response);
+            }
             return response;
         }
 
         public Task<IResponse> SendCommand(IRequest command)
         {
-            try
+            var response = _client.SendCommand(command);
+            if (response.Status != ResponseStatus.Success)
             {
-                var response = _client.SendCommand(command);
-                return Task.FromResult<IResponse>(response);
+                ThrowError(response);
             }
-            catch (Exception ex)
-            {
-                return Task.FromResult<IResponse>(new ErrorResponse(ErrorSubSystem.DeviceManagement, ex.HResult, ex.Message));
-            }
+            return Task.FromResult<IResponse>(response);
         }
     }
 }

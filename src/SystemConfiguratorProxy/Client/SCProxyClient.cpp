@@ -69,21 +69,30 @@ IResponse^ SCProxyClient::SendCommand(IRequest^ command)
     auto blobTag = blob->Tag;
 
     auto requestType = (UINT32)command->Tag;
-    CComBSTR request = (wchar_t*)json->Data();
+    CComBSTR requestJson = (wchar_t*)json->Data();
     UINT responseType = (UINT32)command->Tag;
-    CComBSTR response = NULL;
+    CComBSTR responseJson = NULL;
 
-    auto status = DoSendCommand(this->hRpcBinding, request, requestType, &response, &responseType);
+    auto status = DoSendCommand(this->hRpcBinding, requestJson, requestType, &responseJson, &responseType);
+    IResponse^ response = nullptr;
     if (RPC_S_OK != status /*implied: || S_OK != status || ERROR_SUCCESS != status*/)
     {
         // Ignoring the result of RemoteClose as nothing can be
         // done on the client side with this return code
-        return ref new ErrorResponse(ErrorSubSystem::DeviceManagement, status, L"Failure in SystemConfigurator SendRequest RPC");
+        response = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, status, L"Failure in SystemConfigurator SendRequest RPC");
     }
-            
-    auto responseString = ref new Platform::String(response);
-    auto ret = Blob::CreateFromJson(responseType, responseString)->MakeIResponse();
-    return ret;
+    else
+    {
+        auto responseJsonString = ref new Platform::String(responseJson);
+        response = Blob::CreateFromJson(responseType, responseJsonString)->MakeIResponse();
+    }
+
+    if (response->Status != ResponseStatus::Success)
+    {
+        
+    }
+
+    return response;
 
 }
 
