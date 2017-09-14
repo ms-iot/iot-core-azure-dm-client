@@ -7,7 +7,8 @@
         xmlns:storage="clr-namespace:DMDashboard.StorageManagement"
         xmlns:DeviceHealthAttestation="clr-namespace:DMDashboard.DeviceHealthAttestation"
         mc:Ignorable="d"
-        Title="MainWindow" Height="700" Width="1400">
+        Title="MainWindow" Height="700" Width="1400"
+        x:Name="ThisWindow">
     <Window.Resources>
         <ResourceDictionary>
             <local:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
@@ -57,12 +58,23 @@
             <TextBlock Grid.Row="0" Grid.Column="0" Margin="5" FontSize="16" FontWeight="Bold" Text="DM Dashboard" />
             <Grid Grid.Row="1" Grid.Column="0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Connection String"/>
-                <TextBox Grid.Row="0" Grid.Column="1" Margin="3" x:Name="ConnectionStringBox">
+                <TextBox   Grid.Row="0" Grid.Column="1" Margin="3" x:Name="ConnectionStringBox">
                     <TextBox.Text>&lt;enter connection string&gt;</TextBox.Text>
+                </TextBox>
+                <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Device ID" />
+                <TextBox   Grid.Row="1"
+                           Grid.Column="1"
+                           Margin="3"
+                           Text="{Binding DeviceIdToPopulate, ElementName=ThisWindow}"
+                           x:Name="DeviceIdTextBox">
                 </TextBox>
             </Grid>
             <Button Grid.Row="2" Grid.Column="2" Margin="3" Content="List Devices" Click="OnListDevices" Width="200" HorizontalAlignment="Left"/>
