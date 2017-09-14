@@ -29,10 +29,11 @@ In order to include Azure Device Management functionality in such images,
 
 ## Configuring the Binaries
 
+- The device management library used by the UWP application communicates with the NT Service, SystemConfigurator.exe, over a capability-protected RPC channel.  By default, this is configured to use the systemManagement 
+capability.  Meaning that any UWP app using systemManagement that is running on the device can utilize this RPC channel.  If you want to further lock this down, you can request a Custom Capability from the store which 
+will allow you to further secure this channel.  More information about Custom Capabilities can be found [here](https://github.com/Microsoft/Windows-universal-samples/tree/master/Samples/CustomCapability).
+
 - To configure the `SystemConfigurator` service, create a cmd file and invoke it from the main configuration script `OEMCustomization.cmd` (which is called on every boot).
-
-
-- The device management library used by the UWP application communicates with the NT Service, SystemConfigurator.exe, over a capability-protected RPC channel.  By default, this is configured to use the systemManagement capability.  Meaning that any UWP app using systemManagement that is running on the device can utilize this RPC channel.  If you want to further lock this down, you can request a Custom Capability from the store which will allow you to further secure this channel.  More information about Custom Capabilities can be found [here](https://github.com/Microsoft/Windows-universal-samples/tree/master/Samples/CustomCapability).
 
 #### DMSetup.cmd
 
