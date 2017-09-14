@@ -87,11 +87,6 @@ IResponse^ SCProxyClient::SendCommand(IRequest^ command)
         response = Blob::CreateFromJson(responseType, responseJsonString)->MakeIResponse();
     }
 
-    if (response->Status != ResponseStatus::Success)
-    {
-        
-    }
-
     return response;
 
 }
