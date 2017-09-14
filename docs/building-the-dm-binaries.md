@@ -3,7 +3,6 @@
 The following binaries constitute the Device Management solution:
 
 - A UWP-compatible library to be included in the host UWP app (IoTDMClientLib).
-- CommProxy.exe
 - SystemConfigurator.exe
 
 Below are the steps to build these components and have them ready for inclusion in your UWP application, and integrated into your device image.
