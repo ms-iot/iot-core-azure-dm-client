@@ -42,6 +42,11 @@ namespace DMDashboard
         const string IotHubConnectionString = "IotHubConnectionString";
         const string StorageConnectionString = "StorageConnectionString";
 
+        private const int NumberOfDevicesToPopulate = 100;
+        private const string DeviceIdHintText = "<if looking for a single device, enter it's ID>";
+
+        public string DeviceIdToPopulate { get; set; } = DeviceIdHintText;
+
         Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
         public MainWindow()
@@ -99,7 +104,17 @@ namespace DMDashboard
             DeviceListBox.ItemsSource = null;
 
             // Populate devices.
-            IEnumerable<Device> devices = await registryManager.GetDevicesAsync(100);
+            IEnumerable<Device> devices;
+            if (DeviceIdToPopulate != DeviceIdHintText && !string.IsNullOrWhiteSpace(DeviceIdToPopulate))
+            {
+                devices = new List<Device> { await registryManager.GetDeviceAsync(DeviceIdToPopulate) };
+            }
+            else
+            {
+                devices = await registryManager.GetDevicesAsync(NumberOfDevicesToPopulate);
+            }
+
+            
             List<string> deviceIds = new List<string>();
             foreach (var device in devices)
             {
