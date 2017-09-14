@@ -11,20 +11,17 @@ In order to include Azure Device Management functionality in such images,
 - Include The Binaries:
   - The UWP application that hosts the device management library (see the [Walk-Through](dm-hello-world-overview.md) on how to create one).
   - `SystemConfigurator.exe`
-  - `CommProxy.exe`
 
 - Configure The Binaries:
-  - `CommProxy.exe` need to be whitelisted.
   - `SystemConfigurator` service is installed, and is configured to start automatically.
 
 ## Including the Binaries
 
 - OEM authors packages to include all the necessary binaries.
-- `CommProxy.exe` and `SystemConfigurator.exe` are to be placed in system32.
+- `SystemConfigurator.exe` is to be placed in system32.
 
 <pre>
     &lt;Files&gt;
-    &lt;File Source="CommProxy.exe" DestinationDir="$(runtime.system32)" /&gt;
     &lt;File Source="SystemConfigurator.exe" DestinationDir="$(runtime.system32)" /&gt;
     &lt;File Source="DMSetup.cmd" /&gt;
     &lt;/Files&gt;
@@ -32,21 +29,9 @@ In order to include Azure Device Management functionality in such images,
 
 ## Configuring the Binaries
 
-- To white-list `CommProxy.exe`, use the following snippet into your `<package>.xml` definitions file:
-
-<pre>
-    &lt;RegKeys&gt;
-        &lt;RegKey KeyName="$(hklm.software)\Microsoft\Windows\CurrentVersion\EmbeddedMode\ProcessLauncher"&gt;  
-            &lt;RegValue  
-                Name="AllowedExecutableFilesList"  
-                Value="$(runtime.system32)\CommProxy.exe\0"  
-                Type="REG_MULTI_SZ"  
-                /&gt;  
-        &lt;/RegKey&gt;  
-    &lt;/RegKeys&gt;
-</pre>
-
-For more details on authoring registry configuration, see [Lab 1c: Add a file and a registry setting to an image](https://docs.microsoft.com/en-us/windows-hardware/manufacture/iot/add-a-registry-setting-to-an-image).
+- The device management library used by the UWP application communicates with the NT Service, SystemConfigurator.exe, over a capability-protected RPC channel.  By default, this is configured to use the systemManagement 
+capability.  Meaning that any UWP app using systemManagement that is running on the device can utilize this RPC channel.  If you want to further lock this down, you can request a Custom Capability from the store which 
+will allow you to further secure this channel.  More information about Custom Capabilities can be found [here](https://github.com/Microsoft/Windows-universal-samples/tree/master/Samples/CustomCapability).
 
 - To configure the `SystemConfigurator` service, create a cmd file and invoke it from the main configuration script `OEMCustomization.cmd` (which is called on every boot).
 

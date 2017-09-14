@@ -11,8 +11,8 @@
     <AssemblyName>IoTDMBackground</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.14393.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.10586.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0.15063.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <EnableDotNetNativeCompatibleProfile>true</EnableDotNetNativeCompatibleProfile>
     <FileAlignment>512</FileAlignment>
@@ -131,18 +131,12 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png">
       <InProject>false</InProject>
     </Content>
-    <Content Include="..\..\src\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' == 'x86' And '$(Configuration)' == 'Debug'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\src\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' == 'x86' And '$(Configuration)' == 'Debug'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\src\$(Platform)\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\src\$(Platform)\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\IotDeviceManagementCapability.SCCD">
+      <DeploymentContent>true</DeploymentContent>
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\DMMessage\DMMessage.vcxproj">

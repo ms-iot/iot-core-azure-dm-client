@@ -24,31 +24,21 @@ using Windows.Storage.Streams;
 using Windows.System;
 using Windows.UI.Core;
 
+
 namespace Microsoft.Devices.Management
 {
 
     // This class send requests (DMrequest) to the System Configurator and receives the responses (DMesponse) from it
     class SystemConfiguratorProxy : ISystemConfiguratorProxy
     {
-        const string CommProxyExe = @"C:\Windows\System32\CommProxy.exe";
-        const string CommProxyArgs = "";
-
-        private void Wait(Func<bool> condition, string message)
+        SystemConfiguratorProxyClient.SCProxyClient _client;
+        public SystemConfiguratorProxy()
         {
-            while (condition())
+            _client = new SystemConfiguratorProxyClient.SCProxyClient();
+            var result = _client.Initialize();
+            if (0 != result)
             {
-                Debug.WriteLine(message);
-                CoreWindow coreWindow = CoreWindow.GetForCurrentThread();
-                if (coreWindow != null)
-                {
-                    Debug.WriteLine("Processing events...");
-                    coreWindow.Dispatcher.ProcessEvents(CoreProcessEventsOption.ProcessAllIfPresent);
-                }
-                else
-                {
-                    Debug.WriteLine("Sleeping...");
-                    Task.Delay(200);
-                }
+                throw new Error((int)result, "SystemConfiguratorProxyClient failed to initialize, be sure that SystemConfigurator is running.");
             }
         }
 
@@ -78,74 +68,22 @@ namespace Microsoft.Devices.Management
 
         public async Task<IResponse> SendCommandAsync(IRequest command)
         {
-            var processLauncherOptions = new ProcessLauncherOptions();
-            var standardInput = new InMemoryRandomAccessStream();
-            var standardOutput = new InMemoryRandomAccessStream();
-
-            processLauncherOptions.StandardOutput = standardOutput;
-            processLauncherOptions.StandardError = null;
-            processLauncherOptions.StandardInput = standardInput.GetInputStreamAt(0);
-
-            await command.Serialize().WriteToIOutputStreamAsync(standardInput);
-
-            standardInput.Dispose();
-
-            var processLauncherResult = await ProcessLauncher.RunToCompletionAsync(CommProxyExe, CommProxyArgs, processLauncherOptions);
-            if (processLauncherResult.ExitCode == 0)
+            var response = await _client.SendCommandAsync(command);
+            if (response.Status != ResponseStatus.Success)
             {
-                using (var outStreamRedirect = standardOutput.GetInputStreamAt(0))
-                {
-                    var response = (await Blob.ReadFromIInputStreamAsync(outStreamRedirect)).MakeIResponse();
-                    if (response.Status != ResponseStatus.Success)
-                    {
-                        ThrowError(response);
-                    }
-                    return response;
-                }
+                ThrowError(response);
             }
-            else
-            {
-                throw new Exception("CommProxy cannot read data from the input pipe");
-            }
+            return response;
         }
 
         public Task<IResponse> SendCommand(IRequest command)
         {
-            var processLauncherOptions = new ProcessLauncherOptions();
-            var standardInput = new InMemoryRandomAccessStream();
-            var standardOutput = new InMemoryRandomAccessStream();
-
-            processLauncherOptions.StandardOutput = standardOutput;
-            processLauncherOptions.StandardError = null;
-            processLauncherOptions.StandardInput = standardInput.GetInputStreamAt(0);
-
-            var writeAsyncAction = command.Serialize().WriteToIOutputStreamAsync(standardInput);
-            Wait(() => writeAsyncAction.Status == AsyncStatus.Started, "Waiting to finish writing to output stream...");
-            standardInput.Dispose();
-
-            var runAsyncAction = ProcessLauncher.RunToCompletionAsync(CommProxyExe, CommProxyArgs, processLauncherOptions);
-            Wait(() => runAsyncAction.Status == AsyncStatus.Started, "Waiting for CommProxy.exe to finish...");
-
-            ProcessLauncherResult processLauncherResult = runAsyncAction.GetResults();
-            if (processLauncherResult.ExitCode == 0)
+            var response = _client.SendCommand(command);
+            if (response.Status != ResponseStatus.Success)
             {
-                using (var outStreamRedirect = standardOutput.GetInputStreamAt(0))
-                {
-                    var readAsyncAction = Blob.ReadFromIInputStreamAsync(outStreamRedirect);
-                    Wait(() => readAsyncAction.Status == AsyncStatus.Started, "Waiting to finish reading from input stream...");
-
-                    var response = readAsyncAction.GetResults().MakeIResponse();
-                    if (response.Status != ResponseStatus.Success)
-                    {
-                        ThrowError(response);
-                    }
-                    return Task.FromResult<IResponse>(response);
-                }
+                ThrowError(response);
             }
-            else
-            {
-                throw new Exception("CommProxy cannot read data from the input pipe");
-            }
+            return Task.FromResult<IResponse>(response);
         }
     }
 }

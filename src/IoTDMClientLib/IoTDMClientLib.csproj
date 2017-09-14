@@ -11,8 +11,8 @@
     <AssemblyName>IoTDMClient</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.14393.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.10586.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0.15063.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -140,6 +140,10 @@
     <ProjectReference Include="..\DMMessage\DMMessage.vcxproj">
       <Project>{241582cd-4861-4643-a7a2-21865b779aaf}</Project>
       <Name>DMMessage</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SystemConfiguratorProxy\Client\ServiceConfiguratorProxyClientLib.vcxproj">
+      <Project>{0213712b-62e6-5546-8d25-79b90244ffa9}</Project>
+      <Name>SystemConfiguratorProxyClient</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

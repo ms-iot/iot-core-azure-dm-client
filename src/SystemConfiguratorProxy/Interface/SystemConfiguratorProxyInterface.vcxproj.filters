@@ -15,22 +15,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
+    <Midl Include="SystemConfiguratorProxy.Idl">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CommProxy.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    </Midl>
   </ItemGroup>
 </Project>

@@ -401,7 +401,6 @@ namespace Microsoft.Devices.Management
                     return;
                 }
                 _lastDesiredPropertyVersion = version;
-
                 if (windowsPropValue == null)
                 {
                     // Nothing to apply.

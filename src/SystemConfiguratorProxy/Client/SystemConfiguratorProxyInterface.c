@@ -12,18 +12,10 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
 
-#include "Blob.h"
+// RpcInterface_c.c expects _ARM_ to be set when building for ARM.
+#ifdef _M_ARM
+#define _ARM_ 1
+#endif
 
-namespace Utils
-{
-
-class SystemConfiguratorPipe
-{
-public:
-
-    static Microsoft::Devices::Management::Message::Blob^ Send(Microsoft::Devices::Management::Message::Blob^ request);
-};
-
-}
+#include "SystemConfiguratorProxy_c.c"

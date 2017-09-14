@@ -244,14 +244,9 @@ ApplicationInfo AppCfg::InstallApp(const wstring& packageFamilyName, const wstri
 
             TRACE(L"We'll process the upgrade scenario on this thread...");
 
-            // Wait for CommProxy to exit.
-            while (Utils::IsProcessRunning(L"CommProxy.exe"))
-            {
-                TRACE(L"Waiting for CommProxy to exit...");
-                ::Sleep(1000);
-            }
+            // TODO: What do we do when CommProxy doesn't exist???
 
-            TRACE(L"CommProxy exited...Proceeding to upgrade DM application...");
+            TRACE(L"Proceeding to upgrade DM application...");
 
             // By now, the DM application knows that it should not accept new request and should not
             // contact the system configurator... proceed to upgrade the DM application now.

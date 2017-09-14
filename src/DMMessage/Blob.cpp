@@ -24,6 +24,11 @@ using namespace concurrency;
 
 namespace Microsoft { namespace Devices { namespace Management { namespace Message
 {
+    String^ Blob::PayloadAsString::get()
+    {
+        return SerializationHelper::GetStringFromBlob(this);
+    }
+
     IDataPayload^ Blob::MakeMessage(MessageType messageType)
     {
         auto tag = this->Tag;
@@ -42,6 +47,11 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         {
             return (*serialization->second.second)(this);
         }
+    }
+
+    Blob^ Blob::CreateFromJson(uint32_t tag, String^ json)
+    {
+        return SerializationHelper::CreateBlobFromString(tag, json);
     }
 
     Blob^ Blob::CreateFromByteArray(const Array<uint8_t>^ bytes)

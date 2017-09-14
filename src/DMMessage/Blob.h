@@ -54,6 +54,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         // Only used for testing, clients should not use
         static Blob^ CreateFromByteArray(const Array<uint8_t>^ bytes);
 
+        static Blob^ CreateFromJson(uint32_t tag, String^ json);
+
         // Serialization
         static Blob^ ReadFromNativeHandle(uint64_t handle);
         static IAsyncOperation<Blob^>^ ReadFromIInputStreamAsync(IInputStream^ iistream);
@@ -83,7 +85,9 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             }
         }
 
-        property DMMessageKind Tag 
+        property String^ PayloadAsString { String^ get(); }
+
+        property DMMessageKind Tag
         {
             DMMessageKind get()
             {

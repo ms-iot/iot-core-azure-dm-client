@@ -8,7 +8,7 @@ The Windows IoT team has implemented a device client (*Windows IoT Azure DM Clie
 
 The *Windows IoT Azure DM Client* integrates tightly with the user's application on the device allowing certain interactions between them and also sharing the Azure IoT Hub connection (i.e. sharing the device identity).
 
-The DM client consists of a UWP library (*Windows IoT Azure DM Client Library*) that is linked to the user's application, and a NT service (*SystemConfigurator*) and a proxy to connect the two (*CommProxy*).
+The DM client consists of a UWP library (*Windows IoT Azure DM Client Library*) that is linked to the user's application and an NT service (*SystemConfigurator*).
 
 The application can be a foreground application or a background application.
 

@@ -36,6 +36,8 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "Models\AllModels.h"
 
+#include "SystemConfiguratorProxyServer\SystemConfiguratorProxy.h"
+
 using namespace Microsoft::Devices::Management::Message;
 using namespace std;
 using namespace Windows::Data::Json;
@@ -56,6 +58,10 @@ StringResponse^ ReportError(const string& context, const DMException& e)
 IResponse^ HandleExitDM(IRequest^ request)
 {
     TRACE(__FUNCTION__);
+
+    TRACE(L"Disconnecting RPC listener...");
+    SystemConfiguratorProxyDisconnect();
+
     return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
@@ -862,40 +868,6 @@ IResponse^ ProcessCommand(IRequest^ request)
     }
 }
 
-class PipeConnection
-{
-public:
-
-    PipeConnection() :
-        _pipeHandle(NULL)
-    {}
-
-    void Connect(HANDLE pipeHandle)
-    {
-        TRACE("Connecting to pipe...");
-        if (pipeHandle == NULL || pipeHandle == INVALID_HANDLE_VALUE)
-        {
-            throw DMException("Error: Cannot connect using an invalid pipe handle.");
-        }
-        if (!ConnectNamedPipe(pipeHandle, NULL))
-        {
-            throw DMExceptionWithErrorCode("ConnectNamedPipe Error", GetLastError());
-        }
-        _pipeHandle = pipeHandle;
-    }
-
-    ~PipeConnection()
-    {
-        if (_pipeHandle != NULL)
-        {
-            TRACE("Disconnecting from pipe...");
-            DisconnectNamedPipe(_pipeHandle);
-        }
-    }
-private:
-    HANDLE _pipeHandle;
-};
-
 void EnsureErrorsLogged(const function<void()>& func)
 {
     TRACE(__FUNCTION__);
@@ -932,89 +904,12 @@ void EnsureErrorsLogged(const function<void()>& func)
     }
 }
 
-bool ProcessClientConnection(Utils::AutoCloseHandle& pipeHandle)
-{
-    Utils::EnsureFolderExists(Utils::GetDmUserFolder());
-
-    bool exit = false;
-    // If the connection code throws, there's no way to communicate that the pipe...
-    // But we can still log it...
-    PipeConnection pipeConnection;
-    TRACE("Waiting for a client to connect...");
-    pipeConnection.Connect(pipeHandle.Get());
-    TRACE("Client connected...");
-
-    IResponse^ response;
-    try
-    {
-        auto requestBlob = Blob::ReadFromNativeHandle(pipeHandle.Get64());
-        TRACE("Request received...");
-        TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)requestBlob->Tag));
-        TRACEP(L"    ", Utils::ConcatString(L"request version:", requestBlob->Version));
-
-        IRequest^ request = requestBlob->MakeIRequest();
-        response = ProcessCommand(request);
-
-        TRACE(L"WriteToNativeHandle() completed successfully.");
-        if (request->Tag == DMMessageKind::ExitDM && response->Status == ResponseStatus::Success)
-        {
-            TRACE(L"Exiting service...");
-            exit = true;
-        }
-    }
-    catch (const DMExceptionWithErrorCode& e)
-    {
-        response = CreateErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), e.what());
-    }
-    catch (const exception& e)  // Note that DMException is just 'exception' with some trace statements.
-    {
-        response = CreateErrorResponse(ErrorSubSystem::DeviceManagement, static_cast<int>(DeviceManagementErrors::GenericError), e.what());
-    }
-    catch (Platform::Exception^ e)
-    {
-        response = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e->HResult, e->Message);
-    }
-    catch (...)
-    {
-        response = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, static_cast<int>(DeviceManagementErrors::GenericError), L"Unknown exception!");
-    }
-
-    EnsureErrorsLogged([&]()
-    {
-        response->Serialize()->WriteToNativeHandle(pipeHandle.Get64());
-    });
-
-    return exit;
-}
-
 void Listen()
 {
     TRACE(__FUNCTION__);
 
     EnsureErrorsLogged([&]()
     {
-        SecurityAttributes sa(GENERIC_WRITE | GENERIC_READ);
-
-        TRACE("Creating pipe...");
-        Utils::AutoCloseHandle pipeHandle = CreateNamedPipeW(
-            PipeName,
-            PIPE_ACCESS_DUPLEX,
-            PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-            PIPE_UNLIMITED_INSTANCES,
-            PipeBufferSize,
-            PipeBufferSize,
-            NMPWAIT_USE_DEFAULT_WAIT,
-            sa.GetSA());
-
-        if (pipeHandle.Get() == INVALID_HANDLE_VALUE)
-        {
-            throw DMExceptionWithErrorCode("CreateNamedPipe Error: ", GetLastError());
-        }
-
-        bool exit = false;
-        while (!exit)
-        {
-            exit = ProcessClientConnection(pipeHandle);
-        }
+        SystemConfiguratorProxyStart();
     });
 }
