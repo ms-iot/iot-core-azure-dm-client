@@ -43,6 +43,10 @@ using namespace std;
 using namespace Windows::Data::Json;
 using namespace Windows::Foundation::Collections;
 
+//
+// This registry key/value pair needs to stay in sync with the one found here:
+//    https://github.com/ms-iot/iot-azure-dps-client/blob/master/src/IotDpsClient/DPSServiceImpl.cpp
+//
 const wchar_t* TpmSlotRegistrySubKey = L"SYSTEM\\CurrentControlSet\\Services\\iotdpsclient\\parameters";
 const wchar_t* TpmSlotPropertyName = L"tpm_slot";
 
