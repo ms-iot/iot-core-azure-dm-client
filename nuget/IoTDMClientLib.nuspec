@@ -42,20 +42,26 @@
     <!-- ARM -->
     <file src="..\src\IoTDMClientLib\bin\ARM\$Flavor$\IoTDMClient.dll" target="runtimes\win10-arm\lib\uap10.0" />
     <file src="..\src\IoTDMClientLib\bin\ARM\$Flavor$\Microsoft.Devices.Management.Message.winmd" target="runtimes\win10-arm\lib\uap10.0" />
+    <file src="..\src\IoTDMClientLib\bin\ARM\$Flavor$\SystemConfiguratorProxyClient.winmd" target="runtimes\win10-arm\lib\uap10.0" />
     <file src="..\src\IoTDMClientLib\bin\ARM\$Flavor$\DMDataContract.dll" target="runtimes\win10-arm\lib\uap10.0" />
     <file src="..\src\ARM\$Flavor$\DMMessage\Microsoft.Devices.Management.Message.dll" target="runtimes\win10-arm\native" />
+    <file src="..\src\ARM\$Flavor$\ServiceConfiguratorProxyClientLib\SystemConfiguratorProxyClient.dll" target="runtimes\win10-arm\native" />
 
     <!-- x64 -->
     <file src="..\src\IoTDMClientLib\bin\x64\$Flavor$\IoTDMClient.dll" target="runtimes\win10-x64\lib\uap10.0" />
     <file src="..\src\IoTDMClientLib\bin\x64\$Flavor$\Microsoft.Devices.Management.Message.winmd" target="runtimes\win10-x64\lib\uap10.0" />
+    <file src="..\src\IoTDMClientLib\bin\x64\$Flavor$\SystemConfiguratorProxyClient.winmd" target="runtimes\win10-x64\lib\uap10.0" />
     <file src="..\src\IoTDMClientLib\bin\x64\$Flavor$\DMDataContract.dll" target="runtimes\win10-x64\lib\uap10.0" />
     <file src="..\src\x64\$Flavor$\DMMessage\Microsoft.Devices.Management.Message.dll" target="runtimes\win10-x64\native" />
+    <file src="..\src\x64\$Flavor$\ServiceConfiguratorProxyClientLib\SystemConfiguratorProxyClient.dll" target="runtimes\win10-x64\native" />
 
     <!-- x86 -->
     <file src="..\src\IoTDMClientLib\bin\x86\$Flavor$\IoTDMClient.dll" target="runtimes\win10-x86\lib\uap10.0" />
     <file src="..\src\IoTDMClientLib\bin\x86\$Flavor$\Microsoft.Devices.Management.Message.winmd" target="runtimes\win10-x86\lib\uap10.0" />
+    <file src="..\src\IoTDMClientLib\bin\x86\$Flavor$\SystemConfiguratorProxyClient.winmd" target="runtimes\win10-x86\lib\uap10.0" />
     <file src="..\src\IoTDMClientLib\bin\x86\$Flavor$\DMDataContract.dll" target="runtimes\win10-x86\lib\uap10.0" />
     <file src="..\src\$Flavor$\DMMessage\Microsoft.Devices.Management.Message.dll" target="runtimes\win10-x86\native" />
+    <file src="..\src\Win32\$Flavor$\ServiceConfiguratorProxyClientLib\SystemConfiguratorProxyClient.dll" target="runtimes\win10-x86\native" />
 
   </files>
 </package>
