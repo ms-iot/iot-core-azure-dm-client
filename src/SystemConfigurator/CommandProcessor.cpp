@@ -43,7 +43,7 @@ using namespace std;
 using namespace Windows::Data::Json;
 using namespace Windows::Foundation::Collections;
 
-const wchar_t* TpmSlotRegistrySubKey = L"SYSTEM\\CurrentControlSet\\Services\\IotCoreDpsClient\\parameters";
+const wchar_t* TpmSlotRegistrySubKey = L"SYSTEM\\CurrentControlSet\\Services\\iotdpsclient\\parameters";
 const wchar_t* TpmSlotPropertyName = L"tpm_slot";
 
 StringResponse^ ReportError(const string& context, const DMException& e)
