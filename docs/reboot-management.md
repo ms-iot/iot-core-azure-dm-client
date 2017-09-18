@@ -29,12 +29,12 @@ The **Reboot Management** functionality allows the operator to perform the follo
 
 Device boots and sets `"lastBootTime"` property:
 
-```
+```json
 "reported" : {
     "microsoft" : {
         "management" : {
             "rebootInfo" : {
-                `"lastBootTime"` : "2017-01-25T13:34:33+04:00"
+                "lastBootTime" : "2017-01-25T13:34:33+04:00"
             }
         }
     }
@@ -90,7 +90,7 @@ Note that IsRebootAllowedBySystem() can return only one of the following values 
 
 **Example**
 
-<pre>
+```cs
     async Task OnCriticalTaskStart(DeviceManagementClient dmClient)
     {
         await dmClient.AllowReboots(false);
@@ -101,7 +101,7 @@ Note that IsRebootAllowedBySystem() can return only one of the following values 
     {
         dmClient.AllowReboots(true);
     }
-</pre>
+```
 
 ## Initiate Immediate Reboot
 
@@ -155,7 +155,7 @@ is JSON object with two key/value pairs defined as follows:
     "microsoft" : {
         "management" : {
             "rebootInfo" : {
-                "lastRebootCmdTime": "<i>Datetime in ISO 8601 format, UTC</i>"
+                "lastRebootCmdTime": "<i>Datetime in ISO 8601 format, UTC</i>",
                 "lastRebootCmdStatus": "<i>value</i>"
             }
         }
@@ -178,12 +178,12 @@ is JSON object with two key/value pairs defined as follows:
 
 Successful response:
 
-```
+```json
 "reported" : {
     "microsoft" : {
         "management" : {
             "rebootInfo" : {
-                "lastRebootCmdTime": "2017-01-25T13:27:33+04:00"
+                "lastRebootCmdTime": "2017-01-25T13:27:33+04:00",
                 "lastRebootCmdStatus": "accepted"
             }
         }
@@ -203,7 +203,7 @@ The format of the `"desired.microsoft.management.scheduledReboot"` desired prope
     "microsoft" : {
         "management" : {
             "scheduledReboot" :{
-                "singleRebootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
+                "singleRebootTime" : "<i>Datetime in ISO 8601 format, UTC</i>",
                 "dailyRebootTime" : "<i>Datetime in ISO 8601 format, UTC</i>"
             }
         }
@@ -217,12 +217,12 @@ Note that the full date and time are required when specifying the daily reboot t
 
 Perform a singleRebootTime reboot on Jan 25th, 2017 at 09:00 UTC time and also reboot daily at 3 AM:
 
-```
+```json
 "desired" : {
     "microsoft" : {
         "management" : {
             "scheduledReboot" : {
-                "singleRebootTime" : "2017-01-25T09:00:00+00:00"
+                "singleRebootTime" : "2017-01-25T09:00:00+00:00",
                 "dailyRebootTime" : "2017-01-25T03:00:00+00:00"
             }
         }
