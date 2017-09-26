@@ -33,7 +33,6 @@
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-
   <!-- Common -->
   <PropertyGroup>
     <ConfigurationType>Application</ConfigurationType>
@@ -53,7 +52,6 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
-
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -144,6 +142,7 @@
     <ClInclude Include="ServiceManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TaskQueue.h" />
     <ClInclude Include="TimeCfg.h" />
     <ClInclude Include="TpmSupport.h" />
     <ClInclude Include="WindowsTelemetry.h" />
@@ -185,6 +184,7 @@
       <CompileAsWinRT>false</CompileAsWinRT>
     </ClCompile>
     <ClCompile Include="SystemConfiguratorProxyServer\SystemConfiguratorProxy.cpp" />
+    <ClCompile Include="TaskQueue.cpp" />
     <ClCompile Include="TimeCfg.cpp" />
     <ClCompile Include="TpmSupport.cpp" />
     <ClCompile Include="WindowsTelemetry.cpp" />
