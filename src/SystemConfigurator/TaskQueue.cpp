@@ -13,12 +13,12 @@ future<wstring> TaskQueue::Enqueue(Task task)
 {
     TRACE(__FUNCTION__);
 
-    unique_lock<mutex> l(_mutex);
-
     future<wstring> response = task.get_future();
-    _queue.push(move(task));
 
+    unique_lock<mutex> l(_mutex);
+    _queue.push(move(task));
     l.unlock();
+
     _cv.notify_one();
 
     return response;
