@@ -195,6 +195,7 @@
     <ClCompile Include="..\..\src\SharedUtilities\Utils.cpp" />
     <ClCompile Include="..\..\src\SystemConfigurator\CSPs\DeviceHealthAttestationCSP.cpp" />
     <ClCompile Include="..\..\src\SystemConfigurator\CSPs\MdmProvision.cpp" />
+    <ClCompile Include="..\..\src\SystemConfigurator\TaskQueue.cpp" />
     <ClCompile Include="CertificateManagementTest.cpp" />
     <ClCompile Include="CSPTests.cpp" />
     <ClCompile Include="DeviceHealthAttestationTest.cpp" />

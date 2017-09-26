@@ -1,20 +1,23 @@
 /*
 Copyright 2017 Microsoft
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
-and associated documentation files (the "Software"), to deal in the Software without restriction, 
-including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, 
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+and associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
 subject to the following conditions:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT 
-LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "stdafx.h"
+#include <thread>
+#include <queue>
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMException.h"
+#include "..\TaskQueue.h"
 #include "PrivateAPIs\WinSDKRS2.h"
 #include "..\resource.h"
 #include "MdmProvision.h"
@@ -29,6 +32,88 @@ using namespace std;
 
 bool MdmProvision::s_errorVerbosity = false;
 
+class SyncMLServer
+{
+public:
+    SyncMLServer()
+    {
+        TRACE(__FUNCTION__);
+        _workerThread = thread(ServiceWorkerThread, this);
+    }
+
+    void Process(const wstring& requestSyncML, wstring& outputSyncML)
+    {
+        TRACE(__FUNCTION__);
+        TaskQueue::Task task([&]()
+        {
+            return ProcessInternal(requestSyncML);
+        });
+
+        future<wstring> futureResult = _queue.Enqueue(move(task));
+
+        // This will block until the result is available...
+        outputSyncML = futureResult.get();
+    }
+
+private:
+
+    static void ServiceWorkerThread(void* context)
+    {
+        TRACE(__FUNCTION__);
+
+        SyncMLServer* syncMLServer = static_cast<SyncMLServer*>(context);
+        syncMLServer->Listen();
+    }
+
+    void Listen()
+    {
+        TRACE(__FUNCTION__);
+
+        while (true)
+        {
+            TRACE("Worker thread waiting for a task to be queued...");
+            TaskQueue::Task task = _queue.Dequeue();
+
+            TRACE("A task has been dequeued...");
+            task();
+
+            TRACE("Task has completed.");
+        }
+    }
+
+    wstring ProcessInternal(const wstring& requestSyncML)
+    {
+        TRACE(__FUNCTION__);
+
+        TRACEP(L"SyncMLServer - Request : ", requestSyncML.c_str());
+
+        HRESULT hr = RegisterDeviceWithLocalManagement(NULL);
+        if (FAILED(hr))
+        {
+            throw DMExceptionWithErrorCode("RegisterDeviceWithLocalManagement", hr);
+        }
+
+        PWSTR output = nullptr;
+        hr = ApplyLocalManagementSyncML(requestSyncML.c_str(), &output);
+        if (FAILED(hr))
+        {
+            throw DMExceptionWithErrorCode("ApplyLocalManagementSyncML", hr);
+        }
+
+        wstring outputSyncML;
+        if (output)
+        {
+            outputSyncML = output;
+        }
+        LocalFree(output);
+
+        return outputSyncML;
+    }
+
+    thread _workerThread;
+    TaskQueue _queue;
+};
+
 void MdmProvision::SetErrorVerbosity(bool verbosity) noexcept
 {
     s_errorVerbosity = verbosity;
@@ -38,24 +123,8 @@ void MdmProvision::RunSyncML(const wstring&, const wstring& requestSyncML, wstri
 {
     TRACEP(L"Request : ", requestSyncML.c_str());
 
-    PWSTR output = nullptr;
-    HRESULT hr = RegisterDeviceWithLocalManagement(NULL);
-    if (FAILED(hr))
-    {
-        throw DMExceptionWithErrorCode("RegisterDeviceWithLocalManagement", hr);
-    }
-
-    hr = ApplyLocalManagementSyncML(requestSyncML.c_str(), &output);
-    if (FAILED(hr))
-    {
-        throw DMExceptionWithErrorCode("ApplyLocalManagementSyncML", hr);
-    }
-
-    if (output)
-    {
-        outputSyncML = output;
-    }
-    LocalFree(output);
+    static SyncMLServer syncMLServer;
+    syncMLServer.Process(requestSyncML, outputSyncML);
 
     TRACEP(L"Response: ", outputSyncML.c_str());
 
