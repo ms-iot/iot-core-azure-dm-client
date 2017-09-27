@@ -4,6 +4,8 @@
 
 **Windows IoT Azure DM Client Library** is an SDK that allows developers to build cloud solutions for managing Windows IoT Core devices with Azure IoT Hub.
 
+The Windows IoT Azure DM Client identifies itself to the Azure IoT Hub through a connection string. The connection string can be provisioned on the device using [Device Provisioning Service(DPS) client](<https://github.com/ms-iot/iot-azure-dps-client>) - which allows configuring the Azure IoT Hub after the device ships.
+
 The library is to be linked to a UWP application to allow both the Device Management components and the UWP application to share the connection to the Azure IoT Hub.
 
 The application can be a foreground application or a background application. You can find [samples](docs/samples.md) for both and a [walk-through](docs/dm-hello-world-overview.md) to build a foreground application.
@@ -29,3 +31,4 @@ Windows IoT Core build 15063 (March 2017) or later.
 - [Samples](docs/samples.md)
 - [OEM Device Setup](docs/oem-device-setup.md)
 - [Library Reference](docs/library-reference.md)
+- [Device Provisioning Service(DPS) Client](<https://github.com/ms-iot/iot-azure-dps-client>)
