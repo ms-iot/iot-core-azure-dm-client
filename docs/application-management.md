@@ -181,29 +181,29 @@ The operator wishes to ensure that the Toaster app (with package family name `23
 <pre>
 "desired" : {
     "windows" : {
-        "apps" : { 
+        "apps" : {
             "23983CETAthensQuality_IoTToasterSample" : {
-                "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample"
+                "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample",
                 "version" : "1.1.0.0",
                 "startUp" : "none",
-                "appxSource" : "apps\\IoTToasterSample.1.1.0.0.appx"
-                "depsSources": "apps\\Microsoft.NET.CoreRuntime.1.1.appx;apps\\Microsoft.VCLibs.x86.Debug.14.00.appx",
-                "certSource": "apps\\IoTToasterSample.cer",
-                "certStore": "./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
+                "appxSource" : "apps\\IoTToasterSample.1.1.0.0.appx",
+                "depsSources" : "apps\\Microsoft.NET.CoreRuntime.1.1.appx;apps\\Microsoft.VCLibs.x86.Debug.14.00.appx",
+                "certSource" : "apps\\IoTToasterSample.cer",
+                "certStore" : "./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
             },
             "GardenSprinkler_kay8908908" : {
-                "pkgFamilyName" : "GardenSprinkler.kay8908908"
+                "pkgFamilyName" : "GardenSprinkler.kay8908908",
                 "startUp" : "foreground",
-                "version" : "2.0.0.0",
+                "version" : "2.0.0.0"
             },
             "DogFeeder_80615fge" : {
-                "pkgFamilyName" : "DogFeeder.80615fge"
+                "pkgFamilyName" : "DogFeeder.80615fge",
                 "startUp" : "background",
-                "version" : "not installed",
+                "version" : "not installed"
             },
-            "?" {
-                "store": true,
-                "nonStore": false
+            "?" : {
+                "store" : true,
+                "nonStore" : false
             }
         }
     }
@@ -220,25 +220,25 @@ The client determines the required set of actions, performs them and updates the
     "windows" : {
         "apps" : { 
             "23983CETAthensQuality.IoTToasterSample" : {
-                "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample"
+                "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample",
                 "version" : "1.1.0.0",
                 "startUp" : "none",
                 "installDate" : "2017-02-25T09:00:00+00:00"
             },
             "GardenSprinkler_kay8908908" : {
-                "pkgFamilyName" : "GardenSprinkler.kay8908908"
+                "pkgFamilyName" : "GardenSprinkler.kay8908908",
                 "version" : "2.0.0.0",
                 "startUp" : "foreground",
                 "installDate" : "2017-02-25T09:15:00+00:00"
             },
             "DogFeeder_80615fge" : {
-                "pkgFamilyName" : "DogFeeder.80615fge"
+                "pkgFamilyName" : "DogFeeder.80615fge",
                 "version" : "not installed",
                 "startUp" : "background",
                 "installDate" : null
             },
             "BirdFeeder_80615fge" : {
-                "pkgFamilyName" : "BirdFeeder.80615fge"
+                "pkgFamilyName" : "BirdFeeder.80615fge",
                 "version" : "1.0.0.0",
                 "startUp" : "none",
                 "installDate" : null
@@ -257,7 +257,7 @@ In the following example, the operator wishes to stop tracking the state of the 
     "windows" : {
         "apps" : { 
             "DogFeeder_80615fge" : null,
-            "?" {
+            "?": {
                 "store": true,
                 "nonStore": false
             }
@@ -273,20 +273,20 @@ Given that the DogFeeder application is a nonStore application, after setting th
     "windows" : {
         "apps" : { 
             "23983CETAthensQuality.IoTToasterSample" : {
-                "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample"
+                "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample",
                 "version" : "1.1.0.0",
                 "startUp" : "none",
                 "installDate" : "2017-02-25T09:00:00+00:00"
             },
             "GardenSprinkler_kay8908908" : {
-                "pkgFamilyName" : "GardenSprinkler.kay8908908"
+                "pkgFamilyName" : "GardenSprinkler.kay8908908",
                 "version" : "2.0.0.0",
                 "startUp" : "foreground",
                 "installDate" : "2017-02-25T09:15:00+00:00"
             },
             "DogFeeder_80615fge" : null,
             "BirdFeeder_80615fge" : {
-                "pkgFamilyName" : "BirdFeeder.80615fge"
+                "pkgFamilyName" : "BirdFeeder.80615fge",
                 "version" : "1.0.0.0",
                 "startUp" : "none",
                 "installDate" : null
@@ -309,12 +309,12 @@ Next, the operator wishes to upgrade the Toaster app to version 2.0.0.0 using th
                 "appxSource" : "AppContainer/Toaster.appx",
                 "version" : "2.0.0.0",
                 "startUp" : "none",
-                "appxSource" : "apps\\IoTToasterSample.2.0.0.0.appx"
+                "appxSource" : "apps\\IoTToasterSample.2.0.0.0.appx",
                 "depsSources": "apps\\Microsoft.NET.CoreRuntime.1.1.appx;apps\\Microsoft.VCLibs.x86.Debug.14.00.appx",
                 "certSource": "apps\\IoTToasterSample.cer",
                 "certStore": "./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
-            },
-            ...
+            }
+            [,...]
         }
     }
 }
@@ -330,11 +330,11 @@ If the installation fails (for example, if Toaster.appx specified in the `"sourc
                 "pkgFamilyName" : "23983CETAthensQuality.IoTToasterSample",
                 "version" : "1.5.0.0",
                 "startUp" : "none",
-                "installDate" : "2017-02-25T09:15:00+00:00"
+                "installDate" : "2017-02-25T09:15:00+00:00",
                 "errorCode" : "<i>OS error</i>",
                 "errorMessage" : "Cannot install app; The app version in Toaster.appx is 1.5.0.0; desired version is 2.0.0.0"
-            },
-            ...             
+            }
+            [,...]
         }
     }
 }
@@ -351,8 +351,8 @@ When an operator needs to determine the version of an app (usually because it wa
             "HumiditySensor_76590kat" : {
                 "pkgFamilyName" : "HumiditySensor_76590kat",
                 "version" : "?"
-            },
-            ...
+            }
+            [,...]
         }
     }
 }
@@ -369,8 +369,8 @@ The state of the HumiditySensor app is then reported like this:
                 "version" : "5.1.0.0",
                 "startUp" : "none",
                 "installDate" : "2016-04-21T05:00:00+00:00"
-            },
-            ...
+            }
+            [,...]
         }
     }
 }
