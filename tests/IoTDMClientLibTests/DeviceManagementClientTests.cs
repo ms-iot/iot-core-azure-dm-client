@@ -56,6 +56,11 @@ namespace IoTDMClientLibTests
         {
             throw new NotImplementedException();
         }
+
+        void IDeviceTwin.SignalOperationComplete()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     class HandlerMockupForReboot : IDeviceManagementRequestHandler
@@ -108,7 +113,7 @@ namespace IoTDMClientLibTests
             else throw new Exception("Unsupported command");
         }
 
-        public Task<IResponse> SendCommand(IRequest request)
+        public IResponse SendCommand(IRequest request)
         {
             throw new Exception("Unsupported command");
         }

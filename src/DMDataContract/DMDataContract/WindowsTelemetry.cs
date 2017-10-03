@@ -34,18 +34,20 @@ namespace Microsoft.Devices.Management.DMDataContract
         {
             public string level;
 
-            public void LoadFrom(JObject telemetryObject)
-            {
-                level = Utils.GetString(telemetryObject, JsonLevel, "");
-            }
-
-            public string ToJson()
+            public string ToJsonString()
             {
                 StringBuilder sb = new StringBuilder();
                 sb.Append("\"" + SectionName + "\" : {\n");
                 sb.Append("\"" + JsonLevel + "\" : \"" + level + "\"\n");
                 sb.Append("}");
                 return sb.ToString();
+            }
+
+            public static DesiredProperties FromJsonObject(JObject telemetryObject)
+            {
+                DesiredProperties desiredProperties = new DesiredProperties();
+                desiredProperties.level = Utils.GetString(telemetryObject, JsonLevel, NotFound);
+                return desiredProperties;
             }
         }
 

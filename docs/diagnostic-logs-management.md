@@ -180,7 +180,9 @@ To delete collected log files from the device,
 
 - The device must be online.
 - Enumerate saved files by invoking the direct methods `windows.enumDMFolders` and `windows.enumDMFiles`.
-- Delete a file (given its folder name) by invoking the direct method `windows.deleteFile`.
+- Delete a DM file (given its folder name) by invoking the direct method `windows.deleteDMFile`.
+  - The notion of a DM file refers only to those files that are managed by IoT Core Azure DM Client and reside under
+    its own folder (in contrast to any file on the device).
 
 ### windows.enumDMFolders
 
@@ -286,7 +288,7 @@ Notes:
 
   <i>ToDo: Need a better error reporting mechanism here.</i>
 
-#### windows.deleteFile
+#### windows.deleteDMFile
 
 Call this method to delete a saved file from the device storage.
 
@@ -312,7 +314,7 @@ Notes:
 }
 </pre>
 
-- `"errorCode"`: `windows.enumDMFolders` returns 0 if successful. Otherwise, it returns the error code.
+- `"errorCode"`: `windows.deleteDMFile` returns 0 if successful. Otherwise, it returns the error code.
 - `"errorMessage"`: This will be empty if the method call suceeded. Otherwise, it will have the error message if available.
 
 ----

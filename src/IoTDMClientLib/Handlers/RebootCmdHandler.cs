@@ -104,6 +104,7 @@ namespace Microsoft.Devices.Management
 
                 response = RebootCmdDataContract.ResponseValue.Scheduled;
                 await ReportRebootCmdStatus(response, rebootCmdTime);
+
                 return;
             }
         }
@@ -116,6 +117,7 @@ namespace Microsoft.Devices.Management
             {
                 string rebootCmdTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ");
                 await InternalRebootCmdAsync(rebootCmdTime);
+                _deviceManagementClient.SignalOperationComplete();
             });
         }
 

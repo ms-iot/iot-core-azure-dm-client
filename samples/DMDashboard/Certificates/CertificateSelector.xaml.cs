@@ -12,7 +12,9 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 using Newtonsoft.Json;
+using Microsoft.Devices.Management.DMDataContract;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,10 +27,17 @@ namespace DMDashboard
 {
     public partial class CertificateSelector : UserControl
     {
-        public delegate void ShowCertificateDetailsDelegate(CertificateSelector sender, CertificateData certificateData);
-        public delegate void ExportCertificateDetailsDelegate(CertificateSelector sender, CertificateData certificateData);
+        public delegate void ShowCertificateDetailsDelegate(CertificateSelector sender, CertificateDetails certificateData);
+        public delegate void ExportCertificateDetailsDelegate(CertificateSelector sender, CertificateDetails certificateData);
 
-        public class CertificateData
+        public class CertificateSummary
+        {
+            public string Hash { get; set; }
+            public string StorageFileName { get; set; }  // including container
+            public string State { get; set; }
+        }
+
+        public class CertificateDetails
         {
             class CertificateJsonData
             {
@@ -54,14 +63,14 @@ namespace DMDashboard
             public string Base64Encoding { get; set; }
             public string TemplateName { get; set; }
 
-            public CertificateData()
+            public CertificateDetails()
             {
                 DetailsAvailable = false;
             }
 
-            public void LoadFromCerAzureBlob(string connectionString, string containerName, string blobName, string targetFolder)
+            public void LoadFromCertificateFile(string certificateFile, string blobName)
             {
-                X509Certificate2 x509Certificate2 = CertificateHelpers.GetCertificateInfo(connectionString, containerName, blobName, targetFolder);
+                X509Certificate2 x509Certificate2 = CertificateHelpers.GetCertificateInfo(certificateFile);
                 FileName = blobName;
                 Hash = x509Certificate2.Thumbprint;
                 FriendlyName = x509Certificate2.FriendlyName;
@@ -74,17 +83,9 @@ namespace DMDashboard
                 DetailsAvailable = true;
             }
 
-            public void LoadFromJsonAzureBlob(string connectionString, string containerName, string blobName, string targetFolder)
+            public void LoadFromJsonFile(string jsonCertDetailsFile, string blobName)
             {
-                AzureStorageHelpers.DownloadAzureFile(connectionString, containerName, blobName, targetFolder);
-
-                string fullFileName = targetFolder + "\\" + blobName;
-                if (!File.Exists(fullFileName))
-                {
-                    throw new Exception("Error: failed to download certificate json file!");
-                }
-
-                string jsonString = File.ReadAllText(fullFileName);
+                string jsonString = File.ReadAllText(jsonCertDetailsFile);
                 FileName = blobName;
                 CertificateJsonData data = JsonConvert.DeserializeObject<CertificateJsonData>(jsonString);
 
@@ -96,14 +97,12 @@ namespace DMDashboard
                 TemplateName = data.templateName;
                 DetailsAvailable = true;
             }
-
         }
 
         static char Separator = '/';
 
         public static readonly DependencyProperty ConnectionStringProperty = DependencyProperty.Register("ConnectionString", typeof(string), typeof(CertificateSelector));
         public static readonly DependencyProperty ContainerNameProperty = DependencyProperty.Register("ContainerName", typeof(string), typeof(CertificateSelector));
-        public static readonly DependencyProperty FileNamesStringProperty = DependencyProperty.Register("FileNamesString", typeof(string), typeof(CertificateSelector));
         public static readonly DependencyProperty ModifyEnabledProperty = DependencyProperty.Register("EnableAddRemove", typeof(bool), typeof(CertificateSelector));
         public static readonly DependencyProperty CertificatesPathProperty = DependencyProperty.Register("CertificatesPath", typeof(string), typeof(CertificateSelector));
         public static readonly DependencyProperty EnableExportProperty = DependencyProperty.Register("EnableExport", typeof(bool), typeof(CertificateSelector));
@@ -121,10 +120,25 @@ namespace DMDashboard
             set { SetValue(ContainerNameProperty, value); }
         }
 
-        public string FileNamesString
+        public IEnumerable<CertificateSummary> CertsToInstall
         {
-            get { return (string)GetValue(FileNamesStringProperty); }
-            set { SetValue(FileNamesStringProperty, value); }
+            get
+            {
+                return _certsToInstall;
+            }
+        }
+
+        public IEnumerable<string> CertsToUninstall
+        {
+            get
+            {
+                List<string> certsToUninstall = new List<string>();
+                foreach (var item in HashesToUninstallList.Items)
+                {
+                    certsToUninstall.Add((string)item);
+                }
+                return certsToUninstall;
+            }
         }
 
         public bool EnableAddRemove
@@ -162,7 +176,7 @@ namespace DMDashboard
             InitializeComponent();
         }
 
-        private System.Windows.Window FindParentWindow()
+        private Window FindParentWindow()
         {
             DependencyObject newParent = null;
             do
@@ -177,7 +191,7 @@ namespace DMDashboard
             return newParent as System.Windows.Window;
         }
         
-        private void OnAddRemove(object sender, RoutedEventArgs e)
+        private void OnManageInstallList(object sender, RoutedEventArgs e)
         {
             Window parentWindow = FindParentWindow();
             if (parentWindow == null)
@@ -189,7 +203,7 @@ namespace DMDashboard
             List<string> currentBlobFileNames = new List<string>();
             if (CertificateList.ItemsSource != null)
             {
-                foreach (CertificateData certificateData in CertificateList.ItemsSource)
+                foreach (CertificateDetails certificateData in CertificateList.ItemsSource)
                 {
                     currentBlobFileNames.Add(certificateData.FileName);
                 }
@@ -200,31 +214,51 @@ namespace DMDashboard
             azureBlobSelector.Owner = parentWindow;
             azureBlobSelector.ShowDialog();
 
-            // Construct the new FileNamesString
-            FileNamesString = "";
-            List<CertificateData> certificateList = new List<CertificateData>();
+            List<CertificateSummary> certsToInstall = new List<CertificateSummary>();
+            List<CertificateDetails> certificateList = new List<CertificateDetails>();
             if (azureBlobSelector.BlobFileNames != null)
             {
-                foreach (string fileName in azureBlobSelector.BlobFileNames)
+                foreach (string blobName in azureBlobSelector.BlobFileNames)
                 {
-                    CertificateData certificateData = new CertificateData();
-                    certificateData.LoadFromCerAzureBlob(ConnectionString, ContainerName, fileName, @"c:\temp\certificates");
+                    string tempFullFileName = Path.GetTempFileName();
+
+                    AzureStorageHelpers.DownloadAzureFile(ConnectionString, ContainerName, blobName, tempFullFileName);
+
+                    // Build the data used for UI...
+                    CertificateDetails certificateData = new CertificateDetails();
+                    certificateData.LoadFromCertificateFile(tempFullFileName, blobName);
                     certificateList.Add(certificateData);
 
-                    if (FileNamesString.Length != 0)
-                    {
-                        FileNamesString += Separator;
-                    }
-                    FileNamesString += fileName;
+                    // Build the data used for callers... (ToDo: we should not have two lists here).
+                    CertificateSummary certificateSummary = new CertificateSummary();
+                    certificateSummary.Hash = certificateData.Hash;
+                    certificateSummary.StorageFileName = ContainerName + "\\\\" + blobName;
+                    certificateSummary.State = CertificatesDataContract.JsonStateInstalled;
+                    certsToInstall.Add(certificateSummary);
                 }
             }
+
+            _certsToInstall = certsToInstall;
 
             // Update the UI
             certificateList.Sort((x, y) => x.Hash.CompareTo(y.Hash));
             CertificateList.ItemsSource = certificateList;
         }
 
-        public void SetCertificateList(IEnumerable<CertificateData> certificateList)
+        private void OnAddHashToUninstallList(object sender, RoutedEventArgs e)
+        {
+            HashesToUninstallList.Items.Add(HashToAdd.Text);
+        }
+
+        private void OnDeleteHashFromUninstallList(object sender, RoutedEventArgs e)
+        {
+            if (HashesToUninstallList.SelectedItem != null)
+            {
+                HashesToUninstallList.Items.Remove(HashesToUninstallList.SelectedItem);
+            }
+        }
+
+        public void SetCertificateList(IEnumerable<CertificateDetails> certificateList)
         {
             CertificateList.ItemsSource = certificateList;
         }
@@ -234,12 +268,13 @@ namespace DMDashboard
             if (ShowCertificateDetails != null)
             {
                 Button btn = (Button)sender;
-                CertificateData certificateData = (CertificateData)btn.DataContext;
+                CertificateDetails certificateData = (CertificateDetails)btn.DataContext;
                 if (!certificateData.DetailsAvailable)
                 {
                     string blobName = certificateData.Hash + ".json";
-                    string tempPath = Path.GetTempPath();
-                    certificateData.LoadFromJsonAzureBlob(ConnectionString, ContainerName, blobName, $"{tempPath}certificates");
+                    string certificateDetailsFile = Path.GetTempFileName();
+                    AzureStorageHelpers.DownloadAzureFile(ConnectionString, ContainerName, blobName, certificateDetailsFile);
+                    certificateData.LoadFromJsonFile(certificateDetailsFile, blobName);
                 }
                 ShowCertificateDetails(this, certificateData);
             }
@@ -250,9 +285,11 @@ namespace DMDashboard
             if (ExportCertificateDetails != null)
             {
                 Button btn = (Button)sender;
-                CertificateData certificateData = (CertificateData)btn.DataContext;
+                CertificateDetails certificateData = (CertificateDetails)btn.DataContext;
                 ExportCertificateDetails(this, certificateData);
             }
         }
+
+        private List<CertificateSummary> _certsToInstall;
     }
 }

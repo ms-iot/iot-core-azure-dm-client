@@ -20,11 +20,8 @@ namespace DMDashboard
 {
     class CertificateHelpers
     {
-        public static X509Certificate2 GetCertificateInfo(string connectionString, string containerName, string blobName, string targetFolder)
+        public static X509Certificate2 GetCertificateInfo(string fullFileName)
         {
-            AzureStorageHelpers.DownloadAzureFile(connectionString, containerName, blobName, targetFolder);
-
-            string fullFileName = targetFolder + "\\" + blobName;
             if (!File.Exists(fullFileName))
             {
                 throw new Exception("Error: failed to download certificate file!");

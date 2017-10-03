@@ -17,67 +17,6 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Devices.Management
 {
-    namespace WindowsUpdates
-    {
-        public class GetResponse
-        {
-            public string installed;
-            public string approved;
-            public string failed;
-            public string installable;
-            public string pendingReboot;
-            public string lastScanTime;
-            public bool deferUpgrade;
-        }
-
-        public class SetParams
-        {
-            public string SectionName
-            {
-                get
-                {
-                    return "windowsUpdates";
-                }
-            }
-
-            public string approved;
-
-            public string ToJson()
-            {
-                return "\"windowsUpdates\" : " + JsonConvert.SerializeObject(this);
-            }
-        }
-    }
-
-    class Certificates
-    {
-        public class CertificateConfiguration
-        {
-            public string SectionName
-            {
-                get
-                {
-                    return "certificates";
-                }
-            }
-
-            public string rootCATrustedCertificates_Root;
-            public string rootCATrustedCertificates_CA;
-            public string rootCATrustedCertificates_TrustedPublisher;
-            public string rootCATrustedCertificates_TrustedPeople;
-            public string certificateStore_CA_System;
-            public string certificateStore_Root_System;
-            public string certificateStore_My_User;
-            public string certificateStore_My_System;
-
-            public string ToJson()
-            {
-                return "\"certificates\" : " + JsonConvert.SerializeObject(this);
-            }
-        }
-
-        public CertificateConfiguration Configuration = null;
-    }
 
     class GetCertificateDetailsParams
     {

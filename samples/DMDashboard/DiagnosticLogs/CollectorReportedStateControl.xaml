@@ -20,6 +20,9 @@
             <local:DMTextBlock Title="File Relative Path" IsNumeric="False" IsOptional="False"
                                PropertyName="logFileFolder"
                                PropertyValue="{Binding Path=LogFileFolder, Mode=TwoWay}"/>
+            <local:DMTextBlock Title="File Name" IsNumeric="False" IsOptional="False"
+                               PropertyName="logFileName"
+                               PropertyValue="{Binding Path=LogFileName, Mode=TwoWay}"/>
             <local:DMTextBlock Title="Started" IsNumeric="False" IsOptional="False"
                                PropertyName="started" 
                                PropertyValue="{Binding Path=Started}"/>

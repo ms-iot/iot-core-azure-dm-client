@@ -13,38 +13,24 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management.DMDataContract;
 using Microsoft.Devices.Management.Message;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Windows.Foundation.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.Storage;
 using System.Threading;
 
 namespace Microsoft.Devices.Management
 {
-    // This is the main entry point into DM
     public class DeviceManagementClient : IClientHandlerCallBack
     {
         const string MethodGetCertificateDetails = DMJSonConstants.DTWindowsIoTNameSpace + ".getCertificateDetails";
 
         public IDeviceTwin DeviceTwin { get { return _deviceTwin; } }
-
-        public struct GetCertificateDetailsParams
-        {
-            public string path;
-            public string hash;
-            public string connectionString;
-            public string containerName;
-            public string blobName;
-        }
 
         private DeviceManagementClient(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler hostAppHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
@@ -108,7 +94,6 @@ namespace Microsoft.Devices.Management
 
             // Attach methods...
             await deviceTwin.SetMethodHandlerAsync(CommonDataContract.ReportAllAsync, deviceManagementClient.ReportAllDevicePropertiesMethodHandler);
-            await deviceTwin.SetMethodHandlerAsync(MethodGetCertificateDetails, deviceManagementClient.GetCertificateDetailsHandlerAsync);
 
             // Create/Attach handlers...
             deviceManagementClient._externalStorageHandler = new ExternalStorageHandler(clientCallback, systemConfiguratorProxy);
@@ -123,6 +108,9 @@ namespace Microsoft.Devices.Management
 
             deviceManagementClient._windowsUpdatePolicyHandler = new WindowsUpdatePolicyHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsUpdatePolicyHandler);
+
+            var windowsUpdatesHandler = new WindowsUpdatesHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(windowsUpdatesHandler);
 
             var wifiHandler = new WifiHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(wifiHandler);
@@ -153,20 +141,21 @@ namespace Microsoft.Devices.Management
                 deviceManagementClient._windowsUpdatePolicyHandler);
             await deviceManagementClient.AddDirectMethodHandlerAsync(deviceManagementClient._rebootCmdHandler);
 
-            var rebootInfoHandler = new RebootInfoHandler(
-                clientCallback,
-                systemConfiguratorProxy,
-                deviceManagementClient._desiredCache);
+            var rebootInfoHandler = new RebootInfoHandler(clientCallback, systemConfiguratorProxy, deviceManagementClient._desiredCache);
             deviceManagementClient.AddPropertyHandler(rebootInfoHandler);
 
             deviceManagementClient._windowsTelemetryHandler = new WindowsTelemetryHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsTelemetryHandler);
 
-            var deviceInfoHandler = new DeviceInfoHandler(systemConfiguratorProxy);
+            var deviceInfoHandler = new DeviceInfoHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceInfoHandler);
 
             var dmAppStoreUpdate = new DmAppStoreUpdateHandler(clientCallback, systemConfiguratorProxy);
             await deviceManagementClient.AddDirectMethodHandlerAsync(dmAppStoreUpdate);
+
+            deviceManagementClient._certificateHandler = new CertificateHandler(clientCallback, systemConfiguratorProxy);
+            deviceManagementClient.AddPropertyHandler(deviceManagementClient._certificateHandler);
+            await deviceTwin.SetMethodHandlerAsync(MethodGetCertificateDetails, deviceManagementClient._certificateHandler.GetCertificateDetailsHandlerAsync);
 
             return deviceManagementClient;
         }
@@ -174,6 +163,11 @@ namespace Microsoft.Devices.Management
         internal static DeviceManagementClient Create(IDeviceTwin deviceTwin, IDeviceManagementRequestHandler requestHandler, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             return new DeviceManagementClient(deviceTwin, requestHandler, systemConfiguratorProxy);
+        }
+
+        public void SignalOperationComplete()
+        {
+            _deviceTwin.SignalOperationComplete();
         }
 
         // IClientHandlerCallBack.ReportPropertiesAsync
@@ -239,19 +233,33 @@ namespace Microsoft.Devices.Management
             await ApplyDesiredStateAsync(-1, new JObject(), true);
         }
 
-        public void ApplyDesiredStateAsync(TwinCollection desiredProperties)
+        public async Task ApplyDesiredStateAsync(Dictionary<string, object> desiredProperties)
         {
             Logger.Log("Applying desired state...", LoggingLevel.Verbose);
 
             try
             {
                 JObject windowsProps = null;
-                if (desiredProperties.Contains(DMJSonConstants.DTWindowsIoTNameSpace))
+                long version = 0;
+
+                object windowsPropsObj = null;
+                if (desiredProperties.TryGetValue(DMJSonConstants.DTWindowsIoTNameSpace, out windowsPropsObj))
                 {
-                    windowsProps = (JObject)desiredProperties[DMJSonConstants.DTWindowsIoTNameSpace];
+                    windowsProps = (JObject)windowsPropsObj;
                 }
-                var version = (long)desiredProperties[DMJSonConstants.DTVersionString];
-                ApplyDesiredStateAsync(version, windowsProps, false).FireAndForget();
+                else
+                {
+                    // Nothing to process for us.
+                    return;
+                }
+
+                object versionObj = null;
+                if (desiredProperties.TryGetValue(DMJSonConstants.DTVersionString, out versionObj))
+                {
+                    version = (long)versionObj;
+                }
+
+                await ApplyDesiredStateAsync(version, windowsProps, false);
             }
             catch (Exception)
             {
@@ -259,69 +267,9 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        /*
-        // ToDo: Not implemented in SystemConfigurator.
-        private async Task<bool> CheckForUpdatesAsync()
-        {
-            var request = new Message.CheckForUpdatesRequest();
-            var response = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return (response as Message.CheckForUpdatesResponse).UpdatesAvailable;
-        }
-        */
-
         public async Task RebootAsync()
         {
             await _rebootCmdHandler.RebootAsync();
-        }
-
-        private async Task GetCertificateDetailsAsync(string jsonParam)
-        {
-            GetCertificateDetailsParams parameters = JsonConvert.DeserializeObject<GetCertificateDetailsParams>(jsonParam);
-
-            var request = new Message.GetCertificateDetailsRequest();
-            request.path = parameters.path;
-            request.hash = parameters.hash;
-
-            Message.GetCertificateDetailsResponse response = await _systemConfiguratorProxy.SendCommandAsync(request) as Message.GetCertificateDetailsResponse;
-
-            string jsonString = JsonConvert.SerializeObject(response);
-            Debug.WriteLine("response = " + jsonString);
-
-            var info = new Message.AzureFileTransferInfo()
-            {
-                ConnectionString = parameters.connectionString,
-                ContainerName = parameters.containerName,
-                BlobName = parameters.blobName,
-                Upload = true,
-                RelativeLocalPath = ""
-            };
-
-            var appLocalDataFile = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(parameters.blobName, CreationCollisionOption.ReplaceExisting);
-            using (StreamWriter writer = new StreamWriter(await appLocalDataFile.OpenStreamForWriteAsync()))
-            {
-                await writer.WriteAsync(jsonString);
-            }
-            await IoTDMClient.AzureBlobFileTransfer.UploadFile(info, appLocalDataFile);
-
-            await appLocalDataFile.DeleteAsync();
-        }
-
-        private Task<string> GetCertificateDetailsHandlerAsync(string jsonParam)
-        {
-            Debug.WriteLine("GetCertificateDetailsHandlerAsync");
-
-            var response = new { response = "succeeded", reason = "" };
-            try
-            {
-                // Submit the work and return immediately.
-                GetCertificateDetailsAsync(jsonParam).FireAndForget();
-            }
-            catch(Exception e)
-            {
-                response = new { response = "rejected:", reason = e.Message };
-            }
-
-            return Task.FromResult(JsonConvert.SerializeObject(response));
         }
 
         public async Task StartFactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
@@ -359,18 +307,6 @@ namespace Microsoft.Devices.Management
             return await _windowsUpdatePolicyHandler.GetRingAsync();
         }
 
-        private static async Task ProcessDesiredCertificateConfigurationAsync(
-            ISystemConfiguratorProxy systemConfiguratorProxy,
-            string connectionString,
-            string containerName,
-            Message.CertificateConfiguration certificateConfiguration)
-        {
-
-            await IoTDMClient.CertificateManagement.DownloadCertificates(systemConfiguratorProxy, connectionString, containerName, certificateConfiguration);
-            var request = new Message.SetCertificateConfigurationRequest(certificateConfiguration);
-            await systemConfiguratorProxy.SendCommandAsync(request);
-        }
-
         public async Task AllowReboots(bool allowReboots)
         {
             await _rebootCmdHandler.AllowReboots(allowReboots);
@@ -406,9 +342,6 @@ namespace Microsoft.Devices.Management
                     // Nothing to apply.
                     return;
                 }
-
-                // ToDo: We should not throw here. All problems need to be logged.
-                Message.CertificateConfiguration certificateConfiguration = null;
 
                 foreach (var sectionProp in windowsPropValue.Children().OfType<JProperty>())
                 {
@@ -480,45 +413,6 @@ namespace Microsoft.Devices.Management
                             await ReportStatusAsync(sectionProp.Name, statusSection);
                         }
                     }
-                    else
-                    {
-                        if (sectionProp.Value.Type != JTokenType.Object)
-                        {
-                            continue;
-                        }
-                        switch (sectionProp.Name)
-                        {
-                            case "certificates":
-                                {
-                                    // Capture the configuration here.
-                                    // To apply the configuration we need to wait until externalStorage has been configured too.
-                                    Debug.WriteLine("CertificateConfiguration = " + sectionProp.Value.ToString());
-                                    certificateConfiguration = JsonConvert.DeserializeObject<CertificateConfiguration>(sectionProp.Value.ToString());
-                                }
-                                break;
-                            case "windowsUpdates":
-                                {
-                                    Debug.WriteLine("windowsUpdates = " + sectionProp.Value.ToString());
-                                    var configuration = JsonConvert.DeserializeObject<SetWindowsUpdatesConfiguration>(sectionProp.Value.ToString());
-                                    await this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdatesRequest(configuration));
-                                }
-                                break;
-                            default:
-                                // Not supported
-                                break;
-                        }
-                    }
-                }
-
-                // Now, handle the operations that depend on others in the necessary order.
-                // By now, Azure storage information should have been captured.
-
-                if (!String.IsNullOrEmpty(_externalStorageHandler.ConnectionString))
-                {
-                    if (certificateConfiguration != null)
-                    {
-                        await ProcessDesiredCertificateConfigurationAsync(_systemConfiguratorProxy, _externalStorageHandler.ConnectionString, "certificates", certificateConfiguration);
-                    }
                 }
             }
             finally
@@ -527,26 +421,11 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        private async Task<Message.GetCertificateConfigurationResponse> GetCertificateConfigurationAsync()
-        {
-            var request = new Message.GetCertificateConfigurationRequest();
-            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetCertificateConfigurationResponse);
-        }
-
-        private async Task<Message.GetWindowsUpdatesResponse> GetWindowsUpdatesAsync()
-        {
-            var request = new Message.GetWindowsUpdatesRequest();
-            return (await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse);
-        }
-
         private async Task ReportAllDeviceProperties()
         {
             Logger.Log("Reporting all device properties to device twin...", LoggingLevel.Information);
 
             Logger.Log("Querying device state...", LoggingLevel.Information);
-
-            Message.GetCertificateConfigurationResponse certificateConfigurationResponse = await GetCertificateConfigurationAsync();
-            Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await GetWindowsUpdatesAsync();
 
             JObject windowsObj = new JObject();
             foreach (var handler in this._desiredPropertyMap.Values)
@@ -554,21 +433,6 @@ namespace Microsoft.Devices.Management
                 // TODO: how do we ensure that only Reported=yes sections report results?
                 windowsObj[handler.PropertySectionName] = await handler.GetReportedPropertyAsync();
             }
-
-            // ToDo: Temporary fix.
-            CertificatesDataContract.ReportedProperties reportedProperties = new CertificatesDataContract.ReportedProperties();
-            reportedProperties.certificateStore_CA_System = certificateConfigurationResponse.configuration.certificateStore_CA_System;
-            reportedProperties.certificateStore_My_System = certificateConfigurationResponse.configuration.certificateStore_My_System;
-            reportedProperties.certificateStore_My_User = certificateConfigurationResponse.configuration.certificateStore_My_User;
-            reportedProperties.certificateStore_Root_System = "<too long to store in device twin>"; // certificateConfigurationResponse.configuration.certificateStore_Root_System;
-            reportedProperties.rootCATrustedCertificates_CA = certificateConfigurationResponse.configuration.rootCATrustedCertificates_CA;
-            reportedProperties.rootCATrustedCertificates_Root = "<too long to store in device twin>"; ; // certificateConfigurationResponse.configuration.rootCATrustedCertificates_Root;
-            reportedProperties.rootCATrustedCertificates_TrustedPeople = certificateConfigurationResponse.configuration.rootCATrustedCertificates_TrustedPeople;
-            reportedProperties.rootCATrustedCertificates_TrustedPublisher = certificateConfigurationResponse.configuration.rootCATrustedCertificates_TrustedPublisher;
-
-            // windowsObj["certificates"] = JObject.Parse(JsonConvert.SerializeObject(certificateConfigurationResponse));
-            windowsObj["certificates"] = JObject.FromObject(reportedProperties);
-            windowsObj["windowsUpdates"] = JObject.Parse(JsonConvert.SerializeObject(windowsUpdatesResponse));
 
             Dictionary<string, object> collection = new Dictionary<string, object>();
             collection[DMJSonConstants.DTWindowsIoTNameSpace] = windowsObj;
@@ -590,6 +454,7 @@ namespace Microsoft.Devices.Management
         // Data members
         JObject _desiredCache = new JObject();
         ISystemConfiguratorProxy _systemConfiguratorProxy;
+        CertificateHandler _certificateHandler;
         FactoryResetHandler _factoryResetHandler;
         WindowsUpdatePolicyHandler _windowsUpdatePolicyHandler;
         RebootCmdHandler _rebootCmdHandler;
@@ -604,5 +469,4 @@ namespace Microsoft.Devices.Management
         long _lastDesiredPropertyVersion = -1;
         SemaphoreSlim _desiredPropertiesLock = new SemaphoreSlim(1);
     }
-
 }

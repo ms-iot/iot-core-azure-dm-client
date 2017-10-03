@@ -31,13 +31,8 @@ namespace Microsoft.Devices.Management
     {
         public WindowsUpdateRing ring;
         public SettingsPriority settingsPriority;
-    }
 
-    class WindowsUpdatePolicyHandler : IClientPropertyHandler
-    {
-        const string JsonSectionName = "windowsUpdatePolicy";
-
-        private static string RingToJsonString(WindowsUpdateRing ring)
+        public static string RingToJsonString(WindowsUpdateRing ring)
         {
             switch (ring)
             {
@@ -51,7 +46,7 @@ namespace Microsoft.Devices.Management
             throw new Error(ErrorCodes.E_NOTIMPL, "WindowsUpdateRing value is not implemented (" + ring.ToString() + ").");
         }
 
-        private static WindowsUpdateRing RingFromJsonString(string ring)
+        public static WindowsUpdateRing RingFromJsonString(string ring)
         {
             if (ring == WindowsUpdatePolicyDataContract.JsonEarlyAdopter)
             {
@@ -67,6 +62,11 @@ namespace Microsoft.Devices.Management
             }
             throw new Error(ErrorCodes.E_NOTIMPL, "WindowsUpdateRing value is not implemented (" + ring + ").");
         }
+    }
+
+    class WindowsUpdatePolicyHandler : IClientPropertyHandler
+    {
+        const string JsonSectionName = "windowsUpdatePolicy";
 
         public WindowsUpdatePolicyHandler(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
@@ -253,7 +253,7 @@ namespace Microsoft.Devices.Management
             request.ApplyFromDeviceTwin = WindowsUpdatePolicyDataContract.JsonYes;
             request.data = new Message.WindowsUpdatePolicyConfiguration();
             request.data.activeFields = (uint)Message.ActiveFields.Ring;
-            request.data.ring = RingToJsonString(userDesiredState.ring);
+            request.data.ring = WindowsUpdateRingState.RingToJsonString(userDesiredState.ring);
             request.data.policy = policy;
             request.ReportToDeviceTwin = Constants.JsonValueUnspecified;    // Keep whatever already stored.
             await this._systemConfiguratorProxy.SendCommandAsync(request);
@@ -261,13 +261,25 @@ namespace Microsoft.Devices.Management
             await ReportToDeviceTwin();
         }
 
+        public static SettingsPriority SettingsPriorityFromString(Message.PolicySource s)
+        {
+            switch (s)
+            {
+                case Message.PolicySource.Local:
+                    return SettingsPriority.Local;
+                case Message.PolicySource.Remote:
+                    return SettingsPriority.Remote;
+            }
+            return SettingsPriority.Unknown;
+        }
+
         public async Task<WindowsUpdateRingState> GetRingAsync()
         {
             Message.GetWindowsUpdatePolicyResponse response = await GetWindowsUpdatePolicyAsync();
 
             WindowsUpdateRingState state = new WindowsUpdateRingState();
-            state.ring = RingFromJsonString(response.data.ring);
-            state.settingsPriority = PolicyHelpers.SettingsPriorityFromString(response.data.policy.source);
+            state.ring = WindowsUpdateRingState.RingFromJsonString(response.data.ring);
+            state.settingsPriority = SettingsPriorityFromString(response.data.policy.source);
             return state;
         }
 

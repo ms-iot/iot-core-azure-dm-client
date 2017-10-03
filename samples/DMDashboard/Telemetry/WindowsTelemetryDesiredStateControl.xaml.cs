@@ -56,7 +56,7 @@ namespace DMDashboard
                     MessageBox.Show("Not implemented! Selected 'security'.");
                     break;
             }
-            return desiredProperties.ToJson();
+            return desiredProperties.ToJsonString();
         }
     }
 }

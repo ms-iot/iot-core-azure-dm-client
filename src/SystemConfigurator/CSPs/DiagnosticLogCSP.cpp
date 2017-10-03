@@ -140,6 +140,7 @@ IResponse^ DiagnosticLogCSP::HandleGetEventTracingConfiguration(IRequest^ reques
             wstring reportToDeviceTwin = Utils::ReadRegistryValue(collectorRegistryPath, RegReportToDeviceTwin, JsonNoString /*default*/);
             currentCollector->ReportToDeviceTwin = ref new String(reportToDeviceTwin.c_str());
             currentCollector->CSPConfiguration->LogFileFolder = ref new String(Utils::ReadRegistryValue(collectorRegistryPath, RegEventTracingLogFileFolder, cspCollectorName /*default*/).c_str());
+            currentCollector->CSPConfiguration->LogFileName = ref new String(Utils::ReadRegistryValue(collectorRegistryPath, RegEventTracingLogFileName, L"" /*default*/).c_str());
 
             // Add it to the collectors list...
             response->Collectors->Append(currentCollector);
@@ -286,6 +287,9 @@ void DiagnosticLogCSP::CreateEtlFile(CollectorDesiredConfiguration^ collector)
 {
     TRACE(__FUNCTION__);
 
+    // The etl file will be created in a folder like this:
+    // c:\Data\Users\DefaultAccount\AppData\Local\Temp\<collector's folder>
+
     // Construct the data channel...
     wstring collectorFileCSPPath;
     collectorFileCSPPath += CSPDataChannel;
@@ -317,16 +321,23 @@ void DiagnosticLogCSP::CreateEtlFile(CollectorDesiredConfiguration^ collector)
 
     // Construct the file name...
     wstring etlFileName;
-    etlFileName += etlFolderName;
-    etlFileName += L"\\";
-    etlFileName += collector->Name->Data();
-    etlFileName += L"_";
-    etlFileName += GetFormattedTime();
-    etlFileName += L".etl";
-    TRACEP(L"ETL File Name: ", etlFileName.c_str());
+    if (collector->CSPConfiguration->LogFileName->Length() == 0)
+    {
+        etlFileName += collector->Name->Data();
+        etlFileName += L"_";
+        etlFileName += GetFormattedTime();
+        etlFileName += L".etl";
+    }
+    else
+    {
+        etlFileName = collector->CSPConfiguration->LogFileName->Data();
+    }
+
+    wstring etlFullFileName = etlFolderName + L"\\" + etlFileName;
+    TRACEP(L"ETL Full File Name: ", etlFullFileName.c_str());
 
     // Write the buffers to disk...
-    ofstream etlFile(etlFileName, ios::out | ios::binary);
+    ofstream etlFile(etlFullFileName, ios::out | ios::binary);
     for (auto it = decryptedEtlBuffer.begin(); it != decryptedEtlBuffer.end(); it++)
     {
         etlFile.write(it->data(), it->size());
@@ -366,6 +377,18 @@ void DiagnosticLogCSP::ApplyCollectorConfiguration(const wstring& cspRoot, Colle
         throw DMException(errorMessage.c_str());
     }
 
+    if (collector->CSPConfiguration->LogFileName->Length() != 0)
+    {
+        if (nullptr != wcsstr(collector->CSPConfiguration->LogFileName->Data(), L"..") ||
+            nullptr != wcsstr(collector->CSPConfiguration->LogFileName->Data(), L"\\") ||
+            nullptr != wcsstr(collector->CSPConfiguration->LogFileName->Data(), L"/"))
+        {
+            string errorMessage = "Error: LogFileName cannot contain '/', '\\', or '..'.";
+            TRACE(errorMessage.c_str());
+            throw DMException(errorMessage.c_str());
+        }
+    }
+
     // Build paths...
     const wstring collectorCSPPath = cspRoot + L"/" + collector->Name->Data();
     const wstring providersCSPPath = collectorCSPPath + L"/" + CSPProvidersNode;
@@ -378,6 +401,7 @@ void DiagnosticLogCSP::ApplyCollectorConfiguration(const wstring& cspRoot, Colle
     MdmProvision::RunAdd(cspRoot, collector->Name->Data());
     Utils::WriteRegistryValue(collectorRegistryPath, RegReportToDeviceTwin, collector->ReportToDeviceTwin->Data());
     Utils::WriteRegistryValue(collectorRegistryPath, RegEventTracingLogFileFolder, collector->CSPConfiguration->LogFileFolder->Data());
+    Utils::WriteRegistryValue(collectorRegistryPath, RegEventTracingLogFileName, collector->CSPConfiguration->LogFileName->Data());
     MdmProvision::RunSet(collectorCSPPath + L"/LogFileSizeLimitMB", collector->CSPConfiguration->LogFileSizeLimitMB);
     MdmProvision::RunSet(collectorCSPPath + L"/TraceLogFileMode", collector->CSPConfiguration->TraceLogFileMode == L"sequential" ? 1 : 2);
 

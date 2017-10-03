@@ -49,6 +49,8 @@
                              PropertyValue="{Binding Path=LogFileSizeLimitMB, Mode=TwoWay}"/>
             <local:DMTextBox Title="File Relative Path" PropertyName="logFileFolder" IsNumeric="False" IsOptional="True"
                              PropertyValue="{Binding Path=LogFileFolder, Mode=TwoWay}"/>
+            <local:DMTextBox Title="File Name" PropertyName="logFileName" IsNumeric="False" IsOptional="True"
+                             PropertyValue="{Binding Path=LogFileName, Mode=TwoWay}"/>
             <local:DMComboBox Title="Started" PropertyName="started" IsNumeric="False" IsOptional="True" x:Name="StartedCombo"
                               SelectedIndex="{Binding Path=Started, Converter={StaticResource yesNoToInt}, Mode=TwoWay}">
                 <local:DMComboBox.ValuesList>

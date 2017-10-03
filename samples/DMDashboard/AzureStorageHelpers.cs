@@ -20,15 +20,13 @@ namespace DMDashboard
 {
     class AzureStorageHelpers
     {
-        public static void DownloadAzureFile(string connectionString, string containerName, string blobName, string targetFolder)
+        public static void DownloadAzureFile(string connectionString, string containerName, string blobName, string targetFullFileName)
         {
-            System.IO.Directory.CreateDirectory(targetFolder);
-
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference(containerName);
             CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
-            blob.DownloadToFile(targetFolder + "\\" + blobName, FileMode.Create);
+            blob.DownloadToFile(targetFullFileName, FileMode.Create);
         }
     }
 }

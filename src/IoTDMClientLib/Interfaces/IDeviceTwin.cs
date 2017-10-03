@@ -36,5 +36,7 @@ namespace Microsoft.Devices.Management
         Task RefreshConnectionAsync();
 
         Task SendMessageAsync(string message, IDictionary<string, string> properties);
+
+        void SignalOperationComplete();
     }
 }

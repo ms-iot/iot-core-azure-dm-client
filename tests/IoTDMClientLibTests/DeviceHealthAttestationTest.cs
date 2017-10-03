@@ -72,6 +72,11 @@ namespace IoTDMClientLibTests
                 await ReportPropertiesAsync(sectionName, actualValue);
             }
 
+            void IClientHandlerCallBack.SignalOperationComplete()
+            {
+                throw new NotImplementedException();
+            }
+
             public Action<string, IDictionary<string, string>> SendMessageHook;
             public Action<string, JToken> ReportPropertiesHook;
         }
@@ -87,7 +92,7 @@ namespace IoTDMClientLibTests
                 throw new NotImplementedException();
             }
 
-            public Task<IResponse> SendCommand(IRequest request)
+            public IResponse SendCommand(IRequest request)
             {
                 throw new NotImplementedException();
             }

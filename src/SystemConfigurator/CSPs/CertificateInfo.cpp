@@ -199,7 +199,7 @@ void CertificateInfo::DeleteCertificate(const wstring& path, const wstring& hash
 
     TRACEP(L"Deleting : ", fullPath.c_str());
 
-    MdmProvision::RunDelete(path);
+    MdmProvision::RunDelete(fullPath);
 }
 
 CertificateFile::CertificateFile(const std::wstring& certFileName)

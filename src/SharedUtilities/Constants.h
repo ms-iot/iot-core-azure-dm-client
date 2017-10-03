@@ -32,6 +32,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define RegEventTracing IoTDMRegistryRoot L"\\EventTracingConfiguration"
 #define RegEventTracingLogFileFolder L"LogFileFolder"
+#define RegEventTracingLogFileName L"LogFileName"
 
 #define RegTimeService IoTDMRegistryRoot L"\\TimeService"
 #define RegRemoteTimeService RegTimeService L"\\Remote"

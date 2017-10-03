@@ -50,6 +50,7 @@ namespace DMDashboard
         public string TraceLogFileMode { get; set; }
         public int LogFileSizeLimitMB { get; set; }
         public string LogFileFolder { get; set; }
+        public string LogFileName { get; set; }
         public string Started { get; set; }
 
         public List<ProviderDesiredState> ProviderList { get; set; }
@@ -61,6 +62,7 @@ namespace DMDashboard
             TraceLogFileMode = "sequential";
             LogFileSizeLimitMB = 4;
             LogFileFolder = "";
+            LogFileName = "";
             Started = "yes";
         }
 
@@ -104,6 +106,9 @@ namespace DMDashboard
                             break;
                         case "logFileFolder":
                             collectorDesiredState.LogFileFolder = (string)jProperty.Value;
+                            break;
+                        case "logFileName":
+                            collectorDesiredState.LogFileName = (string)jProperty.Value;
                             break;
                         case "started":
                             collectorDesiredState.Started = (string)jProperty.Value;

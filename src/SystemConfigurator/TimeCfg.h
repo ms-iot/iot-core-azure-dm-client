@@ -12,12 +12,12 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #pragma once
 
 #include <string>
 #include <windows.h>
 #include "Models\TimeInfo.h"
-#include "Models\TimeService.h"
 
 class TimeCfg
 {
@@ -35,15 +35,4 @@ public:
 private:
     static void Get(TimeInfo& info);
     static void SetNtpServer(const std::wstring& ntpServer);
-};
-
-class TimeService
-{
-public:
-    static Microsoft::Devices::Management::Message::TimeServiceData^ GetState();
-    static void SetState(Microsoft::Devices::Management::Message::TimeServiceData^ request);
-
-private:
-    static void SaveState(Microsoft::Devices::Management::Message::TimeServiceData^ data);
-    static Microsoft::Devices::Management::Message::TimeServiceData^ GetActiveDesiredState();
 };
