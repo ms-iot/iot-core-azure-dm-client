@@ -91,5 +91,5 @@ IResponse^ DMStorage::HandleDeleteDMFile(IRequest^ request)
     TRACEP(L"Deleting: ", fullFileName.c_str());
     DeleteFile(fullFileName.c_str());
 
-    return ref new StringResponse(ResponseStatus::Success, L"", DMMessageKind::ErrorResponse);
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }

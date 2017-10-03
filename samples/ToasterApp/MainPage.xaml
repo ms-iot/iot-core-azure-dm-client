@@ -2,7 +2,6 @@
     x:Class="Toaster.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Toaster"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" Width="1200" Height="1000">
@@ -16,9 +15,11 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Image Grid.Row="0" HorizontalAlignment="Left" Margin="3" Source="Assets\toaster.png" VerticalAlignment="Top"/>
-            <Grid Grid.Row="0">
+            <TextBlock Grid.Row="0" HorizontalAlignment="Left" Margin="3" Text="" x:Name="ApplicationVersion"/>
+            <Image Grid.Row="1" HorizontalAlignment="Left" Margin="3" Source="Assets\toaster.png" VerticalAlignment="Top"/>
+            <Grid Grid.Row="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="50*"/>
                     <RowDefinition Height="50*"/>
@@ -37,7 +38,7 @@
                     </Border>
                 </StackPanel>
             </Grid>
-            <StackPanel Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Vertical">
+            <StackPanel Grid.Row="2" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Vertical">
                 <Button x:Name ="buttonRestart" Width="150" Margin="3" Content="Reboot" Click="OnSystemRestart"/>
                 <Button x:Name ="buttonReset" Width="150" Margin="3" Content="Factory Reset" Click="OnFactoryReset" />
                 <TextBlock Text="Windows Telemetry" Margin="3"/>

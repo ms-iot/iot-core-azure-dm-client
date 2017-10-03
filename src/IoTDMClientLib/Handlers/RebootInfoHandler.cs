@@ -13,15 +13,11 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using Microsoft.Devices.Management.DMDataContract;
 using Microsoft.Devices.Management.Message;
-using Windows.Foundation.Diagnostics;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
@@ -36,7 +32,8 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        public RebootInfoHandler(IClientHandlerCallBack callback,
+        public RebootInfoHandler(
+            IClientHandlerCallBack callback,
             ISystemConfiguratorProxy systemConfiguratorProxy,
             JObject desiredCache)
         {
@@ -96,8 +93,7 @@ namespace Microsoft.Devices.Management
         // IClientPropertyHandler
         public async Task<JObject> GetReportedPropertyAsync()
         {
-            JObject currentState = await GetRebootInfoAsync();
-            return await Task.Run(() => { return currentState; });
+            return await GetRebootInfoAsync();
         }
 
         private async Task<JObject> GetRebootInfoAsync()

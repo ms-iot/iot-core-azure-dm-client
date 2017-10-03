@@ -42,6 +42,7 @@ namespace Microsoft.Devices.Management.DMDataContract
         public static int INVALID_FILE_PARAM = unchecked((int)0xA0000102);
         public static int INVALID_CONNECTION_STRING_PARAM = unchecked((int)0xA0000103);
         public static int INVALID_CONTAINER_PARAM = unchecked((int)0xA0000104);
+        public static int ERROR_MOVING_FILE = unchecked((int)0xA0000105);
 
         // DM Windows Telemetry management error codes 0120-013F
         public static int INVALID_WINDOWS_TELEMETRY_LEVEL = unchecked((int)0xA0000120);

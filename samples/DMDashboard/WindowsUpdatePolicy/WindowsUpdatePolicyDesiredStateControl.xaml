@@ -34,7 +34,7 @@
             <local:DMTextBox Title="Active Hours End (0-23)" PropertyName="activeHoursEnd" PropertyValue="1" IsNumeric="True" IsOptional="True"/>
             <local:DMTextBox Title="Allow Auto Update (0-5)" PropertyName="allowAutoUpdate" PropertyValue="1" IsNumeric="True" IsOptional="True"/>
             <local:DMTextBox Title="Allow Update Service (0-1)" PropertyName="allowUpdateService" PropertyValue="0" IsNumeric="True" IsOptional="True"/>
-            <local:DMTextBox Title="Branch Readiness Level (0-1)" PropertyName="branchReadinessLevel" PropertyValue="0" IsNumeric="True" IsOptional="True"/>
+            <local:DMTextBox Title="Branch Readiness Level (16, 32)" PropertyName="branchReadinessLevel" PropertyValue="16" IsNumeric="True" IsOptional="True"/>
             <local:DMTextBox Title="Defer Feature Updates Period (0-180 days)" PropertyName="deferFeatureUpdatesPeriod" PropertyValue="30" IsNumeric="True"  IsOptional="True"/>
             <local:DMTextBox Title="Defer Quality Updates Period (0-30 days)" PropertyName="deferQualityUpdatesPeriod" PropertyValue="15" IsNumeric="True"  IsOptional="True"/>
             <local:DMTextBox Title="Pause Feature Updates (0-1)" PropertyName="pauseFeatureUpdates" PropertyValue="0" IsNumeric="True" IsOptional="True"/>

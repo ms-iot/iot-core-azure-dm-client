@@ -12,65 +12,69 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-using System;
 using Newtonsoft.Json.Linq;
-using System.Diagnostics;
 using Microsoft.Devices.Management;
+using Microsoft.Devices.Management.DMDataContract;
 using Microsoft.Devices.Management.Message;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace IoTDMClient
 {
     class CertificateManagement
     {
-        private static async Task DownloadCertificates(ISystemConfiguratorProxy systemConfiguratorProxy, string connectionString, string containerName, HashSet<string> certificateFilesSet)
+        private static async Task DownloadCertificates(ISystemConfiguratorProxy systemConfiguratorProxy, string connectionString, HashSet<string> certificateFilesSet)
         {
             // ToDo: since our cache is temporary, we might have to download those files everytime to verify the hashes.
             Debug.Assert(certificateFilesSet != null);
 
             foreach (string fileName in certificateFilesSet)
             {
+                string [] fileNameParts = fileName.Split('\\');
+                if (fileNameParts.Length != 2)
+                {
+                    throw new Exception("Incorrect azure storage specification! The format should be containerName\\blobName.");
+                }
                 IoTDMClient.BlobInfo blobInfo = new IoTDMClient.BlobInfo();
                 blobInfo.ConnectionString = connectionString;
-                blobInfo.ContainerName = containerName;
-                blobInfo.BlobName = fileName;
+                blobInfo.ContainerName = fileNameParts[0];
+                blobInfo.BlobName = fileNameParts[1];
                 Debug.WriteLine("Downloading " + blobInfo.BlobName);
                 await blobInfo.DownloadToTempAsync(systemConfiguratorProxy);
             }
         }
 
-        private static void MergeCertificateFileNames(string hashesString, HashSet<string> certificateFilesSet)
+        private static void MergeCertificateFileNames(List<CertificatesDataContract.CertificateInfo> certificates, HashSet<string> certificateFilesSet)
         {
-            char separator = '/';
-
-            if (String.IsNullOrEmpty(hashesString))
+            foreach (CertificatesDataContract.CertificateInfo certificate in certificates)
             {
-                return;
+                if (certificate.State == CertificatesDataContract.JsonStateInstalled)
+                {
+                    certificateFilesSet.Add(certificate.StorageFileName);
+                }
             }
-            string[] hashes = hashesString.Split(separator);
-            certificateFilesSet.UnionWith(hashes);
         }
 
         public static async Task DownloadCertificates(
             ISystemConfiguratorProxy systemConfiguratorProxy,
             string connectionString,
-            string containerName,
-            CertificateConfiguration certificateConfiguration)
+            CertificatesDataContract.DesiredProperties desiredProperties)
         {
             HashSet<string> certificateFilesSet = new HashSet<string>();
 
-            MergeCertificateFileNames(certificateConfiguration.rootCATrustedCertificates_Root, certificateFilesSet);
-            MergeCertificateFileNames(certificateConfiguration.rootCATrustedCertificates_CA, certificateFilesSet);
-            MergeCertificateFileNames(certificateConfiguration.rootCATrustedCertificates_TrustedPublisher, certificateFilesSet);
-            MergeCertificateFileNames(certificateConfiguration.rootCATrustedCertificates_TrustedPeople, certificateFilesSet);
+            MergeCertificateFileNames(desiredProperties.rootCATrustedCertificates_Root, certificateFilesSet);
+            MergeCertificateFileNames(desiredProperties.rootCATrustedCertificates_CA, certificateFilesSet);
+            MergeCertificateFileNames(desiredProperties.rootCATrustedCertificates_TrustedPublisher, certificateFilesSet);
+            MergeCertificateFileNames(desiredProperties.rootCATrustedCertificates_TrustedPeople, certificateFilesSet);
 
-            MergeCertificateFileNames(certificateConfiguration.certificateStore_CA_System, certificateFilesSet);
-            MergeCertificateFileNames(certificateConfiguration.certificateStore_Root_System, certificateFilesSet);
-            MergeCertificateFileNames(certificateConfiguration.certificateStore_My_User, certificateFilesSet);
-            MergeCertificateFileNames(certificateConfiguration.certificateStore_My_System, certificateFilesSet);
+            MergeCertificateFileNames(desiredProperties.certificateStore_CA_System, certificateFilesSet);
+            MergeCertificateFileNames(desiredProperties.certificateStore_Root_System, certificateFilesSet);
+            MergeCertificateFileNames(desiredProperties.certificateStore_My_User, certificateFilesSet);
+            MergeCertificateFileNames(desiredProperties.certificateStore_My_System, certificateFilesSet);
 
-            await DownloadCertificates(systemConfiguratorProxy, connectionString, containerName, certificateFilesSet);
+            await DownloadCertificates(systemConfiguratorProxy, connectionString, certificateFilesSet);
         }
 
     }

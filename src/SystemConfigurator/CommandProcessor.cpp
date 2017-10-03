@@ -548,7 +548,7 @@ IResponse^ HandleTransferFile(IRequest^ request)
     auto appLocalDataPath = (wstring)info->AppLocalDataPath->Data();
 
     auto localPathBase = Utils::GetDmUserFolder();
-    auto localPath = localPathBase + L"\\" + relativeLocalPath;
+    auto localPath = localPathBase + relativeLocalPath;
 
     TRACEP(L"Local path     = ", localPath.c_str());
     TRACEP(L"App local path = ", appLocalDataPath.c_str());

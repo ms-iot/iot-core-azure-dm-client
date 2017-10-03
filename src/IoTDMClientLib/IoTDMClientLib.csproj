@@ -100,6 +100,7 @@
     <Compile Include="AzureBlobFileTransfer.cs" />
     <Compile Include="AzureIoTHubDeviceTwinProxy.cs" />
     <Compile Include="CertificateManagement.cs" />
+    <Compile Include="Handlers\CertificateHandler.cs" />
     <Compile Include="Handlers\DmAppStoreUpdate.cs" />
     <Compile Include="Handlers\DeviceHealthAttestationHandler.cs" />
     <Compile Include="DeviceManagementClient.cs" />
@@ -114,6 +115,7 @@
     <Compile Include="Handlers\TimeServiceHandler.cs" />
     <Compile Include="Handlers\TimeSettingsHandler.cs" />
     <Compile Include="Handlers\WindowsTelemetryHandler.cs" />
+    <Compile Include="Handlers\WindowsUpdatesHandler.cs" />
     <Compile Include="Interfaces\IDeviceManagementClientHandler.cs" />
     <Compile Include="Interfaces\ISystemConfiguratorProxy.cs" />
     <Compile Include="SystemConfiguratorProxy.cs" />

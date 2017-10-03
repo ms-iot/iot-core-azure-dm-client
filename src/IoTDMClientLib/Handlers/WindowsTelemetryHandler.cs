@@ -16,6 +16,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 using Newtonsoft.Json.Linq;
 using Microsoft.Devices.Management.DMDataContract;
 using System.Threading.Tasks;
+using Windows.Foundation.Diagnostics;
 
 namespace Microsoft.Devices.Management
 {
@@ -29,12 +30,6 @@ namespace Microsoft.Devices.Management
 
     class WindowsTelemetryHandler : IClientPropertyHandler
     {
-        public WindowsTelemetryHandler(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy)
-        {
-            this._systemConfiguratorProxy = systemConfiguratorProxy;
-            this._callback = callback;
-        }
-
         // IClientPropertyHandler
         public string PropertySectionName
         {
@@ -44,16 +39,23 @@ namespace Microsoft.Devices.Management
             }
         }
 
+        public WindowsTelemetryHandler(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy)
+        {
+            this._systemConfiguratorProxy = systemConfiguratorProxy;
+            this._callback = callback;
+        }
+
         // IClientPropertyHandler
         public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
         {
+            Logger.Log("WindowsTelemetryHandler.OnDesiredPropertyChange()", LoggingLevel.Verbose);
+
             if (!(desiredValue is JObject))
             {
                 throw new Error(ErrorCodes.INVALID_DESIRED_JSON_VALUE, "Invalid json value type for the " + PropertySectionName + " node.");
             }
 
-            WindowsTelemetryDataContract.DesiredProperties desiredProperties = new WindowsTelemetryDataContract.DesiredProperties();
-            desiredProperties.LoadFrom((JObject)desiredValue);
+            WindowsTelemetryDataContract.DesiredProperties desiredProperties = WindowsTelemetryDataContract.DesiredProperties.FromJsonObject((JObject)desiredValue);
 
             await SetLevelAsync(desiredProperties.level);
 

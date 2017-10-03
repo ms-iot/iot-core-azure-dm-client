@@ -41,9 +41,14 @@ namespace Microsoft.Devices.Management
         private async Task HandleDesiredPropertyChangeAsync(JToken desiredValue)
         {
             // Default JsonConvert Deserializing changes ISO8601 date fields to "mm/dd/yyyy hh:mm:ss".
+            // And in that process, it loses the Z notation if it had it.
+            //
             // We need to preserve the ISO8601 since that's the format SystemConfigurator understands.
             // Because of that, we are not using:
-            // Message.SetTimeInfo requestInfo = JsonConvert.DeserializeObject<Message.SetTimeInfo>(fieldsJson);
+            //    Message.SetTimeInfo requestInfo = JsonConvert.DeserializeObject<Message.SetTimeInfo>(fieldsJson);
+            //
+            // Note also that this requires the caller to always use the universal values since we
+            // assume that and re-add the Z before sending it to SystemConfigurator.
 
             Message.SetTimeInfoRequestData data = new Message.SetTimeInfoRequestData();
 
@@ -55,7 +60,7 @@ namespace Microsoft.Devices.Management
             string standardDateString = subProperties.Property("timeZoneStandardDate").Value.ToString();
             if (!String.IsNullOrEmpty(standardDateString))
             {
-                DateTime standardDate = DateTime.Parse(standardDateString).ToUniversalTime();
+                DateTime standardDate = DateTime.Parse(standardDateString);
                 data.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
             }
             data.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
@@ -65,7 +70,7 @@ namespace Microsoft.Devices.Management
             string daylightDateString = subProperties.Property("timeZoneDaylightDate").Value.ToString();
             if (!String.IsNullOrEmpty(daylightDateString))
             {
-                DateTime daylightDate = DateTime.Parse(daylightDateString).ToUniversalTime();
+                DateTime daylightDate = DateTime.Parse(daylightDateString);
                 data.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
             }
             data.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;

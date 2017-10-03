@@ -77,7 +77,6 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
         virtual Blob^ Serialize()
         {
-
             JsonObject^ jsonObject = ref new JsonObject();
             jsonObject->Insert("folderName", JsonValue::CreateStringValue(DMFolderName));
             jsonObject->Insert("fileName", JsonValue::CreateStringValue(DMFileName));

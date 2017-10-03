@@ -2,7 +2,7 @@
 
 Modern malware is getting more and more sophisticated.  Some of them, specifically bootkits, are capable of starting before Windows.  **Device Health Attestation** can be used to detect and remediate in the unlikely event where a device is infected.  The device's firmware logs the boot process, and Windows can send it to a trusted Health Attestation Server that can objectively assess the device's health.  See [Device Health Attestation architecture](dha-architecture.md) for more details.
 
-Before this functionality can be used, additional Azure resources need to be deploy.  See the [deployment page](dha-deploy.md) for more details.
+Before this functionality can be used, additional Azure resources need to be deployed.  See the [deployment page](dha-deploy.md) for more details.
 
 The **Device Health Attestation** functionality allows the operator to perform the following tasks:
 
@@ -14,26 +14,24 @@ The **Device Health Attestation** functionality allows the operator to perform t
 
 ## Schedule Health Attestation
 
-The **Schedule health attestation** operation is initiated by the device receiving the `"desired.microsoft.management.scheduledReboot"` desired property.
+The **Schedule health attestation** operation is initiated by the device receiving the `"desired.windows.deviceHealthAttestation"` desired property.
 
 ### Configuration Format
-The format of the `"desired.microsoft.management.deviceHealthAttestation"` desired property is as follows:
+The format of the `"desired.windows.deviceHealthAttestation"` desired property is as follows:
 
 <pre>
 "desired" : {
-    "microsoft" : {
-        "management" : {
-            "deviceHealthAttestation" :{
-                "Endpoint" : "<i>see below</i>"
-                "ReportIntervalInSeconds" : "<i>see below</i>"
-            }
+    "windows" : {
+        "deviceHealthAttestation" :{
+            "Endpoint" : "<i>see below</i>"
+            "ReportIntervalInSeconds" : "<i>see below</i>"
         }
     }
 }
 </pre>
 
 - ```"Endpoint"``` : Health Attestation Server URI.  When set to an empty string, the default Microsoft Health Attestation Server will be used.  See [this page](https://technet.microsoft.com/en-us/library/mt750346.aspx) on how to setup a custom Health Attestation Server.
-- ```"ReportIntervalInSeconds"``` : Interval in seconds to perform health attestation.  When set to ```"0"```, health attestation will be perform only once during startup.  When set to ```"-1"```, health attestation will be disabled.
+- ```"ReportIntervalInSeconds"``` : Interval in seconds to perform health attestation.  When set to ```"0"```, health attestation will be performed only once during startup.  When set to ```"-1"```, health attestation will be disabled.
 
 **Examples**
 
@@ -41,12 +39,10 @@ Perform a health attestation every hour against the default Microsoft Health Att
 
 ```
 "desired" : {
-    "microsoft" : {
-        "management" : {
-            "deviceHealthAttestation" : {
-                "Endpoint" : "has.spserv.microsoft.com"
-                "ReportIntervalInSeconds" : "3600"
-            }
+    "windows" : {
+        "deviceHealthAttestation" : {
+            "Endpoint" : "has.spserv.microsoft.com"
+            "ReportIntervalInSeconds" : "3600"
         }
     }
 }
@@ -54,16 +50,14 @@ Perform a health attestation every hour against the default Microsoft Health Att
 
 ## Retrieve Health Attestation Status
 
-*After* the device attests, the `"reported.microsoft.management.deviceHealthAttestation.status"` property is set, which is defined as follows:
+*After* the device attests, the `"reported.windows.deviceHealthAttestation.status"` property is set, which is defined as follows:
 
 <pre>
 "reported" : {
-    "microsoft" : {
-        "management" : {
-            "deviceHealthAttestation" : {
-                "status": "<i>Status of last health attestation</i>",
-                "TimeStamp": "<i>Datetime in ISO 8601 format, UTC</i>"
-            }
+    "windows" : {
+        "deviceHealthAttestation" : {
+            "status": "<i>Status of last health attestation</i>",
+            "TimeStamp": "<i>Datetime in ISO 8601 format, UTC</i>"
         }
     }
 }
@@ -72,7 +66,7 @@ Perform a health attestation every hour against the default Microsoft Health Att
 
 ## Initiate Immediate Health Attestation
 
-The **Immediate Health Attestation** operation is initiated by the device receiving the `microsoft.management.deviceHealthAttestationReportNow` method.
+The **Immediate Health Attestation** operation is initiated by the device receiving the `windows.deviceHealthAttestationReportNow` method.
 
 ### Input Payload
 Input payload is empty
@@ -147,7 +141,7 @@ For example, the operator can perform a "factory reset" to bring the device back
             clearTPM = false
         };
         var json = JsonConvert.SerializeObject(param);
-        var cloudToDeviceMethod = new CloudToDeviceMethod("microsoft.management.factoryReset");
+        var cloudToDeviceMethod = new CloudToDeviceMethod("windows.factoryReset");
         cloudToDeviceMethod.SetPayloadJson(json);
 
         var result = await _iotHubServiceClient.InvokeDeviceMethodAsync(deviceId, cloudToDeviceMethod);

@@ -13,10 +13,8 @@ The operator can specify the list of desired wifi profiles to be installed or un
 
 <pre>
     "desired": {
-      "microsoft": {
-        "management": {
-          "wifi": &lt;<i>see below</i>&gt;
-        }
+      "windows": {
+        "wifi": &lt;<i>see below</i>&gt;
       }
     }
 </pre>
@@ -28,17 +26,15 @@ The operator can specify the list of desired wifi profiles to be installed or un
 
 <pre>
     "desired": {
-      "microsoft": {
-        "management": {
-          "wifi": {
-            "applyProperties": {
-              "WifiProfile1": {
-                "profile": "<i>see below</i>"
-              },
-              "WifiProfile2": "uninstall"
+      "windows": {
+        "wifi": {
+          "applyProperties": {
+            "WifiProfile1": {
+            "profile": "<i>see below</i>"
             },
-            "reportProperties" : &lt;<i>see below</i>&gt;
-          }
+            "WifiProfile2": "uninstall"
+        },
+        "reportProperties" : &lt;<i>see below</i>&gt;
         }
       }
     }
@@ -55,12 +51,10 @@ The device current state of the **Wifi** can be inspected through the ```"wifi"`
 
 <pre>
     "reported": {
-      "microsoft": {
-        "management": {
-          "wifi": {
-            "WifiProfile1": "",
-            "WifiProfile2": ""
-          }
+      "windows": {
+        "wifi": {
+          "WifiProfile1": "",
+          "WifiProfile2": ""
         }
       }
     }
@@ -107,15 +101,13 @@ If the operator wants to install a new wifi profile (home-wifi.xml), the followi
 - Set the desired properties to:
 <pre>
     "desired": {
-      "microsoft": {
-        "management": {
-          "wifi": {
-            "applyProperties": {
-              "HomeWifi": {
-                "profile": "container/home-wifi.xml"
-              }
+      "windows": {
+        "wifi": {
+          "applyProperties": {
+            "HomeWifi": {
+            "profile": "container/home-wifi.xml"
             }
-          }
+        }
         }
       }
     }
@@ -127,12 +119,10 @@ If the operator wants to uninstall a wifi profile (home-wifi.xml), the following
 - Set the desired properties to:
 <pre>
     "desired": {
-      "microsoft": {
-        "management": {
-          "wifi": {
-            "applyProperties": {
-              "HomeWifi": "uninstall"
-            }
+      "windows": {
+        "wifi": {
+          "applyProperties": {
+            "HomeWifi": "uninstall"
           }
         }
       }
@@ -143,22 +133,18 @@ If the operator wants to uninstall a wifi profile (home-wifi.xml), the following
 - Set the desired properties to:
 <pre>
     "desired": {
-      "microsoft": {
-        "management": {
-          "wifi": "no-apply-no-report"
-        }
+      "windows": {
+        "wifi": "no-apply-no-report"
       }
     }
 </pre>
 - Equivalent, but more verbose:
 <pre>
     "desired": {
-      "microsoft": {
-        "management": {
-          "wifi": {
-            "applyProperties": "no"
-            "reportProperties": "no"
-          }
+      "windows": {
+        "wifi": {
+          "applyProperties": "no"
+          "reportProperties": "no"
         }
       }
     }
@@ -169,22 +155,18 @@ If the operator wants to uninstall a wifi profile (home-wifi.xml), the following
 - Set the desired properties to:
 <pre>
     "desired": {
-      "microsoft": {
-        "management": {
-          "wifi": "no-apply-yes-report"
-        }
+      "windows": {
+        "wifi": "no-apply-yes-report"
       }
     }
 </pre>
 - Equivalent, but more verbose:
 <pre>
     "desired": {
-      "microsoft": {
-        "management": {
-          "wifi": {
-            "applyProperties": "no"
-            "reportProperties": "yes"
-          }
+      "windows": {
+        "wifi": {
+          "applyProperties": "no"
+          "reportProperties": "yes"
         }
       }
     }

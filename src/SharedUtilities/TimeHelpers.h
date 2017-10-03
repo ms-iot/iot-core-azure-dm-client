@@ -38,7 +38,7 @@ namespace Utils
     std::wstring ISO8601FromSystemTime(const SYSTEMTIME& dateTime);
 
     bool ISO8601DateTimeFromString(const std::wstring& dateTimeString, ISO8601DateTime& dateTime);
-    std::wstring StringFromISO8601DateTime(const ISO8601DateTime& dateTime);
+    std::wstring StringFromISO8601DateTime(const ISO8601DateTime& dateTime, bool utc = false);
 
-    std::wstring CanonicalizeDateTime(const std::wstring& dateTimeString);
+    std::wstring CanonicalizeDateTime(const std::wstring& dateTimeString, bool utc = false);
 }

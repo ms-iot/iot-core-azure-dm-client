@@ -27,6 +27,8 @@ namespace Microsoft.Devices.Management
         Task SendMessageAsync(string message, IDictionary<string, string> properties);
 
         Task ReportStatusAsync(string sectionName, StatusSection statusSubSection);
+
+        void SignalOperationComplete();
     }
 
     // Interface for handlers that implements direct methods

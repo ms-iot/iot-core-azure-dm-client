@@ -65,6 +65,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         property String^ TraceLogFileMode;
         property int LogFileSizeLimitMB;
         property String^ LogFileFolder;
+        property String^ LogFileName;
         property String^ Started;
         property IVector<ProviderConfiguration^>^ Providers;
 
@@ -78,6 +79,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             targetJsonObject->Insert("traceLogFileMode", JsonValue::CreateStringValue(TraceLogFileMode));
             targetJsonObject->Insert("logFileSizeLimitMB", JsonValue::CreateNumberValue(LogFileSizeLimitMB));
             targetJsonObject->Insert("logFileFolder", JsonValue::CreateStringValue(LogFileFolder));
+            targetJsonObject->Insert("logFileName", JsonValue::CreateStringValue(LogFileName));
             targetJsonObject->Insert("started", JsonValue::CreateStringValue(Started));
 
             for each (ProviderConfiguration^ provider in Providers)
@@ -108,6 +110,10 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
                 else if (it->Current->Key == L"logFileFolder")
                 {
                     configuration->LogFileFolder = it->Current->Value->GetString();
+                }
+                else if (it->Current->Key == L"logFileName")
+                {
+                    configuration->LogFileName = it->Current->Value->GetString();
                 }
                 else if (it->Current->Key == L"started")
                 {

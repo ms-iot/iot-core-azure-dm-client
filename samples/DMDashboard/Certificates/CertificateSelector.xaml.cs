@@ -13,6 +13,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 using Newtonsoft.Json;
+using Microsoft.Devices.Management.DMDataContract;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,6 +28,13 @@ namespace DMDashboard
     {
         public delegate void ShowCertificateDetailsDelegate(CertificateSelector sender, CertificateData certificateData);
         public delegate void ExportCertificateDetailsDelegate(CertificateSelector sender, CertificateData certificateData);
+
+        public class CertificateSummary
+        {
+            public string Hash { get; set; }
+            public string StorageFileName { get; set; }  // including container
+            public string State { get; set; }
+        }
 
         public class CertificateData
         {
@@ -103,7 +111,6 @@ namespace DMDashboard
 
         public static readonly DependencyProperty ConnectionStringProperty = DependencyProperty.Register("ConnectionString", typeof(string), typeof(CertificateSelector));
         public static readonly DependencyProperty ContainerNameProperty = DependencyProperty.Register("ContainerName", typeof(string), typeof(CertificateSelector));
-        public static readonly DependencyProperty FileNamesStringProperty = DependencyProperty.Register("FileNamesString", typeof(string), typeof(CertificateSelector));
         public static readonly DependencyProperty ModifyEnabledProperty = DependencyProperty.Register("EnableAddRemove", typeof(bool), typeof(CertificateSelector));
         public static readonly DependencyProperty CertificatesPathProperty = DependencyProperty.Register("CertificatesPath", typeof(string), typeof(CertificateSelector));
         public static readonly DependencyProperty EnableExportProperty = DependencyProperty.Register("EnableExport", typeof(bool), typeof(CertificateSelector));
@@ -121,10 +128,25 @@ namespace DMDashboard
             set { SetValue(ContainerNameProperty, value); }
         }
 
-        public string FileNamesString
+        public IEnumerable<CertificateSummary> CertsToInstall
         {
-            get { return (string)GetValue(FileNamesStringProperty); }
-            set { SetValue(FileNamesStringProperty, value); }
+            get
+            {
+                return _certsToInstall;
+            }
+        }
+
+        public IEnumerable<string> CertsToUninstall
+        {
+            get
+            {
+                List<string> certsToUninstall = new List<string>();
+                foreach (var item in HashesToUninstallList.Items)
+                {
+                    certsToUninstall.Add((string)item);
+                }
+                return certsToUninstall;
+            }
         }
 
         public bool EnableAddRemove
@@ -177,7 +199,7 @@ namespace DMDashboard
             return newParent as System.Windows.Window;
         }
         
-        private void OnAddRemove(object sender, RoutedEventArgs e)
+        private void OnManageInstallList(object sender, RoutedEventArgs e)
         {
             Window parentWindow = FindParentWindow();
             if (parentWindow == null)
@@ -200,8 +222,7 @@ namespace DMDashboard
             azureBlobSelector.Owner = parentWindow;
             azureBlobSelector.ShowDialog();
 
-            // Construct the new FileNamesString
-            FileNamesString = "";
+            List<CertificateSummary> certsToInstall = new List<CertificateSummary>();
             List<CertificateData> certificateList = new List<CertificateData>();
             if (azureBlobSelector.BlobFileNames != null)
             {
@@ -211,17 +232,33 @@ namespace DMDashboard
                     certificateData.LoadFromCerAzureBlob(ConnectionString, ContainerName, fileName, @"c:\temp\certificates");
                     certificateList.Add(certificateData);
 
-                    if (FileNamesString.Length != 0)
-                    {
-                        FileNamesString += Separator;
-                    }
-                    FileNamesString += fileName;
+                    CertificateSummary certificateSummary = new CertificateSummary();
+                    certificateSummary.Hash = certificateData.Hash;
+                    certificateSummary.StorageFileName = ContainerName + "\\\\" + fileName;
+                    certificateSummary.State = CertificatesDataContract.JsonStateInstalled;
+
+                    certsToInstall.Add(certificateSummary);
                 }
             }
+
+            _certsToInstall = certsToInstall;
 
             // Update the UI
             certificateList.Sort((x, y) => x.Hash.CompareTo(y.Hash));
             CertificateList.ItemsSource = certificateList;
+        }
+
+        private void OnAddHashToUninstallList(object sender, RoutedEventArgs e)
+        {
+            HashesToUninstallList.Items.Add(HashToAdd.Text);
+        }
+
+        private void OnDeleteHashFromUninstallList(object sender, RoutedEventArgs e)
+        {
+            if (HashesToUninstallList.SelectedItem != null)
+            {
+                HashesToUninstallList.Items.Remove(HashesToUninstallList.SelectedItem);
+            }
         }
 
         public void SetCertificateList(IEnumerable<CertificateData> certificateList)
@@ -254,5 +291,7 @@ namespace DMDashboard
                 ExportCertificateDetails(this, certificateData);
             }
         }
+
+        private List<CertificateSummary> _certsToInstall;
     }
 }

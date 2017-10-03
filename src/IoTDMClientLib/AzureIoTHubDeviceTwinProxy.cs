@@ -15,16 +15,16 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Newtonsoft.Json.Linq;
 using Microsoft.Azure.Devices.Client;
+using Microsoft.Azure.Devices.Client.Exceptions;
 using Microsoft.Azure.Devices.Shared;
+using Microsoft.Devices.Management.DMDataContract;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
-using System;
-using Microsoft.Azure.Devices.Client.Exceptions;
 using Windows.Foundation.Diagnostics;
 using Windows.Networking.Connectivity;
-using Microsoft.Devices.Management.DMDataContract;
 
 namespace Microsoft.Devices.Management
 {
@@ -80,6 +80,17 @@ namespace Microsoft.Devices.Management
                         break;
                 }
             });
+        }
+
+        public static Dictionary<string, object> DictionaryFromTwinCollection(TwinCollection twinProperties)
+        {
+            Dictionary<string, object> desiredProperties = new Dictionary<string, object>();
+            foreach (KeyValuePair<string, object> p in twinProperties)
+            {
+                desiredProperties[p.Key] = p.Value;
+            }
+            desiredProperties["$version"] = twinProperties.Version;
+            return desiredProperties;
         }
 
         async Task<Dictionary<string, object>> IDeviceTwin.GetDesiredPropertiesAsync()
@@ -263,6 +274,11 @@ namespace Microsoft.Devices.Management
             {
                 logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
             }
+        }
+
+        void IDeviceTwin.SignalOperationComplete()
+        {
+            // No such concept in Azure.
         }
     }
 }

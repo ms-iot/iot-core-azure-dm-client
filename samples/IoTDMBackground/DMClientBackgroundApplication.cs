@@ -17,6 +17,7 @@ using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Background;
@@ -108,7 +109,7 @@ namespace IoTDMBackground
 
             // Set the callback for desired properties update. The callback will be invoked
             // for all desired properties -- including those specific to device management
-            await newDeviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdate, null);
+            await newDeviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdated, null);
 
             // Tell the deviceManagementClient to sync the device with the current desired state.
             await this._dmClient.ApplyDesiredStateAsync();
@@ -144,12 +145,12 @@ namespace IoTDMBackground
 
         }
 
-        private Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
+        private async Task OnDesiredPropertyUpdated(TwinCollection twinProperties, object userContext)
         {
-            // Let the device management client process properties specific to device management
-            _dmClient.ApplyDesiredStateAsync(desiredProperties);
+            Dictionary<string, object> desiredProperties = AzureIoTHubDeviceTwinProxy.DictionaryFromTwinCollection(twinProperties);
 
-            return Task.CompletedTask;
+            // Let the device management client process properties specific to device management
+            await _dmClient.ApplyDesiredStateAsync(desiredProperties);
         }
     }
 }

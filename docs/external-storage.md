@@ -8,11 +8,9 @@ The storage is described in the desired properties section as follows:
 <pre>
   "properties": {
     "desired" : {
-      "microsoft": {
-        "management": {
-          "externalStorage": {
-            "connectionString": "<i>connection string</i>",
-          }
+      "windows": {
+        "externalStorage": {
+        "connectionString": "<i>connection string</i>",
         }
       }
     }

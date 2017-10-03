@@ -167,14 +167,12 @@ namespace DMDashboard
             OnManageAppLifeCycle(AppxLifeCycleDataContract.JsonStop, LifeCyclePkgFamilyName.Text);
         }
 
-        private void CertificateInfoToUI(string hashesString, CertificateSelector certificateSelector)
+        private void CertificateInfoToUI(List<string> hashes, CertificateSelector certificateSelector)
         {
-            if (String.IsNullOrEmpty(hashesString))
+            if (hashes == null)
             {
                 return;
             }
-            string[] hashes = hashesString.Split('/');
-            Array.Sort<string>(hashes);
             if (certificateSelector != null)
             {
                 List<CertificateSelector.CertificateData> certificateList = new List<CertificateSelector.CertificateData>();
@@ -220,16 +218,18 @@ namespace DMDashboard
             {
                 if (jsonProp.Name == "timeInfo" && jsonProp.Value.Type == JTokenType.Object)
                 {
+                    Debug.WriteLine(jsonProp.Value.ToString());
                     TimeReportedState.FromJson((JObject)jsonProp.Value);
                 }
                 else if (jsonProp.Name == TimeSvcReportedState.SectionName && jsonProp.Value.Type == JTokenType.Object)
                 {
+                    Debug.WriteLine(jsonProp.Value.ToString());
                     TimeSvcReportedState.FromJson((JObject)jsonProp.Value);
                 }
                 else if (jsonProp.Name == CertificatesDataContract.SectionName && jsonProp.Value.Type == JTokenType.Object)
                 {
-                    CertificatesDataContract.ReportedProperties reportedProperties = new CertificatesDataContract.ReportedProperties();
-                    reportedProperties.LoadFrom((JObject)jsonProp.Value);
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    CertificatesDataContract.ReportedProperties reportedProperties = CertificatesDataContract.ReportedProperties.FromJsonObject((JObject)jsonProp.Value);
                     CertificatesInfoToUI(reportedProperties);
                 }
                 else if (jsonProp.Name == DeviceInfoDataContract.SectionName)
@@ -285,11 +285,17 @@ namespace DMDashboard
                     Debug.WriteLine(jsonProp.Value.ToString());
                     WindowsUpdatePolicyReportedState.FromJson(jsonProp.Value);
                 }
-                else if (jsonProp.Name == "windowsUpdates")
+                else if (jsonProp.Name == WindowsUpdatesDataContract.SectionName)
                 {
                     Debug.WriteLine(jsonProp.Value.ToString());
-                    var info = JsonConvert.DeserializeObject<Microsoft.Devices.Management.WindowsUpdates.GetResponse>(jsonProp.Value.ToString());
-                    WindowsUpdatesConfigurationToUI(info);
+                    if (jsonProp.Value is JObject)
+                    {
+                        WindowsUpdatesConfigurationToUI((JObject)jsonProp.Value);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Expected json object as a value for " + WindowsUpdatesDataContract.SectionName);
+                    }
                 }
                 else if (jsonProp.Name == WindowsTelemetryDataContract.SectionName)
                 {
@@ -456,30 +462,29 @@ namespace DMDashboard
             deviceUploadFile.ShowDialog();
         }
 
-        private Microsoft.Devices.Management.WindowsUpdates.SetParams UIToWindowsUpdatesConfiguration()
+        private WindowsUpdatesDataContract.DesiredProperties UIToWindowsUpdatesConfiguration()
         {
-            var configuration = new Microsoft.Devices.Management.WindowsUpdates.SetParams();
-
-            configuration.approved = DesiredApproved.Text;
-            
-            return configuration;
+            WindowsUpdatesDataContract.DesiredProperties desiredProperties = new WindowsUpdatesDataContract.DesiredProperties();
+            desiredProperties.approved = DesiredApproved.Text;
+            return desiredProperties;
         }
 
-        private void WindowsUpdatesConfigurationToUI(Microsoft.Devices.Management.WindowsUpdates.GetResponse configuration)
+        private void WindowsUpdatesConfigurationToUI(JObject root)
         {
-            ReportedInstalled.Text = configuration.installed;
-            ReportedApproved.Text = configuration.approved;
-            ReportedFailed.Text = configuration.failed;
-            ReportedInstallable.Text = configuration.installable;
-            ReportedPendingReboot.Text = configuration.pendingReboot;
-            ReportedLastScanTime.Text = configuration.lastScanTime;
-            ReportedDeferUpgrade.IsChecked = configuration.deferUpgrade;
+            WindowsUpdatesDataContract.ReportedProperties reportedProperties = WindowsUpdatesDataContract.ReportedProperties.FromJsonObject(root);
+
+            ReportedInstalled.Text = reportedProperties.installed;
+            ReportedApproved.Text = reportedProperties.approved;
+            ReportedFailed.Text = reportedProperties.failed;
+            ReportedInstallable.Text = reportedProperties.installable;
+            ReportedPendingReboot.Text = reportedProperties.pendingReboot;
+            ReportedLastScanTime.Text = reportedProperties.lastScanTime;
+            ReportedDeferUpgrade.IsChecked = reportedProperties.deferUpgrade;
         }
 
         private void OnSetWindowsUpdatesInfo(object sender, RoutedEventArgs e)
         {
-            Microsoft.Devices.Management.WindowsUpdates.SetParams setParams = UIToWindowsUpdatesConfiguration();
-            SetDesired(setParams.SectionName, setParams.ToJson()).FireAndForget();
+            SetDesired(WindowsUpdatesDataContract.SectionName, UIToWindowsUpdatesConfiguration().ToJsonString()).FireAndForget();
         }
 
         private void OnSetWindowsTelemetry(object sender, RoutedEventArgs e)
@@ -487,24 +492,96 @@ namespace DMDashboard
             SetDesired(WindowsTelemetryDataContract.SectionName, WindowsTelemetryDesiredState.ToJson()).FireAndForget();
         }
 
-        private Certificates.CertificateConfiguration UIToCertificateConfiguration()
+        private void PopulateCertificateList(
+            IEnumerable<CertificateSelector.CertificateSummary> certsToInstall,
+            IEnumerable<string> certsToUninstall,
+            List<CertificatesDataContract.CertificateInfo> desiredList)
         {
-            Certificates.CertificateConfiguration certificateConfiguration = new Certificates.CertificateConfiguration();
-            certificateConfiguration.rootCATrustedCertificates_Root = Desired_RootCATrustedCertificates_Root.FileNamesString;
-            certificateConfiguration.rootCATrustedCertificates_CA = Desired_RootCATrustedCertificates_CA.FileNamesString;
-            certificateConfiguration.rootCATrustedCertificates_TrustedPublisher = Desired_RootCATrustedCertificates_TrustedPublisher.FileNamesString;
-            certificateConfiguration.rootCATrustedCertificates_TrustedPeople = Desired_RootCATrustedCertificates_TrustedPeople.FileNamesString;
-            certificateConfiguration.certificateStore_CA_System = Desired_CertificateStore_CA_System.FileNamesString;
-            certificateConfiguration.certificateStore_Root_System = Desired_CertificateStore_Root_System.FileNamesString;
-            certificateConfiguration.certificateStore_My_User = Desired_CertificateStore_My_User.FileNamesString;
-            certificateConfiguration.certificateStore_My_System = Desired_CertificateStore_My_System.FileNamesString;
-            return certificateConfiguration;
+            if (desiredList == null)
+            {
+                return;
+            }
+
+            if (certsToInstall != null)
+            {
+                foreach (CertificateSelector.CertificateSummary certificateSummary in certsToInstall)
+                {
+                    CertificatesDataContract.CertificateInfo certificateInfo = new CertificatesDataContract.CertificateInfo();
+                    certificateInfo.Hash = certificateSummary.Hash;
+                    certificateInfo.StorageFileName = certificateSummary.StorageFileName;
+                    certificateInfo.State = CertificatesDataContract.JsonStateInstalled;
+                    desiredList.Add(certificateInfo);
+                }
+            }
+
+            if (certsToUninstall != null)
+            {
+                foreach (string hash in certsToUninstall)
+                {
+                    CertificatesDataContract.CertificateInfo certificateInfo = new CertificatesDataContract.CertificateInfo();
+                    certificateInfo.Hash = hash;
+                    certificateInfo.StorageFileName = "";
+                    certificateInfo.State = CertificatesDataContract.JsonStateUninstalled;
+                    desiredList.Add(certificateInfo);
+                }
+            }
+        }
+
+        private CertificatesDataContract.DesiredProperties UIToCertificateConfiguration2()
+        {
+            CertificatesDataContract.DesiredProperties certificatesDesiredProperties = new CertificatesDataContract.DesiredProperties();
+
+            PopulateCertificateList(
+                Desired_RootCATrustedCertificates_Root.CertsToInstall,
+                Desired_RootCATrustedCertificates_Root.CertsToUninstall,
+                certificatesDesiredProperties.rootCATrustedCertificates_Root);
+
+            PopulateCertificateList(
+                Desired_RootCATrustedCertificates_CA.CertsToInstall,
+                Desired_RootCATrustedCertificates_CA.CertsToUninstall,
+                certificatesDesiredProperties.rootCATrustedCertificates_CA);
+
+            PopulateCertificateList(
+                Desired_RootCATrustedCertificates_TrustedPublisher.CertsToInstall,
+                Desired_RootCATrustedCertificates_TrustedPublisher.CertsToUninstall,
+                certificatesDesiredProperties.rootCATrustedCertificates_TrustedPublisher);
+
+            PopulateCertificateList(
+                Desired_RootCATrustedCertificates_TrustedPeople.CertsToInstall,
+                Desired_RootCATrustedCertificates_TrustedPeople.CertsToUninstall,
+                certificatesDesiredProperties.rootCATrustedCertificates_TrustedPeople);
+
+            PopulateCertificateList(
+                Desired_CertificateStore_CA_System.CertsToInstall,
+                Desired_CertificateStore_CA_System.CertsToUninstall,
+                certificatesDesiredProperties.certificateStore_CA_System);
+
+            PopulateCertificateList(
+                Desired_CertificateStore_Root_System.CertsToInstall,
+                Desired_CertificateStore_Root_System.CertsToUninstall,
+                certificatesDesiredProperties.certificateStore_Root_System);
+
+            PopulateCertificateList(
+                Desired_CertificateStore_My_User.CertsToInstall,
+                Desired_CertificateStore_My_User.CertsToUninstall,
+                certificatesDesiredProperties.certificateStore_My_User);
+
+            PopulateCertificateList(
+                Desired_CertificateStore_My_System.CertsToInstall,
+                Desired_CertificateStore_My_System.CertsToUninstall,
+                certificatesDesiredProperties.certificateStore_My_System);
+
+            return certificatesDesiredProperties;
         }
 
         private void OnSetCertificateConfiguration(object sender, RoutedEventArgs e)
         {
-            Certificates.CertificateConfiguration certificateConfiguration = UIToCertificateConfiguration();
-            SetDesired(certificateConfiguration.SectionName, certificateConfiguration.ToJson()).FireAndForget();
+            CertificatesDataContract.DesiredProperties desiredProperties = UIToCertificateConfiguration2();
+            string json = desiredProperties.ToJsonString();
+            Debug.WriteLine("certificates:");
+            Debug.WriteLine(json);
+
+            SetDesired(CertificatesDataContract.SectionName, json).FireAndForget();
         }
 
         private void OnSetRebootInfo(object sender, RoutedEventArgs e)
@@ -517,6 +594,12 @@ namespace DMDashboard
             SetDesired(TheAppsConfigurator.SectionName, TheAppsConfigurator.ToJson()).FireAndForget();
         }
 
+        private void OnSetDeviceInfo(object sender, RoutedEventArgs e)
+        {
+            DeviceInfoDataContract.DesiredProperties desiredProperties = new DeviceInfoDataContract.DesiredProperties();
+            SetDesired(DeviceInfoDataContract.SectionName, desiredProperties.ToJsonString()).FireAndForget();
+        }
+
         private void OnSetAllDesiredProperties(object sender, RoutedEventArgs e)
         {
             StringBuilder json = new StringBuilder();
@@ -524,13 +607,13 @@ namespace DMDashboard
             json.Append("{");
             json.Append(TimeDesiredState.ToJson());
             json.Append(",");
-            json.Append(UIToCertificateConfiguration().ToJson());
+            json.Append(UIToCertificateConfiguration2().ToJsonString());
             json.Append(",");
             json.Append(RebootInfoDesiredState.ToJson());
             json.Append(",");
             json.Append(WindowsUpdatePolicyDesiredState.ToJson());
             json.Append(",");
-            json.Append(UIToWindowsUpdatesConfiguration().ToJson());
+            json.Append(UIToWindowsUpdatesConfiguration().ToJsonString());
             json.Append(",");
             json.Append(WindowsTelemetryDesiredState.ToJson());
             json.Append(",");

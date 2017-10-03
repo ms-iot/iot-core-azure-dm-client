@@ -290,8 +290,8 @@ HRESULT SendRequest(
     auto responseJsonString = response->Serialize()->PayloadAsString;
     *responseJson = SysAllocString(responseJsonString->Data());
     TRACE("Response generated...");
-    TRACEP(L"    ", Utils::ConcatString(L"response tag:", (uint32_t)responseType));
-    TRACEP(L"    ", Utils::ConcatString(L"response json:", responseJson));
+    TRACEP(L"response tag :", (uint32_t)responseType);
+    TRACEP(L"response json: ", responseJsonString->Data());
     return S_OK;
 }
 

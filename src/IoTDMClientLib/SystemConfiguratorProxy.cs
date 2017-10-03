@@ -76,14 +76,14 @@ namespace Microsoft.Devices.Management
             return response;
         }
 
-        public Task<IResponse> SendCommand(IRequest command)
+        public IResponse SendCommand(IRequest command)
         {
             var response = _client.SendCommand(command);
             if (response.Status != ResponseStatus.Success)
             {
                 ThrowError(response);
             }
-            return Task.FromResult<IResponse>(response);
+            return response;
         }
     }
 }

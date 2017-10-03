@@ -55,5 +55,10 @@ namespace Microsoft.Devices.Management
         {
             throw new NotImplementedException();
         }
+
+        void IDeviceTwin.SignalOperationComplete()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

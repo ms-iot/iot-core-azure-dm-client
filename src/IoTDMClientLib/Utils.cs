@@ -220,7 +220,7 @@ namespace Microsoft.Devices.Management
         }
     }
 
-    static class PolicyHelpers
+    public static class PolicyHelpers
     {
         public static string SourcePriorityFromPolicy(Message.Policy policy)
         {
@@ -247,18 +247,6 @@ namespace Microsoft.Devices.Management
                 case PolicyDataContract.JsonLocal:
                     return SettingsPriority.Local;
                 case PolicyDataContract.JsonRemote:
-                    return SettingsPriority.Remote;
-            }
-            return SettingsPriority.Unknown;
-        }
-
-        public static SettingsPriority SettingsPriorityFromString(Message.PolicySource s)
-        {
-            switch (s)
-            {
-                case PolicySource.Local:
-                    return SettingsPriority.Local;
-                case PolicySource.Remote:
                     return SettingsPriority.Remote;
             }
             return SettingsPriority.Unknown;

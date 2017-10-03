@@ -33,6 +33,7 @@ namespace Microsoft.Devices.Management
         const string JsonYesString = "yes";
         const string JsonNoString = "no";
         const string JsonLogFileFolder = "logFileFolder";
+        const string JsonLogFileName = "logFileName";
         const string JsonLogFileSizeLimitMB = "logFileSizeLimitMB";
         const string JsonTraceLogFileMode = "traceLogFileMode";
         const string JsonStarted = "started";
@@ -119,6 +120,10 @@ namespace Microsoft.Devices.Management
                     if (cspProperty.Name == JsonLogFileFolder)
                     {
                         cspConfiguration.LogFileFolder = (string)cspProperty.Value;
+                    }
+                    else if (cspProperty.Name == JsonLogFileName)
+                    {
+                        cspConfiguration.LogFileName = (string)cspProperty.Value;
                     }
                     else if (cspProperty.Name == JsonLogFileSizeLimitMB)
                     {

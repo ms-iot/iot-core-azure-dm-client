@@ -15,15 +15,20 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Newtonsoft.Json.Linq;
 using Microsoft.Devices.Management.DMDataContract;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using Windows.Foundation.Diagnostics;
 
 namespace Microsoft.Devices.Management
 {
     class DeviceInfoHandler : IClientPropertyHandler
     {
-        public DeviceInfoHandler(ISystemConfiguratorProxy systemConfiguratorProxy)
+        public DeviceInfoHandler(
+            IClientHandlerCallBack deviceManagementClient,
+            ISystemConfiguratorProxy systemConfiguratorProxy)
         {
-            this._systemConfiguratorProxy = systemConfiguratorProxy;
+            _systemConfiguratorProxy = systemConfiguratorProxy;
+            _deviceManagementClient = deviceManagementClient;
         }
 
         // IClientPropertyHandler
@@ -36,9 +41,20 @@ namespace Microsoft.Devices.Management
         }
 
         // IClientPropertyHandler
-        public Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
+        public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
         {
-            throw new Error(ErrorCodes.INVALID_DESIRED_NOT_SUPPORTED, "Invalid json value type for the " + PropertySectionName + " node.");
+            Logger.Log("DeviceInfoHandler.OnDesiredPropertyChange()", LoggingLevel.Verbose);
+
+            JObject reportedProperties = await GetReportedPropertyAsync();
+
+            Debug.WriteLine("-- Reporting Windows Updates -------------------------------------");
+            Debug.WriteLine(reportedProperties.ToString());
+            Debug.WriteLine("-- Reporting Windows Updates Done --------------------------------");
+
+            // Report the updated list...
+            await _deviceManagementClient.ReportPropertiesAsync(PropertySectionName, reportedProperties);
+
+            return CommandStatus.Committed;
         }
 
         // IClientPropertyHandler
@@ -77,6 +93,7 @@ namespace Microsoft.Devices.Management
         }
 
         private ISystemConfiguratorProxy _systemConfiguratorProxy;
+        private IClientHandlerCallBack _deviceManagementClient;
     }
 }
 

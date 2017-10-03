@@ -12,10 +12,13 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
+using Windows.ApplicationModel;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Foundation.Diagnostics;
 using Windows.UI.Core;
@@ -42,6 +45,9 @@ namespace Toaster
             this.InitializeComponent();
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
+
+            PackageVersion version = Package.Current.Id.Version;
+            ApplicationVersion.Text = string.Format("{0}.{1}.{2}.{3}", version.Major, version.Minor, version.Build, version.Revision);
 
 #pragma warning disable 4014
             // DM buttons will be enabled when we have created the DM client
@@ -147,13 +153,12 @@ namespace Toaster
             }
         }
 
-        public Task OnDesiredPropertyUpdated(TwinCollection desiredProperties, object userContext)
+        public async Task OnDesiredPropertyUpdated(TwinCollection twinProperties, object userContext)
         {
-            // Let the device management client process properties specific to device management
-            this.deviceManagementClient.ApplyDesiredStateAsync(desiredProperties);
+            Dictionary<string, object> desiredProperties = AzureIoTHubDeviceTwinProxy.DictionaryFromTwinCollection(twinProperties);
 
-            // Application developer can process all the top-level nodes here
-            return Task.CompletedTask;
+            // Let the device management client process properties specific to device management
+            await this.deviceManagementClient.ApplyDesiredStateAsync(desiredProperties);
         }
 
         // This method may get called on the DM callback thread - not on the UI thread.

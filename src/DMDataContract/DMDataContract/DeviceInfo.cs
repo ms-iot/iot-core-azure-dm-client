@@ -14,6 +14,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 using Newtonsoft.Json.Linq;
+using System.Text;
 
 namespace Microsoft.Devices.Management.DMDataContract
 {
@@ -50,6 +51,17 @@ namespace Microsoft.Devices.Management.DMDataContract
         public static readonly string JsonModel = "Model";
         public static readonly string JsonManufacturer = "manufacturer";
         public static readonly string JsonId = "id";
+
+        public class DesiredProperties
+        {
+            public string ToJsonString()
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append("\"" + SectionName + "\" : {\n");
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
 
         public class ReportedProperties
         {
