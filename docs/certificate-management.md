@@ -16,7 +16,7 @@ To **install** new certificates, the operator will have to:
 Those tasks can be performed on a pre-defined set certificate stores. Target certificate stores are specified through their CSP paths. Below is a list of those CSPs path along with the corresponding json property name for each.
 
 |    CSP Path |    Json Property                       |
-|:-----------:|----------------------------------------|
+|-------------|----------------------------------------|
 | ./Device/Vendor/MSFT/RootCATrustedCertificates/Root             | rootCATrustedCertificates_Root             |
 | ./Device/Vendor/MSFT/RootCATrustedCertificates/CA               | rootCATrustedCertificates_CA               |
 | ./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher | rootCATrustedCertificates_TrustedPublisher |
@@ -26,17 +26,8 @@ Those tasks can be performed on a pre-defined set certificate stores. Target cer
 | ./Vendor/MSFT/CertificateStore/My/User                          | certificateStore_My_User                   |
 | ./Vendor/MSFT/CertificateStore/My/System                        | certificateStore_My_System                 |
 
-
-- ./Device/Vendor/MSFT/RootCATrustedCertificates/Root **<-->** rootCATrustedCertificates_Root
-- ./Device/Vendor/MSFT/RootCATrustedCertificates/CA **<-->** rootCATrustedCertificates_CA
-- ./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher **<-->** rootCATrustedCertificates_TrustedPublisher
-- ./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople **<-->** rootCATrustedCertificates_TrustedPeople
-- ./Vendor/MSFT/CertificateStore/CA/System **<-->** certificateStore_CA_System
-- ./Vendor/MSFT/CertificateStore/Root/System **<-->** certificateStore_Root_System
-- ./Vendor/MSFT/CertificateStore/My/User **<-->** certificateStore_My_User
-- ./Vendor/MSFT/CertificateStore/My/System **<-->** certificateStore_My_System
-
 ## Install/Uninstall A Certificate
+
 The operator can specify a list of certificates, and for each, what desired state is required.
 
 <pre>
