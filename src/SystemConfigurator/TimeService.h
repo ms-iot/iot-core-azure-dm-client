@@ -12,22 +12,21 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #pragma once
 
-#include <windows.h>
 #include <string>
+#include <windows.h>
+#include "Models\TimeInfo.h"
+#include "Models\TimeService.h"
 
-class ServiceManager
+class TimeService
 {
 public:
-    static DWORD GetStatus(const std::wstring& serviceName);
-    static DWORD GetStartType(const std::wstring& serviceName);
+    static Microsoft::Devices::Management::Message::TimeServiceData^ GetState();
+    static void SetState(Microsoft::Devices::Management::Message::TimeServiceData^ request);
 
-    static void Start(const std::wstring& serviceName);
-    static void Stop(const std::wstring& serviceName);
-    static void SetStartType(const std::wstring& serviceName, DWORD startType);
-
-    static void WaitStatus(const std::wstring& serviceName, DWORD status, unsigned int maxWaitInSeconds);
 private:
-    static void StartStop(const std::wstring& serviceName, bool start);
+    static void SaveState(Microsoft::Devices::Management::Message::TimeServiceData^ data);
+    static Microsoft::Devices::Management::Message::TimeServiceData^ GetActiveDesiredState();
 };

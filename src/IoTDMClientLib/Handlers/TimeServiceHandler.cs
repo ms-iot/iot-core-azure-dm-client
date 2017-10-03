@@ -88,10 +88,6 @@ namespace Microsoft.Devices.Management
             var request = new Message.SetTimeServiceRequest(data);
             await this._systemConfiguratorProxy.SendCommandAsync(request);
 
-            // Give some time for the service to start and register as 'started'
-            // before querying for the state...
-            await Task.Delay(1000);
-
             // Report to the device twin....
             var reportedProperties = await GetTimeServiceAsync();
             await this._callback.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties));

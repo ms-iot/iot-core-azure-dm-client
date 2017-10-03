@@ -173,12 +173,13 @@ namespace DMDashboard
             {
                 return;
             }
+            hashes.Sort();
             if (certificateSelector != null)
             {
-                List<CertificateSelector.CertificateData> certificateList = new List<CertificateSelector.CertificateData>();
+                List<CertificateSelector.CertificateDetails> certificateList = new List<CertificateSelector.CertificateDetails>();
                 foreach (string hash in hashes)
                 {
-                    CertificateSelector.CertificateData certificateData = new CertificateSelector.CertificateData();
+                    CertificateSelector.CertificateDetails certificateData = new CertificateSelector.CertificateDetails();
                     certificateData.Hash = hash;
                     certificateData.FileName = "<unknown>";
                     certificateList.Add(certificateData);
@@ -527,7 +528,7 @@ namespace DMDashboard
             }
         }
 
-        private CertificatesDataContract.DesiredProperties UIToCertificateConfiguration2()
+        private CertificatesDataContract.DesiredProperties UIToCertificateConfiguration()
         {
             CertificatesDataContract.DesiredProperties certificatesDesiredProperties = new CertificatesDataContract.DesiredProperties();
 
@@ -576,7 +577,7 @@ namespace DMDashboard
 
         private void OnSetCertificateConfiguration(object sender, RoutedEventArgs e)
         {
-            CertificatesDataContract.DesiredProperties desiredProperties = UIToCertificateConfiguration2();
+            CertificatesDataContract.DesiredProperties desiredProperties = UIToCertificateConfiguration();
             string json = desiredProperties.ToJsonString();
             Debug.WriteLine("certificates:");
             Debug.WriteLine(json);
@@ -607,7 +608,7 @@ namespace DMDashboard
             json.Append("{");
             json.Append(TimeDesiredState.ToJson());
             json.Append(",");
-            json.Append(UIToCertificateConfiguration2().ToJsonString());
+            json.Append(UIToCertificateConfiguration().ToJsonString());
             json.Append(",");
             json.Append(RebootInfoDesiredState.ToJson());
             json.Append(",");
@@ -697,7 +698,7 @@ namespace DMDashboard
             return await _deviceTwin.CallDeviceMethod(DMJSonConstants.DTWindowsIoTNameSpace + ".getCertificateDetails", parametersJson, new TimeSpan(0, 0, 30), cancellationToken);
         }
 
-        private void ShowCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        private void ShowCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateDetails certificateData)
         {
             CertificateDetails certificateDetails = new CertificateDetails();
             certificateDetails.Owner = this;
@@ -705,15 +706,15 @@ namespace DMDashboard
             certificateDetails.ShowDialog();
         }
 
-        private async void ExportCertificateDetailsAsync(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        private async void ExportCertificateDetailsAsync(CertificateSelector sender, CertificateSelector.CertificateDetails certificateData)
         {
-            System.Windows.MessageBox.Show("Exporting certificate details from the device to Azure storage...");
+            MessageBox.Show("Exporting certificate details from the device to Azure storage...");
             string targetFileName = certificateData.Hash + ".json";
             DeviceMethodReturnValue result = await RequestCertificateDetailsAsync(AzureStorageDesiredConnectionString.Text, AzureStorageContainerName.Text, sender.CertificatesPath, certificateData.Hash, targetFileName);
             GetCertificateDetailsResponse response = JsonConvert.DeserializeObject<GetCertificateDetailsResponse>(result.Payload);
             if (response == null || response.Status != 0)
             {
-                System.Windows.MessageBox.Show("Error: could not schedule certificate export");
+                MessageBox.Show("Error: could not schedule certificate export");
                 return;
             }
 
@@ -728,7 +729,7 @@ namespace DMDashboard
             certificateExportDetails.Show();
         }
 
-        private void ExportCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        private void ExportCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateDetails certificateData)
         {
             ExportCertificateDetailsAsync(sender, certificateData);
         }

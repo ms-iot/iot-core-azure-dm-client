@@ -31,6 +31,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "AppCfg.h"
 #include "DMStorage.h"
 #include "TimeCfg.h"
+#include "TimeService.h"
 #include "TpmSupport.h"
 #include "WindowsTelemetry.h"
 

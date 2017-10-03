@@ -50,6 +50,20 @@ DWORD ServiceManager::GetStatus(const std::wstring& serviceName)
     return serviceStatus.dwCurrentState;
 }
 
+void ServiceManager::WaitStatus(const wstring& serviceName, DWORD status, unsigned int maxWaitInSeconds)
+{
+    while (maxWaitInSeconds--)
+    {
+        if (status == ServiceManager::GetStatus(serviceName))
+        {
+            break;
+        }
+        TRACEP(L"Waiting for service: ", serviceName.c_str());
+        ::Sleep(1000);
+        --maxWaitInSeconds;
+    }
+}
+
 DWORD ServiceManager::GetStartType(const std::wstring& serviceName)
 {
     TRACE(__FUNCTION__);
