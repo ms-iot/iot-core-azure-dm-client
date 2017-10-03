@@ -140,12 +140,12 @@ Possible `"response"` values are:
 {
     "Tag" : 52,
     "Status" : value,
-    "Base64Encoding" : "Base64Encoding value",
-	"TemplateName" : "TemplateName",
-    "IssuedTo" : "issued to value",
-    "IssuedBy" : "issued by value",
-    "ValidTo" : "date time value",
-    "ValidFrom" : "date time value"
+    "Base64Encoding" : &lt;<i>Base64Encoding value</i>&gt;,
+    "TemplateName" : &lt;<i>TemplateName</i>&gt;,
+    "IssuedTo" : &lt;<i>issued to value</i>&gt;,
+    "IssuedBy" : &lt;<i>issued by value</i>&gt;,
+    "ValidTo" : &lt;<i>date time value</i>&gt;,
+    "ValidFrom" : &lt;<i>date time value</i>&gt;
 }
 </pre>
 
@@ -154,20 +154,27 @@ Possible `"response"` values are:
 ### Install Certificates
 
 If the operator wants to install a new certificate (MyCertificate.cer) to ./Device/Vendor/MSFT/RootCATrustedCertificates/Root, the following steps should be followed:
+
 - Upload the certificate file to the default Azure blob storage. Let's assume its hash is MyCertificateHash.
 - Set the desired properties to:
+
 <pre>
 "desired": {
     "windows": {
         "certificates": {
-            "rootCATrustedCertificates_Root": "fileName01.cer/fileName02.cer/MyCertificate.cer",
-            "rootCATrustedCertificates_CA": { <i>list of hashes and required states</i> }
-            "rootCATrustedCertificates_TrustedPublisher": { <i>list of hashes and required states</i> }
-            "rootCATrustedCertificates_TrustedPeople": { <i>list of hashes and required states</i> }
-            "certificateStore_CA_System": { <i>list of hashes and required states</i> }
-            "certificateStore_Root_System": { <i>list of hashes and required states</i> }
-            "certificateStore_My_User": { <i>list of hashes and required states</i> }
-            "certificateStore_My_System": "fileName01.cer/fileName02.cer"
+            "rootCATrustedCertificates_Root": {
+                "09de264388ccf8607966266135da76e0b8d7798b": {
+                    "state": "installed",
+                    "fileName": "certificates\\mycertificate.cer"
+                }
+            },
+            "rootCATrustedCertificates_CA": {},
+            "rootCATrustedCertificates_TrustedPublisher": {},
+            "rootCATrustedCertificates_TrustedPeople": {},
+            "certificateStore_CA_System": {},
+            "certificateStore_Root_System": {},
+            "certificateStore_My_User": {},
+            "certificateStore_My_System": {}
         }
     }
 }
