@@ -149,7 +149,7 @@ class ReportRequestHandler
 
         dynamic json = twin.Properties.Desired.ToJson();
         var obj = JsonConvert.DeserializeObject(json);
-        var endpoint = obj.microsoft.management.deviceHealthAttestation.Endpoint.ToString();
+        var endpoint = obj.windows.deviceHealthAttestation.Endpoint.ToString();
         
         if (endpoint == null || string.Compare(endpoint, "") == 0 || string.Compare(endpoint, "DEFAULT", /*ignorecase=*/true) == 0)
         {
