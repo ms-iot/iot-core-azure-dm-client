@@ -82,8 +82,8 @@ By default, only the application explicitly specified by the packageFamilyId in 
     "windows" : {
         "apps" : {
             "?" : {
-                "store" : "<i>true|false</i>"
-                "nonStore" : "<i>true|false</i>",
+                "store" : <i>true|false</i>
+                "nonStore" : <i>true|false</i>,
             }
         }
     }
