@@ -821,8 +821,14 @@ namespace Microsoft.Devices.Management
 
                     if (isSelf)
                     {
-                        // This might be useful in the future.
-                        throw new Error(ErrorCodes.CANNOT_REVERT_DM_APPLICATION, "Reverting to an older version of the device management application (" + desiredState.packageFamilyName + ")is not supported.");
+                        // The reverting is implemented as an 'uninstall' followed by an 'install'.
+                        // The package to be installed is downloaded in the 'install' step.
+                        // So, if we were to revert self to an older version, we would have to:
+                        //  - (1) download the old version first, 
+                        //  - (2) send an atomic uninstall-install request to SystemConfigurator to
+                        //        uninstall and follow with an install and re-launch.
+                        //  The above two steps are not implemented yet.
+                        throw new Error(ErrorCodes.CANNOT_REVERT_DM_APPLICATION, "Reverting to an older version of the device management application (" + desiredState.packageFamilyName + ") is not supported.");
                     }
                     // Note that UninstallAppAsync will throw if it fails - and correctly avoid launching the install...
                     await UninstallAppAsync(installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);
@@ -1098,6 +1104,5 @@ namespace Microsoft.Devices.Management
         private IClientHandlerCallBack _callback;
         private JObject _desiredCache;
         private Dictionary<string, AppReportedState> _stateToReport;
-        
     }
 }

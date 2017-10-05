@@ -1,0 +1,60 @@
+﻿<Page
+    x:Class="E2ETestApp.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:E2ETestApp"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <ResourceDictionary>
+            <local:LevelToIndentConverter x:Key="levelToIndentConverter"/>
+            <local:StatusToText x:Key="statusToText"/>
+        </ResourceDictionary>
+    </Page.Resources>
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="350"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" FontSize="20" Margin="10" Text="IoT Core Azure DM Test Application" VerticalAlignment="Center"/>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Vertical">
+                <Button Width="180" Margin="3" Click="OnReset" HorizontalAlignment="Center">Reset</Button>
+                <Button Width="180" Margin="3" Click="OnExecute" HorizontalAlignment="Center">Execute</Button>
+            </StackPanel>
+            <ListBox Grid.Column="1" Margin="10" x:Name="TestCasesList">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="400"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <Border Width="{Binding Level, Converter={StaticResource levelToIndentConverter}}"/>
+                                <Border>
+                                    <CheckBox Content="{Binding Name}" IsChecked="{Binding Active, Mode=TwoWay}"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="{Binding Status, Converter={StaticResource statusToText}}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Margin="10" Text="Status"/>
+            <ListView Grid.Column="1" Margin="10" x:Name="StatusList"/>
+        </Grid>
+    </Grid>
+</Page>

@@ -1,0 +1,52 @@
+{
+  "scenario": [
+    {
+      "name": "00",
+      "type": "deviceTwin",
+      "description": "install our first wifi profile!",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "externalStorage": {
+                "connectionString": "<azure storage connection string>"
+              },
+              "wifi": {
+                "applyProperties": {
+                  "WPA2PersonalWifiTest": {
+                    "profile": "wifi\\WPA2PersonalWifiTest.xml"
+                  }
+                },
+                "reportProperties": "yes"
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "externalStorage": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "connectionString": "<ignore>"
+                },
+                "wifi": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "WPA2PersonalWifiTest": ""
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

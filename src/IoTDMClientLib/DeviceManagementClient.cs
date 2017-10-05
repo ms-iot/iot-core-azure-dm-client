@@ -19,10 +19,10 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Windows.Foundation.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+using Windows.Foundation.Diagnostics;
 
 namespace Microsoft.Devices.Management
 {

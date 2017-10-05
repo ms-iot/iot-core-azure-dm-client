@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+VisualStudioVersion = 15.0.26403.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SystemConfigurator", "SystemConfigurator\SystemConfigurator.vcxproj", "{CBBD687C-3B2A-4216-8F74-754A72E05D7F}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -59,6 +59,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServiceConfiguratorProxyCli
 	ProjectSection(ProjectDependencies) = postProject
 		{3EF84522-EB13-5FE0-8362-89A571063245} = {3EF84522-EB13-5FE0-8362-89A571063245}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E2ETestApp", "..\tests\E2ETestApp\E2ETestApp.csproj", "{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -243,6 +245,24 @@ Global
 		{0213712B-62E6-5546-8D25-79B90244FFA9}.Release|x86.ActiveCfg = Release|Win32
 		{0213712B-62E6-5546-8D25-79B90244FFA9}.Release|x86.Build.0 = Release|Win32
 		{0213712B-62E6-5546-8D25-79B90244FFA9}.Release|x86.Deploy.0 = Release|Win32
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Debug|ARM.ActiveCfg = Debug|ARM
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Debug|ARM.Build.0 = Debug|ARM
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Debug|ARM.Deploy.0 = Debug|ARM
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Debug|x64.ActiveCfg = Debug|x64
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Debug|x64.Build.0 = Debug|x64
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Debug|x64.Deploy.0 = Debug|x64
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Debug|x86.ActiveCfg = Debug|x86
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Debug|x86.Build.0 = Debug|x86
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Debug|x86.Deploy.0 = Debug|x86
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Release|ARM.ActiveCfg = Release|ARM
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Release|ARM.Build.0 = Release|ARM
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Release|ARM.Deploy.0 = Release|ARM
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Release|x64.ActiveCfg = Release|x64
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Release|x64.Build.0 = Release|x64
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Release|x64.Deploy.0 = Release|x64
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Release|x86.ActiveCfg = Release|x86
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Release|x86.Build.0 = Release|x86
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Release|x86.Deploy.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -262,5 +282,6 @@ Global
 		{94794BF1-4D16-46BE-97C1-15F968CD433F} = {48F869F6-CAD1-4DCA-90C3-231BC4ACC10F}
 		{3EF84522-EB13-5FE0-8362-89A571063245} = {48F869F6-CAD1-4DCA-90C3-231BC4ACC10F}
 		{0213712B-62E6-5546-8D25-79B90244FFA9} = {48F869F6-CAD1-4DCA-90C3-231BC4ACC10F}
+		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1} = {ACADCA61-EDB4-4D41-A868-FEAEFBC8ED43}
 	EndGlobalSection
 EndGlobal
