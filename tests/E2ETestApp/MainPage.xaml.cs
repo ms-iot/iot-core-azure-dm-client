@@ -83,7 +83,7 @@ namespace E2ETestApp
         {
             Log(LoggingLevel.Information, "Enumerating test cases...");
 
-            _testCasesRoot = await TestCaseEnumerator.EnumerateTestCases();
+            _testCasesRoot = await TestCaseEnumerator.EnumerateTestCasesAsync();
             if (_testCasesRoot == null)
             {
                 Log(LoggingLevel.Information, "No test cases found.");

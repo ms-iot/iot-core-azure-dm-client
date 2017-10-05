@@ -27,7 +27,7 @@ namespace E2ETestApp
     {
         private const string JsonScenario = "scenario";
         private const string DeviceId = "MockDevice";
-        private const string EmptyTwin = "{   \"deviceId\": \"gmileka09\"," +
+        private const string EmptyTwin = "{   \"deviceId\": \"mockDevice\"," +
                                              "\"etag\": \"AAAAAAAAAAE=\"," +
                                               "\"properties\": {" +
                                                 "\"desired\": {" +

@@ -24,7 +24,7 @@ using Mock.Microsoft.Azure.Devices.Client;
 
 namespace E2ETestApp
 {
-    class TestCase
+    abstract class TestCase
     {
         private const string JsonReported = "reported";
         private const string JsonProperties = "properties";
@@ -106,10 +106,7 @@ namespace E2ETestApp
             return Task.CompletedTask;
         }
 
-        public virtual Task<bool> Execute(ILogger logger, TestParameters testParameters)
-        {
-            return Task.FromResult<bool>(true);
-        }
+        public abstract Task<bool> Execute(ILogger logger, TestParameters testParameters);
 
         protected static void ReportError(ILogger logger, string msg)
         {

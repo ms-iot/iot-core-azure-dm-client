@@ -29,7 +29,7 @@ namespace E2ETestApp
         private const string TestCasesRootName = "Root";
         private const string TestCasesRootDescription = "";
 
-        private static async Task EnumerateTestCases(uint level, StorageFolder parentFolder, TestNode parentNode)
+        private static async Task EnumerateTestCasesAsync(uint level, StorageFolder parentFolder, TestNode parentNode)
         {
             if (parentFolder == null || parentNode == null)
             {
@@ -45,7 +45,7 @@ namespace E2ETestApp
                 parentNode.AddChild(childNode);
 
                 // Recurse...
-                await EnumerateTestCases(level + 1, childFolder, childNode);
+                await EnumerateTestCasesAsync(level + 1, childFolder, childNode);
             }
 
             // Process child files...
@@ -57,7 +57,7 @@ namespace E2ETestApp
             }
         }
 
-        public static async Task<TestNode> EnumerateTestCases()
+        public static async Task<TestNode> EnumerateTestCasesAsync()
         {
             var folder = Package.Current.InstalledLocation;
             StorageFolder rootFolder = await folder.GetFolderAsync(TestCasesRootFolder);
@@ -67,7 +67,7 @@ namespace E2ETestApp
             }
 
             TestNode rootNode = new TestNode(null /*parent*/, 0 /*level*/, TestCasesRootName, TestCasesRootDescription);
-            await EnumerateTestCases(0 /*level*/, rootFolder, rootNode);
+            await EnumerateTestCasesAsync(0 /*level*/, rootFolder, rootNode);
             return rootNode;
         }
 
