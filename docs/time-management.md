@@ -127,7 +127,7 @@ The *Time Service* supports [Source Policy](source-policy.md).
 #### Device Twin Reporting
 
 <pre>
-"desired" : {
+"reported" : {
     "windows": {
         "timeService": {
             "enabled": "yes|no",
