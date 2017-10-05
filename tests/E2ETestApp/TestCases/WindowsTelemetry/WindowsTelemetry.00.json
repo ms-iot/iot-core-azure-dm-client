@@ -1,0 +1,37 @@
+{
+  "scenario": [
+    {
+      "name": "00",
+      "type": "deviceTwin",
+      "description": "set Windows telemetry level",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "windowsTelemetry": {
+                "level": "security"
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "windowsTelemetry": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "level": "security"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

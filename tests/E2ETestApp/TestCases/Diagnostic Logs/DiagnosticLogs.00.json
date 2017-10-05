@@ -1,0 +1,210 @@
+{
+  "scenario": [
+    {
+      "name": "00",
+      "type": "deviceTwin",
+      "description": "start collecting Azure DM!",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "externalStorage": {
+                "connectionString": "<azure storage connection string>"
+              },
+              "eventTracingCollectors": {
+                "AzureDM": {
+                  "applyProperties": {
+                    "traceLogFileMode": "sequential",
+                    "logFileSizeLimitMB": 4,
+                    "logFileFolder": "AzureDMFolder",
+                    "logFileName": "AzureDMFile.etl",
+                    "started": "yes",
+                    "D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897": {
+                      "traceLevel": "verbose",
+                      "keywords": "",
+                      "enabled": "yes",
+                      "type": "provider"
+                    }
+                  },
+                  "reportProperties": "yes"
+                }
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "externalStorage": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "connectionString": "<ignore>"
+                },
+                "eventTracingCollectors": {
+                  "AzureDM": {
+                    "traceLogFileMode": "sequential",
+                    "logFileSizeLimitMB": 4,
+                    "logFileFolder": "AzureDMFolder",
+                    "logFileName": "AzureDMFile.etl",
+                    "started": "yes",
+                    "D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897": {
+                      "traceLevel": "verbose",
+                      "keywords": "<ignore>",
+                      "enabled": true,
+                      "type": "provider"
+                    }
+                  },
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "01",
+      "type": "deviceTwin",
+      "description": "Stop collecting Azure DM!",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "externalStorage": {
+                "connectionString": "<azure storage connection string>"
+              },
+              "eventTracingCollectors": {
+                "AzureDM": {
+                  "applyProperties": {
+                    "traceLogFileMode": "sequential",
+                    "logFileSizeLimitMB": 4,
+                    "logFileFolder": "AzureDMFolder",
+                    "logFileName": "AzureDMFile.etl",
+                    "started": "no",
+                    "D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897": {
+                      "traceLevel": "verbose",
+                      "keywords": "",
+                      "enabled": "yes",
+                      "type": "provider"
+                    }
+                  },
+                  "reportProperties": "yes"
+                }
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "externalStorage": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "connectionString": "<ignore>"
+                },
+                "eventTracingCollectors": {
+                  "AzureDM": {
+                    "traceLogFileMode": "sequential",
+                    "logFileSizeLimitMB": 4,
+                    "logFileFolder": "AzureDMFolder",
+                    "logFileName": "AzureDMFile.etl",
+                    "started": "no",
+                    "D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897": {
+                      "traceLevel": "verbose",
+                      "keywords": "<ignore>",
+                      "enabled": true,
+                      "type": "provider"
+                    }
+                  },
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "02",
+      "type": "directMethod",
+      "directMethodName": "windows.enumDMFolders",
+      "description": "get a list of folders",
+      "input": {},
+      "output": {
+        "returnJson": {
+          "list": [
+            "AzureDMFolder"
+          ]
+        },
+        "returnCode": 0
+      }
+    },
+    {
+      "name": "03",
+      "type": "directMethod",
+      "directMethodName": "windows.enumDMFiles",
+      "description": "get a list of files",
+      "input": {
+        "folder": "AzureDMFolder"
+      },
+      "output": {
+        "returnJson": {
+          "list": [
+            "AzureDMFile.etl"
+          ]
+        },
+        "returnCode": 0
+      }
+    },
+    {
+      "name": "04",
+      "type": "directMethod",
+      "directMethodName": "windows.uploadDMFile",
+      "description": "upload a file",
+      "input": {
+        "folder": "AzureDMFolder",
+        "fileName": "AzureDMFile.etl",
+        "connectionString": "<azure storage connection string>",
+        "container": "etl"
+      },
+      "output": {
+        "returnJson": {
+          "errorCode": 0
+        },
+        "returnCode": 0
+      }
+    },
+    {
+      "name": "05",
+      "type": "directMethod",
+      "directMethodName": "windows.deleteDMFile",
+      "description": "delete a file",
+      "input": {
+        "folder": "AzureDMFolder",
+        "fileName": "AzureDMFile.etl"
+      },
+      "output": {
+        "returnJson": {
+          "errorCode": 0
+        },
+        "returnCode": 0
+      }
+    }
+  ]
+}
