@@ -96,7 +96,7 @@ Note that the `"?"` can be combined with `"packageFamilyId"` elements. The repor
 
 ### Store Update Frequency
 
-The DM client performs the update check according to the [Store Update Configuration](store-update-config.md). The update check is not performed each time a value in `"desired.windows.apps"` changes.
+The DM client performs the update check according to the [Store Update Configuration](https://docs.microsoft.com/en-us/windows/client-management/mdm/policy-csp-applicationmanagement#applicationmanagement-allowappstoreautoupdate). The update check is not performed each time a value in `"desired.windows.apps"` changes.
 
 ### Reported Properties
 
