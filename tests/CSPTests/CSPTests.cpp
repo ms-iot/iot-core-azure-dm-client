@@ -37,7 +37,7 @@ void ShowUsage()
 }
 
 [Platform::MTAThread]
-int wmain(int argc, wchar_t *argv[])
+int wmain(int, wchar_t *[])
 {
     ShowUsage();
 
