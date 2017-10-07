@@ -20,6 +20,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="100"/>
@@ -29,51 +31,63 @@
         <Border Grid.Row="0" Grid.Column="1" Background="#F8F8F8" Margin="3">
             <TextBlock Width="200" x:Name="NtpServer" HorizontalAlignment="Left"/>
         </Border>
-        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Time (UTC)"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Time"/>
         <Border Grid.Row="1" Grid.Column="1" Background="#F8F8F8" Margin="3">
             <TextBlock Width="200" x:Name="LocalTime" HorizontalAlignment="Left"/>
         </Border>
-        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Bias"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Disable Dynamic Daytime"/>
         <Border Grid.Row="2" Grid.Column="1" Background="#F8F8F8" Margin="3">
+            <TextBlock Width="200" x:Name="DynamicDaylightTimeDisabled" HorizontalAlignment="Left"/>
+        </Border>
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Zone Key Name"/>
+        <Border Grid.Row="3" Grid.Column="1" Background="#F8F8F8" Margin="3">
+            <TextBlock Width="200" x:Name="ZoneKeyName" HorizontalAlignment="Left"/>
+        </Border>
+
+        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Bias"/>
+        <Border Grid.Row="4" Grid.Column="1" Background="#F8F8F8" Margin="3">
             <TextBlock Width="200" x:Name="Bias" HorizontalAlignment="Left"/>
         </Border>
         
-        <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Standard"/>
+        <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Standard"/>
         
-        <TextBlock Grid.Row="4" Grid.Column="0" Margin="15,3,3,3" Text="Name"/>
-        <Border Grid.Row="4" Grid.Column="1" Background="#F8F8F8" Margin="3">
+        <TextBlock Grid.Row="6" Grid.Column="0" Margin="15,3,3,3" Text="Name"/>
+        <Border Grid.Row="6" Grid.Column="1" Background="#F8F8F8" Margin="3">
             <TextBlock Width="200" x:Name="StandardName" HorizontalAlignment="Left"/>
         </Border>
-        <TextBlock Grid.Row="5" Grid.Column="0" Margin="15,3,3,3" Text="Date"/>
-        <Border Grid.Row="5" Grid.Column="1" Background="#F8F8F8" Margin="3">
+        <TextBlock Grid.Row="7" Grid.Column="0" Margin="15,3,3,3" Text="Date"/>
+        <Border Grid.Row="7" Grid.Column="1" Background="#F8F8F8" Margin="3">
             <TextBlock Width="200" x:Name="StandardDate" HorizontalAlignment="Left"/>
         </Border>
-        <TextBlock Grid.Row="6" Grid.Column="0" Margin="15,3,3,3" Text="Bias"/>
-        <Border Grid.Row="6" Grid.Column="1" Background="#F8F8F8" Margin="3">
+        <TextBlock Grid.Row="8" Grid.Column="0" Margin="15,3,3,3" Text="Bias"/>
+        <Border Grid.Row="8" Grid.Column="1" Background="#F8F8F8" Margin="3">
             <TextBlock Width="200" x:Name="StandardBias" HorizontalAlignment="Left"/>
         </Border>
-        <TextBlock Grid.Row="7" Grid.Column="0" Margin="15,3,3,3" Text="Day of Week"/>
-        <Border Grid.Row="7" Grid.Column="1" Background="#F8F8F8" Margin="3">
+        <TextBlock Grid.Row="9" Grid.Column="0" Margin="15,3,3,3" Text="Day of Week"/>
+        <Border Grid.Row="9" Grid.Column="1" Background="#F8F8F8" Margin="3">
             <TextBlock Width="200" x:Name="StandardDayOfWeek" HorizontalAlignment="Left"/>
         </Border>
 
-        <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Daylight"/>
+        <TextBlock Grid.Row="10" Grid.Column="0" Margin="3" Text="Daylight"/>
 
-        <TextBlock Grid.Row="9" Grid.Column="0" Margin="15,3,3,3" Text="Name"/>
-        <Border Grid.Row="9" Grid.Column="1" Background="#F8F8F8" Margin="3">
+        <TextBlock Grid.Row="11" Grid.Column="0" Margin="15,3,3,3" Text="Name"/>
+        <Border Grid.Row="11" Grid.Column="1" Background="#F8F8F8" Margin="3">
             <TextBlock Width="200" x:Name="DaylightName" HorizontalAlignment="Left"/>
         </Border>
-        <TextBlock Grid.Row="10" Grid.Column="0" Margin="15,3,3,3" Text="Date"/>
-        <Border Grid.Row="10" Grid.Column="1" Background="#F8F8F8" Margin="3">
+        <TextBlock Grid.Row="12" Grid.Column="0" Margin="15,3,3,3" Text="Date"/>
+        <Border Grid.Row="12" Grid.Column="1" Background="#F8F8F8" Margin="3">
             <TextBlock Width="200" x:Name="DaylightDate" HorizontalAlignment="Left"/>
         </Border>
-        <TextBlock Grid.Row="11" Grid.Column="0" Margin="15,3,3,3" Text="Bias"/>
-        <Border Grid.Row="11" Grid.Column="1" Background="#F8F8F8" Margin="3">
+        <TextBlock Grid.Row="13" Grid.Column="0" Margin="15,3,3,3" Text="Bias"/>
+        <Border Grid.Row="13" Grid.Column="1" Background="#F8F8F8" Margin="3">
             <TextBlock Width="200" x:Name="DaylightBias" HorizontalAlignment="Left"/>
         </Border>
-        <TextBlock Grid.Row="12" Grid.Column="0" Margin="15,3,3,3" Text="Day of Week"/>
-        <Border Grid.Row="12" Grid.Column="1" Background="#F8F8F8" Margin="3">
+        <TextBlock Grid.Row="14" Grid.Column="0" Margin="15,3,3,3" Text="Day of Week"/>
+        <Border Grid.Row="14" Grid.Column="1" Background="#F8F8F8" Margin="3">
             <TextBlock Width="200" x:Name="DaylightDayOfWeek" HorizontalAlignment="Left"/>
         </Border>
+
     </Grid>
 </UserControl>

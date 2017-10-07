@@ -25,7 +25,7 @@ class TimeCfg
     {
         std::wstring localTime;
         std::wstring ntpServer;
-        TIME_ZONE_INFORMATION timeZoneInformation;
+        DYNAMIC_TIME_ZONE_INFORMATION dynamicTimeZoneInformation;
     };
 
 public:

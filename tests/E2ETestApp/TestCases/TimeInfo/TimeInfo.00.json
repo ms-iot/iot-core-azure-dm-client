@@ -9,16 +9,18 @@
           "desired": {
             "windows": {
               "timeInfo": {
+                "ntpServer": "time.windows.com",
+                "dynamicDaylightTimeDisabled": false,
+                "timeZoneKeyName": "Mountain Standard Time",
+                "timeZoneBias": 420,
                 "timeZoneDaylightBias": -60,
-                "timeZoneDaylightDate": "2000-03-02T02:00:00Z",
+                "timeZoneDaylightDate": "0000-03-02T02:00:00Z",
                 "timeZoneDaylightName": "Mountain Daylight Time",
                 "timeZoneDaylightDayOfWeek": 0,
                 "timeZoneStandardBias": 0,
-                "timeZoneStandardDate": "2000-11-01T02:00:00Z",
+                "timeZoneStandardDate": "0000-11-01T02:00:00Z",
                 "timeZoneStandardName": "Mountain Standard Time",
-                "timeZoneStandardDayOfWeek": 0,
-                "timeZoneBias": 420,
-                "ntpServer": "time.windows.com"
+                "timeZoneStandardDayOfWeek": 0
               }
             }
           }
@@ -34,6 +36,10 @@
                     "time": "<ignore>",
                     "state": "completed"
                   },
+                  "ntpServer": "time.windows.com",
+                  "timeZoneBias": 420,
+                  "dynamicDaylightTimeDisabled": false,
+                  "timeZoneKeyName": "Mountain Standard Time",
                   "timeZoneDaylightBias": -60,
                   "timeZoneDaylightDate": "0000-03-02T02:00:00Z",
                   "timeZoneDaylightName": "Mountain Daylight Time",
@@ -41,9 +47,7 @@
                   "timeZoneStandardBias": 0,
                   "timeZoneStandardDate": "0000-11-01T02:00:00Z",
                   "timeZoneStandardName": "Mountain Standard Time",
-                  "timeZoneStandardDayOfWeek": 0,
-                  "timeZoneBias": 420,
-                  "ntpServer": "time.windows.com"
+                  "timeZoneStandardDayOfWeek": 0
                 }
               }
             }
@@ -60,16 +64,18 @@
           "desired": {
             "windows": {
               "timeInfo": {
+                "ntpServer": "time.windows.com",
+                "dynamicDaylightTimeDisabled": false,
+                "timeZoneKeyName": "Pacific Standard Time",
+                "timeZoneBias": 480,
                 "timeZoneDaylightBias": -60,
-                "timeZoneDaylightDate": "2000-03-02T02:00:00Z",
+                "timeZoneDaylightDate": "0000-03-02T02:00:00Z",
                 "timeZoneDaylightName": "Pacific Daylight Time",
                 "timeZoneDaylightDayOfWeek": 0,
                 "timeZoneStandardBias": 0,
-                "timeZoneStandardDate": "2000-11-01T02:00:00Z",
+                "timeZoneStandardDate": "0000-11-01T02:00:00Z",
                 "timeZoneStandardName": "Pacific Standard Time",
-                "timeZoneStandardDayOfWeek": 0,
-                "timeZoneBias": 480,
-                "ntpServer": "time.windows.com"
+                "timeZoneStandardDayOfWeek": 0
               }
             }
           }
@@ -85,6 +91,10 @@
                     "time": "<ignore>",
                     "state": "completed"
                   },
+                  "ntpServer": "time.windows.com",
+                  "dynamicDaylightTimeDisabled": false,
+                  "timeZoneKeyName": "Pacific Standard Time",
+                  "timeZoneBias": 480,
                   "timeZoneDaylightBias": -60,
                   "timeZoneDaylightDate": "0000-03-02T02:00:00Z",
                   "timeZoneDaylightName": "Pacific Daylight Time",
@@ -92,9 +102,7 @@
                   "timeZoneStandardBias": 0,
                   "timeZoneStandardDate": "0000-11-01T02:00:00Z",
                   "timeZoneStandardName": "Pacific Standard Time",
-                  "timeZoneStandardDayOfWeek": 0,
-                  "timeZoneBias": 480,
-                  "ntpServer": "time.windows.com"
+                  "timeZoneStandardDayOfWeek": 0
                 }
               }
             }

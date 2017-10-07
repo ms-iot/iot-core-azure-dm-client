@@ -26,20 +26,22 @@ namespace DMDashboard
             InitializeComponent();
         }
 
-        public void FromJson(JObject json)
+        public void FromJson(JObject jsonObject)
         {
-            string notFound = "<not found>";
-            LocalTime.Text = Utils.GetString(json, "localTime", notFound);
-            NtpServer.Text = Utils.GetString(json, "ntpServer", notFound);
-            Bias.Text = Utils.GetString(json, "timeZoneBias", notFound);
-            StandardName.Text = Utils.GetString(json, "timeZoneStandardName", notFound);
-            StandardDate.Text = Utils.GetString(json, "timeZoneStandardDate", notFound);
-            StandardBias.Text = Utils.GetString(json, "timeZoneStandardBias", notFound);
-            StandardDayOfWeek.Text = Utils.GetString(json, "timeZoneStandardDayOfWeek", notFound);
-            DaylightName.Text = Utils.GetString(json, "timeZoneDaylightName", notFound);
-            DaylightDate.Text = Utils.GetString(json, "timeZoneDaylightDate", notFound);
-            DaylightBias.Text = Utils.GetString(json, "timeZoneDaylightBias", notFound);
-            DaylightDayOfWeek.Text = Utils.GetString(json, "timeZoneDaylightDayOfWeek", notFound);
+            TimeSettingsDataContract.ReportedProperties properties = TimeSettingsDataContract.ReportedProperties.FromJsonObject(jsonObject);
+            LocalTime.Text = properties.localTime;
+            NtpServer.Text = properties.ntpServer;
+            DynamicDaylightTimeDisabled.Text = properties.dynamicDaylightTimeDisabled ? "True" : "False";
+            ZoneKeyName.Text = properties.timeZoneKeyName;
+            Bias.Text = properties.timeZoneBias.ToString();
+            StandardName.Text = properties.timeZoneStandardName;
+            StandardDate.Text = properties.timeZoneStandardDate;
+            StandardBias.Text = properties.timeZoneStandardBias.ToString();
+            StandardDayOfWeek.Text = properties.timeZoneStandardDayOfWeek.ToString();
+            DaylightName.Text = properties.timeZoneDaylightName;
+            DaylightDate.Text = properties.timeZoneDaylightDate;
+            DaylightBias.Text = properties.timeZoneDaylightBias.ToString();
+            DaylightDayOfWeek.Text = properties.timeZoneDaylightDayOfWeek.ToString();
         }
     }
 }

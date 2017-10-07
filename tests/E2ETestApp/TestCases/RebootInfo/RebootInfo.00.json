@@ -39,7 +39,7 @@
     {
       "name": "01",
       "type": "deviceTwin",
-      "description": "our first test case!",
+      "description": "our second test case!",
       "input": {
         "properties": {
           "desired": {

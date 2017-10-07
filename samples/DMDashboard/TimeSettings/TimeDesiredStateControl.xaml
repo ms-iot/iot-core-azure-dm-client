@@ -59,42 +59,50 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="100"/>
                         <ColumnDefinition Width="200"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Bias"/>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Margin="3" x:Name="Bias"/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Disable Dynamic Daytime"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Margin="3" Text="False"/>
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Standard"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="3" Text="Zone Key Name"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" Text="{Binding Id}"/>
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="15,3,3,3" Text="Name"/>
-                    <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" x:Name="StandardName"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Bias"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Margin="3" Text="{Binding Bias}"/>
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" Margin="15,3,3,3" Text="Date"/>
-                    <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" x:Name="StandardDate"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Standard"/>
 
-                    <TextBlock Grid.Row="4" Grid.Column="0" Margin="15,3,3,3" Text="Bias"/>
-                    <TextBlock Grid.Row="4" Grid.Column="1" Margin="3" x:Name="StandardBias"/>
+                    <TextBlock Grid.Row="4" Grid.Column="0" Margin="15,3,3,3" Text="Name"/>
+                    <TextBlock Grid.Row="4" Grid.Column="1" Margin="3" Text="{Binding StandardName}"/>
 
-                    <TextBlock Grid.Row="5" Grid.Column="0" Margin="15,3,3,3" Text="Day of Week"/>
-                    <TextBlock Grid.Row="5" Grid.Column="1" Margin="3" x:Name="StandardDayOfWeek"/>
+                    <TextBlock Grid.Row="5" Grid.Column="0" Margin="15,3,3,3" Text="Date"/>
+                    <TextBlock Grid.Row="5" Grid.Column="1" Margin="3" Text="{Binding StandardDate}"/>
 
-                    <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Daylight"/>
+                    <TextBlock Grid.Row="6" Grid.Column="0" Margin="15,3,3,3" Text="Bias"/>
+                    <TextBlock Grid.Row="6" Grid.Column="1" Margin="3" Text="{Binding StandardBias}"/>
 
-                    <TextBlock Grid.Row="7" Grid.Column="0" Margin="15,3,3,3" Text="Name"/>
-                    <TextBlock Grid.Row="7" Grid.Column="1" Margin="3" x:Name="DaylightName"/>
+                    <TextBlock Grid.Row="7" Grid.Column="0" Margin="15,3,3,3" Text="Day of Week"/>
+                    <TextBlock Grid.Row="7" Grid.Column="1" Margin="3" Text="{Binding StandardDayOfWeek}"/>
 
-                    <TextBlock Grid.Row="8" Grid.Column="0" Margin="15,3,3,3" Text="Date"/>
-                    <TextBlock Grid.Row="8" Grid.Column="1" Margin="3" x:Name="DaylightDate"/>
+                    <TextBlock Grid.Row="8" Grid.Column="0" Margin="3" Text="Daylight"/>
 
-                    <TextBlock Grid.Row="9" Grid.Column="0" Margin="15,3,3,3" Text="Bias"/>
-                    <TextBlock Grid.Row="9" Grid.Column="1" Margin="3" x:Name="DaylightBias"/>
+                    <TextBlock Grid.Row="9" Grid.Column="0" Margin="15,3,3,3" Text="Name"/>
+                    <TextBlock Grid.Row="9" Grid.Column="1" Margin="3" Text="{Binding DaylightName}"/>
 
-                    <TextBlock Grid.Row="10" Grid.Column="0" Margin="15,3,3,3" Text="Day of Week"/>
-                    <TextBlock Grid.Row="10" Grid.Column="1" Margin="3" x:Name="DaylightDayOfWeek"/>
+                    <TextBlock Grid.Row="10" Grid.Column="0" Margin="15,3,3,3" Text="Date"/>
+                    <TextBlock Grid.Row="10" Grid.Column="1" Margin="3" Text="{Binding DaylightDate}"/>
+
+                    <TextBlock Grid.Row="11" Grid.Column="0" Margin="15,3,3,3" Text="Bias"/>
+                    <TextBlock Grid.Row="11" Grid.Column="1" Margin="3" Text="{Binding DaylightBias}"/>
+
+                    <TextBlock Grid.Row="12" Grid.Column="0" Margin="15,3,3,3" Text="Day of Week"/>
+                    <TextBlock Grid.Row="12" Grid.Column="1" Margin="3" Text="{Binding DaylightDayOfWeek}"/>
                 </Grid>
             </Grid>
         </Grid>

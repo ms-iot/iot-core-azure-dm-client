@@ -157,12 +157,12 @@ void ToUTC(const ISO8601DateTime& in, ISO8601DateTime& out)
     tm result;
     gmtime_s(&result, &tUtc);
 
-    out.year = result.tm_year + 1900;
-    out.month = result.tm_mon + 1; // 0 based
-    out.day = result.tm_mday;
-    out.hour = result.tm_hour;
-    out.minute = result.tm_min;
-    out.second = result.tm_sec;
+    out.year = static_cast<unsigned short>(result.tm_year + 1900);
+    out.month = static_cast<unsigned short>(result.tm_mon + 1); // 0 based
+    out.day = static_cast<unsigned short>(result.tm_mday);
+    out.hour = static_cast<unsigned short>(result.tm_hour);
+    out.minute = static_cast<unsigned short>(result.tm_min);
+    out.second = static_cast<unsigned short>(result.tm_sec);
     out.milliseconds = 0;
     out.zoneHour = 0;
     out.zoneMinute = 0;

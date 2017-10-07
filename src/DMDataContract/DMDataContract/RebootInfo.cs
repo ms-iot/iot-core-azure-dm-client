@@ -35,17 +35,8 @@ namespace Microsoft.Devices.Management.DMDataContract
 
             public void LoadFrom(JObject rebootObject)
             {
-                singleRebootTime = Utils.GetString(rebootObject, JsonSingleRebootTime, "");
-                if (!String.IsNullOrEmpty(singleRebootTime))
-                {
-                    singleRebootTime = DateTime.Parse(singleRebootTime).ToString("yyyy-MM-ddTHH:mm:ssZ");
-                }
-
-                dailyRebootTime = Utils.GetString(rebootObject, JsonDailyRebootTime, "");
-                if (!String.IsNullOrEmpty(dailyRebootTime))
-                {
-                    dailyRebootTime = DateTime.Parse(dailyRebootTime).ToString("yyyy-MM-ddTHH:mm:ssZ");
-                }
+                singleRebootTime = Utils.GetDateTimeAsString(rebootObject, JsonSingleRebootTime, "");
+                dailyRebootTime = Utils.GetDateTimeAsString(rebootObject, JsonDailyRebootTime, "");
             }
 
             public string ToJson()
@@ -67,9 +58,9 @@ namespace Microsoft.Devices.Management.DMDataContract
 
             public void LoadFrom(JObject json)
             {
-                singleRebootTime = Utils.GetString(json, JsonSingleRebootTime, NotFound);
-                dailyRebootTime = Utils.GetString(json, JsonDailyRebootTime, NotFound);
-                lastBootTime = Utils.GetString(json, JsonLastBootTime, NotFound);
+                singleRebootTime = Utils.GetDateTimeAsString(json, JsonSingleRebootTime, NotFound);
+                dailyRebootTime = Utils.GetDateTimeAsString(json, JsonDailyRebootTime, NotFound);
+                lastBootTime = Utils.GetDateTimeAsString(json, JsonLastBootTime, NotFound);
             }
         }
     }
