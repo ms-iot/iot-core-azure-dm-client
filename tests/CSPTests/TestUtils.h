@@ -22,7 +22,7 @@ namespace Test
 {
     namespace Utils
     {
-        class TestFailureException : std::exception
+        class TestFailureException : public std::exception
         {
         public:
             TestFailureException(const char* msg) : 

@@ -66,7 +66,6 @@ IResponse^ SCProxyClient::SendCommand(IRequest^ command)
 {
     auto blob = command->Serialize();
     auto json = blob->PayloadAsString;
-    auto blobTag = blob->Tag;
 
     auto requestType = (UINT32)command->Tag;
     CComBSTR requestJson = (wchar_t*)json->Data();
