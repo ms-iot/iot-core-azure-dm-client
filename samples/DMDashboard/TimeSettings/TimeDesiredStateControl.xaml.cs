@@ -12,10 +12,11 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
+using Microsoft.Devices.Management.DMDataContract;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -27,12 +28,13 @@ namespace DMDashboard
         {
             get
             {
-                return "timeInfo";
+                return TimeSettingsDataContract.SectionName;
             }
         }
 
         private class TimeZoneData
         {
+            public string Id { get; set; }
             public string DisplayName { get; set; }
 
             public int Bias { get; set; }
@@ -63,6 +65,7 @@ namespace DMDashboard
             foreach (TimeZoneInfo timeZone in tzCollection)
             {
                 TimeZoneData timeZoneData = new TimeZoneData();
+                timeZoneData.Id = timeZone.Id;
                 timeZoneData.DaylightName = timeZone.DaylightName;
                 timeZoneData.StandardName = timeZone.StandardName;
                 timeZoneData.DisplayName = timeZone.DisplayName;
@@ -72,17 +75,32 @@ namespace DMDashboard
                 if (rules.Length != 0)
                 {
                     TimeZoneInfo.AdjustmentRule currentRule = rules[rules.Length - 1];
-                    // The year is set to 2000 since .Net DateTime object does not accept year 0.
-                    // Setting it to 2000 allows the receiving end Newton json library and its users to parse successfully.
-                    // The year is not being used by the underlying implementation (see TIME_ZONE_INFORMATION docs).
-                    timeZoneData.DaylightDate = "2000-" + currentRule.DaylightTransitionStart.Month.ToString() + "-" + currentRule.DaylightTransitionStart.Week +
-                                                "T" + currentRule.DaylightTransitionStart.TimeOfDay.ToString("HH:mm:ssZ");
+
+                    int daylightYear = 0;
+                    if (currentRule.DaylightTransitionStart.TimeOfDay.Year != 1)    // .net uses 1 so that DateTime accepts it.
+                    {
+                        daylightYear = currentRule.DaylightTransitionStart.TimeOfDay.Year;
+                    }
+
+                    timeZoneData.DaylightDate = daylightYear +
+                                                "-" + currentRule.DaylightTransitionStart.Month.ToString() +
+                                                "-" + currentRule.DaylightTransitionStart.Week +
+                                                "T" + currentRule.DaylightTransitionStart.TimeOfDay.ToString("HH:mm:ss");
+
                     timeZoneData.DaylightBias = -1 * (int)currentRule.DaylightDelta.TotalMinutes;
                     timeZoneData.DaylightDayOfWeek = (int)currentRule.DaylightTransitionStart.DayOfWeek;
 
-                    timeZoneData.StandardDate = "2000-" + currentRule.DaylightTransitionEnd.Month.ToString() + "-" + currentRule.DaylightTransitionEnd.Week +
-                                                "T" + currentRule.DaylightTransitionEnd.TimeOfDay.ToString("HH:mm:ssZ");
-                    timeZoneData.StandardBias = -1 * 0;
+                    int standardYear = 0;
+                    if (currentRule.DaylightTransitionEnd.TimeOfDay.Year != 1)    // .net uses 1 so that DateTime accepts it.
+                    {
+                        standardYear = currentRule.DaylightTransitionEnd.TimeOfDay.Year;
+                    }
+
+                    timeZoneData.StandardDate = standardYear + 
+                                                "-" + currentRule.DaylightTransitionEnd.Month.ToString() + 
+                                                "-" + currentRule.DaylightTransitionEnd.Week +
+                                                "T" + currentRule.DaylightTransitionEnd.TimeOfDay.ToString("HH:mm:ss");
+                    timeZoneData.StandardBias = 0;
                     timeZoneData.StandardDayOfWeek = (int)currentRule.DaylightTransitionEnd.DayOfWeek;
                 }
 
@@ -107,41 +125,33 @@ namespace DMDashboard
 
         private void OnTimeZoneChanged(object sender, SelectionChangedEventArgs e)
         {
-            TimeZoneData timeZoneData = (TimeZoneData)DisplayNames.SelectedItem;
-
-            Bias.Text = timeZoneData.Bias.ToString();
-
-            StandardName.Text = timeZoneData.StandardName;
-            StandardDate.Text = timeZoneData.StandardDate;
-            StandardBias.Text = timeZoneData.StandardBias.ToString();
-            StandardDayOfWeek.Text = timeZoneData.StandardDayOfWeek.ToString();
-
-            DaylightName.Text = timeZoneData.DaylightName;
-            DaylightDate.Text = timeZoneData.DaylightDate;
-            DaylightBias.Text = timeZoneData.DaylightBias.ToString();
-            DaylightDayOfWeek.Text = timeZoneData.DaylightDayOfWeek.ToString();
+            DetailsPane.DataContext = (TimeZoneData)DisplayNames.SelectedItem;
         }
 
         public string ToJson()
         {
             TimeZoneData timeZoneData = (TimeZoneData)DisplayNames.SelectedItem;
-            string timeServer = ((ComboBoxItem)DesiredNtpServer.SelectedItem).Content.ToString();
 
-            StringBuilder sb = new StringBuilder();
-            sb.Append("\"" + SectionName + "\" : {\n");
-            sb.Append("\"timeZoneDaylightBias\" : " + timeZoneData.DaylightBias + ",\n");
-            sb.Append("\"timeZoneDaylightDate\" : \"" + timeZoneData.DaylightDate + "\",\n");
-            sb.Append("\"timeZoneDaylightName\" : \"" + timeZoneData.DaylightName + "\",\n");
-            sb.Append("\"timeZoneDaylightDayOfWeek\" : " + timeZoneData.DaylightDayOfWeek + ",\n");
-            sb.Append("\"timeZoneStandardBias\" : " + timeZoneData.StandardBias + ",\n");
-            sb.Append("\"timeZoneStandardDate\" : \"" + timeZoneData.StandardDate + "\",\n");
-            sb.Append("\"timeZoneStandardName\" : \"" + timeZoneData.StandardName + "\",\n");
-            sb.Append("\"timeZoneStandardDayOfWeek\" : " + timeZoneData.StandardDayOfWeek + ",\n");
-            sb.Append("\"timeZoneBias\" : " + timeZoneData.Bias + ",\n");
-            sb.Append("\"ntpServer\" : \"" + timeServer + "\"\n");
-            sb.Append("}");
+            TimeSettingsDataContract.DesiredProperties desiredProperties = new TimeSettingsDataContract.DesiredProperties();
 
-            return sb.ToString();
+            desiredProperties.ntpServer = ((ComboBoxItem)DesiredNtpServer.SelectedItem).Content.ToString();
+
+            desiredProperties.timeZoneBias = timeZoneData.Bias;
+
+            desiredProperties.timeZoneStandardBias = timeZoneData.StandardBias;
+            desiredProperties.timeZoneStandardDate = timeZoneData.StandardDate;
+            desiredProperties.timeZoneStandardName = timeZoneData.StandardName;
+            desiredProperties.timeZoneStandardDayOfWeek = timeZoneData.StandardDayOfWeek;
+
+            desiredProperties.timeZoneDaylightBias = timeZoneData.DaylightBias;
+            desiredProperties.timeZoneDaylightDate = timeZoneData.DaylightDate;
+            desiredProperties.timeZoneDaylightName = timeZoneData.DaylightName;
+            desiredProperties.timeZoneDaylightDayOfWeek = timeZoneData.DaylightDayOfWeek;
+
+            desiredProperties.timeZoneKeyName = timeZoneData.Id;
+            desiredProperties.dynamicDaylightTimeDisabled = false;
+
+            return desiredProperties.ToJsonString();
         }
 
     }

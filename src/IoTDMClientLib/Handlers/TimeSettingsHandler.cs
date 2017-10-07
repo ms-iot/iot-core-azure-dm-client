@@ -13,20 +13,18 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using Microsoft.Devices.Management.DMDataContract;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
     class TimeSettingsHandler : IClientPropertyHandler
     {
-        const string JsonSectionName = "timeInfo";
-
         public TimeSettingsHandler(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
-            this._systemConfiguratorProxy = systemConfiguratorProxy;
-            this._callback = callback;
+            _systemConfiguratorProxy = systemConfiguratorProxy;
+            _callback = callback;
         }
 
         // IClientPropertyHandler
@@ -34,54 +32,44 @@ namespace Microsoft.Devices.Management
         {
             get
             {
-                return JsonSectionName; // todo: constant in data contract?
+                return TimeSettingsDataContract.SectionName;
             }
         }
 
         private async Task HandleDesiredPropertyChangeAsync(JToken desiredValue)
         {
-            // Default JsonConvert Deserializing changes ISO8601 date fields to "mm/dd/yyyy hh:mm:ss".
-            // And in that process, it loses the Z notation if it had it.
-            //
-            // We need to preserve the ISO8601 since that's the format SystemConfigurator understands.
-            // Because of that, we are not using:
-            //    Message.SetTimeInfo requestInfo = JsonConvert.DeserializeObject<Message.SetTimeInfo>(fieldsJson);
-            //
-            // Note also that this requires the caller to always use the universal values since we
-            // assume that and re-add the Z before sending it to SystemConfigurator.
+            if (!(desiredValue is JObject))
+            {
+                throw new Error(ErrorCodes.INVALID_DESIRED_JSON_VALUE, "Invalid json value type for the " + PropertySectionName + " node.");
+            }
+
+            TimeSettingsDataContract.DesiredProperties desiredProperties = TimeSettingsDataContract.DesiredProperties.FromJsonObject((JObject)desiredValue);
 
             Message.SetTimeInfoRequestData data = new Message.SetTimeInfoRequestData();
 
-            JObject subProperties = (JObject)desiredValue;
-            data.ntpServer = (string)subProperties.Property("ntpServer").Value;
-            data.timeZoneBias = (int)subProperties.Property("timeZoneBias").Value;
+            data.ntpServer = desiredProperties.ntpServer;
 
-            data.timeZoneStandardBias = (int)subProperties.Property("timeZoneStandardBias").Value;
-            string standardDateString = subProperties.Property("timeZoneStandardDate").Value.ToString();
-            if (!String.IsNullOrEmpty(standardDateString))
-            {
-                DateTime standardDate = DateTime.Parse(standardDateString);
-                data.timeZoneStandardDate = standardDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-            }
-            data.timeZoneStandardName = (string)subProperties.Property("timeZoneStandardName").Value;
-            data.timeZoneStandardDayOfWeek = (int)subProperties.Property("timeZoneStandardDayOfWeek").Value;
+            // Use registry settings?
+            data.dynamicDaylightTimeDisabled = desiredProperties.dynamicDaylightTimeDisabled;
 
-            data.timeZoneDaylightBias = (int)subProperties.Property("timeZoneDaylightBias").Value;
-            string daylightDateString = subProperties.Property("timeZoneDaylightDate").Value.ToString();
-            if (!String.IsNullOrEmpty(daylightDateString))
-            {
-                DateTime daylightDate = DateTime.Parse(daylightDateString);
-                data.timeZoneDaylightDate = daylightDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-            }
-            data.timeZoneDaylightName = (string)subProperties.Property("timeZoneDaylightName").Value;
-            data.timeZoneDaylightDayOfWeek = (int)subProperties.Property("timeZoneDaylightDayOfWeek").Value;
+            // Option 1 (if dynamicDaylightTimeDisabled = false)
+            data.timeZoneKeyName = desiredProperties.timeZoneKeyName;
 
-            Message.SetTimeInfoRequest request = new Message.SetTimeInfoRequest(data);
+            // Option 2 (if dynamicDaylightTimeDisabled = true || timeZoneKeyName is not found)
+            data.timeZoneBias = desiredProperties.timeZoneBias;
+            data.timeZoneStandardBias = desiredProperties.timeZoneStandardBias;
+            data.timeZoneStandardDate = desiredProperties.timeZoneStandardDate;
+            data.timeZoneStandardDayOfWeek = desiredProperties.timeZoneStandardDayOfWeek;
+            data.timeZoneStandardName = desiredProperties.timeZoneStandardName;
+            data.timeZoneDaylightBias = desiredProperties.timeZoneDaylightBias;
+            data.timeZoneDaylightDate = desiredProperties.timeZoneDaylightDate;
+            data.timeZoneDaylightDayOfWeek = desiredProperties.timeZoneDaylightDayOfWeek;
+            data.timeZoneDaylightName = desiredProperties.timeZoneDaylightName;
 
-            await this._systemConfiguratorProxy.SendCommandAsync(request);
+            await _systemConfiguratorProxy.SendCommandAsync(new Message.SetTimeInfoRequest(data));
 
             var reportedProperties = await GetTimeSettingsAsync();
-            await this._callback.ReportPropertiesAsync(JsonSectionName, JObject.FromObject(reportedProperties.data));
+            await _callback.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties.data));
         }
 
         // IClientPropertyHandler
@@ -96,7 +84,24 @@ namespace Microsoft.Devices.Management
         public async Task<JObject> GetReportedPropertyAsync()
         {
             var response = await GetTimeSettingsAsync();
-            return JObject.FromObject(response.data);
+
+            TimeSettingsDataContract.ReportedProperties reportedProperties = new TimeSettingsDataContract.ReportedProperties();
+
+            reportedProperties.localTime = response.data.localTime;
+            reportedProperties.ntpServer = response.data.ntpServer;
+            reportedProperties.dynamicDaylightTimeDisabled = response.data.dynamicDaylightTimeDisabled;
+            reportedProperties.timeZoneKeyName = response.data.timeZoneKeyName;
+            reportedProperties.timeZoneBias = response.data.timeZoneBias;
+            reportedProperties.timeZoneStandardBias = response.data.timeZoneStandardBias;
+            reportedProperties.timeZoneStandardDate = response.data.timeZoneStandardDate;
+            reportedProperties.timeZoneStandardDayOfWeek = response.data.timeZoneStandardDayOfWeek;
+            reportedProperties.timeZoneStandardName = response.data.timeZoneStandardName;
+            reportedProperties.timeZoneDaylightBias = response.data.timeZoneDaylightBias;
+            reportedProperties.timeZoneDaylightDate = response.data.timeZoneDaylightDate;
+            reportedProperties.timeZoneDaylightDayOfWeek = response.data.timeZoneDaylightDayOfWeek;
+            reportedProperties.timeZoneDaylightName = response.data.timeZoneDaylightName;
+
+            return reportedProperties.ToJsonObject();
         }
 
         public async Task<Message.GetTimeInfoResponse> GetTimeSettingsAsync()

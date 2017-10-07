@@ -15,6 +15,10 @@ The format of the `"desired.windows.timeInfo"` desired property is as follows:
 "desired" : {
     "windows": {
         "timeInfo": {
+            "ntpServer": "<i>ntpServer</i>",
+            "dynamicDaylightTimeDisabled": false|true,
+            "timeZoneKeyName": "<i>registry key name</i>",
+            "timeZoneBias": <i>bias</i>,
             "timeZoneDaylightBias": <i>daylightBias</i>,
             "timeZoneDaylightDate": "<i>Datetime in ISO 8601 format, UTC</i>",
             "timeZoneDaylightName": "<i>daylight display name</i>",
@@ -22,14 +26,19 @@ The format of the `"desired.windows.timeInfo"` desired property is as follows:
             "timeZoneStandardBias": <i>standardBias</i>,
             "timeZoneStandardDate": "<i>Datetime in ISO 8601 format, UTC</i>",
             "timeZoneStandardName": "<i>standard display name</i>",
-            "timeZoneStandardDayOfWeek": <i>0 for Sunday, etc</i>,
-            "timeZoneBias": <i>bias</i>,
-            "ntpServer": "<i>ntpServer</i>"
+            "timeZoneStandardDayOfWeek": <i>0 for Sunday, etc</i>
             }
         }
     }
 }
 </pre>
+
+**Note:**
+
+- This interface (except for the ntp server part) exposes [SetDynamicTimeZoneInformation](https://msdn.microsoft.com/en-us/library/windows/desktop/ms724932.aspx).
+- When `dynamicDaylightTimeDisabled` is set to 
+  - `false` (i.e. dynamic daylight is enabled), `timeZoneKeyName` is used to locate the settings in the registery on the device. If it cannot be found under that `timeZoneKeyName` registry key, it fallbacks to use the detailed time zone fields provided above.
+  - `true` (i.e. dynamic daylight is disabled), the detailed time zone fields are  used to set the current timezone.
 
 #### Reporting
 The format of the `"reported.microsoft.management.timeInfo"` desired property is as follows:
@@ -38,6 +47,11 @@ The format of the `"reported.microsoft.management.timeInfo"` desired property is
 "reported" : {
     "windows": {
         "timeInfo": {
+            "ntpServer": "<i>ntpServer</i>",
+            "localTime": "<i>Datetime in ISO 8601 format, UTC</i>",
+            "dynamicDaylightTimeDisabled": false|true,
+            "timeZoneKeyName": "<i>registry key name</i>",
+            "timeZoneBias": <i>bias</i>,
             "timeZoneDaylightDayOfWeek": <i>0 for Sunday, etc</i>,
             "timeZoneDaylightBias": <i>daylightBias</i>,
             "timeZoneDaylightDate": "<i>Datetime in ISO 8601 format, UTC</i>",
@@ -46,9 +60,6 @@ The format of the `"reported.microsoft.management.timeInfo"` desired property is
             "timeZoneStandardBias": <i>standardBias</i>,
             "timeZoneStandardDate": "<i>Datetime in ISO 8601 format, UTC</i>",
             "timeZoneStandardName": "<i>standard display name</i>",
-            "timeZoneBias": <i>bias</i>,
-            "ntpServer": "<i>ntpServer</i>",
-            "localTime": "<i>Datetime in ISO 8601 format, UTC</i>"
             "lastChange": {
                 "time" : "<i>timestamp</i>",
                 "state" : "pending|committed|failed",
@@ -69,14 +80,16 @@ To configure the device to Pacifict Standard Time, the <i>timeInfo</i> is set to
 "desired" : {
     "windows" : {
         "timeInfo": {
+            "ntpServer": "time.windows.com",
+            "dynamicDaylightTimeDisabled": false,
+            "timeZoneKeyName": "Pacific Standard Time",
+            "timeZoneBias": 480,
             "timeZoneDaylightBias": -60,
             "timeZoneDaylightDate": "3/2/2016 2:00:00 AM",
             "timeZoneDaylightName": "Pacific Daylight Time",
             "timeZoneStandardBias": 0,
             "timeZoneStandardDate": "11/1/2016 2:00:00 AM",
             "timeZoneStandardName": "Pacific Standard Time",
-            "timeZoneBias": 480,
-            "ntpServer": "time.windows.com"
         }
     }
 }
@@ -87,14 +100,16 @@ The reported settings will looks something like this:
 "reported" : {
     "windows" : {
         "timeInfo": {
+            "ntpServer": "time.windows.com",
+            "dynamicDaylightTimeDisabled": false,
+            "timeZoneKeyName": "Pacific Standard Time",
+            "timeZoneBias": 480,
             "timeZoneDaylightBias": -60,
             "timeZoneDaylightDate": "2016-03-02T02:00:00Z",
             "timeZoneDaylightName": "Pacific Daylight Time",
             "timeZoneStandardBias": 0,
             "timeZoneStandardDate": "2016-11-01T02:00:00Z",
             "timeZoneStandardName": "Pacific Standard Time",
-            "timeZoneBias": 480,
-            "ntpServer": "time.windows.com",
             "localTime": "2017-03-02T01:31:15.0000483Z"
             "lastChange": {
                 "time" : "<i>timestamp</i>",

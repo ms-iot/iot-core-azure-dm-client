@@ -158,7 +158,7 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        private async Task<string> DeleteDMFile(string jsonParamString)
+        private Task<string> DeleteDMFile(string jsonParamString)
         {
             Logger.Log("Deleting DM file...", LoggingLevel.Information);
 
@@ -177,11 +177,11 @@ namespace Microsoft.Devices.Management
                 request.DMFileName = GetParameter(jsonParamsObject, JsonFile, ErrorCodes.INVALID_FILE_PARAM, "Invalid or missing folder parameter.");
                 StatusCodeResponse response = _systemConfiguratorProxy.SendCommand(request) as StatusCodeResponse;
 
-                return BuildMethodJsonResponseString("", (int)response.Status, "");
+                return Task.FromResult<string>(BuildMethodJsonResponseString("", (int)response.Status, ""));
             }
             catch (Exception err)
             {
-                return BuildMethodJsonResponseString("", err.HResult, err.Message);
+                return Task.FromResult<string>(BuildMethodJsonResponseString("", err.HResult, err.Message));
             }
         }
 

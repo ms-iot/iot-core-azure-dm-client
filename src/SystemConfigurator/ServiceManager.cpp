@@ -89,7 +89,7 @@ DWORD ServiceManager::GetStartType(const std::wstring& serviceName)
     }
 
     vector<char> buffer(bytesNeeded);
-    if (!QueryServiceConfig(serviceHandle.Get(), reinterpret_cast<QUERY_SERVICE_CONFIG*>(buffer.data()), buffer.size(), &bytesNeeded))
+    if (!QueryServiceConfig(serviceHandle.Get(), reinterpret_cast<QUERY_SERVICE_CONFIG*>(buffer.data()), static_cast<DWORD>(buffer.size()), &bytesNeeded))
     {
         throw DMExceptionWithErrorCode("QueryServiceConfig() failed.", GetLastError());
     }

@@ -29,6 +29,11 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     {
     public:
         property String^ ntpServer;
+
+        property bool    dynamicDaylightTimeDisabled;
+
+        property String^ timeZoneKeyName;
+
         property int     timeZoneBias;
 
         property String^ timeZoneStandardName;
@@ -41,9 +46,16 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         property int     timeZoneDaylightBias;
         property int     timeZoneDaylightDayOfWeek;
 
-        Blob^ Serialize(uint32_t tag) {
+        Blob^ Serialize(uint32_t tag)
+        {
             JsonObject^ jsonObject = ref new JsonObject();
+
             jsonObject->Insert("ntpServer", JsonValue::CreateStringValue(ntpServer));
+
+            jsonObject->Insert("dynamicDaylightTimeDisabled", JsonValue::CreateBooleanValue(dynamicDaylightTimeDisabled));
+
+            jsonObject->Insert("timeZoneKeyName", JsonValue::CreateStringValue(timeZoneKeyName));
+
             jsonObject->Insert("timeZoneBias", JsonValue::CreateNumberValue(timeZoneBias));
 
             jsonObject->Insert("timeZoneStandardName", JsonValue::CreateStringValue(timeZoneStandardName));
@@ -55,14 +67,22 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             jsonObject->Insert("timeZoneDaylightDate", JsonValue::CreateStringValue(timeZoneDaylightDate));
             jsonObject->Insert("timeZoneDaylightBias", JsonValue::CreateNumberValue(timeZoneDaylightBias));
             jsonObject->Insert("timeZoneDaylightDayOfWeek", JsonValue::CreateNumberValue(timeZoneDaylightDayOfWeek));
+
             return SerializationHelper::CreateBlobFromJson((uint32_t)tag, jsonObject);
         }
 
-        static SetTimeInfoRequestData^ Deserialize(Blob^ blob) {
+        static SetTimeInfoRequestData^ Deserialize(Blob^ blob)
+        {
             String^ str = SerializationHelper::GetStringFromBlob(blob);
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto result = ref new SetTimeInfoRequestData();
+
             result->ntpServer = jsonObject->Lookup("ntpServer")->GetString();
+
+            result->dynamicDaylightTimeDisabled = jsonObject->Lookup("dynamicDaylightTimeDisabled")->GetBoolean();
+
+            result->timeZoneKeyName = jsonObject->Lookup("timeZoneKeyName")->GetString();
+
             result->timeZoneBias = (int)jsonObject->Lookup("timeZoneBias")->GetNumber();
 
             result->timeZoneStandardName = jsonObject->Lookup("timeZoneStandardName")->GetString();
@@ -74,6 +94,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             result->timeZoneDaylightDate = jsonObject->Lookup("timeZoneDaylightDate")->GetString();
             result->timeZoneDaylightBias = (int)jsonObject->Lookup("timeZoneDaylightBias")->GetNumber();
             result->timeZoneDaylightDayOfWeek = (int)jsonObject->Lookup("timeZoneDaylightDayOfWeek")->GetNumber();
+
             return result;
         }
     };
@@ -124,6 +145,11 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
     public:
         property String^ localTime;
         property String^ ntpServer;
+
+        property bool    dynamicDaylightTimeDisabled;
+
+        property String^ timeZoneKeyName;
+
         property int     timeZoneBias;
 
         property String^ timeZoneStandardName;
@@ -136,10 +162,16 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         property int     timeZoneDaylightBias;
         property int     timeZoneDaylightDayOfWeek;
 
-        Blob^ Serialize(uint32_t tag) {
+        Blob^ Serialize(uint32_t tag)
+        {
             JsonObject^ jsonObject = ref new JsonObject();
             jsonObject->Insert("localTime", JsonValue::CreateStringValue(localTime));
             jsonObject->Insert("ntpServer", JsonValue::CreateStringValue(ntpServer));
+
+            jsonObject->Insert("dynamicDaylightTimeDisabled", JsonValue::CreateBooleanValue(dynamicDaylightTimeDisabled));
+
+            jsonObject->Insert("timeZoneKeyName", JsonValue::CreateStringValue(timeZoneKeyName));
+
             jsonObject->Insert("timeZoneBias", JsonValue::CreateNumberValue(timeZoneBias));
 
             jsonObject->Insert("timeZoneStandardName", JsonValue::CreateStringValue(timeZoneStandardName));
@@ -154,12 +186,19 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             return SerializationHelper::CreateBlobFromJson((uint32_t)tag, jsonObject);
         }
 
-        static GetTimeInfoResponseData^ Deserialize(Blob^ blob) {
+        static GetTimeInfoResponseData^ Deserialize(Blob^ blob)
+        {
             String^ str = SerializationHelper::GetStringFromBlob(blob);
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto result = ref new GetTimeInfoResponseData();
+
             result->localTime = jsonObject->Lookup("localTime")->GetString();
             result->ntpServer = jsonObject->Lookup("ntpServer")->GetString();
+
+            result->dynamicDaylightTimeDisabled = jsonObject->Lookup("dynamicDaylightTimeDisabled")->GetBoolean();
+
+            result->timeZoneKeyName = jsonObject->Lookup("timeZoneKeyName")->GetString();
+
             result->timeZoneBias = (int)jsonObject->Lookup("timeZoneBias")->GetNumber();
 
             result->timeZoneStandardName = jsonObject->Lookup("timeZoneStandardName")->GetString();

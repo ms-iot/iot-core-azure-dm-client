@@ -13,6 +13,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -56,6 +57,43 @@ namespace Microsoft.Devices.Management.DMDataContract
         {
             JToken jValue;
             if (jObj.TryGetValue(propertyName, out jValue))
+            {
+                return jValue.ToString();
+            }
+            return defaultValue;
+        }
+
+        public static int GetInt(JObject jObj, string propertyName, int defaultValue)
+        {
+            JToken jValue;
+            if (jObj.TryGetValue(propertyName, out jValue))
+            {
+                if (jValue.Type == JTokenType.Integer)
+                {
+                    return (int)jValue;
+                }
+            }
+            return defaultValue;
+        }
+
+        public static string GetDateTimeAsString(JObject jObj, string propertyName, string defaultValue)
+        {
+            // The default JObject returned from Azure SDK is parsed using a DateParseHandling.DateTime.
+            // That setting causes the JObject.TryGetValue to return JToken that has lost the UTC notation ('Z').
+            // This is a problem because then, we do not know if that time passed in was actually UTC or not.
+            //
+            // We have opened bug: https://github.com/Azure/azure-iot-sdk-csharp/issues/180
+            //
+            // In the meantime, a possible work around is to re-parse the parent node with a DateParseHandling.None.
+            //
+            string jObjString = jObj.ToString();
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            settings.DateParseHandling = DateParseHandling.None;
+            JObject reparsedObj = (JObject)JsonConvert.DeserializeObject(jObjString, settings);
+
+            // Now, use the reparsed object to extract the value...
+            JToken jValue;
+            if (reparsedObj.TryGetValue(propertyName, out jValue))
             {
                 return jValue.ToString();
             }
