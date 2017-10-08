@@ -34,11 +34,9 @@ namespace DMDashboard
             InitializeComponent();
         }
 
-        public void FromJson(JObject json)
+        public void FromJsonObject(JObject json)
         {
-            WindowsTelemetryDataContract.ReportedProperties reportedProperties = new WindowsTelemetryDataContract.ReportedProperties();
-            reportedProperties.LoadFrom(json);
-
+            WindowsTelemetryDataContract.ReportedProperties reportedProperties = WindowsTelemetryDataContract.ReportedProperties.FromJsonObject(json);
             Level.Text = reportedProperties.level;
         }
     }

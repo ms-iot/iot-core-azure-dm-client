@@ -43,10 +43,10 @@ namespace Microsoft.Devices.Management.DMDataContract
                 return sb.ToString();
             }
 
-            public static DesiredProperties FromJsonObject(JObject telemetryObject)
+            public static DesiredProperties FromJsonObject(JObject root)
             {
                 DesiredProperties desiredProperties = new DesiredProperties();
-                desiredProperties.level = Utils.GetString(telemetryObject, JsonLevel, NotFound);
+                desiredProperties.level = Utils.GetString(root, JsonLevel, NotFound);
                 return desiredProperties;
             }
         }
@@ -55,9 +55,16 @@ namespace Microsoft.Devices.Management.DMDataContract
         {
             public string level;
 
-            public void LoadFrom(JObject json)
+            public static ReportedProperties FromJsonObject(JObject root)
             {
-                level = Utils.GetString(json, JsonLevel, NotFound);
+                ReportedProperties reportedProperties = new ReportedProperties();
+                reportedProperties.level = Utils.GetString(root, JsonLevel, NotFound);
+                return reportedProperties;
+            }
+
+            public JObject ToJsonObject()
+            {
+                return JObject.FromObject(this);
             }
         }
     }

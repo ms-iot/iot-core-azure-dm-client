@@ -71,8 +71,7 @@ namespace Microsoft.Devices.Management
                 throw new Error(ErrorCodes.INVALID_DESIRED_JSON_VALUE, "Invalid json value type for the " + PropertySectionName + " node.");
             }
 
-            TimeServiceDataContract.DesiredProperties desiredProperties = new TimeServiceDataContract.DesiredProperties();
-            desiredProperties.LoadFrom((JObject)desiredValue);
+            TimeServiceDataContract.DesiredProperties desiredProperties = TimeServiceDataContract.DesiredProperties.FromJsonObject((JObject)desiredValue);
 
             // Construct the request and send it...
             Message.Policy policy = new Message.Policy();
@@ -120,7 +119,7 @@ namespace Microsoft.Devices.Management
 
             // Get the current state....
             TimeServiceDataContract.ReportedProperties reportedProperties = await GetTimeServiceAsync();
-            await this._callback.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties));
+            await this._callback.ReportPropertiesAsync(PropertySectionName, reportedProperties.ToJsonObject());
         }
 
         private async Task<TimeServiceDataContract.ReportedProperties> GetTimeServiceAsync()

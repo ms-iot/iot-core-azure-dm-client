@@ -57,7 +57,7 @@ namespace Microsoft.Devices.Management
             Logger.Log("ReportRebootCmdStatus() invoked.", LoggingLevel.Verbose);
 
             RebootCmdDataContract.ReportedProperties reportedProperties = new RebootCmdDataContract.ReportedProperties(status);
-            await _deviceManagementClient.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties));
+            await _deviceManagementClient.ReportPropertiesAsync(PropertySectionName, reportedProperties.ToJsonObject());
 
             StatusSection statusSection = new StatusSection(StatusSection.StateType.Completed);
             await _deviceManagementClient.ReportStatusAsync(PropertySectionName, statusSection);
@@ -153,11 +153,11 @@ namespace Microsoft.Devices.Management
                 return RebootCmdDataContract.ResponseValue.Disabled;
             }
 
-            GetWindowsUpdatePolicyResponse updatePolicy = await _windowsUpdatePolicyHandler.GetWindowsUpdatePolicyAsync();
-            if (updatePolicy.data != null)
+            WindowsUpdatePolicyDataContract.WUProperties updatePolicy = await _windowsUpdatePolicyHandler.GetWindowsUpdatePolicyAsync();
+            if (updatePolicy != null)
             {
                 uint nowHour = (uint)DateTime.Now.Hour;
-                if (updatePolicy.data.activeHoursStart <= nowHour && nowHour < updatePolicy.data.activeHoursEnd)
+                if (updatePolicy.activeHoursStart <= nowHour && nowHour < updatePolicy.activeHoursEnd)
                 {
                     return RebootCmdDataContract.ResponseValue.InActiveHours;
                 }
@@ -171,7 +171,7 @@ namespace Microsoft.Devices.Management
         {
             var configuration = new WindowsUpdateRebootPolicyConfiguration();
             configuration.allow = allowReboots;
-            await this._systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdateRebootPolicyRequest(configuration));
+            await _systemConfiguratorProxy.SendCommandAsync(new SetWindowsUpdateRebootPolicyRequest(configuration));
         }
 
         private ISystemConfiguratorProxy _systemConfiguratorProxy;

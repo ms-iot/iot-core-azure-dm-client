@@ -70,7 +70,7 @@ namespace Microsoft.Devices.Management
 
             WindowsTelemetryDataContract.ReportedProperties reportedProperties = new WindowsTelemetryDataContract.ReportedProperties();
             reportedProperties.level = response.data.level;
-            return JObject.FromObject(reportedProperties);
+            return reportedProperties.ToJsonObject();
         }
 
         public async Task<WindowsTelemetryLevel> GetLevelAsync()

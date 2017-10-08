@@ -33,12 +33,12 @@ namespace DMDashboard
             InitializeComponent();
         }
 
-        public string ToJson()
+        public string ToJsonString()
         {
             RebootInfoDataContract.DesiredProperties desiredProperties = new RebootInfoDataContract.DesiredProperties();
             desiredProperties.singleRebootTime = SingleRebootTime.Text;
             desiredProperties.dailyRebootTime = DailyRebootTime.Text;
-            return desiredProperties.ToJson();
+            return desiredProperties.ToJsonString();
         }
     }
 }

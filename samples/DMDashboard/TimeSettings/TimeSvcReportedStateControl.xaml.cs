@@ -36,8 +36,7 @@ namespace DMDashboard
 
         public void FromJson(JObject json)
         {
-            TimeServiceDataContract.ReportedProperties reportedProperties = new TimeServiceDataContract.ReportedProperties();
-            reportedProperties.LoadFrom(json);
+            TimeServiceDataContract.ReportedProperties reportedProperties = TimeServiceDataContract.ReportedProperties.FromJsonObject(json);
 
             ServiceEnabled.Text = reportedProperties.enabled;
             ServiceStartup.Text = reportedProperties.startup;

@@ -274,7 +274,7 @@ namespace DMDashboard
                 else if (jsonProp.Name == RebootInfoDataContract.SectionName)
                 {
                     Debug.WriteLine(jsonProp.Value.ToString());
-                    RebootInfoReportedState.FromJson(jsonProp.Value);
+                    RebootInfoReportedState.FromJsonObject(jsonProp.Value);
                 }
                 else if (jsonProp.Name == RebootCmdDataContract.SectionName)
                 {
@@ -303,7 +303,7 @@ namespace DMDashboard
                     Debug.WriteLine(jsonProp.Value.ToString());
                     if (jsonProp.Value is JObject)
                     {
-                        WindowsTelemetryReportedState.FromJson((JObject)jsonProp.Value);
+                        WindowsTelemetryReportedState.FromJsonObject((JObject)jsonProp.Value);
                     }
                     else
                     {
@@ -490,7 +490,7 @@ namespace DMDashboard
 
         private void OnSetWindowsTelemetry(object sender, RoutedEventArgs e)
         {
-            SetDesired(WindowsTelemetryDataContract.SectionName, WindowsTelemetryDesiredState.ToJson()).FireAndForget();
+            SetDesired(WindowsTelemetryDataContract.SectionName, WindowsTelemetryDesiredState.ToJsonString()).FireAndForget();
         }
 
         private void PopulateCertificateList(
@@ -587,7 +587,7 @@ namespace DMDashboard
 
         private void OnSetRebootInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(RebootInfoDesiredState.SectionName, RebootInfoDesiredState.ToJson()).FireAndForget();
+            SetDesired(RebootInfoDesiredState.SectionName, RebootInfoDesiredState.ToJsonString()).FireAndForget();
         }
 
         private void OnSetAppsConfiguration(object sender, RoutedEventArgs e)
@@ -610,13 +610,13 @@ namespace DMDashboard
             json.Append(",");
             json.Append(UIToCertificateConfiguration().ToJsonString());
             json.Append(",");
-            json.Append(RebootInfoDesiredState.ToJson());
+            json.Append(RebootInfoDesiredState.ToJsonString());
             json.Append(",");
             json.Append(WindowsUpdatePolicyDesiredState.ToJsonString());
             json.Append(",");
             json.Append(UIToWindowsUpdatesConfiguration().ToJsonString());
             json.Append(",");
-            json.Append(WindowsTelemetryDesiredState.ToJson());
+            json.Append(WindowsTelemetryDesiredState.ToJsonString());
             json.Append(",");
             json.Append(DeviceHealthAttestationDesiredState.ToJson());
             json.Append(",");

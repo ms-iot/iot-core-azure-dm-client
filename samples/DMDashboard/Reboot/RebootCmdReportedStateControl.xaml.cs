@@ -36,8 +36,7 @@ namespace DMDashboard
 
             JObject jsonObj = (JObject)json;
 
-            RebootCmdDataContract.ReportedProperties reportedProperties = new RebootCmdDataContract.ReportedProperties();
-            reportedProperties.LoadFrom(jsonObj);
+            RebootCmdDataContract.ReportedProperties reportedProperties = RebootCmdDataContract.ReportedProperties.FromJsonObject(jsonObj);
             LastRebootCmdResponse.Text = reportedProperties.response;
         }
     }

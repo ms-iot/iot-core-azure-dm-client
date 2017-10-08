@@ -74,8 +74,7 @@ namespace Microsoft.Devices.Management
             }
 
             // Parse json into an object...
-            RebootInfoDataContract.DesiredProperties desiredProperties = new RebootInfoDataContract.DesiredProperties();
-            desiredProperties.LoadFrom((JObject)rebootToken);
+            RebootInfoDataContract.DesiredProperties desiredProperties = RebootInfoDataContract.DesiredProperties.FromJsonObject((JObject)rebootToken);
 
             // Construct the request and send it...
             var request = new SetRebootInfoRequest();
@@ -106,7 +105,7 @@ namespace Microsoft.Devices.Management
             reportedProperties.singleRebootTime = response.singleRebootTime;
             reportedProperties.dailyRebootTime = response.dailyRebootTime;
 
-            return JObject.FromObject(reportedProperties);
+            return reportedProperties.ToJsonObject();
         }
 
         private ISystemConfiguratorProxy _systemConfiguratorProxy;

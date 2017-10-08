@@ -14,7 +14,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 using Newtonsoft.Json.Linq;
-using System;
 using System.Text;
 
 namespace Microsoft.Devices.Management.DMDataContract
@@ -33,13 +32,15 @@ namespace Microsoft.Devices.Management.DMDataContract
             public string singleRebootTime;
             public string dailyRebootTime;
 
-            public void LoadFrom(JObject rebootObject)
+            public static DesiredProperties FromJsonObject(JObject root)
             {
-                singleRebootTime = Utils.GetDateTimeAsString(rebootObject, JsonSingleRebootTime, "");
-                dailyRebootTime = Utils.GetDateTimeAsString(rebootObject, JsonDailyRebootTime, "");
+                DesiredProperties desiredProperties = new DesiredProperties();
+                desiredProperties.singleRebootTime = Utils.GetDateTimeAsString(root, JsonSingleRebootTime, "");
+                desiredProperties.dailyRebootTime = Utils.GetDateTimeAsString(root, JsonDailyRebootTime, "");
+                return desiredProperties;
             }
 
-            public string ToJson()
+            public string ToJsonString()
             {
                 StringBuilder sb = new StringBuilder();
                 sb.Append("\"" + SectionName + "\" : {\n");
@@ -56,11 +57,18 @@ namespace Microsoft.Devices.Management.DMDataContract
             public string singleRebootTime;
             public string dailyRebootTime;
 
-            public void LoadFrom(JObject json)
+            public static ReportedProperties FromJsonObject(JObject root)
             {
-                singleRebootTime = Utils.GetDateTimeAsString(json, JsonSingleRebootTime, NotFound);
-                dailyRebootTime = Utils.GetDateTimeAsString(json, JsonDailyRebootTime, NotFound);
-                lastBootTime = Utils.GetDateTimeAsString(json, JsonLastBootTime, NotFound);
+                ReportedProperties reportedProperties = new ReportedProperties();
+                reportedProperties.singleRebootTime = Utils.GetDateTimeAsString(root, JsonSingleRebootTime, NotFound);
+                reportedProperties.dailyRebootTime = Utils.GetDateTimeAsString(root, JsonDailyRebootTime, NotFound);
+                reportedProperties.lastBootTime = Utils.GetDateTimeAsString(root, JsonLastBootTime, NotFound);
+                return reportedProperties;
+            }
+
+            public JObject ToJsonObject()
+            {
+                return JObject.FromObject(this);
             }
         }
     }

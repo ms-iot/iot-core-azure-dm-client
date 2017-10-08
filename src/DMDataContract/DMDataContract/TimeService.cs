@@ -41,15 +41,17 @@ namespace Microsoft.Devices.Management.DMDataContract
             public string started;
             public string sourcePriority;
 
-            public void LoadFrom(JObject timeServiceObject)
+            public static DesiredProperties FromJsonObject(JObject timeServiceObject)
             {
-                enabled = Utils.GetString(timeServiceObject, JsonEnabled, NotFound);
-                startup = Utils.GetString(timeServiceObject, JsonStartup, NotFound);
-                started = Utils.GetString(timeServiceObject, JsonStarted, NotFound);
-                sourcePriority = Utils.GetString(timeServiceObject, JsonSourcePriority, NotFound);
+                DesiredProperties desiredProperties = new DesiredProperties();
+                desiredProperties.enabled = Utils.GetString(timeServiceObject, JsonEnabled, NotFound);
+                desiredProperties.startup = Utils.GetString(timeServiceObject, JsonStartup, NotFound);
+                desiredProperties.started = Utils.GetString(timeServiceObject, JsonStarted, NotFound);
+                desiredProperties.sourcePriority = Utils.GetString(timeServiceObject, JsonSourcePriority, NotFound);
+                return desiredProperties;
             }
 
-            public string ToJson()
+            public string ToJsonString()
             {
                 StringBuilder sb = new StringBuilder();
                 sb.Append("\"" + SectionName + "\" : {\n");
@@ -69,12 +71,19 @@ namespace Microsoft.Devices.Management.DMDataContract
             public string started;
             public string sourcePriority;
 
-            public void LoadFrom(JObject json)
+            public static ReportedProperties FromJsonObject(JObject json)
             {
-                enabled = Utils.GetString(json, JsonEnabled, NotFound);
-                startup = Utils.GetString(json, JsonStartup, NotFound);
-                started = Utils.GetString(json, JsonStarted, NotFound);
-                sourcePriority = Utils.GetString(json, JsonSourcePriority, NotFound);
+                ReportedProperties reportedProperties = new ReportedProperties();
+                reportedProperties.enabled = Utils.GetString(json, JsonEnabled, NotFound);
+                reportedProperties.startup = Utils.GetString(json, JsonStartup, NotFound);
+                reportedProperties.started = Utils.GetString(json, JsonStarted, NotFound);
+                reportedProperties.sourcePriority = Utils.GetString(json, JsonSourcePriority, NotFound);
+                return reportedProperties;
+            }
+
+            public JObject ToJsonObject()
+            {
+                return JObject.FromObject(this);
             }
         }
     }

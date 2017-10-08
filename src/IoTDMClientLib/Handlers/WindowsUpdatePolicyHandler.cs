@@ -66,8 +66,6 @@ namespace Microsoft.Devices.Management
 
     class WindowsUpdatePolicyHandler : IClientPropertyHandler
     {
-        const string JsonSectionName = "windowsUpdatePolicy";
-
         public WindowsUpdatePolicyHandler(IClientHandlerCallBack callback, ISystemConfiguratorProxy systemConfiguratorProxy)
         {
             this._systemConfiguratorProxy = systemConfiguratorProxy;
@@ -79,15 +77,16 @@ namespace Microsoft.Devices.Management
         {
             get
             {
-                return JsonSectionName; // todo: constant in data contract?
+                return WindowsUpdatePolicyDataContract.SectionName;
             }
         }
 
-        private async Task HandleDesiredPropertyChangeAsync(JToken desiredValue)
+        // IClientPropertyHandler
+        public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
         {
             if (!(desiredValue is JObject))
             {
-                return;
+                throw new Error(ErrorCodes.INVALID_DESIRED_JSON_VALUE, "Invalid json value type for the " + PropertySectionName + " node.");
             }
 
             WindowsUpdatePolicyDataContract.DesiredProperties desiredProperties = WindowsUpdatePolicyDataContract.DesiredProperties.FromJsonObject((JObject)desiredValue);
@@ -179,66 +178,74 @@ namespace Microsoft.Devices.Management
                 }
 
                 // Always send down to SystemConfigurator because we need to persist the reporting (if specified).
-                await this._systemConfiguratorProxy.SendCommandAsync(request);
+                await _systemConfiguratorProxy.SendCommandAsync(request);
             }
 
             await ReportToDeviceTwin();
-        }
-
-        // IClientPropertyHandler
-        public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
-        {
-            await HandleDesiredPropertyChangeAsync(desiredValue);
 
             return CommandStatus.Committed;
+        }
+
+        private static WindowsUpdatePolicyDataContract.WUProperties ResponseToReported(Message.GetWindowsUpdatePolicyResponse response)
+        {
+            WindowsUpdatePolicyDataContract.WUProperties reportedProperties = new WindowsUpdatePolicyDataContract.WUProperties();
+
+            reportedProperties.activeHoursStart = (int)response.data.activeHoursStart;
+            reportedProperties.activeHoursEnd = (int)response.data.activeHoursEnd;
+            reportedProperties.allowAutoUpdate = (int)response.data.allowAutoUpdate;
+            reportedProperties.allowUpdateService = (int)response.data.allowUpdateService;
+            reportedProperties.branchReadinessLevel = (int)response.data.branchReadinessLevel;
+
+            reportedProperties.deferFeatureUpdatesPeriod = (int)response.data.deferFeatureUpdatesPeriod;
+            reportedProperties.deferQualityUpdatesPeriod = (int)response.data.deferQualityUpdatesPeriod;
+            reportedProperties.pauseFeatureUpdates = (int)response.data.pauseFeatureUpdates;
+            reportedProperties.pauseQualityUpdates = (int)response.data.pauseQualityUpdates;
+            reportedProperties.scheduledInstallDay = (int)response.data.scheduledInstallDay;
+
+            reportedProperties.scheduledInstallTime = (int)response.data.scheduledInstallTime;
+
+            reportedProperties.ring = response.data.ring;
+
+            reportedProperties.sourcePriority = PolicyHelpers.SourcePriorityFromPolicy(response.data.policy);
+
+            return reportedProperties;
         }
 
         // IClientPropertyHandler
         public async Task<JObject> GetReportedPropertyAsync()
         {
-            Message.GetWindowsUpdatePolicyResponse reportedProperties = await GetWindowsUpdatePolicyAsync();
-            return JObject.FromObject(reportedProperties);
+            var request = new Message.GetWindowsUpdatePolicyRequest();
+            var response = await _systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatePolicyResponse;
+
+            WindowsUpdatePolicyDataContract.WUProperties reportedProperties = ResponseToReported(response);
+
+            return reportedProperties.ToJsonObject();
         }
 
         private async Task ReportToDeviceTwin()
         {
-            Message.GetWindowsUpdatePolicyResponse response = await GetWindowsUpdatePolicyAsync();
+            var request = new Message.GetWindowsUpdatePolicyRequest();
+            var response = await _systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatePolicyResponse;
 
             if (response.ReportToDeviceTwin == DMJSonConstants.YesString)
             {
-                WindowsUpdatePolicyDataContract.WUProperties reportedProperties = new WindowsUpdatePolicyDataContract.WUProperties();
+                WindowsUpdatePolicyDataContract.WUProperties reportedProperties = ResponseToReported(response);
 
-                reportedProperties.activeHoursStart = (int)response.data.activeHoursStart;
-                reportedProperties.activeHoursEnd = (int)response.data.activeHoursEnd;
-                reportedProperties.allowAutoUpdate = (int)response.data.allowAutoUpdate;
-                reportedProperties.allowUpdateService = (int)response.data.allowUpdateService;
-                reportedProperties.branchReadinessLevel = (int)response.data.branchReadinessLevel;
-
-                reportedProperties.deferFeatureUpdatesPeriod = (int)response.data.deferFeatureUpdatesPeriod;
-                reportedProperties.deferQualityUpdatesPeriod = (int)response.data.deferQualityUpdatesPeriod;
-                reportedProperties.pauseFeatureUpdates = (int)response.data.pauseFeatureUpdates;
-                reportedProperties.pauseQualityUpdates = (int)response.data.pauseQualityUpdates;
-                reportedProperties.scheduledInstallDay = (int)response.data.scheduledInstallDay;
-
-                reportedProperties.scheduledInstallTime = (int)response.data.scheduledInstallTime;
-
-                reportedProperties.ring = response.data.ring;
-
-                reportedProperties.sourcePriority = PolicyHelpers.SourcePriorityFromPolicy(response.data.policy);
-
-                await this._callback.ReportPropertiesAsync(JsonSectionName, reportedProperties.ToJsonObject());
+                await _callback.ReportPropertiesAsync(PropertySectionName, reportedProperties.ToJsonObject());
             }
             else
             {
-                await this._callback.ReportPropertiesAsync(JsonSectionName, DMJSonConstants.NoReportString);
+                await _callback.ReportPropertiesAsync(PropertySectionName, DMJSonConstants.NoReportString);
             }
         }
 
-        public async Task<Message.GetWindowsUpdatePolicyResponse> GetWindowsUpdatePolicyAsync()
+        public async Task<WindowsUpdatePolicyDataContract.WUProperties> GetWindowsUpdatePolicyAsync()
         {
             var request = new Message.GetWindowsUpdatePolicyRequest();
-            var response = await this._systemConfiguratorProxy.SendCommandAsync(request);
-            return response as Message.GetWindowsUpdatePolicyResponse;
+            var response = await _systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatePolicyResponse;
+
+            WindowsUpdatePolicyDataContract.WUProperties reportedProperties = ResponseToReported(response);
+            return reportedProperties;
         }
 
         public async Task SetRingAsync(WindowsUpdateRingState userDesiredState)
@@ -255,7 +262,7 @@ namespace Microsoft.Devices.Management
             request.data.ring = WindowsUpdateRingState.RingToJsonString(userDesiredState.ring);
             request.data.policy = policy;
             request.ReportToDeviceTwin = Constants.JsonValueUnspecified;    // Keep whatever already stored.
-            await this._systemConfiguratorProxy.SendCommandAsync(request);
+            await _systemConfiguratorProxy.SendCommandAsync(request);
 
             await ReportToDeviceTwin();
         }
@@ -274,7 +281,8 @@ namespace Microsoft.Devices.Management
 
         public async Task<WindowsUpdateRingState> GetRingAsync()
         {
-            Message.GetWindowsUpdatePolicyResponse response = await GetWindowsUpdatePolicyAsync();
+            var request = new Message.GetWindowsUpdatePolicyRequest();
+            var response = await _systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatePolicyResponse;
 
             WindowsUpdateRingState state = new WindowsUpdateRingState();
             state.ring = WindowsUpdateRingState.RingFromJsonString(response.data.ring);
