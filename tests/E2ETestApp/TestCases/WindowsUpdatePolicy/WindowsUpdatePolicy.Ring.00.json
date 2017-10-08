@@ -10,17 +10,17 @@
             "windows": {
               "windowsUpdatePolicy": {
                 "applyProperties": {
-                  "activeHoursStart": "1",
-                  "activeHoursEnd": "2",
-                  "allowAutoUpdate": "1",
-                  "allowUpdateService": "0",
-                  "branchReadinessLevel": "16",
-                  "deferFeatureUpdatesPeriod": "30",
-                  "deferQualityUpdatesPeriod": "15",
-                  "pauseFeatureUpdates": "0",
-                  "pauseQualityUpdates": "0",
-                  "scheduledInstallDay": "3",
-                  "scheduledInstallTime": "2",
+                  "activeHoursStart": 1,
+                  "activeHoursEnd": 2,
+                  "allowAutoUpdate": 1,
+                  "allowUpdateService": 0,
+                  "branchReadinessLevel": 16,
+                  "deferFeatureUpdatesPeriod": 30,
+                  "deferQualityUpdatesPeriod": 15,
+                  "pauseFeatureUpdates": 0,
+                  "pauseQualityUpdates": 0,
+                  "scheduledInstallDay": 3,
+                  "scheduledInstallTime": 2,
                   "ring": "Preview",
                   "sourcePriority": "remote"
                 },
@@ -37,17 +37,17 @@
             "reported": {
               "windows": {
                 "windowsUpdatePolicy": {
-                  "activeHoursStart": "1",
-                  "activeHoursEnd": "2",
-                  "allowAutoUpdate": "1",
-                  "allowUpdateService": "0",
-                  "branchReadinessLevel": "16",
-                  "deferFeatureUpdatesPeriod": "30",
-                  "deferQualityUpdatesPeriod": "15",
-                  "pauseFeatureUpdates": "0",
-                  "pauseQualityUpdates": "0",
-                  "scheduledInstallDay": "3",
-                  "scheduledInstallTime": "2",
+                  "activeHoursStart": 1,
+                  "activeHoursEnd": 2,
+                  "allowAutoUpdate": 1,
+                  "allowUpdateService": 0,
+                  "branchReadinessLevel": 16,
+                  "deferFeatureUpdatesPeriod": 30,
+                  "deferQualityUpdatesPeriod": 15,
+                  "pauseFeatureUpdates": 0,
+                  "pauseQualityUpdates": 0,
+                  "scheduledInstallDay": 3,
+                  "scheduledInstallTime": 2,
                   "ring": "Preview",
                   "sourcePriority": "remote"
                 }
@@ -73,17 +73,17 @@
               "reported": {
                 "windows": {
                   "windowsUpdatePolicy": {
-                    "activeHoursStart": "1",
-                    "activeHoursEnd": "2",
-                    "allowAutoUpdate": "1",
-                    "allowUpdateService": "0",
-                    "branchReadinessLevel": "16",
-                    "deferFeatureUpdatesPeriod": "30",
-                    "deferQualityUpdatesPeriod": "15",
-                    "pauseFeatureUpdates": "0",
-                    "pauseQualityUpdates": "0",
-                    "scheduledInstallDay": "3",
-                    "scheduledInstallTime": "2",
+                    "activeHoursStart": 1,
+                    "activeHoursEnd": 2,
+                    "allowAutoUpdate": 1,
+                    "allowUpdateService": 0,
+                    "branchReadinessLevel": 16,
+                    "deferFeatureUpdatesPeriod": 30,
+                    "deferQualityUpdatesPeriod": 15,
+                    "pauseFeatureUpdates": 0,
+                    "pauseQualityUpdates": 0,
+                    "scheduledInstallDay": 3,
+                    "scheduledInstallTime": 2,
                     "ring": "EarlyAdopter",
                     "sourcePriority": "local"
                   }

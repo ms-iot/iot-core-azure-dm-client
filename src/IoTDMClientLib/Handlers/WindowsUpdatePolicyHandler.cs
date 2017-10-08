@@ -90,8 +90,7 @@ namespace Microsoft.Devices.Management
                 return;
             }
 
-            WindowsUpdatePolicyDataContract.DesiredProperties desiredProperties = new WindowsUpdatePolicyDataContract.DesiredProperties();
-            desiredProperties.LoadFrom((JObject)desiredValue);
+            WindowsUpdatePolicyDataContract.DesiredProperties desiredProperties = WindowsUpdatePolicyDataContract.DesiredProperties.FromJsonObject((JObject)desiredValue);
 
             if (desiredProperties.applyProperties != null)
             {
@@ -107,69 +106,69 @@ namespace Microsoft.Devices.Management
                 policy.sourcePriorities = desiredProperties.applyProperties.sourcePriority == PolicyDataContract.JsonLocal ? _priorityLocal : _priorityRemote;
                 request.data.policy = policy;
 
-                if (desiredProperties.applyProperties.activeHoursStart != WindowsUpdatePolicyDataContract.NotFound)
+                if (desiredProperties.applyProperties.activeHoursStart != -1)
                 {
-                    request.data.activeHoursStart = UInt32.Parse(desiredProperties.applyProperties.activeHoursStart);
+                    request.data.activeHoursStart = (uint)desiredProperties.applyProperties.activeHoursStart;
                     request.data.activeFields |= (uint)Message.ActiveFields.ActiveHoursStart;
                 }
 
-                if (desiredProperties.applyProperties.activeHoursEnd != WindowsUpdatePolicyDataContract.NotFound)
+                if (desiredProperties.applyProperties.activeHoursEnd != -1)
                 {
-                    request.data.activeHoursEnd = UInt32.Parse(desiredProperties.applyProperties.activeHoursEnd);
+                    request.data.activeHoursEnd = (uint)desiredProperties.applyProperties.activeHoursEnd;
                     request.data.activeFields |= (uint)Message.ActiveFields.ActiveHoursEnd;
                 }
 
-                if (desiredProperties.applyProperties.allowAutoUpdate != WindowsUpdatePolicyDataContract.NotFound)
+                if (desiredProperties.applyProperties.allowAutoUpdate != -1)
                 {
-                    request.data.allowAutoUpdate = UInt32.Parse(desiredProperties.applyProperties.allowAutoUpdate);
+                    request.data.allowAutoUpdate = (uint)desiredProperties.applyProperties.allowAutoUpdate;
                     request.data.activeFields |= (uint)Message.ActiveFields.AllowAutoUpdate;
                 }
 
-                if (desiredProperties.applyProperties.allowUpdateService != WindowsUpdatePolicyDataContract.NotFound)
+                if (desiredProperties.applyProperties.allowUpdateService != -1)
                 {
-                    request.data.allowUpdateService = UInt32.Parse(desiredProperties.applyProperties.allowUpdateService);
+                    request.data.allowUpdateService = (uint)desiredProperties.applyProperties.allowUpdateService;
                     request.data.activeFields |= (uint)Message.ActiveFields.AllowUpdateService;
                 }
 
-                if (desiredProperties.applyProperties.branchReadinessLevel != WindowsUpdatePolicyDataContract.NotFound)
+                if (desiredProperties.applyProperties.branchReadinessLevel != -1)
                 {
-                    request.data.branchReadinessLevel = UInt32.Parse(desiredProperties.applyProperties.branchReadinessLevel);
+                    request.data.branchReadinessLevel = (uint)desiredProperties.applyProperties.branchReadinessLevel;
                     request.data.activeFields |= (uint)Message.ActiveFields.BranchReadinessLevel;
                 }
 
-                if (desiredProperties.applyProperties.deferFeatureUpdatesPeriod != WindowsUpdatePolicyDataContract.NotFound)
+                if (desiredProperties.applyProperties.deferFeatureUpdatesPeriod != -1)
                 {
-                    request.data.deferFeatureUpdatesPeriod = UInt32.Parse(desiredProperties.applyProperties.deferFeatureUpdatesPeriod);
+                    request.data.deferFeatureUpdatesPeriod = (uint)desiredProperties.applyProperties.deferFeatureUpdatesPeriod;
                     request.data.activeFields |= (uint)Message.ActiveFields.DeferFeatureUpdatesPeriod;
                 }
 
-                if (desiredProperties.applyProperties.deferQualityUpdatesPeriod != WindowsUpdatePolicyDataContract.NotFound)
+                if (desiredProperties.applyProperties.deferQualityUpdatesPeriod != -1)
                 {
-                    request.data.deferQualityUpdatesPeriod = UInt32.Parse(desiredProperties.applyProperties.deferQualityUpdatesPeriod);
+                    request.data.deferQualityUpdatesPeriod = (uint)desiredProperties.applyProperties.deferQualityUpdatesPeriod;
                     request.data.activeFields |= (uint)Message.ActiveFields.DeferQualityUpdatesPeriod;
                 }
 
-                if (desiredProperties.applyProperties.pauseFeatureUpdates != WindowsUpdatePolicyDataContract.NotFound)
+                if (desiredProperties.applyProperties.pauseFeatureUpdates != -1)
                 {
-                    request.data.pauseFeatureUpdates = UInt32.Parse(desiredProperties.applyProperties.pauseFeatureUpdates);
+                    request.data.pauseFeatureUpdates = (uint)desiredProperties.applyProperties.pauseFeatureUpdates;
                     request.data.activeFields |= (uint)Message.ActiveFields.PauseFeatureUpdates;
                 }
 
-                if (desiredProperties.applyProperties.pauseQualityUpdates != WindowsUpdatePolicyDataContract.NotFound)
+                if (desiredProperties.applyProperties.pauseQualityUpdates != -1)
                 {
-                    request.data.pauseQualityUpdates = UInt32.Parse(desiredProperties.applyProperties.pauseQualityUpdates);
+                    request.data.pauseQualityUpdates = (uint)desiredProperties.applyProperties.pauseQualityUpdates;
                     request.data.activeFields |= (uint)Message.ActiveFields.PauseQualityUpdates;
                 }
 
-                if (desiredProperties.applyProperties.scheduledInstallDay != WindowsUpdatePolicyDataContract.NotFound)
+                if (desiredProperties.applyProperties.scheduledInstallDay != -1)
                 {
-                    request.data.scheduledInstallDay = UInt32.Parse(desiredProperties.applyProperties.scheduledInstallDay);
+                    request.data.scheduledInstallDay = (uint)desiredProperties.applyProperties.scheduledInstallDay;
                     request.data.activeFields |= (uint)Message.ActiveFields.ScheduledInstallDay;
                 }
 
-                if (desiredProperties.applyProperties.scheduledInstallTime != WindowsUpdatePolicyDataContract.NotFound)
+                if (desiredProperties.applyProperties.scheduledInstallTime != -1)
                 {
-                    request.data.scheduledInstallTime = UInt32.Parse(desiredProperties.applyProperties.scheduledInstallTime);
+                    request.data.scheduledInstallTime = (uint)desiredProperties.applyProperties.scheduledInstallTime;
                     request.data.activeFields |= (uint)Message.ActiveFields.ScheduledInstallTime;
                 }
 
@@ -209,25 +208,25 @@ namespace Microsoft.Devices.Management
             {
                 WindowsUpdatePolicyDataContract.WUProperties reportedProperties = new WindowsUpdatePolicyDataContract.WUProperties();
 
-                reportedProperties.activeHoursStart = response.data.activeHoursStart.ToString();
-                reportedProperties.activeHoursEnd = response.data.activeHoursEnd.ToString();
-                reportedProperties.allowAutoUpdate = response.data.allowAutoUpdate.ToString();
-                reportedProperties.allowUpdateService = response.data.allowUpdateService.ToString();
-                reportedProperties.branchReadinessLevel = response.data.branchReadinessLevel.ToString();
+                reportedProperties.activeHoursStart = (int)response.data.activeHoursStart;
+                reportedProperties.activeHoursEnd = (int)response.data.activeHoursEnd;
+                reportedProperties.allowAutoUpdate = (int)response.data.allowAutoUpdate;
+                reportedProperties.allowUpdateService = (int)response.data.allowUpdateService;
+                reportedProperties.branchReadinessLevel = (int)response.data.branchReadinessLevel;
 
-                reportedProperties.deferFeatureUpdatesPeriod = response.data.deferFeatureUpdatesPeriod.ToString();
-                reportedProperties.deferQualityUpdatesPeriod = response.data.deferQualityUpdatesPeriod.ToString();
-                reportedProperties.pauseFeatureUpdates = response.data.pauseFeatureUpdates.ToString();
-                reportedProperties.pauseQualityUpdates = response.data.pauseQualityUpdates.ToString();
-                reportedProperties.scheduledInstallDay = response.data.scheduledInstallDay.ToString();
+                reportedProperties.deferFeatureUpdatesPeriod = (int)response.data.deferFeatureUpdatesPeriod;
+                reportedProperties.deferQualityUpdatesPeriod = (int)response.data.deferQualityUpdatesPeriod;
+                reportedProperties.pauseFeatureUpdates = (int)response.data.pauseFeatureUpdates;
+                reportedProperties.pauseQualityUpdates = (int)response.data.pauseQualityUpdates;
+                reportedProperties.scheduledInstallDay = (int)response.data.scheduledInstallDay;
 
-                reportedProperties.scheduledInstallTime = response.data.scheduledInstallTime.ToString();
+                reportedProperties.scheduledInstallTime = (int)response.data.scheduledInstallTime;
 
                 reportedProperties.ring = response.data.ring;
 
                 reportedProperties.sourcePriority = PolicyHelpers.SourcePriorityFromPolicy(response.data.policy);
 
-                await this._callback.ReportPropertiesAsync(JsonSectionName, reportedProperties.ToJson());
+                await this._callback.ReportPropertiesAsync(JsonSectionName, reportedProperties.ToJsonObject());
             }
             else
             {

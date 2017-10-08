@@ -58,7 +58,7 @@ namespace DMDashboard
             }
         }
 
-        public virtual string ToJson()
+        public virtual string ToJsonString()
         {
             bool useShortForm = true;
 
@@ -123,7 +123,7 @@ namespace DMDashboard
             return json.ToString();
         }
 
-        public void FromJson(JToken json)
+        public void FromJsonObject(JToken json)
         {
             if (json is JObject)
             {
