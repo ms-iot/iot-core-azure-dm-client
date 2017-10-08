@@ -281,10 +281,10 @@ namespace DMDashboard
                     Debug.WriteLine(jsonProp.Value.ToString());
                     RebootCmdReportedState.FromJson(jsonProp.Value);
                 }
-                else if (jsonProp.Name == "windowsUpdatePolicy")
+                else if (jsonProp.Name == WindowsUpdatePolicyDataContract.SectionName)
                 {
                     Debug.WriteLine(jsonProp.Value.ToString());
-                    WindowsUpdatePolicyReportedState.FromJson(jsonProp.Value);
+                    WindowsUpdatePolicyReportedState.FromJsonObject(jsonProp.Value);
                 }
                 else if (jsonProp.Name == WindowsUpdatesDataContract.SectionName)
                 {
@@ -439,7 +439,7 @@ namespace DMDashboard
 
         private void OnSetWindowsUpdatePolicyInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(WindowsUpdatePolicyDesiredState.SectionName, WindowsUpdatePolicyDesiredState.ToJson()).FireAndForget();
+            SetDesired(WindowsUpdatePolicyDesiredState.SectionName, WindowsUpdatePolicyDesiredState.ToJsonString()).FireAndForget();
         }
 
         private void OnSetDiagnosticLogsInfo(object sender, RoutedEventArgs e)
@@ -612,7 +612,7 @@ namespace DMDashboard
             json.Append(",");
             json.Append(RebootInfoDesiredState.ToJson());
             json.Append(",");
-            json.Append(WindowsUpdatePolicyDesiredState.ToJson());
+            json.Append(WindowsUpdatePolicyDesiredState.ToJsonString());
             json.Append(",");
             json.Append(UIToWindowsUpdatesConfiguration().ToJsonString());
             json.Append(",");

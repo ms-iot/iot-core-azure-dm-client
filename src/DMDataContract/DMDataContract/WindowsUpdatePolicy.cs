@@ -54,45 +54,48 @@ namespace Microsoft.Devices.Management.DMDataContract
 
         public class WUProperties
         {
-            public string activeHoursStart;
-            public string activeHoursEnd;
-            public string allowAutoUpdate;
-            public string allowUpdateService;
-            public string branchReadinessLevel;
+            public int activeHoursStart;
+            public int activeHoursEnd;
+            public int allowAutoUpdate;
+            public int allowUpdateService;
+            public int branchReadinessLevel;
 
-            public string deferFeatureUpdatesPeriod;    // in days
-            public string deferQualityUpdatesPeriod;    // in days
-            public string pauseFeatureUpdates;
-            public string pauseQualityUpdates;
-            public string scheduledInstallDay;
-            public string scheduledInstallTime;
+            public int deferFeatureUpdatesPeriod;    // in days
+            public int deferQualityUpdatesPeriod;    // in days
+            public int pauseFeatureUpdates;
+            public int pauseQualityUpdates;
+            public int scheduledInstallDay;
+            public int scheduledInstallTime;
 
             public string ring;
 
             public string sourcePriority;
 
-            public void LoadFrom(JObject json)
+            public static WUProperties FromJsonObject(JObject json)
             {
-                activeHoursStart = Utils.GetString(json, JsonActiveHoursStart, NotFound);
-                activeHoursEnd = Utils.GetString(json, JsonActiveHoursEnd, NotFound);
-                allowAutoUpdate = Utils.GetString(json, JsonAllowAutoUpdate, NotFound);
-                allowUpdateService = Utils.GetString(json, JsonAllowUpdateService, NotFound);
-                branchReadinessLevel = Utils.GetString(json, JsonBranchReadinessLevel, NotFound);
+                WUProperties wuProperties = new WUProperties();
+                wuProperties.activeHoursStart = Utils.GetInt(json, JsonActiveHoursStart, -1);
+                wuProperties.activeHoursEnd = Utils.GetInt(json, JsonActiveHoursEnd, -1);
+                wuProperties.allowAutoUpdate = Utils.GetInt(json, JsonAllowAutoUpdate, -1);
+                wuProperties.allowUpdateService = Utils.GetInt(json, JsonAllowUpdateService, -1);
+                wuProperties.branchReadinessLevel = Utils.GetInt(json, JsonBranchReadinessLevel, -1);
 
-                deferFeatureUpdatesPeriod = Utils.GetString(json, JsonDeferFeatureUpdatesPeriod, NotFound);
-                deferQualityUpdatesPeriod = Utils.GetString(json, JsonDeferQualityUpdatesPeriod, NotFound);
-                pauseFeatureUpdates = Utils.GetString(json, JsonPauseFeatureUpdates, NotFound);
-                pauseQualityUpdates = Utils.GetString(json, JsonPauseQualityUpdates, NotFound);
-                scheduledInstallDay = Utils.GetString(json, JsonScheduledInstallDay, NotFound);
+                wuProperties.deferFeatureUpdatesPeriod = Utils.GetInt(json, JsonDeferFeatureUpdatesPeriod, -1);
+                wuProperties.deferQualityUpdatesPeriod = Utils.GetInt(json, JsonDeferQualityUpdatesPeriod, -1);
+                wuProperties.pauseFeatureUpdates = Utils.GetInt(json, JsonPauseFeatureUpdates, -1);
+                wuProperties.pauseQualityUpdates = Utils.GetInt(json, JsonPauseQualityUpdates, -1);
+                wuProperties.scheduledInstallDay = Utils.GetInt(json, JsonScheduledInstallDay, -1);
 
-                scheduledInstallTime = Utils.GetString(json, JsonScheduledInstallTime, NotFound);
+                wuProperties.scheduledInstallTime = Utils.GetInt(json, JsonScheduledInstallTime, -1);
 
-                ring = Utils.GetString(json, JsonRing, NotFound);
+                wuProperties.ring = Utils.GetString(json, JsonRing, NotFound);
 
-                sourcePriority = Utils.GetString(json, JsonSourcePriority, NotFound);
+                wuProperties.sourcePriority = Utils.GetString(json, JsonSourcePriority, NotFound);
+
+                return wuProperties;
             }
 
-            public JObject ToJson()
+            public JObject ToJsonObject()
             {
                 return JObject.FromObject(this);
             }
@@ -103,18 +106,21 @@ namespace Microsoft.Devices.Management.DMDataContract
             public WUProperties applyProperties;
             public string reportProperties;
 
-            public void LoadFrom(JObject jObj)
+            public static DesiredProperties FromJsonObject(JObject jObj)
             {
+                DesiredProperties desiredProperties = new DesiredProperties();
+
                 JToken jValue;
                 if (jObj.TryGetValue(JsonApplyProperties, out jValue) && jValue is JObject)
                 {
-                    applyProperties = new WUProperties();
-                    applyProperties.LoadFrom((JObject)jValue);
+                    desiredProperties.applyProperties = WUProperties.FromJsonObject((JObject)jValue);
                 }
                 if (jObj.TryGetValue(JsonReportProperties, out jValue) && jValue is JValue && jValue.Type == JTokenType.String)
                 {
-                    reportProperties = (string)jValue;
+                    desiredProperties.reportProperties = (string)jValue;
                 }
+
+                return desiredProperties;
             }
         }
     }

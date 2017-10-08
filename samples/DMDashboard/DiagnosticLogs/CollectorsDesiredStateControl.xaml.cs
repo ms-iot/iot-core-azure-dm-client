@@ -89,7 +89,7 @@ namespace DMDashboard
 
             foreach (CollectorDesiredStateControl control in ControlList.Children)
             {
-                string s = control.ToJson();
+                string s = control.ToJsonString();
                 if (!String.IsNullOrEmpty(s))
                 {
                     if (sb.Length > 0)
