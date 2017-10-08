@@ -55,7 +55,7 @@ namespace Microsoft.Devices.Management
             DmAppStoreUpdateDataContract.ReportedProperties reportedProperties = new DmAppStoreUpdateDataContract.ReportedProperties();
             reportedProperties.response = response;
             reportedProperties.lastCheck = lastCheck;
-            await _deviceManagementClient.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties));
+            await _deviceManagementClient.ReportPropertiesAsync(PropertySectionName, reportedProperties.ToJsonObject());
         }
 
         private async Task InternalStartDmAppStoreUpdateAsync(string jsonParamString)

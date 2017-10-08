@@ -55,8 +55,7 @@ namespace Microsoft.Devices.Management
                 await _deviceManagementClient.ReportStatusAsync(PropertySectionName, status);
 
                 // Parse json parameters
-                AppxLifeCycleDataContract.ManageAppLifeCycleParams parameters = new AppxLifeCycleDataContract.ManageAppLifeCycleParams();
-                parameters.LoadFrom(jsonParam);
+                AppxLifeCycleDataContract.ManageAppLifeCycleParams parameters = AppxLifeCycleDataContract.ManageAppLifeCycleParams.FromJsonString(jsonParam);
 
                 // Construct request
                 Message.AppLifecycleInfo appLifeCycleInfo = new Message.AppLifecycleInfo();

@@ -90,36 +90,45 @@ namespace Microsoft.Devices.Management.DMDataContract
             public string manufacturer;
             public string id;
 
-            public void LoadFrom(JObject json)
+            public static ReportedProperties FromJsonObject(JObject json)
             {
-                batteryRuntime = Utils.GetString(json, JsonBatteryRuntime, NotFound);
-                batteryRemaining = Utils.GetString(json, JsonBatteryRemaining, NotFound);
-                batteryStatus = Utils.GetString(json, JsonBatteryStatus, NotFound);
-                osEdition = Utils.GetString(json, JsonOsEdition, NotFound);
-                secureBootState = Utils.GetString(json, JsonSecureBootState, NotFound);
+                ReportedProperties reportedProperties = new ReportedProperties();
 
-                totalMemory = Utils.GetString(json, JsonTotalMemory, NotFound);
-                totalStorage = Utils.GetString(json, JsonTotalStorage, NotFound);
-                name = Utils.GetString(json, JsonName, NotFound);
-                processorArchitecture = Utils.GetString(json, JsonProcessorArchitecture, NotFound);
-                commercializationOperator = Utils.GetString(json, JsonCommercializationOperator, NotFound);
+                reportedProperties.batteryRuntime = Utils.GetString(json, JsonBatteryRuntime, NotFound);
+                reportedProperties.batteryRemaining = Utils.GetString(json, JsonBatteryRemaining, NotFound);
+                reportedProperties.batteryStatus = Utils.GetString(json, JsonBatteryStatus, NotFound);
+                reportedProperties.osEdition = Utils.GetString(json, JsonOsEdition, NotFound);
+                reportedProperties.secureBootState = Utils.GetString(json, JsonSecureBootState, NotFound);
 
-                displayResolution = Utils.GetString(json, JsonDisplayResolution, NotFound);
-                radioSwVer = Utils.GetString(json, JsonRadioSwVer, NotFound);
-                processorType = Utils.GetString(json, JsonProcessorType, NotFound);
-                platform = Utils.GetString(json, JsonPlatform, NotFound);
-                osVer = Utils.GetString(json, JsonOsVer, NotFound);
+                reportedProperties.totalMemory = Utils.GetString(json, JsonTotalMemory, NotFound);
+                reportedProperties.totalStorage = Utils.GetString(json, JsonTotalStorage, NotFound);
+                reportedProperties.name = Utils.GetString(json, JsonName, NotFound);
+                reportedProperties.processorArchitecture = Utils.GetString(json, JsonProcessorArchitecture, NotFound);
+                reportedProperties.commercializationOperator = Utils.GetString(json, JsonCommercializationOperator, NotFound);
 
-                fwVer = Utils.GetString(json, JsonFwVer, NotFound);
-                hwVer = Utils.GetString(json, JsonHwVer, NotFound);
-                oem = Utils.GetString(json, JsonOEM, NotFound);
-                type = Utils.GetString(json, JsonType, NotFound);
-                lang = Utils.GetString(json, JsonLang, NotFound);
+                reportedProperties.displayResolution = Utils.GetString(json, JsonDisplayResolution, NotFound);
+                reportedProperties.radioSwVer = Utils.GetString(json, JsonRadioSwVer, NotFound);
+                reportedProperties.processorType = Utils.GetString(json, JsonProcessorType, NotFound);
+                reportedProperties.platform = Utils.GetString(json, JsonPlatform, NotFound);
+                reportedProperties.osVer = Utils.GetString(json, JsonOsVer, NotFound);
 
-                dmVer = Utils.GetString(json, JsonDmVer, NotFound);
-                model = Utils.GetString(json, JsonModel, NotFound);
-                manufacturer = Utils.GetString(json, JsonManufacturer, NotFound);
-                id = Utils.GetString(json, JsonId, NotFound);
+                reportedProperties.fwVer = Utils.GetString(json, JsonFwVer, NotFound);
+                reportedProperties.hwVer = Utils.GetString(json, JsonHwVer, NotFound);
+                reportedProperties.oem = Utils.GetString(json, JsonOEM, NotFound);
+                reportedProperties.type = Utils.GetString(json, JsonType, NotFound);
+                reportedProperties.lang = Utils.GetString(json, JsonLang, NotFound);
+
+                reportedProperties.dmVer = Utils.GetString(json, JsonDmVer, NotFound);
+                reportedProperties.model = Utils.GetString(json, JsonModel, NotFound);
+                reportedProperties.manufacturer = Utils.GetString(json, JsonManufacturer, NotFound);
+                reportedProperties.id = Utils.GetString(json, JsonId, NotFound);
+
+                return reportedProperties;
+            }
+
+            public JObject ToJsonObject()
+            {
+                return JObject.FromObject(this);
             }
         }
     }

@@ -37,10 +37,17 @@ namespace Microsoft.Devices.Management.DMDataContract
             public string response;
             public string lastCheck;
 
-            public void LoadFrom(JObject json)
+            public static ReportedProperties FromJsonObject(JObject json)
             {
-                response = Utils.GetString(json, JsonResponse, NotFound);
-                lastCheck = Utils.GetString(json, JsonLastCheck, NotFound);
+                ReportedProperties reportedProperties = new ReportedProperties();
+                reportedProperties.response = Utils.GetString(json, JsonResponse, NotFound);
+                reportedProperties.lastCheck = Utils.GetString(json, JsonLastCheck, NotFound);
+                return reportedProperties;
+            }
+
+            public JObject ToJsonObject()
+            {
+                return JObject.FromObject(this);
             }
         }
     }

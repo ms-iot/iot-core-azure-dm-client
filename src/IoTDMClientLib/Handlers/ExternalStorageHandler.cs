@@ -44,9 +44,7 @@ namespace Microsoft.Devices.Management
                 throw new Error(ErrorCodes.INVALID_DESIRED_JSON_VALUE, "Invalid json value type for the " + PropertySectionName + " node.");
             }
 
-            ExternalStorageDataContract.DesiredProperties desiredProperties = new ExternalStorageDataContract.DesiredProperties();
-            desiredProperties.LoadFrom((JObject)desiredValue);
-
+            ExternalStorageDataContract.DesiredProperties desiredProperties = ExternalStorageDataContract.DesiredProperties.FromJsonObject((JObject)desiredValue);
             ConnectionString = desiredProperties.connectionString;
 
             // Report to the device twin....

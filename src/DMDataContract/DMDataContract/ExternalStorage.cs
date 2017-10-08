@@ -30,12 +30,14 @@ namespace Microsoft.Devices.Management.DMDataContract
         {
             public string connectionString;
 
-            public void LoadFrom(JObject externalStorage)
+            public static DesiredProperties FromJsonObject(JObject externalStorage)
             {
-                connectionString = Utils.GetString(externalStorage, JsonConnectionString, "");
+                DesiredProperties desiredProperties = new DesiredProperties();
+                desiredProperties.connectionString = Utils.GetString(externalStorage, JsonConnectionString, "");
+                return desiredProperties;
             }
 
-            public string ToJson()
+            public string ToJsonString()
             {
                 StringBuilder sb = new StringBuilder();
                 sb.Append("\"" + SectionName + "\" : {\n");
@@ -49,9 +51,18 @@ namespace Microsoft.Devices.Management.DMDataContract
         {
             public string connectionString;
 
-            public void LoadFrom(JObject json)
+            public static ReportedProperties FromJsonObject(JObject json)
             {
-                connectionString = Utils.GetString(json, JsonConnectionString, NotFound);
+                ReportedProperties reportedProperties = new ReportedProperties();
+                reportedProperties.connectionString = Utils.GetString(json, JsonConnectionString, NotFound);
+                return reportedProperties;
+            }
+
+            public JObject ToJsonObject()
+            {
+                JObject jObject = new JObject();
+                jObject.Add(JsonConnectionString, new JValue(connectionString));
+                return jObject;
             }
         }
     }

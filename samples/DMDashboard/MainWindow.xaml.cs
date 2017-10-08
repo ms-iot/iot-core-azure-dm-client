@@ -151,9 +151,9 @@ namespace DMDashboard
             AppxLifeCycleDataContract.ManageAppLifeCycleParams parameters = new AppxLifeCycleDataContract.ManageAppLifeCycleParams();
             parameters.action = appLifeCycleAction;
             parameters.pkgFamilyName = packageFamilyName;
-            string parametersString = JsonConvert.SerializeObject(parameters);
+
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(AppxLifeCycleDataContract.ManageAppLifeCycleAsync, parametersString, new TimeSpan(0, 0, 30), cancellationToken);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(AppxLifeCycleDataContract.ManageAppLifeCycleAsync, parameters.ToJsonString(), new TimeSpan(0, 0, 30), cancellationToken);
             MessageBox.Show("ManageAppLifeCycle(start) Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
@@ -230,7 +230,7 @@ namespace DMDashboard
                 else if (jsonProp.Name == CertificatesDataContract.SectionName && jsonProp.Value.Type == JTokenType.Object)
                 {
                     Debug.WriteLine(jsonProp.Value.ToString());
-                    CertificatesDataContract.ReportedProperties reportedProperties = CertificatesDataContract.ReportedProperties.FromJsonObject((JObject)jsonProp.Value);
+                    var reportedProperties = CertificatesDataContract.ReportedProperties.FromJsonObject((JObject)jsonProp.Value);
                     CertificatesInfoToUI(reportedProperties);
                 }
                 else if (jsonProp.Name == DeviceInfoDataContract.SectionName)
@@ -238,7 +238,7 @@ namespace DMDashboard
                     Debug.WriteLine(jsonProp.Value.ToString());
                     if (jsonProp.Value is JObject)
                     {
-                        DeviceInfoReportedState.FromJson((JObject)jsonProp.Value);
+                        DeviceInfoReportedState.FromJsonObject((JObject)jsonProp.Value);
                     }
                     else
                     {
@@ -250,8 +250,7 @@ namespace DMDashboard
                     Debug.WriteLine(jsonProp.Value.ToString());
                     if (jsonProp.Value is JObject)
                     {
-                        ExternalStorageDataContract.ReportedProperties reportedProperties = new ExternalStorageDataContract.ReportedProperties();
-                        reportedProperties.LoadFrom((JObject)jsonProp.Value);
+                        var reportedProperties = ExternalStorageDataContract.ReportedProperties.FromJsonObject((JObject)jsonProp.Value);
                         AzureStorageReportedConnectionString.Text = reportedProperties.connectionString;
                     }
                     else
@@ -264,7 +263,7 @@ namespace DMDashboard
                     Debug.WriteLine(jsonProp.Value.ToString());
                     if (jsonProp.Value is JObject)
                     {
-                        DmAppStoreUpdateReportedState.FromJson((JObject)jsonProp.Value);
+                        DmAppStoreUpdateReportedState.FromJsonObject((JObject)jsonProp.Value);
                     }
                     else
                     {
@@ -357,7 +356,7 @@ namespace DMDashboard
             var resetParams = new FactoryResetDataContract.ResetParams();
             resetParams.clearTPM = DesiredClearTPM.IsChecked == true;
             resetParams.recoveryPartitionGUID = DesiredRecoveryPartitionGUID.Text;
-            string resetParamsString = JsonConvert.SerializeObject(resetParams);
+            string resetParamsString = resetParams.ToJsonString();
 
             Debug.WriteLine("Reset params : " + resetParamsString);
 
@@ -434,7 +433,7 @@ namespace DMDashboard
         {
             ExternalStorageDataContract.DesiredProperties desiredProperties = new ExternalStorageDataContract.DesiredProperties();
             desiredProperties.connectionString = AzureStorageDesiredConnectionString.Text;
-            SetDesired(ExternalStorageDataContract.SectionName, desiredProperties.ToJson()).FireAndForget();
+            SetDesired(ExternalStorageDataContract.SectionName, desiredProperties.ToJsonString()).FireAndForget();
         }
 
         private void OnSetWindowsUpdatePolicyInfo(object sender, RoutedEventArgs e)

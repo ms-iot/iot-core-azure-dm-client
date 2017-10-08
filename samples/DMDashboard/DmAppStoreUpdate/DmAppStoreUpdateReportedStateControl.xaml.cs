@@ -34,10 +34,9 @@ namespace DMDashboard
             InitializeComponent();
         }
 
-        public void FromJson(JObject json)
+        public void FromJsonObject(JObject json)
         {
-            DmAppStoreUpdateDataContract.ReportedProperties reportedProperties = new DmAppStoreUpdateDataContract.ReportedProperties();
-            reportedProperties.LoadFrom(json);
+            DmAppStoreUpdateDataContract.ReportedProperties reportedProperties = DmAppStoreUpdateDataContract.ReportedProperties.FromJsonObject(json);
 
             Response.Text = reportedProperties.response;
             LastCheck.Text = reportedProperties.lastCheck;

@@ -34,15 +34,22 @@ namespace Microsoft.Devices.Management.DMDataContract
             public string pkgFamilyName;
             public string action;
 
-            public void LoadFrom(JObject jsonObject)
+            public static ManageAppLifeCycleParams FromJsonObject(JObject jsonObject)
             {
-                pkgFamilyName = Utils.GetString(jsonObject, JsonPkgFamilyName, NotFound);
-                action = Utils.GetString(jsonObject, JsonAction, NotFound);
+                var parameters = new ManageAppLifeCycleParams();
+                parameters.pkgFamilyName = Utils.GetString(jsonObject, JsonPkgFamilyName, NotFound);
+                parameters.action = Utils.GetString(jsonObject, JsonAction, NotFound);
+                return parameters;
             }
 
-            public void LoadFrom(string jsonString)
+            public static ManageAppLifeCycleParams FromJsonString(string jsonString)
             {
-                LoadFrom((JObject)JsonConvert.DeserializeObject(jsonString));
+                return FromJsonObject((JObject)JsonConvert.DeserializeObject(jsonString));
+            }
+
+            public string ToJsonString()
+            {
+                return JsonConvert.SerializeObject(this);
             }
         }
 

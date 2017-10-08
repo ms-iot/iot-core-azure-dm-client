@@ -23,14 +23,6 @@ namespace Microsoft.Devices.Management
 {
     class DeviceInfoHandler : IClientPropertyHandler
     {
-        public DeviceInfoHandler(
-            IClientHandlerCallBack deviceManagementClient,
-            ISystemConfiguratorProxy systemConfiguratorProxy)
-        {
-            _systemConfiguratorProxy = systemConfiguratorProxy;
-            _deviceManagementClient = deviceManagementClient;
-        }
-
         // IClientPropertyHandler
         public string PropertySectionName
         {
@@ -38,6 +30,14 @@ namespace Microsoft.Devices.Management
             {
                 return DeviceInfoDataContract.SectionName;
             }
+        }
+
+        public DeviceInfoHandler(
+            IClientHandlerCallBack deviceManagementClient,
+            ISystemConfiguratorProxy systemConfiguratorProxy)
+        {
+            _systemConfiguratorProxy = systemConfiguratorProxy;
+            _deviceManagementClient = deviceManagementClient;
         }
 
         // IClientPropertyHandler
@@ -89,7 +89,7 @@ namespace Microsoft.Devices.Management
             reportedProperties.manufacturer = response.manufacturer;
             reportedProperties.id = response.id;
 
-            return JObject.FromObject(reportedProperties);
+            return reportedProperties.ToJsonObject();
         }
 
         private ISystemConfiguratorProxy _systemConfiguratorProxy;
