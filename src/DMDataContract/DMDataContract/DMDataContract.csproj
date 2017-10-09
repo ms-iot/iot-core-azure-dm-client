@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AppxLifeCycle.cs" />
+    <Compile Include="AppxManagement.cs" />
     <Compile Include="DmAppStoreUpdate.cs" />
     <Compile Include="Certificates.cs" />
     <Compile Include="Common.cs" />

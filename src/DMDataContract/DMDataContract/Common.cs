@@ -17,7 +17,9 @@ namespace Microsoft.Devices.Management.DMDataContract
 {
     public class CommonDataContract
     {
-        public static readonly string NotFound = "<not found>";
-        public static readonly string ReportAllAsync = DMJSonConstants.DTWindowsIoTNameSpace + ".reportAllAsync";
+        public const string NotFound = "<not found>";
+        public const string ReportAllAsync = DMJSonConstants.DTWindowsIoTNameSpace + ".reportAllAsync";
+        public const string JsonRefreshing = "refreshing";
+        public const string JsonPending = "pending";
     }
 }

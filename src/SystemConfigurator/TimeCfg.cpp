@@ -125,10 +125,10 @@ void TimeCfg::Set(SetTimeInfoRequest^ setTimeInfoRequest)
     // Use registry settings?
     tzi.DynamicDaylightTimeDisabled = data->dynamicDaylightTimeDisabled;
 
-    // Option 1 (if dynamicDaylightTimeDisabled = false)
+    // Option 1: If dynamicDaylightTimeDisabled = false, look-up the TimeZoneKeyName...
     wcsncpy_s(tzi.TimeZoneKeyName, data->timeZoneKeyName->Data(), _TRUNCATE);
 
-    // Option 2 (if dynamicDaylightTimeDisabled = true || timeZoneKeyName is not found)
+    // Option 2: If dynamicDaylightTimeDisabled = true || timeZoneKeyName is not found, using the following time zone spec...
 
     // Bias...
     tzi.Bias = data->timeZoneBias;
