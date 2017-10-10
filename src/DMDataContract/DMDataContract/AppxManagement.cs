@@ -110,7 +110,7 @@ namespace Microsoft.Devices.Management.DMDataContract
             {
                 AppListQuery query = new AppListQuery();
                 query.store = Utils.GetBool(obj, JsonStore, false);
-                query.store = Utils.GetBool(obj, JsonNonStore, false);
+                query.nonStore = Utils.GetBool(obj, JsonNonStore, false);
                 return query;
             }
         }

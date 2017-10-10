@@ -205,6 +205,51 @@
         },
         "returnCode": 0
       }
+    },
+    {
+      "name": "06",
+      "type": "deviceTwin",
+      "description": "enumerate collectors",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "eventTracingCollectors": {
+                "?": "detailed"
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "eventTracingCollectors": {
+                  "AzureDM": {
+                    "traceLogFileMode": "sequential",
+                    "logFileSizeLimitMB": 4,
+                    "logFileFolder": "AzureDMFolder",
+                    "logFileName": "AzureDMFile.etl",
+                    "started": false,
+                    "D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897": {
+                      "traceLevel": "verbose",
+                      "keywords": "<ignore>",
+                      "enabled": true,
+                      "type": "provider"
+                    }
+                  },
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
