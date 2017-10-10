@@ -12,12 +12,15 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
+using Windows.ApplicationModel;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management;
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Windows.Foundation.Diagnostics;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -28,12 +31,13 @@ namespace Toaster
     {
         DeviceManagementClient deviceManagementClient;
 
-        private readonly string DeviceConnectionString = ConnectionStringProvider.Value;
-
-        private void EnableDeviceManagementUI(bool enable)
+        private async Task EnableDeviceManagementUiAsync(bool enable)
         {
-            this.buttonRestart.IsEnabled = enable;
-            this.buttonReset.IsEnabled = enable;
+            await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                this.buttonRestart.IsEnabled = enable;
+                this.buttonReset.IsEnabled = enable;
+            });
         }
 
         public MainPage()
@@ -42,25 +46,72 @@ namespace Toaster
             this.buttonStart.IsEnabled = true;
             this.buttonStop.IsEnabled = false;
 
-            // DM buttons will be enabled when we have created the DM client
-            EnableDeviceManagementUI(false);
-            this.imageHot.Visibility = Visibility.Collapsed;
+            PackageVersion version = Package.Current.Id.Version;
+            ApplicationVersion.Text = string.Format("{0}.{1}.{2}.{3}", version.Major, version.Minor, version.Build, version.Revision);
 
 #pragma warning disable 4014
+            // DM buttons will be enabled when we have created the DM client
+            this.EnableDeviceManagementUiAsync(false);
+            this.imageHot.Visibility = Visibility.Collapsed;
+
             this.InitializeDeviceClientAsync();
 #pragma warning restore 4014
 
         }
 
-        private async Task InitializeDeviceClientAsync()
+        private async Task<string> GetConnectionStringAsync()
         {
+            var tpmDevice = new TpmDevice();
+
+            string connectionString = "";
+
+            do
+            {
+                try
+                {
+                    connectionString = await tpmDevice.GetConnectionStringAsync();
+                    break;
+                }
+                catch (Exception)
+                {
+                    // We'll just keep trying.
+                }
+                await Task.Delay(1000);
+
+            } while (true);
+
+            return connectionString;
+        }
+
+        private async Task ResetConnectionAsync(DeviceClient existingConnection)
+        {
+            Logger.Log("ResetConnectionAsync start", LoggingLevel.Verbose);
+            // Attempt to close any existing connections before
+            // creating a new one
+            if (existingConnection != null)
+            {
+                await existingConnection.CloseAsync().ContinueWith((t) =>
+                {
+                    var e = t.Exception;
+                    if (e != null)
+                    {
+                        var msg = "existingClient.CloseAsync exception: " + e.Message + "\n" + e.StackTrace;
+                        System.Diagnostics.Debug.WriteLine(msg);
+                        Logger.Log(msg, LoggingLevel.Verbose);
+                    }
+                });
+            }
+
+            // Get new SAS Token
+            var deviceConnectionString = await GetConnectionStringAsync();
+
             // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
             // as well as device management
-            DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, TransportType.Mqtt);
+            var newDeviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
 
             // IDeviceTwin abstracts away communication with the back-end.
             // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
-            IDeviceTwin deviceTwinProxy = new AzureIoTHubDeviceTwinProxy(deviceClient);
+            IDeviceTwin deviceTwin = new AzureIoTHubDeviceTwinProxy(newDeviceClient, ResetConnectionAsync, Logger.Log);
 
             // IDeviceManagementRequestHandler handles device management-specific requests to the app,
             // such as whether it is OK to perform a reboot at any givem moment, according the app business logic
@@ -68,22 +119,46 @@ namespace Toaster
             IDeviceManagementRequestHandler appRequestHandler = new ToasterDeviceManagementRequestHandler(this);
 
             // Create the DeviceManagementClient, the main entry point into device management
-            this.deviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwinProxy, appRequestHandler);
+            this.deviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwin, appRequestHandler);
 
-            EnableDeviceManagementUI(true);
+            await EnableDeviceManagementUiAsync(true);
 
             // Set the callback for desired properties update. The callback will be invoked
             // for all desired properties -- including those specific to device management
-            await deviceClient.SetDesiredPropertyUpdateCallback(OnDesiredPropertyUpdate, null);
+            await newDeviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdated, null);
+
+            // Tell the deviceManagementClient to sync the device with the current desired state.
+            await this.deviceManagementClient.ApplyDesiredStateAsync();
+
+            Logger.Log("ResetConnectionAsync end", LoggingLevel.Verbose);
         }
 
-        public Task OnDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
+        private async Task InitializeDeviceClientAsync()
         {
-            // Let the device management client process properties specific to device management
-            this.deviceManagementClient.ProcessDeviceManagementProperties(desiredProperties);
+            while (true)
+            {
+                try
+                {
+                    await ResetConnectionAsync(null);
+                    break;
+                }
+                catch (Exception e)
+                {
+                    var msg = "InitializeDeviceClientAsync exception: " + e.Message + "\n" + e.StackTrace;
+                    System.Diagnostics.Debug.WriteLine(msg);
+                    Logger.Log(msg, LoggingLevel.Error);
+                }
 
-            // Application developer can process all the top-level nodes here
-            return Task.CompletedTask;
+                await Task.Delay(5 * 60 * 1000);
+            }
+        }
+
+        public async Task OnDesiredPropertyUpdated(TwinCollection twinProperties, object userContext)
+        {
+            Dictionary<string, object> desiredProperties = AzureIoTHubDeviceTwinProxy.DictionaryFromTwinCollection(twinProperties);
+
+            // Let the device management client process properties specific to device management
+            await this.deviceManagementClient.ApplyDesiredStateAsync(desiredProperties);
         }
 
         // This method may get called on the DM callback thread - not on the UI thread.
@@ -129,7 +204,8 @@ namespace Toaster
             this.textBlock.Text = "Ready";
             this.imageHot.Visibility = Visibility.Collapsed;
         }
-
+        /*  
+        // ToDo: Not implemented in SystemConfigurator.
         private async void OnCheckForUpdates(object sender, RoutedEventArgs e)
         {
             bool updatesAvailable = await deviceManagementClient.CheckForUpdatesAsync();
@@ -141,13 +217,13 @@ namespace Toaster
                 // Don't do anything yet
             }
         }
-
+        */
         private async void RestartSystem()
         {
             bool success = true;
             try
             {
-                await deviceManagementClient.ImmediateRebootAsync();
+                await deviceManagementClient.RebootAsync();
             }
             catch(Exception)
             {
@@ -171,7 +247,7 @@ namespace Toaster
                 // by the builder of the image. For our testing purposes, we have been using the following
                 // guid.
                 string recoveryPartitionGUID = "a5935ff2-32ba-4617-bf36-5ac314b3f9bf";
-                await deviceManagementClient.FactoryResetAsync(false /*don't clear TPM*/, recoveryPartitionGUID);
+                await deviceManagementClient.StartFactoryResetAsync(false /*don't clear TPM*/, recoveryPartitionGUID);
             }
             catch (Exception)
             {
@@ -184,6 +260,131 @@ namespace Toaster
         private void OnFactoryReset(object sender, RoutedEventArgs e)
         {
             FactoryReset();
+        }
+
+        private async void SetWindowsTelemetryAsync()
+        {
+            try
+            {
+                await this.deviceManagementClient.SetWindowsTelemetryLevelAsync((WindowsTelemetryLevel)RequestedWindowsTelemetryLevel.SelectedIndex);
+                StatusText.Text = "Set Windows Telemetry Level -> Success";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Set Windows Telemetry Level -> Error: " + ex.HResult + " - " + ex.Message;
+            }
+        }
+
+        private async void GetWindowsTelemetryAsync()
+        {
+            try
+            {
+                WindowsTelemetryLevel level = await this.deviceManagementClient.GetWindowsTelemetryLevelAsync();
+                CurrentWindowsTelemetryLevel.Text = level.ToString();
+                StatusText.Text = "Get Windows Telemetry Level -> Success";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Get Windows Telemetry Level -> Error: " + ex.HResult + " - " + ex.Message;
+            }
+        }
+
+        private void OnSetWindowsTelemetry(object sender, RoutedEventArgs e)
+        {
+            SetWindowsTelemetryAsync();
+        }
+
+        private void OnGetWindowsTelemetry(object sender, RoutedEventArgs e)
+        {
+            GetWindowsTelemetryAsync();
+        }
+
+        private async void SetTimeServiceStartedAsync()
+        {
+            try
+            {
+                TimeServiceState timeServiceState = new TimeServiceState();
+                timeServiceState.enabled = true;
+                timeServiceState.startup = ServiceStartup.Auto;
+                timeServiceState.started = RequestedTimeServiceStartedState.SelectedIndex == 0;
+                timeServiceState.settingsPriority = RequestedTimeServicePriorityState.SelectedIndex == 0 ? SettingsPriority.Local : SettingsPriority.Remote;
+
+                await this.deviceManagementClient.SetTimeServiceAsync(timeServiceState);
+                StatusText.Text = "Set Time Service Started -> Success";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Set Time Service Started -> Error: " + ex.HResult + " - " + ex.Message;
+            }
+        }
+
+        private async void GetTimeServiceStartedAsync()
+        {
+            try
+            {
+                TimeServiceState state = await this.deviceManagementClient.GetTimeServiceStateAsync();
+                CurrentTimeServiceStartedState.Text = state.started ? "started" : "stopped";
+                CurrentTimeServicePriorityState.Text = state.settingsPriority.ToString();
+                StatusText.Text = "Get Time Service Started -> Success";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Get Time Service Started -> Error: " + ex.HResult + " - " + ex.Message;
+            }
+        }
+
+        private void OnSetTimeService(object sender, RoutedEventArgs e)
+        {
+            SetTimeServiceStartedAsync();
+        }
+
+        private void OnGetTimeServiceStarted(object sender, RoutedEventArgs e)
+        {
+            GetTimeServiceStartedAsync();
+        }
+
+        private async void SetRingAsync()
+        {
+            try
+            {
+                WindowsUpdateRingState ringState = new WindowsUpdateRingState();
+                ringState.ring = RequestedRingState.SelectedIndex == 0 ? WindowsUpdateRing.EarlyAdopter :
+                                 RequestedRingState.SelectedIndex == 1 ? WindowsUpdateRing.GeneralAvailability : WindowsUpdateRing.Preview;
+                ringState.settingsPriority = RequestedRingPriorityState.SelectedIndex == 0 ? SettingsPriority.Local : SettingsPriority.Remote;
+
+                await this.deviceManagementClient.SetWindowsUpdateRingAsync(ringState);
+                StatusText.Text = "Set Windows Update Ring -> Success";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Set Windows Update Ring -> Error: " + ex.HResult + " - " + ex.Message;
+            }
+        }
+
+        private async void GetRingAsync()
+        {
+            try
+            {
+                WindowsUpdateRingState state = await this.deviceManagementClient.GetWindowsUpdateRingAsync();
+                CurrentRingState.Text = state.ring == WindowsUpdateRing.EarlyAdopter ? "Early Adopter" :
+                                                        state.ring == WindowsUpdateRing.GeneralAvailability ? "General Availability" : "Preview";
+                CurrentRingPriorityState.Text = state.settingsPriority.ToString();
+                StatusText.Text = "Get Windows Update Ring -> Success";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Get Windows Update Ring -> Error: " + ex.HResult + " - " + ex.Message;
+            }
+        }
+
+        private void OnSetRing(object sender, RoutedEventArgs e)
+        {
+            SetRingAsync();
+        }
+
+        private void OnGetRing(object sender, RoutedEventArgs e)
+        {
+            GetRingAsync();
         }
     }
 }

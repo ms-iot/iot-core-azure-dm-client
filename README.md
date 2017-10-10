@@ -2,19 +2,24 @@
 
 ## Overview
 
-**Windows IoT Azure DM Client Library** is an SDK that allows developers to build cloud solutions for managing Windows IoT Core devices with Azure IoT Hub.
+[Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/) and [Azure Device Management](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-device-management-overview) offer a very scalable and efficient cloud service for managing millions of devices.
 
-The Windows IoT Azure DM Client identifies itself to the Azure IoT Hub through a connection string. The connection string can be provisioned on the device using [Device Provisioning Service(DPS) client](<https://github.com/ms-iot/iot-azure-dps-client>) - which allows configuring the Azure IoT Hub after the device ships.
+The Windows IoT team has implemented a device client (*Windows IoT Azure DM Client*) which communicate with those services and exposes a large number of the Windows management capabilities.
 
-The library is to be linked to a UWP application to allow both the Device Management components and the UWP application to share the connection to the Azure IoT Hub.
+The *Windows IoT Azure DM Client* integrates tightly with the user's application on the device allowing certain interactions between them and also sharing the Azure IoT Hub connection (i.e. sharing the device identity).
 
-The application can be a foreground application or a background application. You can find [samples](docs/samples.md) for both and a [walk-through](docs/dm-hello-world-overview.md) to build a foreground application.
+The DM client consists of a UWP library (*Windows IoT Azure DM Client Library*) that is linked to the user's application and an NT service (*SystemConfigurator*).
 
-Here's a diagram of where the library fits:
+The application can be a foreground application or a background application.
 
-<img src="docs/dm-architecture-all.png"/>
+## Getting Started...
 
-All device management operations are implemented via the Azure IoT Hub [direct methods](<https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-direct-methods>) and the [device twin](<https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-device-twins>).
+- [IoT Core Azure Device Management Overview](https://blogs.windows.com/buildingapps/2017/04/07/managing-windows-iot-core-devices-azure-iot-hub/)
+- Azure IoT Hub
+  - [Device Management Overview](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-device-management-overview).
+  - [Creating IoT Hub](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-csharp-csharp-getstarted).
+- [Samples Applications](docs/samples.md).
+- [Application Creation Walk-through](docs/dm-hello-world-overview.md).
 
 ## System Requirements
 
@@ -25,10 +30,10 @@ Visual Studio 2017
 Windows IoT Core build 15063 (March 2017) or later.
 
 ## Quick Links
+## Reference
 
-- [Building the Library](docs/building-the-library.md)
-- [Walkthrough: DM Hello World Application](docs/dm-hello-world-overview.md)
-- [Samples](docs/samples.md)
+- [Architecture](docs/dm-client-architecture.md)
+- [Building the Device Management Binaries](docs/building-the-dm-binaries.md)
 - [OEM Device Setup](docs/oem-device-setup.md)
 - [Library Reference](docs/library-reference.md)
 - [Device Provisioning Service(DPS) Client](<https://github.com/ms-iot/iot-azure-dps-client>)

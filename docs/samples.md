@@ -13,7 +13,7 @@ Here is a high level description of what is there:
 To leverage these items on your IotCore device, follow these steps (steps below assume Toaster, but will work if applied to IoTDMBackground as well):
 
 1. Setup your **Azure IotHub** account.
-1. Install **Visual Studio 2015 Update 3** (be sure UWP features are enabled)
+1. Install **Visual Studio 2017 Update 2** (be sure UWP features are enabled)
 1. Setup your IotCore device using **IoT Dashboard**
 1. Download the [iot-core-azure-dm-client code](https://github.com/ms-iot/iot-core-azure-dm-client) from github and open **IoTDM.sln** in Visual Studio
     + Update samples\Toaster\ConnectionStringProvider.cs to use appropriate IotHub device connection string.
@@ -22,7 +22,7 @@ To leverage these items on your IotCore device, follow these steps (steps below 
 1. Set the Configuration as required by your device and **Build > Rebuild Solution**
 1. Deploy to your device by selecting Remote Machine, entering your device's IP address (or name), and **Build > Deploy Solution**.
 1. Using SSH (or PowerShell) connect to your device as Administrator.
-1. Verify that **SystemConfigurator.exe** and **CommProxy.exe** are present:
+1. Verify that **SystemConfigurator.exe** is present:
 
         Toaster with Debug ARM configuration: C:\Data\Users\DefaultAccount\AppData\Local\DevelopmentFiles\ToasterUiVS.Debug_ARM.msft
         IoTDMBackground with Debug ARM configuration: C:\Data\Users\DefaultAccount\AppData\Local\DevelopmentFiles\23983CETAthensQuality.IoTDMBackgroundSampleVS.Debug_ARM.msft
@@ -40,3 +40,7 @@ To leverage these items on your IotCore device, follow these steps (steps below 
     + DMDashboard can trigger reboot in device, get and change time info, get and change device status, and install an App by using Azure blob storage.
 
 For production environments, see [OEM Device Setup](oem-device-setup.md).
+
+----
+
+[Home Page](../README.md)

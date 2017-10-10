@@ -1,0 +1,82 @@
+{
+  "scenario": [
+    {
+      "name": "00",
+      "type": "deviceTwin",
+      "description": "set time zone to mountain",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "timeService": {
+                "enabled": "yes",
+                "startup": "auto",
+                "started": "no",
+                "sourcePriority": "remote"
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "timeService": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "enabled": "yes",
+                  "startup": "auto",
+                  "started": "no",
+                  "sourcePriority": "remote"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "01",
+      "type": "deviceTwin",
+      "description": "set time zone to pacific",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "timeService": {
+                "enabled": "yes",
+                "startup": "auto",
+                "started": "yes",
+                "sourcePriority": "remote"
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "timeService": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "enabled": "yes",
+                  "startup": "auto",
+                  "started": "yes",
+                  "sourcePriority": "remote"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

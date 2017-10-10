@@ -1,0 +1,27 @@
+﻿{
+  "disabled": false,
+  "bindings": [
+    {
+      "name": "dhaMsg",
+      "type": "serviceBusTrigger",
+      "direction": "in",
+      "queueName": "dha",
+      "connection": "dha-servicebus",
+      "accessRights": "Listen"
+    },
+    {
+      "type": "table",
+      "name": "nonceTable",
+      "tableName": "nonceTable",
+      "connection": "dha-storage",
+      "direction": "out"
+    },
+    {
+      "type": "table",
+      "name": "dhaReportTable",
+      "tableName": "dhaReportTable",
+      "connection": "dha-storage",
+      "direction": "out"
+    }
+  ]
+}

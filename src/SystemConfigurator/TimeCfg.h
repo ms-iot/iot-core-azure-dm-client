@@ -12,13 +12,12 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #pragma once
 
 #include <string>
 #include <windows.h>
 #include "Models\TimeInfo.h"
-
-using namespace Microsoft::Devices::Management::Message;
 
 class TimeCfg
 {
@@ -26,12 +25,12 @@ class TimeCfg
     {
         std::wstring localTime;
         std::wstring ntpServer;
-        TIME_ZONE_INFORMATION timeZoneInformation;
+        DYNAMIC_TIME_ZONE_INFORMATION dynamicTimeZoneInformation;
     };
 
 public:
-    static GetTimeInfoResponse^ Get();
-    static void Set(SetTimeInfoRequest^ request);
+    static Microsoft::Devices::Management::Message::GetTimeInfoResponse^ Get();
+    static void Set(Microsoft::Devices::Management::Message::SetTimeInfoRequest^ request);
 
 private:
     static void Get(TimeInfo& info);

@@ -24,17 +24,39 @@ namespace Microsoft.Devices.Management
         {
         }
 
-        void IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
+        async Task<Dictionary<string, object>> IDeviceTwin.GetDesiredPropertiesAsync()
         {
-            // Somehow send the property to the DT
+            return await new Task<Dictionary<string, object>>(() => { return null; });
         }
 
-        void IDeviceTwin.RefreshConnection()
+        async Task<string> IDeviceTwin.GetAllPropertiesAsync()
+        {
+            return await new Task<string>(() => { return "{}"; });
+        }
+
+        async Task IDeviceTwin.ReportProperties(Dictionary<string, object> collection)
+        {
+            // Somehow send the property to the DT
+            await new Task(() => { return; });
+        }
+
+        Task IDeviceTwin.RefreshConnectionAsync()
         {
             // Reconnect if needed
+            return Task.CompletedTask;
         }
 
         Task IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task IDeviceTwin.SendMessageAsync(string message, IDictionary<string, string> properties)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IDeviceTwin.SignalOperationComplete()
         {
             throw new NotImplementedException();
         }

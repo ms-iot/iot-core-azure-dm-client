@@ -14,3 +14,7 @@ There are two samples that can help here:
   - This is a sample that is distributed with the Windows DM client library solution. This sample demonestrates how to construct the json that the DM client library understands. It also exposes all the supported functionality through easy-to-use UI.
 
 Once the DMHelloWorld is up and running, launch the DMDashboard, connect to your IoT Hub account and device, and start experimenting by reading the current state of the device, or configuring it.
+
+----
+
+[Home Page](../README.md) | [DM Hello World Application](dm-hello-world-overview.md)

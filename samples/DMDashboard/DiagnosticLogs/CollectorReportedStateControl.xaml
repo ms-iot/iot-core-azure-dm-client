@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="DMDashboard.CollectorReportedStateControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DMDashboard"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <StackPanel Orientation="Vertical">
+        <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="200" Height="1" />
+        <TextBlock Margin="3" FontSize="14" FontWeight="Bold" Text="Collector"/>
+        <local:DMTextBlock Title="Name" PropertyName="name" PropertyValue="{Binding Path=Name}" IsNumeric="False" IsOptional="False" x:Name="CollectorName"/>
+        <StackPanel Orientation="Vertical" x:Name="PropertiesControls">
+            <local:DMTextBlock Title="File Mode" IsNumeric="False" IsOptional="False"
+                               PropertyName="traceLogFileMode"
+                               PropertyValue="{Binding Path=TraceLogFileMode, Mode=TwoWay}"/>
+            <local:DMTextBlock Title="Max Size in MB" IsNumeric="False" IsOptional="False"
+                               PropertyName="logFileSizeLimitMB"
+                               PropertyValue="{Binding Path=LogFileSizeLimitMB, Mode=TwoWay}"/>
+            <local:DMTextBlock Title="File Relative Path" IsNumeric="False" IsOptional="False"
+                               PropertyName="logFileFolder"
+                               PropertyValue="{Binding Path=LogFileFolder, Mode=TwoWay}"/>
+            <local:DMTextBlock Title="File Name" IsNumeric="False" IsOptional="False"
+                               PropertyName="logFileName"
+                               PropertyValue="{Binding Path=LogFileName, Mode=TwoWay}"/>
+            <local:DMTextBlock Title="Started" IsNumeric="False" IsOptional="False"
+                               PropertyName="started" 
+                               PropertyValue="{Binding Path=Started}"/>
+            <local:ProviderReportedStateListControl Margin="50,3,3,3" x:Name="ProviderList"/>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

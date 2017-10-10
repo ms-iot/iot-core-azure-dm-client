@@ -17,6 +17,8 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "stdafx.h"
 #include "CertificateManagementTest.h"
+#include "DeviceHealthAttestationTest.h"
+#include "WifiManagementTest.h"
 #include "..\..\src\SharedUtilities\Logger.h"
 
 void ShowUsage()
@@ -35,13 +37,15 @@ void ShowUsage()
 }
 
 [Platform::MTAThread]
-int wmain(int argc, wchar_t *argv[])
+int wmain(int, wchar_t *[])
 {
     ShowUsage();
 
     bool result = true;
 
     result &= CertificateManagementTest::RunTest();
+    result &= DeviceHealthAttestationTest::RunTest();
+    result &= WifiManagementTest::RunTest();
 
     // Add other tests here.
 

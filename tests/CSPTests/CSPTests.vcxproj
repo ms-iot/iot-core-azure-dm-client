@@ -123,11 +123,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
-
   <ItemDefinitionGroup>
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\src\SystemConfigurator\CSPs;..\..\src;..\..\src\SharedUtilities;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsWinRT>true</CompileAsWinRT>
@@ -141,7 +140,6 @@
       <AdditionalLibraryDirectories>..\..\external\WinSDKRS2\$(PlatformTarget)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
-
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -191,15 +189,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CertificateManagementTest.h" />
+    <ClInclude Include="DeviceHealthAttestationTest.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TestUtils.h" />
+    <ClInclude Include="WifiManagementTest.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\SharedUtilities\ETWLogger.cpp" />
     <ClCompile Include="..\..\src\SharedUtilities\Logger.cpp" />
+    <ClCompile Include="..\..\src\SharedUtilities\StringUtils.cpp" />
     <ClCompile Include="..\..\src\SharedUtilities\Utils.cpp" />
+    <ClCompile Include="..\..\src\SystemConfigurator\CSPs\DeviceHealthAttestationCSP.cpp" />
     <ClCompile Include="..\..\src\SystemConfigurator\CSPs\MdmProvision.cpp" />
+    <ClCompile Include="..\..\src\SystemConfigurator\TaskQueue.cpp" />
     <ClCompile Include="CertificateManagementTest.cpp" />
     <ClCompile Include="CSPTests.cpp" />
+    <ClCompile Include="DeviceHealthAttestationTest.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Create</PrecompiledHeader>
@@ -208,6 +214,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TestUtils.cpp" />
+    <ClCompile Include="WifiManagementTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -26,4 +26,37 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         Failure
     };
 
+    public enum class ErrorSubSystem
+    {
+        DeviceManagement = 0x0000,
+        Win32            = 0x0001,
+        Unknown          = 0xFFFF
+    };
+
+    class ErrorSubSystemConverter
+    {
+    public:
+        static ErrorSubSystem FromDouble(double subSystem)
+        {
+            ErrorSubSystem value = ErrorSubSystem::Unknown;
+
+            switch (static_cast<int>(subSystem))
+            {
+            case 0:
+                value = ErrorSubSystem::DeviceManagement;
+                break;
+            case 1:
+                value = ErrorSubSystem::Win32;
+                break;
+            }
+
+            return value;
+        }
+    };
+
+    public enum class DeviceManagementErrors
+    {
+        GenericError = 0x00000001
+    };
+
 }}}}

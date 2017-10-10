@@ -42,7 +42,7 @@ void RebootCSP::ExecRebootNow(const wstring& lastRebootCmdTime)
 {
     TRACE(__FUNCTION__);
 
-    Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryLastRebootCmd, lastRebootCmdTime);
+    Utils::WriteRegistryValue(IoTDMRegistryRoot, RegLastRebootCmd, lastRebootCmdTime);
 
     TRACE(L"\n---- Run Reboot Now\n");
     MdmProvision::RunExec(L"./Device/Vendor/MSFT/Reboot/RebootNow");
@@ -55,7 +55,7 @@ wstring RebootCSP::GetLastRebootCmdTime()
     wstring lastRebootCmdTime = L"";
     try
     {
-        Utils::ReadRegistryValue(IoTDMRegistryRoot, IoTDMRegistryLastRebootCmd);
+        Utils::ReadRegistryValue(IoTDMRegistryRoot, RegLastRebootCmd);
     }
     catch (DMException&)
     {
@@ -77,7 +77,7 @@ wstring RebootCSP::GetSingleScheduleTime()
     wstring time = MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Reboot/Schedule/Single");
     if (time.size())
     {
-        time = Utils::CanonicalizeDateTime(time);   // CSP sometimes returns 2016-10-10T09:00:01-008:00, the 008 breaks .net parsing.
+        time = Utils::CanonicalizeDateTime(time, true /*utc*/);   // CSP sometimes returns 2016-10-10T09:00:01-008:00, the 008 breaks .net parsing.
     }
     TRACEP(L"    :", time.c_str());
     return time;
@@ -96,7 +96,7 @@ wstring RebootCSP::GetDailyScheduleTime()
     wstring time = MdmProvision::RunGetString(L"./Device/Vendor/MSFT/Reboot/Schedule/DailyRecurrent");
     if (time.size())
     {
-        time = Utils::CanonicalizeDateTime(time);   // CSP sometimes returns 2016-10-10T09:00:01-008:00, the 008 breaks .net parsing.
+        time = Utils::CanonicalizeDateTime(time, true /*utc*/);   // CSP sometimes returns 2016-10-10T09:00:01-008:00, the 008 breaks .net parsing.
     }
     TRACEP(L"    :", time.c_str());
     return time;

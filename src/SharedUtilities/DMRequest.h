@@ -21,5 +21,5 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 const int PipeBufferSize = 4096;
 const int DataSizeInBytes = 128;
-#define PIPE_NAME L"\\\\.\\pipe\\dm-client-pipe"
-const wchar_t* PipeName = PIPE_NAME;
+
+__declspec(selectany) const wchar_t* PipeName = L"\\\\.\\pipe\\dm-client-pipe";

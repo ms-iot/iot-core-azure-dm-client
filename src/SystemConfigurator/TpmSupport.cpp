@@ -14,7 +14,9 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "stdafx.h"
 #include "..\SharedUtilities\Logger.h"
+#include "..\SharedUtilities\Utils.h"
 #include "DMException.h"
+#include "TpmSupport.h"
 
 using namespace std;
 
@@ -50,7 +52,7 @@ static std::string RunLimpet(const std::wstring& params)
     return output;
 }
 
-std::string GetServiceUrl(int logicalId)
+std::string Tpm::GetServiceUrl(int logicalId)
 {
     TRACE(__FUNCTION__);
 
@@ -69,7 +71,7 @@ std::string GetServiceUrl(int logicalId)
     throw DMException("cannot parse Limpet response. Is TPM supported?");
 }
 
-std::string GetSASToken(int logicalId)
+std::string Tpm::GetSASToken(int logicalId)
 {
     TRACE(__FUNCTION__);
 
@@ -92,7 +94,7 @@ std::string GetSASToken(int logicalId)
     throw DMException("cannot parse Limpet response. Is TPM supported?");
 }
 
-void ClearTPM()
+void Tpm::ClearTPM()
 {
     TRACE(__FUNCTION__);
 

@@ -16,11 +16,24 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <string>
 #include <vector>
+#include "AppInfo.h"
 
 class EnterpriseModernAppManagementCSP
 {
 public:
+    enum AppSourceType
+    {
+        System,
+        Store,
+        NonStore
+    };
+
+    static ApplicationInfo GetInstalledAppInfo(const std::wstring& packageFamilyName, AppSourceType appSourceType);
     static std::wstring GetInstalledApps();
-    static void InstallApp(const std::wstring& packageFamilyName, const std::wstring& packageUri, const std::vector<std::wstring>& dependentPackages);
+
+    static ApplicationInfo InstallApp(const std::wstring& packageFamilyName, const std::wstring& appxLocalPath, const std::vector<std::wstring>& dependentPackages);
     static void UninstallApp(const std::wstring& packageFamilyName, bool storeApp);
+
+private:
+    static std::wstring AppSourceTypeToString(AppSourceType appSourceType);
 };

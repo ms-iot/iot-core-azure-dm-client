@@ -69,8 +69,8 @@ private:
     SERVICE_STATUS _status;
     SERVICE_STATUS_HANDLE _statusHandle;
 
-    // timer handle
-    HANDLE _timerQueueHandle;
+    // timer for cleaning up temporary files
+    HANDLE _temporaryFilesCleanupTimer;
 
     // threads
     Utils::JoiningThread _workerThread;

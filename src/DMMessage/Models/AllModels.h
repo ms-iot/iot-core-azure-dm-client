@@ -12,6 +12,7 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #pragma once
 #include "AppInstall.h"
 #include "AppLifecycle.h"
@@ -19,7 +20,12 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "CheckForUpdates.h"
 #include "CertificateConfiguration.h"
 #include "CertificateDetails.h"
+#include "DeviceDMStorage.h"
+#include "DeviceHealthAttestation.h"
 #include "DeviceInfo.h"
+#include "ErrorResponse.h"
+#include "EventTracingConfiguration.h"
+#include "ExitDM.h"
 #include "FactoryReset.h"
 #include "FileTransfer.h"
 #include "ListApps.h"
@@ -27,8 +33,13 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "StartupApp.h"
 #include "StatusCodeResponse.h"
 #include "StringResponse.h"
+#include "StringListResponse.h"
 #include "TimeInfo.h"
+#include "TimeService.h"
 #include "TpmRequests.h"
+#include "WifiConfiguration.h"
+#include "WifiDetails.h"
+#include "WindowsTelemetry.h"
 #include "WindowsUpdatePolicy.h"
 #include "WindowsUpdateRebootPolicy.h"
 #include "WindowsUpdates.h"

@@ -15,6 +15,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "stdafx.h"
 // ToDo: Need to move this to the precompiled header.
 #include <windows.h>
+#include <psapi.h>
 #include <wrl/client.h>
 #include <ostream>
 #include <sstream>
@@ -28,78 +29,155 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DMException.h"
 #include "Logger.h"
 
+// SHGetFolderPath
+#include "Shlobj.h"
+// CreateToolhelp32Snapshot, etc
+#include <tlhelp32.h>
+
 using namespace std;
 using namespace Microsoft::WRL;
+using namespace Windows::ApplicationModel;
 using namespace Windows::Data::Json;
+using namespace Windows::Management::Deployment;
 using namespace Windows::System::Profile;
 
 #define ERROR_PIPE_HAS_BEEN_ENDED 109
 
 namespace Utils
 {
-    wstring GetSidForAccount(const wchar_t* userAccount)
+    void GetShellUserInfo(TOKEN_HANDLER handler)
     {
-        wstring sidString = L"";
+        PROCESSENTRY32 entry;
+        entry.dwSize = sizeof(PROCESSENTRY32);
 
-        BYTE userSidBytes[SECURITY_MAX_SID_SIZE] = {};
-        PSID userSid = reinterpret_cast<PSID>(userSidBytes);
-        DWORD sidSize = ARRAYSIZE(userSidBytes);
-        wchar_t domainNameUnused[MAX_PATH] = {};
-        DWORD domainSizeUnused = ARRAYSIZE(domainNameUnused);
-        SID_NAME_USE sidTypeUnused = SidTypeInvalid;
-
-        if (!LookupAccountName(
-                nullptr,
-                userAccount,
-                &userSid,
-                &sidSize,
-                domainNameUnused,
-                &domainSizeUnused,
-                &sidTypeUnused
-            ))
+        AutoCloseHandle snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+        if (!snapshot.Get())
         {
-            throw DMExceptionWithErrorCode("Error: Utils::GetSidForAccount LookupAccountName failed.", GetLastError());
+            throw DMExceptionWithErrorCode("Error: Failed to create snapshot...", E_FAIL);
         }
-        LPWSTR pString = nullptr;
-        if (!ConvertSidToStringSid(
-                &userSid,
-                &pString
-            ))
-        { 
-            throw DMExceptionWithErrorCode("Error: Utils::GetSidForAccount ConvertSidToStringSid failed.", GetLastError());
-        }
-        sidString = pString;
-        LocalFree(pString);
 
-        return sidString;
+        if (Process32First(snapshot.Get(), &entry) == TRUE)
+        {
+            while (Process32Next(snapshot.Get(), &entry) == TRUE)
+            {
+                if (_wcsicmp(entry.szExeFile, IoTDMSihostExe) == 0)
+                {
+                    AutoCloseHandle processHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID);
+                    if (processHandle.Get() == INVALID_HANDLE_VALUE) continue;
+
+                    AutoCloseHandle processTokenHandle;
+                    auto error = OpenProcessToken(processHandle.Get(), TOKEN_ALL_ACCESS, processTokenHandle.GetAddress());
+                    if (FAILED(error))
+                    {
+                        TRACEP(L"OpenProcessToken failed. Code: ", error);
+                        continue;
+                    }
+
+                    BYTE buffer[SECURITY_MAX_SID_SIZE];
+                    PTOKEN_USER tokenUser = reinterpret_cast<PTOKEN_USER>(buffer);
+                    DWORD tokenUserSize = sizeof(buffer);
+                    if (!GetTokenInformation(processTokenHandle.Get(), TokenUser, tokenUser, tokenUserSize, &tokenUserSize))
+                    {
+                        TRACEP(L"GetTokenInformation(TokenUser) failed. Code: ", GetLastError());
+                        continue;
+                    }
+
+                    handler(processTokenHandle.Get(), tokenUser);
+
+                    return;
+                }
+            }
+        }
+
+        throw DMExceptionWithErrorCode("GetShellUserInfo: no user process found.", E_FAIL);
     }
 
-    string WideToMultibyte(const wchar_t* s)
+    wstring GetDmUserSid() 
     {
-        size_t length = s ? wcslen(s) : 0;
-        size_t requiredCharCount = WideCharToMultiByte(CP_UTF8, 0, s, static_cast<int>(length), nullptr, 0, nullptr, nullptr);
+        wstring sid(L"");
+        GetShellUserInfo([&sid](HANDLE /*token*/, PTOKEN_USER tokenUser) {
+            WCHAR *pCOwner = NULL;
+            if (ConvertSidToStringSid(tokenUser->User.Sid, &pCOwner))
+            {
+                sid = pCOwner;
+                LocalFree(pCOwner);
+            }
+            else
+            {
+                throw DMExceptionWithErrorCode("ConvertSidToStringSid failed.", GetLastError());
+            }
+        });
 
-        // add room for \0
-        ++requiredCharCount;
-
-        vector<char> multibyteString(requiredCharCount);
-        WideCharToMultiByte(CP_UTF8, 0, s, static_cast<int>(length), multibyteString.data(), static_cast<int>(multibyteString.size()), nullptr, nullptr);
-
-        return string(multibyteString.data());
+        return sid;
     }
 
-    wstring MultibyteToWide(const char* s)
+    wstring GetDmUserName() 
     {
-        size_t length = s ? strlen(s) : 0;
-        size_t requiredCharCount = MultiByteToWideChar(CP_UTF8, 0, s, static_cast<int>(length), nullptr, 0);
+        wstring name(L"");
+        GetShellUserInfo([&name](HANDLE /*token*/, PTOKEN_USER tokenUser) {
+            DWORD cchDomainName = 0, cchAccountName = 0;
+            SID_NAME_USE AccountType = SidTypeUnknown;
+            LookupAccountSid(NULL, tokenUser->User.Sid, NULL, &cchAccountName, NULL, &cchDomainName, &AccountType);
+            if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+            {
+                vector<wchar_t> DomainName(cchDomainName);
+                vector<wchar_t> AccountName(cchAccountName);
+                if (LookupAccountSid(NULL, tokenUser->User.Sid, AccountName.data(), &cchAccountName, DomainName.data(), &cchDomainName, &AccountType))
+                {
+                    name = AccountName.data();
+                }
+                else
+                {
+                    throw DMExceptionWithErrorCode("LookupAccountSid failed.", GetLastError());
+                }
+            }
+            else
+            {
+                throw DMExceptionWithErrorCode("LookupAccountSid(NULL) failed.", GetLastError());
+            }
+        });
 
-        // add room for \0
-        ++requiredCharCount;
+        return name;
+    }
 
-        vector<wchar_t> wideString(requiredCharCount);
-        MultiByteToWideChar(CP_UTF8, 0, s, static_cast<int>(length), wideString.data(), static_cast<int>(wideString.size()));
+    wstring GetDmTempFolder()
+    {
+        WCHAR szPath[MAX_PATH];
+        wstring folder(L"");
 
-        return wstring(wideString.data());
+        DWORD result = GetTempPath(MAX_PATH, szPath);
+        if (result)
+        {
+            folder = szPath;
+        }
+        else
+        {
+            throw DMExceptionWithErrorCode("GetTempPath failed.", GetLastError());
+        }
+
+        return folder;
+    }
+
+    wstring GetDmUserFolder()
+    {
+        // this works on IoT Core and IoT Enterprise (not IoT Enterprise 
+        // Mobile ... SHGetFolderPath not implemented there)
+        wstring folder(L"");
+        GetShellUserInfo([&folder](HANDLE token, PTOKEN_USER /*tokenUser*/) {
+            WCHAR szPath[MAX_PATH];
+            HRESULT hr = SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, token, 0, szPath);
+            if (SUCCEEDED(hr))
+            {
+                folder = szPath;
+                folder += L"\\Temp\\";
+            }
+            else
+            {
+                TRACEP(L"SHGetFolderPath failed. Code: ", hr);
+            }
+        });
+
+        return folder;
     }
 
     wstring GetCurrentDateTimeString()
@@ -124,9 +202,9 @@ namespace Utils
 
     void ReadXmlStructData(IStream* resultSyncML, ELEMENT_HANDLER handler)
     {
-        wstring uriPath = L"Root\\Results\\Item\\Source\\LocURI\\";
-        wstring dataPath = L"Root\\Results\\Item\\Data\\";
-        wstring itemPath = L"Root\\Results\\Item\\";
+        wstring uriPath = L"SyncML\\SyncBody\\Results\\Item\\Source\\LocURI\\";
+        wstring dataPath = L"SyncML\\SyncBody\\Results\\Item\\Data\\";
+        wstring itemPath = L"SyncML\\SyncBody\\Results\\Item\\";
 
         wstring emptyString = L"";
         auto value = emptyString;
@@ -137,19 +215,19 @@ namespace Utils
         HRESULT hr = CreateXmlReader(__uuidof(IXmlReader), (void**)xmlReader.GetAddressOf(), NULL);
         if (FAILED(hr))
         {
-            throw DMExceptionWithHRESULT("Error: Failed to create xml reader.", hr);
+            throw DMExceptionWithErrorCode("Error: Failed to create xml reader.", hr);
         }
 
         hr = xmlReader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
         if (FAILED(hr))
         {
-            throw DMExceptionWithHRESULT("Error: XmlReaderProperty_DtdProcessing() failed.", hr);
+            throw DMExceptionWithErrorCode("Error: XmlReaderProperty_DtdProcessing() failed.", hr);
         }
 
         hr = xmlReader->SetInput(resultSyncML);
         if (FAILED(hr))
         {
-            throw DMExceptionWithHRESULT("Error: SetInput() failed.", hr);
+            throw DMExceptionWithErrorCode("Error: SetInput() failed.", hr);
         }
 
         deque<wstring> pathStack;
@@ -169,14 +247,14 @@ namespace Utils
                 hr = xmlReader->GetPrefix(&prefix, &prefixSize);
                 if (FAILED(hr))
                 {
-                    throw DMExceptionWithHRESULT("Error: GetPrefix() failed.", hr);
+                    throw DMExceptionWithErrorCode("Error: GetPrefix() failed.", hr);
                 }
 
                 const wchar_t* localName;
                 hr = xmlReader->GetLocalName(&localName, NULL);
                 if (FAILED(hr))
                 {
-                    throw DMExceptionWithHRESULT("Error: GetLocalName() failed.", hr);
+                    throw DMExceptionWithErrorCode("Error: GetLocalName() failed.", hr);
                 }
 
                 wstring elementName;
@@ -213,14 +291,14 @@ namespace Utils
                 hr = xmlReader->GetPrefix(&prefix, &prefixSize);
                 if (FAILED(hr))
                 {
-                    throw DMExceptionWithHRESULT("Error: GetPrefix() failed.", hr);
+                    throw DMExceptionWithErrorCode("Error: GetPrefix() failed.", hr);
                 }
 
                 const wchar_t* localName = NULL;
                 hr = xmlReader->GetLocalName(&localName, NULL);
                 if (FAILED(hr))
                 {
-                    throw DMExceptionWithHRESULT("Error: GetLocalName() failed.", hr);
+                    throw DMExceptionWithErrorCode("Error: GetLocalName() failed.", hr);
                 }
 
                 if (itemPath == currentPath)
@@ -256,7 +334,7 @@ namespace Utils
                 hr = xmlReader->GetValue(&valueText, NULL);
                 if (FAILED(hr))
                 {
-                    throw DMExceptionWithHRESULT("Error: GetValue() failed.", hr);
+                    throw DMExceptionWithErrorCode("Error: GetValue() failed.", hr);
                 }
 
                 if (uriPath == currentPath)
@@ -281,21 +359,21 @@ namespace Utils
         if (FAILED(hr))
         {
             TRACEP(L"Error: Failed to create xml reader. Code :", hr);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithErrorCode(hr);
         }
 
         hr = xmlReader->SetProperty(XmlReaderProperty_DtdProcessing, DtdProcessing_Prohibit);
         if (FAILED(hr))
         {
             TRACEP(L"Error: XmlReaderProperty_DtdProcessing() failed. Code :\n", hr);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithErrorCode(hr);
         }
 
         hr = xmlReader->SetInput(resultSyncML);
         if (FAILED(hr))
         {
             TRACEP(L"Error: SetInput() failed. Code :\n", hr);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithErrorCode(hr);
         }
 
         deque<wstring> pathStack;
@@ -318,7 +396,7 @@ namespace Utils
                 if (FAILED(hr))
                 {
                     TRACEP(L"Error: GetPrefix() failed. Code :\n", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithErrorCode(hr);
                 }
 
                 const wchar_t* localName;
@@ -326,7 +404,7 @@ namespace Utils
                 if (FAILED(hr))
                 {
                     TRACEP(L"Error: GetLocalName() failed. Code :\n", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithErrorCode(hr);
                 }
 
                 wstring elementName;
@@ -363,7 +441,7 @@ namespace Utils
                 if (FAILED(hr))
                 {
                     TRACEP(L"Error: GetPrefix() failed. Code :", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithErrorCode(hr);
                 }
 
                 const wchar_t* localName = NULL;
@@ -371,7 +449,7 @@ namespace Utils
                 if (FAILED(hr))
                 {
                     TRACEP(L"Error: GetLocalName() failed. Code :", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithErrorCode(hr);
                 }
 
                 pathStack.pop_back();
@@ -385,7 +463,7 @@ namespace Utils
                 if (FAILED(hr))
                 {
                     TRACEP(L"Error: GetValue() failed. Code :", hr);
-                    throw DMExceptionWithHRESULT(hr);
+                    throw DMExceptionWithErrorCode(hr);
                 }
 
                 if (targetXmlPath == currentPath)
@@ -416,7 +494,7 @@ namespace Utils
         if (FAILED(hr))
         {
             GlobalFree(buffer);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithErrorCode(hr);
         }
         ReadXmlStructData(dataStream.Get(), handler);
 
@@ -435,7 +513,7 @@ namespace Utils
         if (FAILED(hr))
         {
             GlobalFree(buffer);
-            throw DMExceptionWithHRESULT(hr);
+            throw DMExceptionWithErrorCode(hr);
         }
         ReadXmlValue(dataStream.Get(), targetXmlPath, value);
 
@@ -462,7 +540,35 @@ namespace Utils
             throw DMExceptionWithErrorCode(status);
         }
 
-        status = RegSetValueEx(hKey, propName.c_str(), 0, REG_SZ, reinterpret_cast<const BYTE*>(propValue.c_str()), static_cast<DWORD>((propValue.size() + 1) * sizeof(propValue[0])));
+        status = RegSetValueEx(hKey, propName.c_str(), 0, REG_SZ, reinterpret_cast<const BYTE*>(propValue.c_str()), (static_cast<unsigned int>(propValue.size()) + 1) * sizeof(propValue[0]));
+        if (status != ERROR_SUCCESS) {
+            RegCloseKey(hKey);
+            throw DMExceptionWithErrorCode(status);
+        }
+
+        RegCloseKey(hKey);
+    }
+
+    void WriteRegistryValue(const wstring& subKey, const wstring& propName, unsigned long propValue)
+    {
+        LSTATUS status;
+        HKEY hKey = NULL;
+        status = RegCreateKeyEx(
+            HKEY_LOCAL_MACHINE,
+            subKey.c_str(),
+            0,      // reserved
+            NULL,   // user-defined class type of this key.
+            0,      // default; non-volatile
+            KEY_ALL_ACCESS,
+            NULL,   // inherit security descriptor from parent.
+            &hKey,
+            NULL    // disposition [optional, out]
+        );
+        if (status != ERROR_SUCCESS) {
+            throw DMExceptionWithErrorCode(status);
+        }
+
+        status = RegSetValueEx(hKey, propName.c_str(), 0, REG_DWORD, reinterpret_cast<BYTE*>(&propValue), sizeof(propValue));
         if (status != ERROR_SUCCESS) {
             RegCloseKey(hKey);
             throw DMExceptionWithErrorCode(status);
@@ -493,6 +599,28 @@ namespace Utils
         return ERROR_SUCCESS;
     }
 
+    LSTATUS TryReadRegistryValue(const wstring& subKey, const wstring& propName, unsigned long& propValue)
+    {
+        DWORD dataSize = 0;
+        LSTATUS status;
+        status = RegGetValue(HKEY_LOCAL_MACHINE, subKey.c_str(), propName.c_str(), RRF_RT_REG_DWORD, NULL, NULL, &dataSize);
+        if (status != ERROR_SUCCESS)
+        {
+            return status;
+        }
+
+        vector<char> data(dataSize);
+        status = RegGetValue(HKEY_LOCAL_MACHINE, subKey.c_str(), propName.c_str(), RRF_RT_REG_DWORD, NULL, data.data(), &dataSize);
+        if (status != ERROR_SUCCESS)
+        {
+            return status;
+        }
+
+        propValue = *(reinterpret_cast<const unsigned long*>(data.data()));
+
+        return ERROR_SUCCESS;
+    }
+
     wstring ReadRegistryValue(const wstring& subKey, const wstring& propName)
     {
         wstring propValue;
@@ -501,6 +629,16 @@ namespace Utils
         {
             TRACEP(L"Error: Could not read registry value: ", (subKey + L"\\" + propName).c_str());
             throw DMExceptionWithErrorCode(status);
+        }
+        return propValue;
+    }
+
+    wstring ReadRegistryValue(const wstring& subKey, const wstring& propName, const wstring& propDefaultValue)
+    {
+        wstring propValue;
+        if (ERROR_SUCCESS != Utils::TryReadRegistryValue(subKey, propName, propValue))
+        {
+            propValue = propDefaultValue;
         }
         return propValue;
     }
@@ -533,7 +671,7 @@ namespace Utils
         }
 
         vector<wchar_t> buffer(charCount);
-        charCount = ::GetEnvironmentVariable(variableName.c_str(), buffer.data(), static_cast<DWORD>(buffer.size()));
+        charCount = ::GetEnvironmentVariable(variableName.c_str(), buffer.data(), static_cast<unsigned int>(buffer.size()));
         if (charCount == 0)
         {
             throw DMExceptionWithErrorCode(GetLastError());
@@ -547,7 +685,7 @@ namespace Utils
         UINT size = GetSystemDirectory(0, 0);
 
         vector<wchar_t> buffer(size);
-        if (size != GetSystemDirectory(buffer.data(), static_cast<DWORD>(buffer.size()) + 1))
+        if (size != GetSystemDirectory(buffer.data(), static_cast<unsigned int>(buffer.size())) + 1)
         {
             throw DMException("Error: failed to retrieve system folder.");
         }
@@ -634,76 +772,130 @@ namespace Utils
         siStartInfo.hStdError = stdOutWriteHandle.Get();
         siStartInfo.hStdOutput = stdOutWriteHandle.Get();
         siStartInfo.hStdInput = NULL;
-        siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
-        if (!CreateProcess(NULL,
-            const_cast<wchar_t*>(commandString.c_str()), // command line 
-            NULL,         // process security attributes 
-            NULL,         // primary thread security attributes 
-            TRUE,         // handles are inherited 
-            0,            // creation flags 
-            NULL,         // use parent's environment 
-            NULL,         // use parent's current directory 
-            &siStartInfo, // STARTUPINFO pointer 
-            &piProcInfo)) // receives PROCESS_INFORMATION
+if (!CreateProcess(NULL,
+    const_cast<wchar_t*>(commandString.c_str()), // command line 
+    NULL,         // process security attributes 
+    NULL,         // primary thread security attributes 
+    TRUE,         // handles are inherited 
+    0,            // creation flags 
+    NULL,         // use parent's environment 
+    NULL,         // use parent's current directory 
+    &siStartInfo, // STARTUPINFO pointer 
+    &piProcInfo)) // receives PROCESS_INFORMATION
+{
+    throw DMExceptionWithErrorCode(GetLastError());
+}
+TRACE("Child process has been launched.");
+
+bool doneWriting = false;
+while (!doneWriting)
+{
+    // Let the child process run for 1 second, and then check if there is anything to read...
+    DWORD waitStatus = WaitForSingleObject(piProcInfo.hProcess, 1000);
+    if (waitStatus == WAIT_OBJECT_0)
+    {
+        TRACE("Child process has exited.");
+        if (!GetExitCodeProcess(piProcInfo.hProcess, &returnCode))
         {
-            throw DMExceptionWithErrorCode(GetLastError());
+            TRACEP("Warning: Failed to get process exist code. GetLastError() = ", GetLastError());
+            // ToDo: do we ignore?
         }
-        TRACE("Child process has been launched.");
+        CloseHandle(piProcInfo.hProcess);
+        CloseHandle(piProcInfo.hThread);
 
-        bool doneWriting = false;
-        while (!doneWriting)
+        // Child process has exited, no more writing will take place.
+        // Without closing the write channel, the ReadFile will keep waiting.
+        doneWriting = true;
+        stdOutWriteHandle.Close();
+    }
+    else
+    {
+        TRACE("Child process is still running...");
+    }
+
+    DWORD bytesAvailable = 0;
+    if (PeekNamedPipe(stdOutReadHandle.Get(), NULL, 0, NULL, &bytesAvailable, NULL))
+    {
+        if (bytesAvailable > 0)
         {
-            // Let the child process run for 1 second, and then check if there is anything to read...
-            DWORD waitStatus = WaitForSingleObject(piProcInfo.hProcess, 1000);
-            if (waitStatus == WAIT_OBJECT_0)
+            DWORD readByteCount = 0;
+            vector<char> readBuffer(bytesAvailable + 1);
+            if (ReadFile(stdOutReadHandle.Get(), readBuffer.data(), static_cast<unsigned int>(readBuffer.size()) - 1, &readByteCount, NULL) || readByteCount == 0)
             {
-                TRACE("Child process has exited.");
-                if (!GetExitCodeProcess(piProcInfo.hProcess, &returnCode))
-                {
-                    TRACEP("Warning: Failed to get process exist code. GetLastError() = ", GetLastError());
-                    // ToDo: do we ignore?
-                }
-                CloseHandle(piProcInfo.hProcess);
-                CloseHandle(piProcInfo.hThread);
-
-                // Child process has exited, no more writing will take place.
-                // Without closing the write channel, the ReadFile will keep waiting.
-                doneWriting = true;
-                stdOutWriteHandle.Close();
-            }
-            else
-            {
-                TRACE("Child process is still running...");
-            }
-
-            DWORD bytesAvailable = 0;
-            if (PeekNamedPipe(stdOutReadHandle.Get(), NULL, 0, NULL, &bytesAvailable, NULL))
-            {
-                if (bytesAvailable > 0)
-                {
-                    DWORD readByteCount = 0;
-                    vector<char> readBuffer(bytesAvailable + 1);
-                    if (ReadFile(stdOutReadHandle.Get(), readBuffer.data(), static_cast<DWORD>(readBuffer.size() - 1), &readByteCount, NULL) || readByteCount == 0)
-                    {
-                        readBuffer[readByteCount] = '\0';
-                        output += readBuffer.data();
-                    }
-                }
-            }
-            else
-            {
-                DWORD retCode = GetLastError();
-                if (ERROR_PIPE_HAS_BEEN_ENDED != retCode)
-                {
-                    printf("error code = %d\n", retCode);
-                }
-                break;
+                readBuffer[readByteCount] = '\0';
+                output += readBuffer.data();
             }
         }
+    }
+    else
+    {
+        DWORD retCode = GetLastError();
+        if (ERROR_PIPE_HAS_BEEN_ENDED != retCode)
+        {
+            printf("error code = %d\n", retCode);
+        }
+        break;
+    }
+}
 
-        TRACEP("Command return Code: ", returnCode);
-        TRACEP("Command output : ", output.c_str());
+TRACEP("Command return Code: ", returnCode);
+TRACEP("Command output : ", output.c_str());
+    }
+
+    wstring GetProcessExePath(DWORD processID)
+    {
+        wchar_t exePath[MAX_PATH] = TEXT("<unknown>");
+
+        HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+        if (NULL != hProcess)
+        {
+            HMODULE hModule;
+            DWORD cbNeeded;
+
+            if (EnumProcessModules(hProcess, &hModule, sizeof(hModule), &cbNeeded))
+            {
+                GetModuleFileNameEx(hProcess, hModule, exePath, sizeof(exePath) / sizeof(wchar_t));
+            }
+
+            CloseHandle(hProcess);
+        }
+
+        return wstring(exePath);
+    }
+
+    bool IsProcessRunning(const wstring& processName)
+    {
+        TRACE(__FUNCTION__);
+
+        bool running = false;
+        TRACEP(L"Checking: ", processName.c_str());
+
+        DWORD processHandles[1024];
+        DWORD bytesNeeded = 0;
+        if (EnumProcesses(processHandles, sizeof(processHandles), &bytesNeeded))
+        {
+            DWORD processCount = bytesNeeded / sizeof(DWORD);
+            for (DWORD i = 0; i < processCount; i++)
+            {
+                if (processHandles[i] == 0)
+                {
+                    continue;
+                }
+                wstring exePath = Utils::GetProcessExePath(processHandles[i]);
+                TRACEP(L"Found Process: ", exePath.c_str());
+
+                if (Utils::Contains(exePath, processName))
+                {
+                    TRACE(L"process is running!");
+                    running = true;
+                    break;
+                }
+            }
+        }
+
+        return running;
     }
 
     void LoadFile(const wstring& fileName, vector<char>& buffer)
@@ -716,35 +908,53 @@ namespace Utils
         string line;
         if (!file.is_open())
         {
-            throw new DMException("Error: failed to open binary file!");
+            throw DMException("Error: failed to open binary file!");
         }
 
         buffer.resize(static_cast<unsigned int>(file.tellg()));
         file.seekg(0, ios::beg);
         if (!file.read(buffer.data(), buffer.size()))
         {
-            throw new DMException("Error: failed to read file!");
+            throw DMException("Error: failed to read file!");
         }
         file.close();
     }
 
-    wstring ToBase64(std::vector<char>& buffer)
+    void Base64ToBinary(const wstring& encrypted, vector<char>& decrypted)
     {
         TRACE(__FUNCTION__);
 
         DWORD destinationSize = 0;
-        if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), static_cast<DWORD>(buffer.size()), CRYPT_STRING_BASE64, nullptr, &destinationSize))
+        if (!CryptStringToBinary(encrypted.c_str(), static_cast<unsigned int>(encrypted.size()), CRYPT_STRING_BASE64, nullptr, &destinationSize, nullptr, nullptr))
         {
-            throw new DMException("Error: cannot obtain the required size to encode buffer into base64.");
+            throw DMException("Error: cannot obtain the required size to decode buffer from base64.");
+        }
+
+        decrypted.resize(destinationSize);
+        if (!CryptStringToBinary(encrypted.c_str(), static_cast<unsigned int>(encrypted.size()), CRYPT_STRING_BASE64, reinterpret_cast<unsigned char*>(decrypted.data()), &destinationSize, nullptr, nullptr))
+        {
+            throw DMException("Error: cannot obtain the required size to decode buffer from base64.");
+        }
+    }
+
+    wstring ToBase64(vector<char>& buffer)
+    {
+        TRACE(__FUNCTION__);
+
+        DWORD destinationSize = 0;
+        if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), static_cast<unsigned int>(buffer.size()), CRYPT_STRING_BASE64, nullptr, &destinationSize))
+        {
+            throw DMException("Error: cannot obtain the required size to encode buffer into base64.");
         }
 
         vector<wchar_t> destinationBuffer(destinationSize);
-        if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), static_cast<DWORD>(buffer.size()), CRYPT_STRING_BASE64, destinationBuffer.data(), &destinationSize))
+        if (!CryptBinaryToString(reinterpret_cast<unsigned char*>(buffer.data()), static_cast<unsigned int>(buffer.size()), CRYPT_STRING_BASE64, destinationBuffer.data(), &destinationSize))
         {
-            throw new DMException("Error: cannot convert binary stream to base64.");
+            throw DMException("Error: cannot convert binary stream to base64.");
         }
 
-        return wstring(destinationBuffer.data(), destinationBuffer.size());
+        // Note that the size returned includes the null terminating character.
+        return wstring(destinationBuffer.data(), destinationBuffer.size() - 1);
     }
 
     wstring FileToBase64(const wstring& fileName)

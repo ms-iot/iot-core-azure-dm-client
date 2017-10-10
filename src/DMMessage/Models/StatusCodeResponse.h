@@ -33,14 +33,22 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         DMMessageKind tag;
     public:
         StatusCodeResponse(ResponseStatus status, DMMessageKind alttag) : status(status), tag(alttag) {}
-        virtual Blob^ Serialize() {
-            return SerializationHelper::CreateBlobFromPtrSize((uint32_t)tag, (const uint8_t*)&status, sizeof(uint32_t));
+        virtual Blob^ Serialize()
+        {
+            int intStatus = (int)status;
+            JsonObject^ jsonObject = ref new JsonObject();
+            jsonObject->Insert("status", JsonValue::CreateNumberValue((double)intStatus));
+
+            return SerializationHelper::CreateBlobFromJson((uint32_t)tag, jsonObject);
         }
 
-        static StatusCodeResponse^ Deserialize(Blob^ blob) {
-            ResponseStatus status;
-            SerializationHelper::ReadDataFromBlob(blob, (uint8_t*)&status, sizeof(status));
-            return ref new StatusCodeResponse(status, blob->Tag);
+        static StatusCodeResponse^ Deserialize(Blob^ blob)
+        {
+            String^ str = SerializationHelper::GetStringFromBlob(blob);
+            JsonObject^ jsonObject = JsonObject::Parse(str);
+            int intStatus = static_cast<int>(jsonObject->Lookup("status")->GetNumber());
+
+            return ref new StatusCodeResponse(static_cast<ResponseStatus>(intStatus), blob->Tag);
         }
 
         virtual property DMMessageKind Tag {

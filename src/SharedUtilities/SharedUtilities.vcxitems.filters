@@ -7,6 +7,12 @@
     <Filter Include="Sources">
       <UniqueIdentifier>{44f0f6e6-c7cd-47b5-9cfa-8af4bef6737c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Permissions">
+      <UniqueIdentifier>{03b59fd2-b57b-419e-af03-4105476de970}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Permissions">
+      <UniqueIdentifier>{5bd3a01a-1c01-45c3-8973-e1a6e3b2fed9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)DMException.h">
@@ -30,6 +36,36 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)TimeHelpers.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Permissions\PermissionsManager.h">
+      <Filter>Headers\Permissions</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Permissions\PermissionsSnapshot.h">
+      <Filter>Headers\Permissions</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Permissions\PermissionsTracer.h">
+      <Filter>Headers\Permissions</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Impersonator.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)StringUtils.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ETWLogger.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Constants.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)PolicyHelper.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseBase.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)AutoCloseHandle.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)DMException.cpp">
@@ -48,6 +84,27 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)TimeHelpers.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Permissions\PermissionsManager.cpp">
+      <Filter>Sources\Permissions</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Permissions\PermissionsSnapshot.cpp">
+      <Filter>Sources\Permissions</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Permissions\PermissionsTracer.cpp">
+      <Filter>Sources\Permissions</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Impersonator.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)StringUtils.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ETWLogger.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)PolicyHelper.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

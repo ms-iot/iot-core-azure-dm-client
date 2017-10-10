@@ -2,23 +2,24 @@
     x:Class="Toaster.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Toaster"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" Width="1200">
+    mc:Ignorable="d" Width="1200" Height="1000">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="400" />
+            <ColumnDefinition Width="500" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Image Grid.Row="0" HorizontalAlignment="Left" Margin="3" Source="Assets\toaster.png" VerticalAlignment="Top"/>
-            <Grid Grid.Row="0">
+            <TextBlock Grid.Row="0" HorizontalAlignment="Left" Margin="3" Text="" x:Name="ApplicationVersion"/>
+            <Image Grid.Row="1" HorizontalAlignment="Left" Margin="3" Source="Assets\toaster.png" VerticalAlignment="Top"/>
+            <Grid Grid.Row="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="50*"/>
                     <RowDefinition Height="50*"/>
@@ -37,9 +38,79 @@
                     </Border>
                 </StackPanel>
             </Grid>
-            <StackPanel Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Vertical">
+            <StackPanel Grid.Row="2" VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Vertical">
                 <Button x:Name ="buttonRestart" Width="150" Margin="3" Content="Reboot" Click="OnSystemRestart"/>
                 <Button x:Name ="buttonReset" Width="150" Margin="3" Content="Factory Reset" Click="OnFactoryReset" />
+                <TextBlock Text="Windows Telemetry" Margin="3"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Row="0" Grid.Column="0" Margin="13,3,3,3" HorizontalAlignment="Stretch" Content="Set Level" Click="OnSetWindowsTelemetry"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="3" Width="120" x:Name="RequestedWindowsTelemetryLevel" SelectedIndex="2">
+                        <ComboBoxItem>Security</ComboBoxItem>
+                        <ComboBoxItem>Basic</ComboBoxItem>
+                        <ComboBoxItem>Enhanced</ComboBoxItem>
+                        <ComboBoxItem>Full</ComboBoxItem>
+                    </ComboBox>
+                    <Button Grid.Row="1" Grid.Column="0" Margin="13,3,3,3" HorizontalAlignment="Stretch" Content="Get Level" Click="OnGetWindowsTelemetry"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" x:Name="CurrentWindowsTelemetryLevel" VerticalAlignment="Center"/>
+                </Grid>
+                <TextBlock Text="Time Service" Margin="3"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="150"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Row="0" Grid.Column="0" Margin="13,3,3,3" HorizontalAlignment="Stretch" Content="Set State" Click="OnSetTimeService"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="3" HorizontalAlignment="Stretch" x:Name="RequestedTimeServiceStartedState" SelectedIndex="0">
+                        <ComboBoxItem>Yes</ComboBoxItem>
+                        <ComboBoxItem>No</ComboBoxItem>
+                    </ComboBox>
+                    <ComboBox Grid.Row="0" Grid.Column="2" Margin="3" HorizontalAlignment="Stretch" x:Name="RequestedTimeServicePriorityState" SelectedIndex="0">
+                        <ComboBoxItem>Pri: Local</ComboBoxItem>
+                        <ComboBoxItem>Pri: Remote</ComboBoxItem>
+                    </ComboBox>
+                    <Button Grid.Row="1" Grid.Column="0" Margin="13,3,3,3" HorizontalAlignment="Stretch" Content="Get Started State" Click="OnGetTimeServiceStarted"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" x:Name="CurrentTimeServiceStartedState" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="CurrentTimeServicePriorityState" VerticalAlignment="Center"/>
+                </Grid>
+
+                <TextBlock Text="Ring" Margin="3"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="150"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Row="0" Grid.Column="0" Margin="13,3,3,3" HorizontalAlignment="Stretch" Content="Set Ring" Click="OnSetRing"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="3" HorizontalAlignment="Stretch" x:Name="RequestedRingState" SelectedIndex="0">
+                        <ComboBoxItem>Early Adopter</ComboBoxItem>
+                        <ComboBoxItem>General Availability</ComboBoxItem>
+                        <ComboBoxItem>Preview</ComboBoxItem>
+                    </ComboBox>
+                    <ComboBox Grid.Row="0" Grid.Column="2" Margin="3" HorizontalAlignment="Stretch" x:Name="RequestedRingPriorityState" SelectedIndex="0">
+                        <ComboBoxItem>Pri: Local</ComboBoxItem>
+                        <ComboBoxItem>Pri: Remote</ComboBoxItem>
+                    </ComboBox>
+                    <Button Grid.Row="1" Grid.Column="0" Margin="13,3,3,3" HorizontalAlignment="Stretch" Content="Get Ring State" Click="OnGetRing"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Margin="3" x:Name="CurrentRingState" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Margin="3" x:Name="CurrentRingPriorityState" VerticalAlignment="Center"/>
+                </Grid>
 
                 <Border BorderThickness="2" Margin="15" BorderBrush="DarkGray" Width="600" Height="1" />
                 <Grid x:Name="StatusGrid">
@@ -47,11 +118,11 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="100"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Status:"/>
-                    <TextBlock Grid.Column="1" x:Name="StatusText"/>
+                    <TextBlock Grid.Column="0" Margin="3" Text="Status:"/>
+                    <TextBlock Grid.Column="1" Margin="3" x:Name="StatusText"/>
                 </Grid>
             </StackPanel>
         </Grid>
