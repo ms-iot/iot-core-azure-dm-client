@@ -13,13 +13,37 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using System;
+
 namespace Microsoft.Devices.Management.DMDataContract
 {
     public class CommonDataContract
     {
         public const string NotFound = "<not found>";
         public const string ReportAllAsync = DMJSonConstants.DTWindowsIoTNameSpace + ".reportAllAsync";
+        public const string JsonQuery = "?";
         public const string JsonRefreshing = "refreshing";
         public const string JsonPending = "pending";
+        public const string JsonNoString = "no";
+        public const string JsonYesString = "yes";
+        public const string JsonReportProperties = "reportProperties";
+        public const string JsonApplyProperties = "applyProperties";
+
+        public static bool BooleanFromYesNoJsonString(string s)
+        {
+            switch (s)
+            {
+                case JsonYesString: return true;
+                case JsonNoString: return false;
+            }
+            throw new Exception("Unknown Yes/No value: " + s);
+        }
+
+        public static string BooleanToYesNoJsonString(bool b)
+        {
+            if (b)
+                return JsonYesString;
+            return JsonNoString;
+        }
     }
 }

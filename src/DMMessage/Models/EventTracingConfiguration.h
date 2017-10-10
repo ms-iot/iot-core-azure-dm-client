@@ -66,7 +66,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
         property int LogFileSizeLimitMB;
         property String^ LogFileFolder;
         property String^ LogFileName;
-        property String^ Started;
+        property bool Started;
         property IVector<ProviderConfiguration^>^ Providers;
 
         CollectorCSPConfiguration()
@@ -80,7 +80,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             targetJsonObject->Insert("logFileSizeLimitMB", JsonValue::CreateNumberValue(LogFileSizeLimitMB));
             targetJsonObject->Insert("logFileFolder", JsonValue::CreateStringValue(LogFileFolder));
             targetJsonObject->Insert("logFileName", JsonValue::CreateStringValue(LogFileName));
-            targetJsonObject->Insert("started", JsonValue::CreateStringValue(Started));
+            targetJsonObject->Insert("started", JsonValue::CreateBooleanValue(Started));
 
             for each (ProviderConfiguration^ provider in Providers)
             {
@@ -117,7 +117,7 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
                 }
                 else if (it->Current->Key == L"started")
                 {
-                    configuration->Started = it->Current->Value->GetString();
+                    configuration->Started = it->Current->Value->GetBoolean();
                 }
                 else
                 {

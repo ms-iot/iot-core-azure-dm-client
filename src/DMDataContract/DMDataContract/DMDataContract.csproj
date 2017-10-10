@@ -42,6 +42,7 @@
     <Compile Include="DeviceInfo.cs" />
     <Compile Include="DMJSonConstants.cs" />
     <Compile Include="ErrorCodes.cs" />
+    <Compile Include="EventTracing.cs" />
     <Compile Include="ExternalStorage.cs" />
     <Compile Include="FactoryReset.cs" />
     <Compile Include="Policy.cs" />

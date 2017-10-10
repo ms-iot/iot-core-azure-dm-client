@@ -18,11 +18,11 @@
                     "logFileSizeLimitMB": 4,
                     "logFileFolder": "AzureDMFolder",
                     "logFileName": "AzureDMFile.etl",
-                    "started": "yes",
+                    "started": true,
                     "D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897": {
                       "traceLevel": "verbose",
                       "keywords": "",
-                      "enabled": "yes",
+                      "enabled": true,
                       "type": "provider"
                     }
                   },
@@ -51,7 +51,7 @@
                     "logFileSizeLimitMB": 4,
                     "logFileFolder": "AzureDMFolder",
                     "logFileName": "AzureDMFile.etl",
-                    "started": "yes",
+                    "started": true,
                     "D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897": {
                       "traceLevel": "verbose",
                       "keywords": "<ignore>",
@@ -88,11 +88,11 @@
                     "logFileSizeLimitMB": 4,
                     "logFileFolder": "AzureDMFolder",
                     "logFileName": "AzureDMFile.etl",
-                    "started": "no",
+                    "started": false,
                     "D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897": {
                       "traceLevel": "verbose",
                       "keywords": "",
-                      "enabled": "yes",
+                      "enabled": true,
                       "type": "provider"
                     }
                   },
@@ -121,7 +121,7 @@
                     "logFileSizeLimitMB": 4,
                     "logFileFolder": "AzureDMFolder",
                     "logFileName": "AzureDMFile.etl",
-                    "started": "no",
+                    "started": false,
                     "D198EE7D-C5F1-4F5F-95BE-A2EE6FA45897": {
                       "traceLevel": "verbose",
                       "keywords": "<ignore>",
