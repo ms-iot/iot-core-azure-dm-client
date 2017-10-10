@@ -158,12 +158,6 @@ namespace Microsoft.Devices.Management
         }
     }
 
-    enum JsonReport
-    {
-        Report,
-        Unreport
-    }
-
     enum CommandStatus
     {
         NotStarted,

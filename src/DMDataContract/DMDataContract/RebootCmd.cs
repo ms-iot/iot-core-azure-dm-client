@@ -42,6 +42,8 @@ namespace Microsoft.Devices.Management.DMDataContract
 
         public class ReportedProperties
         {
+            public string response;
+
             public ReportedProperties()
             {
             }
@@ -64,15 +66,19 @@ namespace Microsoft.Devices.Management.DMDataContract
                 return status.ToString();
             }
 
-            public void LoadFrom(JObject json)
+            public static ReportedProperties FromJsonObject(JObject json)
             {
-                response = Utils.GetString(json, JsonResponse, NotFound);
+                ReportedProperties reportedProperties = new ReportedProperties();
+                reportedProperties.response = Utils.GetString(json, JsonResponse, NotFound);
+                return reportedProperties;
             }
 
-            public string response;
+            public JObject ToJsonObject()
+            {
+                return JObject.FromObject(this);
+            }
         }
     }
-
 }
 
 

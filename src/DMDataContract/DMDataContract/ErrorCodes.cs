@@ -35,6 +35,7 @@ namespace Microsoft.Devices.Management.DMDataContract
         public static int INVALID_DESIRED_CONFLICT_UNINSTALL_FOREGROUND_APP = unchecked((int)0xA0000087);
         public static int CANNOT_UNINSTALL_DM_APPLICATION = unchecked((int)0xA0000088);
         public static int CANNOT_REVERT_DM_APPLICATION = unchecked((int)0xA0000089);
+        public static int INVALID_DESIRED_CACHE = unchecked((int)0xA000008A);
 
         // DM Storage management error codes 0100-011F
         public static int INVALID_PARAMS = unchecked((int)0xA0000100);

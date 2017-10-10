@@ -24,6 +24,11 @@ namespace Microsoft.Devices.Management.DMDataContract
     {
         public static JToken GetJToken(JObject jObj, string propertyName)
         {
+            if (jObj == null)
+            {
+                return null;
+            }
+
             JToken jValue;
             if (jObj.TryGetValue(propertyName, out jValue))
             {
@@ -34,9 +39,15 @@ namespace Microsoft.Devices.Management.DMDataContract
 
         public static bool TryGetString(JObject jObj, string propertyName, out string propertyValue)
         {
+            if (jObj == null)
+            {
+                propertyValue = null;
+                return false;
+            }
+
             bool retValue = false;
             JToken jValue;
-            propertyValue = "";
+            propertyValue = null;
 
             if (jObj.TryGetValue(propertyName, out jValue))
             {
@@ -55,6 +66,11 @@ namespace Microsoft.Devices.Management.DMDataContract
 
         public static string GetString(JObject jObj, string propertyName, string defaultValue)
         {
+            if (jObj == null)
+            {
+                return defaultValue;
+            }
+
             JToken jValue;
             if (jObj.TryGetValue(propertyName, out jValue))
             {
@@ -65,6 +81,11 @@ namespace Microsoft.Devices.Management.DMDataContract
 
         public static int GetInt(JObject jObj, string propertyName, int defaultValue)
         {
+            if (jObj == null)
+            {
+                return defaultValue;
+            }
+
             JToken jValue;
             if (jObj.TryGetValue(propertyName, out jValue))
             {
@@ -78,6 +99,11 @@ namespace Microsoft.Devices.Management.DMDataContract
 
         public static string GetDateTimeAsString(JObject jObj, string propertyName, string defaultValue)
         {
+            if (jObj == null)
+            {
+                return defaultValue;
+            }
+
             // The default JObject returned from Azure SDK is parsed using a DateParseHandling.DateTime.
             // That setting causes the JObject.TryGetValue to return JToken that has lost the UTC notation ('Z').
             // This is a problem because then, we do not know if that time passed in was actually UTC or not.
@@ -102,6 +128,11 @@ namespace Microsoft.Devices.Management.DMDataContract
 
         public static bool GetBool(JObject jObj, string propertyName, bool defaultValue)
         {
+            if (jObj == null)
+            {
+                return defaultValue;
+            }
+
             JToken jValue;
             if (jObj.TryGetValue(propertyName, out jValue))
             {
@@ -119,6 +150,11 @@ namespace Microsoft.Devices.Management.DMDataContract
 
         public static string[] GetStringArray(JObject jObj, string propertyName)
         {
+            if (jObj == null)
+            {
+                return null;
+            }
+
             List<string> list = new List<string>();
 
             JToken jValue;

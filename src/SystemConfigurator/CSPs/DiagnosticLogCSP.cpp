@@ -161,7 +161,7 @@ IResponse^ DiagnosticLogCSP::HandleGetEventTracingConfiguration(IRequest^ reques
 
             if (uriTokens[7] == CSPTraceStatus)
             {
-                currentCollector->CSPConfiguration->Started = ref new String(std::stoi(value) == 1 ? JsonYesString : JsonNoString);
+                currentCollector->CSPConfiguration->Started = std::stoi(value) == 1 ? true : false;
             }
             else if (uriTokens[7] == CSPTraceLogFileMode)
             {
@@ -456,7 +456,7 @@ void DiagnosticLogCSP::ApplyCollectorConfiguration(const wstring& cspRoot, Colle
 
     // Finally process the started/stopped status...
     unsigned int traceStatus = MdmProvision::RunGetUInt(collectorCSPPath + L"/" + CSPTraceStatus);
-    if (0 == _wcsicmp(collector->CSPConfiguration->Started->Data(), JsonYesString))
+    if (collector->CSPConfiguration->Started)
     {
         if (traceStatus == 0 /*stopped*/)
         {

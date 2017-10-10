@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AppxLifeCycle.cs" />
+    <Compile Include="AppxManagement.cs" />
     <Compile Include="DmAppStoreUpdate.cs" />
     <Compile Include="Certificates.cs" />
     <Compile Include="Common.cs" />
@@ -41,6 +42,7 @@
     <Compile Include="DeviceInfo.cs" />
     <Compile Include="DMJSonConstants.cs" />
     <Compile Include="ErrorCodes.cs" />
+    <Compile Include="EventTracing.cs" />
     <Compile Include="ExternalStorage.cs" />
     <Compile Include="FactoryReset.cs" />
     <Compile Include="Policy.cs" />

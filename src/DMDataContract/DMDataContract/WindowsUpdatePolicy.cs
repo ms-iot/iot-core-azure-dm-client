@@ -71,26 +71,26 @@ namespace Microsoft.Devices.Management.DMDataContract
 
             public string sourcePriority;
 
-            public static WUProperties FromJsonObject(JObject json)
+            public static WUProperties FromJsonObject(JObject root)
             {
                 WUProperties wuProperties = new WUProperties();
-                wuProperties.activeHoursStart = Utils.GetInt(json, JsonActiveHoursStart, -1);
-                wuProperties.activeHoursEnd = Utils.GetInt(json, JsonActiveHoursEnd, -1);
-                wuProperties.allowAutoUpdate = Utils.GetInt(json, JsonAllowAutoUpdate, -1);
-                wuProperties.allowUpdateService = Utils.GetInt(json, JsonAllowUpdateService, -1);
-                wuProperties.branchReadinessLevel = Utils.GetInt(json, JsonBranchReadinessLevel, -1);
+                wuProperties.activeHoursStart = Utils.GetInt(root, JsonActiveHoursStart, -1);
+                wuProperties.activeHoursEnd = Utils.GetInt(root, JsonActiveHoursEnd, -1);
+                wuProperties.allowAutoUpdate = Utils.GetInt(root, JsonAllowAutoUpdate, -1);
+                wuProperties.allowUpdateService = Utils.GetInt(root, JsonAllowUpdateService, -1);
+                wuProperties.branchReadinessLevel = Utils.GetInt(root, JsonBranchReadinessLevel, -1);
 
-                wuProperties.deferFeatureUpdatesPeriod = Utils.GetInt(json, JsonDeferFeatureUpdatesPeriod, -1);
-                wuProperties.deferQualityUpdatesPeriod = Utils.GetInt(json, JsonDeferQualityUpdatesPeriod, -1);
-                wuProperties.pauseFeatureUpdates = Utils.GetInt(json, JsonPauseFeatureUpdates, -1);
-                wuProperties.pauseQualityUpdates = Utils.GetInt(json, JsonPauseQualityUpdates, -1);
-                wuProperties.scheduledInstallDay = Utils.GetInt(json, JsonScheduledInstallDay, -1);
+                wuProperties.deferFeatureUpdatesPeriod = Utils.GetInt(root, JsonDeferFeatureUpdatesPeriod, -1);
+                wuProperties.deferQualityUpdatesPeriod = Utils.GetInt(root, JsonDeferQualityUpdatesPeriod, -1);
+                wuProperties.pauseFeatureUpdates = Utils.GetInt(root, JsonPauseFeatureUpdates, -1);
+                wuProperties.pauseQualityUpdates = Utils.GetInt(root, JsonPauseQualityUpdates, -1);
+                wuProperties.scheduledInstallDay = Utils.GetInt(root, JsonScheduledInstallDay, -1);
 
-                wuProperties.scheduledInstallTime = Utils.GetInt(json, JsonScheduledInstallTime, -1);
+                wuProperties.scheduledInstallTime = Utils.GetInt(root, JsonScheduledInstallTime, -1);
 
-                wuProperties.ring = Utils.GetString(json, JsonRing, NotFound);
+                wuProperties.ring = Utils.GetString(root, JsonRing, NotFound);
 
-                wuProperties.sourcePriority = Utils.GetString(json, JsonSourcePriority, NotFound);
+                wuProperties.sourcePriority = Utils.GetString(root, JsonSourcePriority, NotFound);
 
                 return wuProperties;
             }
@@ -106,21 +106,41 @@ namespace Microsoft.Devices.Management.DMDataContract
             public WUProperties applyProperties;
             public string reportProperties;
 
-            public static DesiredProperties FromJsonObject(JObject jObj)
+            public static DesiredProperties FromJsonObject(JObject root)
             {
                 DesiredProperties desiredProperties = new DesiredProperties();
 
                 JToken jValue;
-                if (jObj.TryGetValue(JsonApplyProperties, out jValue) && jValue is JObject)
+                if (root.TryGetValue(JsonApplyProperties, out jValue) && jValue is JObject)
                 {
                     desiredProperties.applyProperties = WUProperties.FromJsonObject((JObject)jValue);
                 }
-                if (jObj.TryGetValue(JsonReportProperties, out jValue) && jValue is JValue && jValue.Type == JTokenType.String)
+                if (root.TryGetValue(JsonReportProperties, out jValue) && jValue is JValue && jValue.Type == JTokenType.String)
                 {
                     desiredProperties.reportProperties = (string)jValue;
                 }
 
                 return desiredProperties;
+            }
+
+            private JObject ToJsonObject()
+            {
+                JObject jObject = new JObject();
+                if (applyProperties != null)
+                {
+                    jObject.Add(JsonApplyProperties, applyProperties.ToJsonObject());
+                }
+                else
+                {
+                    jObject.Add(JsonApplyProperties, JsonNo);
+                }
+                jObject.Add(JsonReportProperties, reportProperties);
+                return jObject;
+            }
+
+            public string ToJsonString()
+            {
+                return ToJsonObject().ToString();
             }
         }
     }

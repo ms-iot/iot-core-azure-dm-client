@@ -26,7 +26,7 @@ namespace DMDashboard
             InitializeComponent();
         }
 
-        public void FromJson(JToken json)
+        public void FromJsonObject(JToken json)
         {
             if (!(json is JObject))
             {
@@ -36,8 +36,7 @@ namespace DMDashboard
 
             JObject jsonObj = (JObject)json;
 
-            RebootInfoDataContract.ReportedProperties reportedProperties = new RebootInfoDataContract.ReportedProperties();
-            reportedProperties.LoadFrom(jsonObj);
+            RebootInfoDataContract.ReportedProperties reportedProperties = RebootInfoDataContract.ReportedProperties.FromJsonObject(jsonObj);
             SingleRebootTime.Text = reportedProperties.singleRebootTime;
             DailyRebootTime.Text = reportedProperties.dailyRebootTime;
             LastBoot.Text = reportedProperties.lastBootTime;

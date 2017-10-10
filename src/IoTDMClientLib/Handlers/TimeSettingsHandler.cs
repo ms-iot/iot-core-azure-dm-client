@@ -36,7 +36,8 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        private async Task HandleDesiredPropertyChangeAsync(JToken desiredValue)
+        // IClientPropertyHandler
+        public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
         {
             if (!(desiredValue is JObject))
             {
@@ -70,12 +71,6 @@ namespace Microsoft.Devices.Management
 
             var reportedProperties = await GetTimeSettingsAsync();
             await _callback.ReportPropertiesAsync(PropertySectionName, JObject.FromObject(reportedProperties.data));
-        }
-
-        // IClientPropertyHandler
-        public async Task<CommandStatus> OnDesiredPropertyChange(JToken desiredValue)
-        {
-            await HandleDesiredPropertyChangeAsync(desiredValue);
 
             return CommandStatus.Committed;
         }

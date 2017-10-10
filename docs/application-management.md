@@ -75,7 +75,8 @@ Each app is identified by its `"packageFamilyId"` - which is its package family 
 
 ### Desired Properties - Reporting Store/Non-Store Applications
 
-By default, only the application explicitly specified by the packageFamilyId in the desired sections will have their state reported. To report other applications that are already installed, use the `"?"` as described below.
+By default, only the application explicitly specified by the packageFamilyId in the desired sections will have their state reported.
+To report other applications that are already installed, use the `"?"` as described below.
 
 <pre>
 "desired" : {

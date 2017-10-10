@@ -34,7 +34,7 @@ namespace DMDashboard
             InitializeComponent();
         }
 
-        public string ToJson()
+        public string ToJsonString()
         {
             WindowsTelemetryDataContract.DesiredProperties desiredProperties = new WindowsTelemetryDataContract.DesiredProperties();
 

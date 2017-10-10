@@ -34,10 +34,9 @@ namespace DMDashboard
             InitializeComponent();
         }
 
-        public void FromJson(JObject json)
+        public void FromJsonObject(JObject json)
         {
-            DeviceInfoDataContract.ReportedProperties reportedProperties = new DeviceInfoDataContract.ReportedProperties();
-            reportedProperties.LoadFrom(json);
+            DeviceInfoDataContract.ReportedProperties reportedProperties = DeviceInfoDataContract.ReportedProperties.FromJsonObject(json);
 
             Id.Text = reportedProperties.id;
             Manufacturer.Text = reportedProperties.manufacturer;
