@@ -62,12 +62,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServiceConfiguratorProxyCli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E2ETestApp", "..\tests\E2ETestApp\E2ETestApp.csproj", "{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DMTpm", "DMTpm\DMTpm.vcxitems", "{0ED4709A-5A05-4540-8E56-B63C91AABBE8}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		DMTpm\DMTpm.vcxitems*{0ed4709a-5a05-4540-8e56-b63c91aabbe8}*SharedItemsImports = 9
 		DMShared\DMShared.vcxitems*{241582cd-4861-4643-a7a2-21865b779aaf}*SharedItemsImports = 4
 		SharedUtilities\SharedUtilities.vcxitems*{45d41acc-2c3c-43d2-bc10-02aa73ffc7c7}*SharedItemsImports = 9
 		DMShared\DMShared.vcxitems*{65cf34f0-6724-4c05-a90b-d0143772b0cc}*SharedItemsImports = 9
 		DMShared\DMShared.vcxitems*{cbbd687c-3b2a-4216-8f74-754a72e05d7f}*SharedItemsImports = 4
+		DMTpm\DMTpm.vcxitems*{cbbd687c-3b2a-4216-8f74-754a72e05d7f}*SharedItemsImports = 4
 		SharedUtilities\SharedUtilities.vcxitems*{cbbd687c-3b2a-4216-8f74-754a72e05d7f}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -277,5 +281,6 @@ Global
 		{3EF84522-EB13-5FE0-8362-89A571063245} = {48F869F6-CAD1-4DCA-90C3-231BC4ACC10F}
 		{0213712B-62E6-5546-8D25-79B90244FFA9} = {48F869F6-CAD1-4DCA-90C3-231BC4ACC10F}
 		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1} = {ACADCA61-EDB4-4D41-A868-FEAEFBC8ED43}
+		{0ED4709A-5A05-4540-8E56-B63C91AABBE8} = {48F869F6-CAD1-4DCA-90C3-231BC4ACC10F}
 	EndGlobalSection
 EndGlobal

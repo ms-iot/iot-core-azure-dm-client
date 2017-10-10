@@ -27,7 +27,7 @@ The **Reboot Management** functionality can perform the following tasks:
 
 Device boots and sets `"lastBootTime"` property:
 
-```
+```json
 "reported" : {
     "windows" : {
         "rebootInfo" : {
@@ -90,7 +90,7 @@ Note that IsRebootAllowedBySystem() can return only one of the following values 
 
 **Example**
 
-<pre>
+```cs
     async Task OnCriticalTaskStart(DeviceManagementClient dmClient)
     {
         await dmClient.AllowReboots(false);
@@ -101,7 +101,7 @@ Note that IsRebootAllowedBySystem() can return only one of the following values 
     {
         dmClient.AllowReboots(true);
     }
-</pre>
+```
 
 ## Initiate Reboot
 
@@ -214,7 +214,7 @@ is JSON object with two key/value pairs defined as follows:
 
 Successful response:
 
-<pre>
+```json
 "reported" : {
     "windows" : {
         "rebootInfo" : {
@@ -249,7 +249,7 @@ Note that the full date and time are required when specifying the daily reboot t
 
 Perform a singleRebootTime reboot on Jan 25th, 2017 at 09:00 UTC time and also reboot daily at 3 AM:
 
-<pre>
+```json
 "desired" : {
     "windows" : {
         "rebootInfo" : {
