@@ -21,15 +21,16 @@ The application can be a foreground application or a background application.
 - [Samples Applications](docs/samples.md).
 - [Application Creation Walk-through](docs/dm-hello-world-overview.md).
 
-## System Requirements
+### System Requirements
 
-### Developer's Box
+#### Developer's Box
+
 Visual Studio 2017
 
-### Device
+#### Device
+
 Windows IoT Core build 15063 (March 2017) or later.
 
-## Quick Links
 ## Reference
 
 - [Architecture](docs/dm-client-architecture.md)

@@ -111,9 +111,6 @@
     <ClInclude Include="TimeCfg.h">
       <Filter>Header Files\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="TpmSupport.h">
-      <Filter>Header Files\Handlers</Filter>
-    </ClInclude>
     <ClInclude Include="WindowsTelemetry.h">
       <Filter>Header Files\Handlers</Filter>
     </ClInclude>
@@ -179,9 +176,6 @@
     <ClCompile Include="SystemConfiguratorProxyServer\SystemConfiguratorProxy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="\\SystemConfiguratorProxy_s.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TaskQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -194,14 +188,14 @@
     <ClCompile Include="TimeCfg.cpp">
       <Filter>Source Files\Handlers</Filter>
     </ClCompile>
-    <ClCompile Include="TpmSupport.cpp">
-      <Filter>Source Files\Handlers</Filter>
-    </ClCompile>
     <ClCompile Include="WindowsTelemetry.cpp">
       <Filter>Source Files\Handlers</Filter>
     </ClCompile>
     <ClCompile Include="TimeService.cpp">
       <Filter>Source Files\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="\\SystemConfiguratorProxy_s.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

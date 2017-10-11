@@ -13,7 +13,9 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "stdafx.h"
+#include "..\SharedUtilities\Utils.h"
 #include "..\SharedUtilities\Logger.h"
+#include "TpmSupport.h"
 #include "DMException.h"
 
 using namespace std;
@@ -30,7 +32,7 @@ using namespace std;
 //</ServiceURI>
 
 
-static std::string RunLimpet(const std::wstring& params)
+std::string Tpm::RunLimpet(const std::wstring& params)
 {
     TRACE(__FUNCTION__);
 
@@ -50,7 +52,7 @@ static std::string RunLimpet(const std::wstring& params)
     return output;
 }
 
-std::string GetServiceUrl(int logicalId)
+std::string Tpm::GetServiceUrl(int logicalId)
 {
     TRACE(__FUNCTION__);
 
@@ -69,7 +71,7 @@ std::string GetServiceUrl(int logicalId)
     throw DMException("cannot parse Limpet response. Is TPM supported?");
 }
 
-std::string GetSASToken(int logicalId)
+std::string Tpm::GetSASToken(int logicalId)
 {
     TRACE(__FUNCTION__);
 
@@ -92,7 +94,7 @@ std::string GetSASToken(int logicalId)
     throw DMException("cannot parse Limpet response. Is TPM supported?");
 }
 
-void ClearTPM()
+void Tpm::ClearTPM()
 {
     TRACE(__FUNCTION__);
 
@@ -116,7 +118,7 @@ void ClearTPM()
     throw DMException("cannot parse Limpet response. Is TPM supported?");
 }
 
-std::string GetEndorsementKey()
+std::string Tpm::GetEndorsementKey()
 {
 	TRACE(__FUNCTION__);
 
@@ -134,7 +136,7 @@ std::string GetEndorsementKey()
 	throw DMException("cannot parse Limpet response. Is TPM supported?");
 }
 
-std::string GetSRootKey()
+std::string Tpm::GetSRootKey()
 {
 	TRACE(__FUNCTION__);
 
@@ -152,28 +154,28 @@ std::string GetSRootKey()
 	throw DMException("cannot parse Limpet response. Is TPM supported?");
 }
 
-void DestroyServiceUrl(int logicalId)
+void Tpm::DestroyServiceUrl(int logicalId)
 {
 	TRACE(__FUNCTION__);
 
 	RunLimpet(to_wstring(logicalId) + L" -dur");
 }
 
-void StoreServiceUrl(int logicalId, const std::string& url)
+void Tpm::StoreServiceUrl(int logicalId, const std::string& url)
 {
 	TRACE(__FUNCTION__);
 
 	RunLimpet(to_wstring(logicalId) + (std::wstring)L" -sur " + Utils::MultibyteToWide(url.c_str()));
 }
 
-void ImportSymetricIdentity(int logicalId, const std::string& hostageFile)
+void Tpm::ImportSymetricIdentity(int logicalId, const std::string& hostageFile)
 {
 	TRACE(__FUNCTION__);
 
 	RunLimpet(to_wstring(logicalId) + L" -isi " + Utils::MultibyteToWide(hostageFile.c_str()));
 }
 
-void EvictHmacKey(int logicalId)
+void Tpm::EvictHmacKey(int logicalId)
 {
 	TRACE(__FUNCTION__);
 
