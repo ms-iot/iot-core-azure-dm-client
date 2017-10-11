@@ -18,6 +18,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMRequest.h"
 #include "..\SharedUtilities\SecurityAttributes.h"
+#include "..\DMTpm\TpmSupport.h"
 #include "CSPs\MdmProvision.h"
 #include "CSPs\CertificateInfo.h"
 #include "CSPs\CertificateManagement.h"
@@ -32,7 +33,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DMStorage.h"
 #include "TimeCfg.h"
 #include "TimeService.h"
-#include "TpmSupport.h"
 #include "WindowsTelemetry.h"
 
 #include "Models\AllModels.h"

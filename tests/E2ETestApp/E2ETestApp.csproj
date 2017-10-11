@@ -165,6 +165,9 @@
     <Content Include="TestCases\Apps\Apps.01.list.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="TestCases\DeviceInfo\DeviceInfo.MBM.00.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Properties\Default.rd.xml" />

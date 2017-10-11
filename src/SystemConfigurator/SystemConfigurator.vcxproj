@@ -152,7 +152,6 @@
     <ClInclude Include="TaskQueue.h" />
     <ClInclude Include="TimeCfg.h" />
     <ClInclude Include="TimeService.h" />
-    <ClInclude Include="TpmSupport.h" />
     <ClInclude Include="WindowsTelemetry.h" />
     <ClInclude Include="SystemConfiguratorProxyServer\SystemConfiguratorProxy.h" />
   </ItemGroup>
@@ -195,7 +194,6 @@
     <ClCompile Include="TaskQueue.cpp" />
     <ClCompile Include="TimeCfg.cpp" />
     <ClCompile Include="TimeService.cpp" />
-    <ClCompile Include="TpmSupport.cpp" />
     <ClCompile Include="WindowsTelemetry.cpp" />
   </ItemGroup>
   <ItemGroup>
