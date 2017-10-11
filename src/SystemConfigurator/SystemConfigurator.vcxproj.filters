@@ -194,7 +194,7 @@
     <ClCompile Include="TimeService.cpp">
       <Filter>Source Files\Handlers</Filter>
     </ClCompile>
-    <ClCompile Include="\\SystemConfiguratorProxy_s.c">
+    <ClCompile Include="$(SolutionDir)$(Platform)\$(Configuration)\SystemConfiguratorProxy_s.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

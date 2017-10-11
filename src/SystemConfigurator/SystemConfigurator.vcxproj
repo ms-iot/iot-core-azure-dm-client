@@ -87,7 +87,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>kernel32.lib;rpcrt4.lib;onecoreuap.lib;shell32.lib;crypt32.lib;mdmlocalmanagement.lib;xmllite.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;rpcrt4.lib;onecoreuap.lib;crypt32.lib;mdmlocalmanagement.lib;xmllite.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\external\WinSDKRS2\$(PlatformTarget)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
