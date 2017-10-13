@@ -2,7 +2,7 @@
 
 ## Overview
 
-Device Management allows operators to remotely configure and monitor thousands or hundreds of thousands of devices simultaneously. 
+Device Management allows operators to remotely configure and monitor up to hundreds of thousands of devices simultaneously. 
 
 The operators may do the configuration at a time when the target devices are not even online. They would also want to know the status of each device, and whether the configuration has been applied succeessfully or not.
 
