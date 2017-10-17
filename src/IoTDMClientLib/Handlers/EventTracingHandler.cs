@@ -60,6 +60,7 @@ namespace Microsoft.Devices.Management
             foreach (EventTracingDataContract.Provider provider in collector.providers)
             {
                 ProviderConfiguration msgProvider = ProviderToMessage(provider);
+                cspConfiguration.Providers.Add(msgProvider);
             }
             return cspConfiguration;
         }
