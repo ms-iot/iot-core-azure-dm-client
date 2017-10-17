@@ -2,6 +2,16 @@
 
 The **Device Information** functionality allows the operator to inspect various device properties.
 
+To trigger the reporting of the Device Information, the following desired properties need to be set:
+
+<pre>
+"desired" : {
+    "windows": {
+        "deviceInfo": {}
+    }
+}
+</pre>
+
 The format of the `"reported.windows.deviceInfo"` reported property is as follows:
 
 <pre>

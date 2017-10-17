@@ -81,6 +81,7 @@ Certain device management operations are initiated by desired properties set fro
 - [Report All Device Properties](report-all-device-properties.md)
 - [Debugging Azure Device Management Client](debugging.md)
 - [Source Policy](source-policy.md)
+- [Running End-To-End Tests](running-e2e-tests.md)
 
 ----
 
