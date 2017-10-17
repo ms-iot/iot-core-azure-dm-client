@@ -64,7 +64,7 @@ Below is what the schema looks like:
 ### Collectors List and DeviceTwin Interaction
 
 <pre>
-"Windows" : {
+"windows" : {
     "eventTracingCollectors" : {
         "collector00" : {
             "reportProperties" : "yes"|"no",
