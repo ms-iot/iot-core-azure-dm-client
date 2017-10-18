@@ -11,8 +11,8 @@
     <AssemblyName>IoTDMClient</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.14393.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.10586.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0.15063.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -94,18 +94,39 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AppxManagement.cs" />
+    <Compile Include="DeviceManagement.cs" />
+    <Compile Include="Handlers\AppxLifeCycleHandler.cs" />
+    <Compile Include="Handlers\AppxManagement.cs" />
     <Compile Include="AzureBlobFileTransfer.cs" />
     <Compile Include="AzureIoTHubDeviceTwinProxy.cs" />
     <Compile Include="CertificateManagement.cs" />
+    <Compile Include="Handlers\CertificateHandler.cs" />
+    <Compile Include="Handlers\DmAppStoreUpdate.cs" />
+    <Compile Include="Handlers\DeviceHealthAttestationHandler.cs" />
     <Compile Include="DeviceManagementClient.cs" />
-    <Compile Include="ISystemConfiguratorProxy.cs" />
+    <Compile Include="DirectMethodGuard.cs" />
+    <Compile Include="Handlers\DeviceInfoHandler.cs" />
+    <Compile Include="Handlers\EventTracingHandler.cs" />
+    <Compile Include="Handlers\ExternalStorageHandler.cs" />
+    <Compile Include="Handlers\FactoryResetHandler.cs" />
+    <Compile Include="Handlers\RebootCmdHandler.cs" />
+    <Compile Include="Handlers\RebootInfoHandler.cs" />
+    <Compile Include="Handlers\StorageHandler.cs" />
+    <Compile Include="Handlers\TimeServiceHandler.cs" />
+    <Compile Include="Handlers\TimeSettingsHandler.cs" />
+    <Compile Include="Handlers\WindowsTelemetryHandler.cs" />
+    <Compile Include="Handlers\WindowsUpdatesHandler.cs" />
+    <Compile Include="Interfaces\IDeviceManagementClientHandler.cs" />
+    <Compile Include="Interfaces\ISystemConfiguratorProxy.cs" />
     <Compile Include="SystemConfiguratorProxy.cs" />
-    <Compile Include="IDeviceManagementRequestHandler.cs" />
-    <Compile Include="IDeviceTwin.cs" />
+    <Compile Include="Interfaces\IDeviceManagementRequestHandler.cs" />
+    <Compile Include="Interfaces\IDeviceTwin.cs" />
     <Compile Include="OnPremDeviceTwinProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TpmDevice.cs" />
+    <Compile Include="Utils.cs" />
+    <Compile Include="Handlers\WindowsUpdatePolicyHandler.cs" />
+    <Compile Include="Handlers\WifiHandler.cs" />
     <EmbeddedResource Include="Properties\IoTDMClient.rd.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -114,9 +135,17 @@
     </SDKReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DMDataContract\DMDataContract\DMDataContract.csproj">
+      <Project>{94794bf1-4d16-46be-97c1-15f968cd433f}</Project>
+      <Name>DMDataContract</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DMMessage\DMMessage.vcxproj">
       <Project>{241582cd-4861-4643-a7a2-21865b779aaf}</Project>
       <Name>DMMessage</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SystemConfiguratorProxy\Client\ServiceConfiguratorProxyClientLib.vcxproj">
+      <Project>{0213712b-62e6-5546-8d25-79b90244ffa9}</Project>
+      <Name>SystemConfiguratorProxyClient</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

@@ -47,7 +47,7 @@ void CertificateInfo::AddCertificateInBase64(const std::wstring& certPath, const
 
     wstring path = certPath + L"/EncodedCertificate";
 
-    MdmProvision::RunAddData(path, certificateInBase64);
+    MdmProvision::RunAddDataBase64(path, certificateInBase64);
 }
 
 std::wstring CertificateInfo::GetIssuedBy()
@@ -186,7 +186,7 @@ void CertificateInfo::AddCertificate(const std::wstring& path, const std::wstrin
 
     TRACEP(L"Adding : ", fullPath.c_str());
 
-    MdmProvision::RunAddData(fullPath, certificateInBase64);
+    MdmProvision::RunAddDataBase64(fullPath, certificateInBase64);
 }
 
 void CertificateInfo::DeleteCertificate(const wstring& path, const wstring& hash)
@@ -199,5 +199,64 @@ void CertificateInfo::DeleteCertificate(const wstring& path, const wstring& hash
 
     TRACEP(L"Deleting : ", fullPath.c_str());
 
-    MdmProvision::RunDelete(path);
+    MdmProvision::RunDelete(fullPath);
 }
+
+CertificateFile::CertificateFile(const std::wstring& certFileName)
+{
+    std::vector<char> certEncoded;
+    Utils::LoadFile(certFileName, certEncoded);
+
+    PCCERT_CONTEXT certContext = CertCreateCertificateContext(X509_ASN_ENCODING, reinterpret_cast<BYTE*>(certEncoded.data()), static_cast<DWORD>(certEncoded.size()));
+    if (!certContext)
+    {
+        throw DMException("Error: CertCreateCertificateContext() failed.", GetLastError());
+    }
+
+    DWORD thumbPrintSize = 512;
+    std::vector<BYTE> thumbPrint(thumbPrintSize);
+
+    BOOL result = CryptHashCertificate(
+        NULL, // Not used.
+        0,    // algorithm id. Default is 0 (SHA1).
+        0,    // flags to be passed to the hash API.
+        certContext->pbCertEncoded,
+        certContext->cbCertEncoded,
+        thumbPrint.data(),
+        &thumbPrintSize);
+
+    if (result)
+    {
+        std::basic_ostringstream<wchar_t> thumbPrintString;
+        for (unsigned int i = 0; i < thumbPrintSize; ++i)
+        {
+            thumbPrintString << std::setw(2) << std::setfill(L'0') << std::hex << thumbPrint[i];
+        }
+        _thumbPrint = thumbPrintString.str();
+    }
+
+    CertFreeCertificateContext(certContext);
+
+    if (!result)
+    {
+        throw DMException("Error: CryptHashCertificate() failed.", GetLastError());
+    }
+
+    _fullFileName = certFileName;
+}
+
+std::wstring CertificateFile::FullFileName() const
+{
+    return _fullFileName;
+}
+std::wstring CertificateFile::ThumbPrint() const
+{
+    return _thumbPrint;
+}
+
+void CertificateFile::Install(const std::wstring& certStorePath)
+{
+    wstring certificateBase64 = Utils::FileToBase64(_fullFileName);
+    CertificateInfo::AddCertificate(certStorePath, ThumbPrint(), certificateBase64);
+}
+

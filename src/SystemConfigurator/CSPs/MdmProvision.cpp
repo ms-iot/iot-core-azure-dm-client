@@ -1,20 +1,23 @@
 /*
 Copyright 2017 Microsoft
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
-and associated documentation files (the "Software"), to deal in the Software without restriction, 
-including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, 
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+and associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
 subject to the following conditions:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT 
-LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "stdafx.h"
+#include <thread>
+#include <queue>
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMException.h"
+#include "..\TaskQueue.h"
 #include "PrivateAPIs\WinSDKRS2.h"
 #include "..\resource.h"
 #include "MdmProvision.h"
@@ -29,19 +32,87 @@ using namespace std;
 
 bool MdmProvision::s_errorVerbosity = false;
 
-wstring GetResourceString(int id)
+class SyncMLServer
 {
-    const int bufferSize = 1024;
-    wchar_t buffer[bufferSize];
-    if (!LoadString(GetModuleHandle(NULL), id, buffer, bufferSize))
+public:
+    SyncMLServer()
     {
-        if (!LoadString(GetModuleHandle(NULL), IDS_OMA_SYNCML_STATUS_UNKNOWN, buffer, bufferSize))
+        TRACE(__FUNCTION__);
+        _workerThread = thread(ServiceWorkerThread, this);
+    }
+
+    void Process(const wstring& requestSyncML, wstring& outputSyncML)
+    {
+        TRACE(__FUNCTION__);
+        TaskQueue::Task task([&]()
         {
-            return wstring(L"Unknown OMA SyncML status code.");
+            return ProcessInternal(requestSyncML);
+        });
+
+        future<wstring> futureResult = _queue.Enqueue(move(task));
+
+        // This will block until the result is available...
+        outputSyncML = futureResult.get();
+    }
+
+private:
+
+    static void ServiceWorkerThread(void* context)
+    {
+        TRACE(__FUNCTION__);
+
+        SyncMLServer* syncMLServer = static_cast<SyncMLServer*>(context);
+        syncMLServer->Listen();
+    }
+
+    void Listen()
+    {
+        TRACE(__FUNCTION__);
+
+        while (true)
+        {
+            TRACE("Worker thread waiting for a task to be queued...");
+            TaskQueue::Task task = _queue.Dequeue();
+
+            TRACE("A task has been dequeued...");
+            task();
+
+            TRACE("Task has completed.");
         }
     }
-    return wstring(buffer);
-}
+
+    wstring ProcessInternal(const wstring& requestSyncML)
+    {
+        TRACE(__FUNCTION__);
+
+        TRACEP(L"SyncMLServer - Request : ", requestSyncML.c_str());
+
+        HRESULT hr = RegisterDeviceWithLocalManagement(NULL);
+        if (FAILED(hr))
+        {
+            throw DMExceptionWithErrorCode("RegisterDeviceWithLocalManagement", hr);
+        }
+
+        PWSTR output = nullptr;
+        hr = ApplyLocalManagementSyncML(requestSyncML.c_str(), &output);
+        if (FAILED(hr))
+        {
+            throw DMExceptionWithErrorCode("ApplyLocalManagementSyncML", hr);
+        }
+
+        wstring outputSyncML;
+        if (output)
+        {
+            outputSyncML = output;
+        }
+        LocalFree(output);
+
+        return outputSyncML;
+    }
+
+    thread _workerThread;
+    TaskQueue _queue;
+};
 
 void MdmProvision::SetErrorVerbosity(bool verbosity) noexcept
 {
@@ -50,27 +121,11 @@ void MdmProvision::SetErrorVerbosity(bool verbosity) noexcept
 
 void MdmProvision::RunSyncML(const wstring&, const wstring& requestSyncML, wstring& outputSyncML)
 {
-    PWSTR output = nullptr;
-    HRESULT hr = RegisterDeviceWithLocalManagement(NULL);
-    if (FAILED(hr))
-    {
-        throw DMException("RegisterDeviceWithLocalManagement", hr);
-    }
-
-    hr = ApplyLocalManagementSyncML(requestSyncML.c_str(), &output);
-    if (FAILED(hr))
-    {
-        TRACEP(L"Error: MdmProvisionSyncBodyWithAttributes failed. Error code = ", hr);
-        throw DMException("MdmProvisionSyncBodyWithAttributes");
-    }
-
-    if (output)
-    {
-        outputSyncML = output;
-    }
-    LocalFree(output);
-
     TRACEP(L"Request : ", requestSyncML.c_str());
+
+    static SyncMLServer syncMLServer;
+    syncMLServer.Process(requestSyncML, outputSyncML);
+
     TRACEP(L"Response: ", outputSyncML.c_str());
 
     wstring returnCodeString;
@@ -127,6 +182,32 @@ void MdmProvision::RunAddData(const wstring& sid, const wstring& path, const wst
                     <Data>)";
     requestSyncML += value;
     requestSyncML += LR"(</Data>
+                </Item>
+            </Add>
+        </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    RunSyncML(sid, requestSyncML, resultSyncML);
+}
+
+void MdmProvision::RunAddTyped(const wstring& sid, const wstring& path, const wstring& type)
+{
+    wstring requestSyncML = LR"(
+        <SyncBody>
+            <Add>
+                <CmdID>1</CmdID>
+                <Item>
+                    <Target>
+                        <LocURI>)";
+    requestSyncML += path;
+    requestSyncML += LR"(</LocURI>
+                    </Target>
+                    <Meta>
+                        <Format xmlns="syncml:metinf">)";
+    requestSyncML += type;
+    requestSyncML += LR"(</Format>
+                    </Meta>
                 </Item>
             </Add>
         </SyncBody>
@@ -430,6 +511,33 @@ void MdmProvision::RunExec(const wstring& sid, const wstring& path)
     RunSyncML(sid, requestSyncML, resultSyncML);
 }
 
+void MdmProvision::RunExecWithParameters(const wstring& sid, const wstring& path, const wstring& params)
+{
+    wstring requestSyncML = LR"(
+    <SyncBody>
+        <Exec>
+            <CmdID>1</CmdID>
+            <Item>
+                <Target>
+                    <LocURI>)";
+    requestSyncML += path;
+    requestSyncML += LR"(</LocURI>
+                </Target>
+                <Meta>
+                    <Format xmlns="syncml:metinf">chr</Format>
+                </Meta>
+                <Data>)";
+    requestSyncML += params;
+    requestSyncML += LR"(</Data>
+            </Item>
+        </Exec>
+    </SyncBody>
+        )";
+
+    wstring resultSyncML;
+    RunSyncML(sid, requestSyncML, resultSyncML);
+}
+
 void MdmProvision::RunAdd(const wstring& path, const wstring& value)
 {
     // empty sid is okay for device-wide CSPs.
@@ -440,6 +548,11 @@ void MdmProvision::RunAddData(const std::wstring& path, int value)
 {
     // empty sid is okay for device-wide CSPs.
     RunAddData(L"", path, Utils::MultibyteToWide(to_string(value).c_str()), L"int");
+}
+
+void MdmProvision::RunAddTyped(const wstring& path, const wstring& type)
+{
+    RunAddTyped(L"", path, type);
 }
 
 void MdmProvision::RunAddData(const std::wstring& path, bool value)
@@ -536,6 +649,11 @@ void MdmProvision::RunExec(const wstring& path)
     RunExec(L"", path);
 }
 
+void MdmProvision::RunExecWithParameters(const std::wstring& path, const std::wstring& params)
+{
+    RunExecWithParameters(L"", path, params);
+}
+
 void MdmProvision::ReportError(const wstring& syncMLRequest, const wstring& syncMLResponse, int errorCode)
 {
     if (s_errorVerbosity)
@@ -544,11 +662,10 @@ void MdmProvision::ReportError(const wstring& syncMLRequest, const wstring& sync
         TRACEP(L"Request:\n", syncMLRequest.c_str());
         TRACEP(L"Response:\n", syncMLResponse.c_str());
         TRACEP(L"Error:\n", errorCode);
-        TRACEP(L"Error Message:\n", GetResourceString(errorCode).c_str());
     }
     else
     {
-        TRACEP(L"Error:\n", GetResourceString(errorCode).c_str());
+        TRACEP(L"Error:\n", errorCode);
     }
 }
 

@@ -37,10 +37,10 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             AppId = ref new Platform::String();
             IsBackgroundApplication = false;
         }
-        StartupAppInfo(String^ appId, bool start)
+        StartupAppInfo(String^ appId, bool isBackgroundApplication)
         {
             AppId = appId;
-            IsBackgroundApplication = start;
+            IsBackgroundApplication = isBackgroundApplication;
         }
         property String^ AppId;
         property bool IsBackgroundApplication;
@@ -66,8 +66,8 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
             String^ str = SerializationHelper::GetStringFromBlob(bytes);
             JsonObject^ jsonObject = JsonObject::Parse(str);
             auto appId = jsonObject->Lookup("AppId")->GetString();
-            auto start = jsonObject->Lookup("IsBackgroundApplication")->GetBoolean();
-            return ref new Microsoft::Devices::Management::Message::StartupAppInfo(appId, start);
+            auto isBackgroundApplication = jsonObject->Lookup("IsBackgroundApplication")->GetBoolean();
+            return ref new Microsoft::Devices::Management::Message::StartupAppInfo(appId, isBackgroundApplication);
         }
 
         property StartupAppInfo^ AppInfo;

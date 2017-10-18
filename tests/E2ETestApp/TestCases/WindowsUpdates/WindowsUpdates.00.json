@@ -1,0 +1,43 @@
+{
+  "scenario": [
+    {
+      "name": "00",
+      "type": "deviceTwin",
+      "description": "our windows update test case!",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "windowsUpdates": {
+                "approved": "C7864ECB-F0D8-4FD7-97F6-6CFF8EA27F33"
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "windowsUpdates": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "approved": "c7864ecb-f0d8-4fd7-97f6-6cff8ea27f33",
+                  "installed": "",
+                  "failed": "",
+                  "installable": "",
+                  "pendingReboot": "",
+                  "lastScanTime": "<ignore>",
+                  "deferUpgrade": false
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

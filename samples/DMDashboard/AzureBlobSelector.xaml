@@ -8,8 +8,8 @@
         Title="AzureBlobSelector" Width="300" Height="180">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="100"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <ListView Grid.Row="0"  Margin="3" HorizontalAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Hidden" x:Name="BlobList">
             <ListView.ItemTemplate>

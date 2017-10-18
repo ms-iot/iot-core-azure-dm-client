@@ -29,6 +29,10 @@ using namespace Windows::Data::Json;
 wstring CustomDeviceUiCSP::GetStartupAppId()
 {
     TRACE(__FUNCTION__);
+#ifdef IOT_ENTERPRISE
+    // TODO: need Enterprise solution
+    wstring appId = L"";
+#else
     // REQUEST
     //    ./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData
     //
@@ -44,15 +48,23 @@ wstring CustomDeviceUiCSP::GetStartupAppId()
     //        </Item>
     //    </Results>
         
-    wstring sid = Utils::GetSidForAccount(L"DefaultAccount");
+    wstring sid = Utils::GetDmUserSid();
     auto appId = MdmProvision::RunGetString(
         sid.c_str(),
         L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData");
+
+    appId = Utils::TrimString(appId, L"!App");
+#endif // IOT_ENTERPRISE
     return appId;
 }
+
 wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
 {
     TRACE(__FUNCTION__);
+#ifdef IOT_ENTERPRISE
+    // TODO: need Enterprise solution
+    auto data = ref new Windows::Data::Json::JsonArray();
+#else
     // REQUEST
     //    ./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch?list=Struct
     // RESPONSE
@@ -85,19 +97,24 @@ wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
         {
             // 0/__1___/__2__/____3________/___________4___________/___5_
             // ./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch/Aumid
-            auto aumid = ref new Platform::String(uriTokens[5].c_str());
+            wstring pkgFamilyName = Utils::TrimString(uriTokens[5], L"!App");
+            auto aumid = ref new Platform::String(pkgFamilyName.c_str());
             data->Append(JsonValue::CreateStringValue(aumid));
         }
     };
     MdmProvision::RunGetStructData(
         L"./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch?list=Struct",
         valueHandler);
+#endif // IOT_ENTERPRISE
     return data->Stringify()->Data();
 }
+
 void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add)
 {
     TRACE(__FUNCTION__);
-
+#ifdef IOT_ENTERPRISE
+    // TODO: need Enterprise solution
+#else
     const wchar_t* syncML_forApp = LR"(
   <SyncBody>      
         <%s>
@@ -111,7 +128,7 @@ void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add
             </Meta>
             <Data>%s</Data>
         </Item>
-        </Replace>        
+        </%s>
      <Final/>
   </SyncBody>
 )";
@@ -141,28 +158,59 @@ void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add
     const wchar_t *action = (backgroundApplication) ? ((add) ? L"Add" : L"Delete") : L"Replace";
     const wchar_t *syncML = (backgroundApplication) ? syncML_forBackgroundApp : syncML_forApp;
 
-    size_t bufsize = _scwprintf(syncML, action, appId.c_str(), action);
+    wstring cspAppId = appId + L"!App";
+    size_t bufsize = _scwprintf(syncML, action, cspAppId.c_str(), action);
 
     bufsize += 1; // need null-termintator
     vector<wchar_t> buff(bufsize);
 
-    _snwprintf_s(buff.data(), bufsize, bufsize, syncML, action, appId.c_str(), action);
+    _snwprintf_s(buff.data(), bufsize, bufsize, syncML, action, cspAppId.c_str(), action);
 
     wstring output;
-    wstring sid = Utils::GetSidForAccount(L"DefaultAccount");
+    wstring sid = Utils::GetDmUserSid();
     MdmProvision::RunSyncML(sid, buff.data(), output);
-
+#endif // IOT_ENTERPRISE
 }
+
 void CustomDeviceUiCSP::AddAsStartupApp(const wstring& appId, bool backgroundApplication)
 {
     TRACE(__FUNCTION__);
-
-    HandleStartupApp(appId, backgroundApplication, true);
+#ifdef IOT_ENTERPRISE
+#else
+    HandleStartupApp(appId, backgroundApplication, true /*add*/);
+#endif // IOT_ENTERPRISE
 }
+
 void CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(const wstring& appId)
 {
     TRACE(__FUNCTION__);
-
-    HandleStartupApp(appId, true, false);
+#ifdef IOT_ENTERPRISE
+    // TODO: need Enterprise solution
+#else
+    HandleStartupApp(appId, true, false /*replace/delete*/);
+#endif // IOT_ENTERPRISE
 }
 
+bool CustomDeviceUiCSP::IsForeground(const std::wstring& pkgFamilyName)
+{
+    TRACE(__FUNCTION__);
+#ifdef IOT_ENTERPRISE
+    // TODO: need Enterprise solution
+    return false;
+#else
+    wstring forgroundAppId = CustomDeviceUiCSP::GetStartupAppId();
+    return forgroundAppId == pkgFamilyName;
+#endif // IOT_ENTERPRISE
+}
+
+bool CustomDeviceUiCSP::IsBackground(const std::wstring& pkgFamilyName)
+{
+    TRACE(__FUNCTION__);
+#ifdef IOT_ENTERPRISE
+    // TODO: need Enterprise solution
+    return false;
+#else
+    wstring backgroundTasks = CustomDeviceUiCSP::GetBackgroundTasksToLaunch();
+    return wstring::npos != backgroundTasks.find(pkgFamilyName);
+#endif // IOT_ENTERPRISE
+}

@@ -30,27 +30,31 @@
     <ProjectGuid>{CBBD687C-3B2A-4216-8F74-754A72E05D7F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>SystemConfigurator</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <!-- Common -->
   <PropertyGroup>
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <GenerateManifest>true</GenerateManifest>
     <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
   </PropertyGroup>
+  <!-- Debug -->
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '15.0'">v141</PlatformToolset>
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
+  <!-- Release -->
   <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '15.0'">v141</PlatformToolset>
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -66,6 +70,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <!-- Common -->
+  <PropertyGroup>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <!-- Common -->
   <ItemDefinitionGroup>
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -74,21 +83,26 @@
       <AdditionalUsingDirectories Condition="'$(MSBuildToolsVersion)' == '15.0'">$(VSInstallDir)\Common7\IDE\VC\vcpackages;$(WindowsSdkDir)\UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <AdditionalUsingDirectories Condition="'$(MSBuildToolsVersion)' == '14.0'">$(VCInstallDir)\vcpackages;$(WindowsSdkDir)\UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory);..\DMMessage</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory);..\DMMessage;$(OutDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>crypt32.lib;mdmlocalmanagement.lib;xmllite.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;rpcrt4.lib;onecoreuap.lib;crypt32.lib;mdmlocalmanagement.lib;xmllite.lib;Advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\external\WinSDKRS2\$(PlatformTarget)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
+    <Link>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>kernel32.lib;user32.lib;shell32.lib;gdi32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
@@ -98,51 +112,89 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>kernel32.lib;user32.lib;shell32.lib;gdi32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Platform)'=='ARM'">
+    <ClCompile>
+      <PreprocessorDefinitions>_ARM_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppCfg.h" />
+    <ClInclude Include="AppInfo.h" />
     <ClInclude Include="CommandProcessor.h" />
     <ClInclude Include="CSPs\CertificateInfo.h" />
     <ClInclude Include="CSPs\CertificateManagement.h" />
     <ClInclude Include="CSPs\CertificateStoreCSP.h" />
     <ClInclude Include="CSPs\ClientCertificateInstallCSP.h" />
     <ClInclude Include="CSPs\CustomDeviceUiCsp.h" />
+    <ClInclude Include="CSPs\DeviceHealthAttestationCSP.h" />
+    <ClInclude Include="CSPs\DiagnosticLogCSP.h" />
     <ClInclude Include="CSPs\EnterpriseModernAppManagementCSP.h" />
     <ClInclude Include="CSPs\MdmProvision.h" />
     <ClInclude Include="CSPs\PrivateAPIs\WinSDKRS2.h" />
     <ClInclude Include="CSPs\RebootCSP.h" />
     <ClInclude Include="CSPs\RemoteWipeCSP.h" />
     <ClInclude Include="CSPs\WifiCSP.h" />
+    <ClInclude Include="CSPs\WindowsUpdatePolicyCSP.h" />
     <ClInclude Include="DMService.h" />
+    <ClInclude Include="DMStorage.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="ServiceManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TaskQueue.h" />
     <ClInclude Include="TimeCfg.h" />
+    <ClInclude Include="TimeService.h" />
+    <ClInclude Include="WindowsTelemetry.h" />
+    <ClInclude Include="SystemConfiguratorProxyServer\SystemConfiguratorProxy.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppCfg.cpp" />
-    <ClCompile Include="CommandProcessor.cpp" />
+    <ClCompile Include="CommandProcessor.cpp">
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="CSPs\CertificateInfo.cpp" />
     <ClCompile Include="CSPs\CertificateManagement.cpp" />
     <ClCompile Include="CSPs\CertificateStoreCSP.cpp" />
     <ClCompile Include="CSPs\ClientCertificateInstallCSP.cpp" />
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp" />
+    <ClCompile Include="CSPs\DeviceHealthAttestationCSP.cpp" />
+    <ClCompile Include="CSPs\DiagnosticLogCSP.cpp">
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="CSPs\EnterpriseModernAppManagementCSP.cpp" />
     <ClCompile Include="CSPs\MdmProvision.cpp" />
     <ClCompile Include="CSPs\RebootCSP.cpp" />
     <ClCompile Include="CSPs\RemoteWipeCSP.cpp" />
     <ClCompile Include="CSPs\WifiCSP.cpp" />
+    <ClCompile Include="CSPs\WindowsUpdatePolicy.cpp">
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="DMService.cpp" />
+    <ClCompile Include="DMStorage.cpp">
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <ClCompile Include="ServiceManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="SystemConfigurator.cpp" />
+    <ClCompile Include="$(SolutionDir)$(Platform)\$(Configuration)\SystemConfiguratorProxy_s.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAsWinRT>false</CompileAsWinRT>
+    </ClCompile>
+    <ClCompile Include="SystemConfiguratorProxyServer\SystemConfiguratorProxy.cpp" />
+    <ClCompile Include="TaskQueue.cpp" />
     <ClCompile Include="TimeCfg.cpp" />
+    <ClCompile Include="TimeService.cpp" />
+    <ClCompile Include="WindowsTelemetry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />

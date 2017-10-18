@@ -1,0 +1,58 @@
+{
+  "scenario": [
+    {
+      "name": "00",
+      "type": "deviceTwin",
+      "description": "trigger device info reporting for MBM",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "deviceInfo": {}
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "deviceInfo": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "batteryRuntime": "-1",
+                  "batteryRemaining": "-1",
+                  "batteryStatus": "1",
+                  "osEdition": "123",
+                  "secureBootState": "2",
+                  "totalMemory": "2048",
+                  "totalStorage": "<ignore>",
+                  "name": "<ignore>",
+                  "processorArchitecture": "0",
+                  "commercializationOperator": "000-88",
+                  "displayResolution": "1920x1080",
+                  "radioSwVer": "Not Present",
+                  "processorType": "586",
+                  "platform": "IoTUAP",
+                  "osVer": "<ignore>",
+                  "fwVer": "<ignore>",
+                  "hwVer": "MNW2MAX1.I32.0080.R01.1505111757",
+                  "oem": "Circuitco",
+                  "type": "MinnowBoard MAX",
+                  "lang": "en-US",
+                  "dmVer": "1.3",
+                  "model": "MinnowBoard MAX B3 PLATFORM",
+                  "manufacturer": "INTEL",
+                  "id": "<ignore>"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "scenario": [
+    {
+      "name": "00",
+      "type": "deviceTwin",
+      "description": "install our first certificate!",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "externalStorage": {
+                "connectionString": "<azure storage connection string>"
+              },
+              "certificates": {
+                "rootCATrustedCertificates_Root": {
+                  "09de264388ccf8607966266135da76e0b8d7798b": {
+                    "state": "installed",
+                    "fileName": "certificates\\gmileka0927.cer"
+                  }
+                },
+                "rootCATrustedCertificates_CA": {},
+                "rootCATrustedCertificates_TrustedPublisher": {},
+                "rootCATrustedCertificates_TrustedPeople": {},
+                "certificateStore_CA_System": {},
+                "certificateStore_Root_System": {},
+                "certificateStore_My_User": {},
+                "certificateStore_My_System": {}
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "externalStorage": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "connectionString": "<ignore>"
+                },
+                "certificates": {
+                  "certificateStore_My_System": {},
+                  "certificateStore_My_User": {},
+                  "certificateStore_Root_System": {
+                    "09DE264388CCF8607966266135DA76E0B8D7798B": ""
+                  },
+                  "certificateStore_CA_System": {},
+                  "rootCATrustedCertificates_TrustedPeople": {},
+                  "rootCATrustedCertificates_TrustedPublisher": {},
+                  "rootCATrustedCertificates_CA": {},
+                  "rootCATrustedCertificates_Root": {
+                    "09DE264388CCF8607966266135DA76E0B8D7798B": ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "01",
+      "type": "deviceTwin",
+      "description": "uninstall our first certificate!",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "externalStorage": {
+                "connectionString": "<azure storage connection string>"
+              },
+              "certificates": {
+                "rootCATrustedCertificates_Root": {
+                  "09de264388ccf8607966266135da76e0b8d7798b": {
+                    "state": "uninstalled",
+                    "fileName": ""
+                  }
+                },
+                "rootCATrustedCertificates_CA": {},
+                "rootCATrustedCertificates_TrustedPublisher": {},
+                "rootCATrustedCertificates_TrustedPeople": {},
+                "certificateStore_CA_System": {},
+                "certificateStore_Root_System": {},
+                "certificateStore_My_User": {},
+                "certificateStore_My_System": {}
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "absent": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "certificates": {
+                  "certificateStore_Root_System": {
+                    "09DE264388CCF8607966266135DA76E0B8D7798B": ""
+                  },
+                  "rootCATrustedCertificates_Root": {
+                    "09DE264388CCF8607966266135DA76E0B8D7798B": ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

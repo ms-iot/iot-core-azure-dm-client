@@ -47,10 +47,6 @@
       <HintPath>..\..\src\packages\Microsoft.Azure.Devices.Shared.1.0.7\lib\net45\Microsoft.Azure.Devices.Shared.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Azure.KeyVault.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Azure.KeyVault.Core.1.0.0\lib\net40\Microsoft.Azure.KeyVault.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.8.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\src\packages\Microsoft.Data.Edm.5.8.2\lib\net40\Microsoft.Data.Edm.dll</HintPath>
       <Private>True</Private>
@@ -69,26 +65,6 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\src\packages\Newtonsoft.Json.10.0.1-beta1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="PCLCrypto, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d4421c8a4786956c, processorArchitecture=MSIL">
-      <HintPath>..\packages\PCLCrypto.2.0.147\lib\net45\PCLCrypto.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="PInvoke.BCrypt, Version=0.3.0.0, Culture=neutral, PublicKeyToken=9e300f9f87f04a7a, processorArchitecture=MSIL">
-      <HintPath>..\packages\PInvoke.BCrypt.0.3.2\lib\net40\PInvoke.BCrypt.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="PInvoke.Kernel32, Version=0.3.0.0, Culture=neutral, PublicKeyToken=9e300f9f87f04a7a, processorArchitecture=MSIL">
-      <HintPath>..\packages\PInvoke.Kernel32.0.3.2\lib\net40\PInvoke.Kernel32.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="PInvoke.NCrypt, Version=0.3.0.0, Culture=neutral, PublicKeyToken=9e300f9f87f04a7a, processorArchitecture=MSIL">
-      <HintPath>..\packages\PInvoke.NCrypt.0.3.2\lib\net40\PInvoke.NCrypt.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="PInvoke.Windows.Core, Version=0.3.0.0, Culture=neutral, PublicKeyToken=9e300f9f87f04a7a, processorArchitecture=MSIL">
-      <HintPath>..\packages\PInvoke.Windows.Core.0.3.2\lib\portable-net45+win+wpa81+MonoAndroid10+xamarinios10+MonoTouch10\PInvoke.Windows.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -120,10 +96,7 @@
       <HintPath>..\..\src\packages\System.Spatial.5.8.2\lib\net40\System.Spatial.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Web.Http, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.5.2.3\lib\net45\System.Web.Http.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -131,10 +104,6 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="Validation, Version=2.2.0.0, Culture=neutral, PublicKeyToken=2fc06f0d701809a7, processorArchitecture=MSIL">
-      <HintPath>..\packages\Validation.2.2.8\lib\dotnet\Validation.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -145,23 +114,286 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CertificateExportDetails.xaml.cs">
+    <Compile Include="Appx\AppDesiredStateControl.xaml.cs">
+      <DependentUpon>AppDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Appx\AppsDesiredStateControl.xaml.cs">
+      <DependentUpon>AppsDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Appx\AppsReportedStateControl.xaml.cs">
+      <DependentUpon>AppsReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Appx\AppReportedStateControl.xaml.cs">
+      <DependentUpon>AppReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Certificates\CertificateExportDetails.xaml.cs">
       <DependentUpon>CertificateExportDetails.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Common\Converters.cs" />
+    <Compile Include="Common\DMComboBox.xaml.cs">
+      <DependentUpon>DMComboBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Common\DMControl.cs" />
+    <Compile Include="Common\DMControlList.cs" />
+    <Compile Include="Common\DMSectionControl.cs" />
+    <Compile Include="Common\DMTextBlock.xaml.cs">
+      <DependentUpon>DMTextBlock.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Common\DMTextBox.xaml.cs">
+      <DependentUpon>DMTextBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DeviceHealthAttestation\DeviceHealthAttestationDesiredStateControl.xaml.cs">
+      <DependentUpon>DeviceHealthAttestationDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DeviceHealthAttestation\DeviceHealthAttestationReportedStateControl.xaml.cs">
+      <DependentUpon>DeviceHealthAttestationReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DeviceInfo\DeviceInfoReportedStateControl.xaml.cs">
+      <DependentUpon>DeviceInfoReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DiagnosticLogs\CollectorDesiredStateControl.xaml.cs">
+      <DependentUpon>CollectorDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DiagnosticLogs\CollectorReportedStateControl.xaml.cs">
+      <DependentUpon>CollectorReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DiagnosticLogs\CollectorsDesiredStateControl.xaml.cs">
+      <DependentUpon>CollectorsDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DiagnosticLogs\CollectorsReportedStateControl.xaml.cs">
+      <DependentUpon>CollectorsReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DiagnosticLogs\ProviderDesiredStateControl.xaml.cs">
+      <DependentUpon>ProviderDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DiagnosticLogs\ProviderDesiredStateListControl.xaml.cs">
+      <DependentUpon>ProviderDesiredStateListControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DiagnosticLogs\ProviderReportedStateControl.xaml.cs">
+      <DependentUpon>ProviderReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DiagnosticLogs\ProviderReportedStateListControl.xaml.cs">
+      <DependentUpon>ProviderReportedStateListControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DmAppStoreUpdate\DmAppStoreUpdateReportedStateControl.xaml.cs">
+      <DependentUpon>DmAppStoreUpdateReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Reboot\RebootCmdReportedStateControl.xaml.cs">
+      <DependentUpon>RebootCmdReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Reboot\RebootInfoDesiredStateControl.xaml.cs">
+      <DependentUpon>RebootInfoDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Reboot\RebootInfoReportedStateControl.xaml.cs">
+      <DependentUpon>RebootInfoReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="StorageManagement\AzureStorageManager.xaml.cs">
+      <DependentUpon>AzureStorageManager.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="StorageManagement\DeviceDeleteFile.xaml.cs">
+      <DependentUpon>DeviceDeleteFile.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="StorageManagement\DeviceFileSelectionControl.xaml.cs">
+      <DependentUpon>DeviceFileSelectionControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="StorageManagement\DeviceUploadFile.xaml.cs">
+      <DependentUpon>DeviceUploadFile.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Telemetry\WindowsTelemetryDesiredStateControl.xaml.cs">
+      <DependentUpon>WindowsTelemetryDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Telemetry\WindowsTelemetryReportedStateControl.xaml.cs">
+      <DependentUpon>WindowsTelemetryReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TimeSettings\TimeSvcDesiredStateControl.xaml.cs">
+      <DependentUpon>TimeSvcDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TimeSettings\TimeSvcReportedStateControl.xaml.cs">
+      <DependentUpon>TimeSvcReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Utils.cs" />
+    <Compile Include="Wifi\WifiDetails.xaml.cs">
+      <DependentUpon>WifiDetails.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wifi\WifiDesiredStateControl.xaml.cs">
+      <DependentUpon>WifiDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wifi\WifiProfileConfiguration.cs" />
+    <Compile Include="Wifi\WifiProfilesDesiredStateControl.xaml.cs">
+      <DependentUpon>WifiProfilesDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wifi\WifiReportedStateControl.xaml.cs">
+      <DependentUpon>WifiReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wifi\WifiProfilesReportedStateControl.xaml.cs">
+      <DependentUpon>WifiProfilesReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TimeSettings\TimeDesiredStateControl.xaml.cs">
+      <DependentUpon>TimeDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TimeSettings\TimeReportedStateControl.xaml.cs">
+      <DependentUpon>TimeReportedStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WindowsUpdatePolicy\WindowsUpdatePolicyDesiredStateControl.xaml.cs">
+      <DependentUpon>WindowsUpdatePolicyDesiredStateControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WindowsUpdatePolicy\WindowsUpdatePolicyReportedStateControl.xaml.cs">
+      <DependentUpon>WindowsUpdatePolicyReportedStateControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WPFUtils.cs" />
+    <Page Include="Appx\AppDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Appx\AppsDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Appx\AppsReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Appx\AppReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="AzureBlobSelector.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="CertificateDetails.xaml">
+    <Page Include="Certificates\CertificateDetails.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="CertificateExportDetails.xaml">
+    <Page Include="Certificates\CertificateExportDetails.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="CertificateSelector.xaml">
+    <Page Include="Certificates\CertificateSelector.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Common\DMComboBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Common\DMTextBlock.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Common\DMTextBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DeviceHealthAttestation\DeviceHealthAttestationDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DeviceHealthAttestation\DeviceHealthAttestationReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DeviceInfo\DeviceInfoReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DiagnosticLogs\CollectorDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DiagnosticLogs\CollectorReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DiagnosticLogs\CollectorsDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DiagnosticLogs\CollectorsReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DiagnosticLogs\ProviderDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DiagnosticLogs\ProviderDesiredStateListControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DiagnosticLogs\ProviderReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DiagnosticLogs\ProviderReportedStateListControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DmAppStoreUpdate\DmAppStoreUpdateReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Reboot\RebootCmdReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Reboot\RebootInfoDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Reboot\RebootInfoReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="StorageManagement\AzureStorageManager.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="StorageManagement\DeviceDeleteFile.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="StorageManagement\DeviceFileSelectionControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="StorageManagement\DeviceUploadFile.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Telemetry\WindowsTelemetryDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Telemetry\WindowsTelemetryReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TimeSettings\TimeSvcDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TimeSettings\TimeSvcReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wifi\WifiDetails.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Wifi\WifiDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wifi\WifiProfilesDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wifi\WifiReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wifi\WifiProfilesReportedStateControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -177,11 +409,11 @@
       <DependentUpon>AzureBlobSelector.xaml</DependentUpon>
     </Compile>
     <Compile Include="AzureStorageHelpers.cs" />
-    <Compile Include="CertificateDetails.xaml.cs">
+    <Compile Include="Certificates\CertificateDetails.xaml.cs">
       <DependentUpon>CertificateDetails.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CertificateHelpers.cs" />
-    <Compile Include="CertificateSelector.xaml.cs">
+    <Compile Include="Certificates\CertificateHelpers.cs" />
+    <Compile Include="Certificates\CertificateSelector.xaml.cs">
       <DependentUpon>CertificateSelector.xaml</DependentUpon>
     </Compile>
     <Compile Include="DeviceTwinAndMethod.cs" />
@@ -189,6 +421,22 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="TimeSettings\TimeDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TimeSettings\TimeReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowsUpdatePolicy\WindowsUpdatePolicyDesiredStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowsUpdatePolicy\WindowsUpdatePolicyReportedStateControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models.cs" />
@@ -223,6 +471,13 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DMDataContract\DMDataContract\DMDataContract.csproj">
+      <Project>{94794bf1-4d16-46be-97c1-15f968cd433f}</Project>
+      <Name>DMDataContract</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

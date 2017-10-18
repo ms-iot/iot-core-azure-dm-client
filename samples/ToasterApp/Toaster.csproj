@@ -11,8 +11,8 @@
     <AssemblyName>Toaster</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.14393.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.10586.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0.15063.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -93,12 +93,12 @@
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
     <None Include="project.json" />
+    <None Include="Toaster_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ConnectionStringProvider.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -125,18 +125,6 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="..\..\src\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' == 'x86' And '$(Configuration)' == 'Debug'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\src\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' == 'x86' And '$(Configuration)' == 'Debug'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\src\$(Platform)\$(Configuration)\CommProxy.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\src\$(Platform)\$(Configuration)\SystemConfigurator.exe" Condition="'$(Platform)' != 'x86' And '$(Configuration)' == 'Debug'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -153,6 +141,12 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\IotDeviceManagementCapability.SCCD">
+      <DeploymentContent>true</DeploymentContent>
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <SDKReference Include="WindowsIoT, Version=10.0.10586.0">
       <Name>Windows IoT Extensions for the UWP</Name>
     </SDKReference>
@@ -161,6 +155,10 @@
     <ProjectReference Include="..\..\src\IoTDMClientLib\IoTDMClientLib.csproj">
       <Project>{f29e2c50-97be-4c33-b601-e52aab5596e9}</Project>
       <Name>IoTDMClientLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\SystemConfiguratorProxy\Client\ServiceConfiguratorProxyClientLib.vcxproj">
+      <Project>{0213712b-62e6-5546-8d25-79b90244ffa9}</Project>
+      <Name>ServiceConfiguratorProxyClientLib</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

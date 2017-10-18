@@ -12,46 +12,40 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
+using DMDashboard.StorageManagement;
+using Microsoft.Azure.Devices;
+using Microsoft.Devices.Management;
+using Microsoft.Devices.Management.DMDataContract;
+using Microsoft.WindowsAzure.Storage;       // Namespace for CloudStorageAccount
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-
-using Microsoft.Azure.Devices;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Microsoft.Devices.Management;
-using Microsoft.WindowsAzure.Storage;       // Namespace for CloudStorageAccount
-using Microsoft.WindowsAzure.Storage.Blob;  // Namespace for Blob storage types
-using System.Configuration;
-using Microsoft.Win32;
-using System.IO;
-
 namespace DMDashboard
 {
     public partial class MainWindow : Window
     {
-        class BlobInfo
-        {
-            public string Name { get; set; }
-            public string Type { get; set; }
-            public string Uri { get; set; }
+        const string DTRefreshing = "\"refreshing\"";
+        const string DTRootNodeString = "{ \"properties\" : { \"desired\" : { \"" + DMJSonConstants.DTWindowsIoTNameSpace + "\" : ";
+        const string DTRootNodeSuffixString = "}}}";
 
-            public BlobInfo(string name, string type, string uri)
-            {
-                this.Name = name;
-                this.Type = type;
-                this.Uri = uri;
-            }
-        }
+        const string IotHubConnectionString = "IotHubConnectionString";
+        const string StorageConnectionString = "StorageConnectionString";
 
-        static string IotHubConnectionString = "IotHubConnectionString";
-        static string StorageConnectionString = "StorageConnectionString";
+        private const int NumberOfDevicesToPopulate = 100;
+        private const string DeviceIdHintText = "<if looking for a single device, enter it's ID>";
+
+        public string DeviceIdToPopulate { get; set; } = DeviceIdHintText;
 
         Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
@@ -67,7 +61,7 @@ namespace DMDashboard
             connectionString = this.config.AppSettings.Settings[StorageConnectionString];
             if (connectionString != null && !string.IsNullOrEmpty(connectionString.Value))
             {
-                StorageConnectionStringBox.Text = connectionString.Value;
+                AzureStorageExplorer.ConnectionString = connectionString.Value;
             }
 
             Desired_RootCATrustedCertificates_Root.ShowCertificateDetails += ShowCertificateDetails;
@@ -102,40 +96,25 @@ namespace DMDashboard
             }
         }
 
-        private void OnExpandAzureStorage(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(AzureStorageGrid);
-        }
-
-        private void OnExpandWindowsUpdatePolicy(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(WindowsUpdatePolicyGrid);
-        }
-
-        private void OnExpandWindowsUpdates(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(WindowsUpdatesGrid);
-        }
-
-        private void OnExpandCertificates(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(CertificateStackPanel);
-        }
-
-        private void OnExpandTimeInfo(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(TimeInfoGrid);
-        }
-
         private async void ListDevices(string connectionString)
         {
-            _registryManager = RegistryManager.CreateFromConnectionString(connectionString);
+            RegistryManager registryManager = RegistryManager.CreateFromConnectionString(connectionString);
 
             // Avoid duplicates in the list
-            DeviceListBox.Items.Clear();
+            DeviceListBox.ItemsSource = null;
 
             // Populate devices.
-            IEnumerable<Device> devices = await this._registryManager.GetDevicesAsync(100);
+            IEnumerable<Device> devices;
+            if (DeviceIdToPopulate != DeviceIdHintText && !string.IsNullOrWhiteSpace(DeviceIdToPopulate))
+            {
+                devices = new List<Device> { await registryManager.GetDeviceAsync(DeviceIdToPopulate) };
+            }
+            else
+            {
+                devices = await registryManager.GetDevicesAsync(NumberOfDevicesToPopulate);
+            }
+
+            
             List<string> deviceIds = new List<string>();
             foreach (var device in devices)
             {
@@ -155,108 +134,52 @@ namespace DMDashboard
             ListDevices(ConnectionStringBox.Text);
         }
 
-        private void OnDeviceConnect(object sender, RoutedEventArgs e)
-        {
-            string deviceIdString = (string)DeviceListBox.SelectedItem;
-            _deviceTwin = new DeviceTwinAndMethod(ConnectionStringBox.Text, deviceIdString);
-            ConnectedProperties.IsEnabled = true;
-        }
-
         private void OnDeviceSelected(object sender, SelectionChangedEventArgs e)
         {
-            DeviceConnectButton.IsEnabled = true;
-        }
-
-        private void ListContainers(string connectionString)
-        {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-            ContainersList.Items.Clear();
-            foreach (var container in blobClient.ListContainers("", ContainerListingDetails.None, null, null))
+            string deviceIdString = (string)DeviceListBox.SelectedItem;
+            ConnectedProperties.IsEnabled = false;
+            if (!String.IsNullOrEmpty(deviceIdString))
             {
-                ContainersList.Items.Add(container.Name);
+                _deviceTwin = new DeviceTwinAndMethod(ConnectionStringBox.Text, deviceIdString);
+                ConnectedProperties.IsEnabled = true;
             }
-
-            this.config.AppSettings.Settings[StorageConnectionString].Value = connectionString;
-            this.config.Save(ConfigurationSaveMode.Modified);
+            SelectedDeviceName.Text = deviceIdString;
         }
 
-        private void OnListContainers(object sender, RoutedEventArgs e)
+        private async void OnManageAppLifeCycle(string appLifeCycleAction, string packageFamilyName)
         {
-            ListContainers(StorageConnectionStringBox.Text);
+            AppxLifeCycleDataContract.ManageAppLifeCycleParams parameters = new AppxLifeCycleDataContract.ManageAppLifeCycleParams();
+            parameters.action = appLifeCycleAction;
+            parameters.pkgFamilyName = packageFamilyName;
+
+            CancellationToken cancellationToken = new CancellationToken();
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(AppxLifeCycleDataContract.ManageAppLifeCycleAsync, parameters.ToJsonString(), new TimeSpan(0, 0, 30), cancellationToken);
+            MessageBox.Show("ManageAppLifeCycle(start) Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
-        private void OnListBlobs(object sender, RoutedEventArgs e)
+        private void OnStartApplication(object sender, RoutedEventArgs e)
         {
-            if (ContainersList.SelectedIndex == -1)
-            {
-                return;
-            }
-
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(StorageConnectionStringBox.Text);
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference((string)ContainersList.SelectedItem);
-
-            List<BlobInfo> blobInfoList = new List<BlobInfo>();
-            foreach (IListBlobItem item in container.ListBlobs(null, false))
-            {
-                if (item.GetType() == typeof(CloudBlockBlob))
-                {
-                    CloudBlockBlob blob = (CloudBlockBlob)item;
-                    blobInfoList.Add(new BlobInfo(blob.Name, "BlockBlob", blob.Uri.ToString()));
-                }
-                else if (item.GetType() == typeof(CloudPageBlob))
-                {
-                    CloudPageBlob pageBlob = (CloudPageBlob)item;
-                    blobInfoList.Add(new BlobInfo(pageBlob.Name, "PageBlob", pageBlob.Uri.ToString()));
-
-                }
-                else if (item.GetType() == typeof(CloudBlobDirectory))
-                {
-                    CloudBlobDirectory directoryBlob = (CloudBlobDirectory)item;
-                    blobInfoList.Add(new BlobInfo("<dir>", "BlobDirectory", directoryBlob.Uri.ToString()));
-                }
-            }
-            BlobsList.ItemsSource = blobInfoList;
+            OnManageAppLifeCycle(AppxLifeCycleDataContract.JsonStart, LifeCyclePkgFamilyName.Text);
         }
 
-        private void TimeInfoModelToUI(Microsoft.Devices.Management.TimeInfo.GetResponse timeInfo)
+        private void OnStopApplication(object sender, RoutedEventArgs e)
         {
-            LocalTime.Text = timeInfo.localTime.ToString();
-            NtpServer.Text = timeInfo.ntpServer;
-            ReportedTimeZoneBias.Text = timeInfo.timeZoneBias.ToString();
-            ReportedTimeZoneStandardName.Text = timeInfo.timeZoneStandardName;
-            ReportedTimeZoneStandardDate.Text = timeInfo.timeZoneStandardDate.ToString();
-            ReportedTimeZoneStandardBias.Text = timeInfo.timeZoneStandardBias.ToString();
-            ReportedTimeZoneDaylightName.Text = timeInfo.timeZoneDaylightName;
-            ReportedTimeZoneDaylightDate.Text = timeInfo.timeZoneDaylightDate.ToString();
-            ReportedTimeZoneDaylightBias.Text = timeInfo.timeZoneDaylightBias.ToString();
+            OnManageAppLifeCycle(AppxLifeCycleDataContract.JsonStop, LifeCyclePkgFamilyName.Text);
         }
 
-        private void RebootInfoModelToUI(Microsoft.Devices.Management.RebootInfo.GetResponse rebootInfo)
+        private void CertificateInfoToUI(List<string> hashes, CertificateSelector certificateSelector)
         {
-            LastRebootCmdTime.Text = rebootInfo.lastRebootCmdTime.ToString();
-            LastRebootCmdStatus.Text = rebootInfo.lastRebootCmdStatus?.ToString();
-            LastBootTime.Text = rebootInfo.lastBootTime.ToString();
-            ReportedSingleRebootTime.Text = rebootInfo.singleRebootTime.ToString();
-            ReportedDailyRebootTime.Text = rebootInfo.dailyRebootTime.ToString();
-        }
-
-        private void CertificateInfoToUI(string hashesString, CertificateSelector certificateSelector)
-        {
-            if (String.IsNullOrEmpty(hashesString))
+            if (hashes == null)
             {
                 return;
             }
-            string[] hashes = hashesString.Split('/');
-            Array.Sort<string>(hashes);
+            hashes.Sort();
             if (certificateSelector != null)
             {
-                List<CertificateSelector.CertificateData> certificateList = new List<CertificateSelector.CertificateData>();
+                List<CertificateSelector.CertificateDetails> certificateList = new List<CertificateSelector.CertificateDetails>();
                 foreach (string hash in hashes)
                 {
-                    CertificateSelector.CertificateData certificateData = new CertificateSelector.CertificateData();
+                    CertificateSelector.CertificateDetails certificateData = new CertificateSelector.CertificateDetails();
                     certificateData.Hash = hash;
                     certificateData.FileName = "<unknown>";
                     certificateList.Add(certificateData);
@@ -265,17 +188,17 @@ namespace DMDashboard
             }
         }
 
-        private void CertificatesInfoToUI(Microsoft.Devices.Management.Certificates certificatesInfo)
+        private void CertificatesInfoToUI(CertificatesDataContract.ReportedProperties certificatesInfo)
         {
-            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_CA, Reported_RootCATrustedCertificates_CA);
-            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_Root, Reported_RootCATrustedCertificates_Root);
-            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_TrustedPublisher, Reported_RootCATrustedCertificates_TrustedPublisher);
-            CertificateInfoToUI(certificatesInfo.Configuration.rootCATrustedCertificates_TrustedPeople, Reported_RootCATrustedCertificates_TrustedPeople);
+            CertificateInfoToUI(certificatesInfo.rootCATrustedCertificates_CA, Reported_RootCATrustedCertificates_CA);
+            CertificateInfoToUI(certificatesInfo.rootCATrustedCertificates_Root, Reported_RootCATrustedCertificates_Root);
+            CertificateInfoToUI(certificatesInfo.rootCATrustedCertificates_TrustedPublisher, Reported_RootCATrustedCertificates_TrustedPublisher);
+            CertificateInfoToUI(certificatesInfo.rootCATrustedCertificates_TrustedPeople, Reported_RootCATrustedCertificates_TrustedPeople);
 
-            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_CA_System, Reported_CertificateStore_CA_System);
-            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_Root_System, Reported_CertificateStore_Root_System);
-            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_My_User, Reported_CertificateStore_My_User);
-            CertificateInfoToUI(certificatesInfo.Configuration.certificateStore_My_System, Reported_CertificateStore_My_System);
+            CertificateInfoToUI(certificatesInfo.certificateStore_CA_System, Reported_CertificateStore_CA_System);
+            CertificateInfoToUI(certificatesInfo.certificateStore_Root_System, Reported_CertificateStore_Root_System);
+            CertificateInfoToUI(certificatesInfo.certificateStore_My_User, Reported_CertificateStore_My_User);
+            CertificateInfoToUI(certificatesInfo.certificateStore_My_System, Reported_CertificateStore_My_System);
         }
 
         private async void ReadDTReported()
@@ -283,58 +206,130 @@ namespace DMDashboard
             DeviceTwinData deviceTwinData = await _deviceTwin.GetDeviceTwinData();
             Debug.WriteLine("json = " + deviceTwinData.reportedPropertiesJson);
 
-            JObject jsonObject = (JObject)JsonConvert.DeserializeObject(deviceTwinData.reportedPropertiesJson);
+            JObject desiredObject = (JObject)JsonConvert.DeserializeObject(deviceTwinData.reportedPropertiesJson);
 
-            JToken microsoftNode;
-            if (!jsonObject.TryGetValue("microsoft", out microsoftNode) || microsoftNode.Type != JTokenType.Object)
+            JToken windowsToken;
+            if (!desiredObject.TryGetValue(DMJSonConstants.DTWindowsIoTNameSpace, out windowsToken) || windowsToken.Type != JTokenType.Object)
             {
                 return;
             }
-            JObject microsoftObject = (JObject)microsoftNode;
+            JObject windowsObject = (JObject)windowsToken;
 
-            JToken managementNode;
-            if (!microsoftObject.TryGetValue("management", out managementNode) || managementNode.Type != JTokenType.Object)
+            foreach (JProperty jsonProp in windowsObject.Children())
             {
-                return;
-            }
-            JObject managementObject = (JObject)managementNode;
-
-            foreach (JProperty jsonProp in managementObject.Children())
-            {
-                if (jsonProp.Name == "timeInfo")
-                {
-                    Microsoft.Devices.Management.TimeInfo.GetResponse timeInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.TimeInfo.GetResponse>(jsonProp.Value.ToString());
-                    TimeInfoModelToUI(timeInfo);
-                }
-                if (jsonProp.Name == "certificates")
-                {
-                    Microsoft.Devices.Management.Certificates certificatesInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.Certificates>(jsonProp.Value.ToString());
-                    CertificatesInfoToUI(certificatesInfo);
-                }
-                else if (jsonProp.Name == "deviceInfo")
-                {
-                    Microsoft.Devices.Management.DeviceInfo deviceInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.DeviceInfo>(jsonProp.Value.ToString());
-                    DeviceStatusModelToUI(deviceInfo);
-                }
-                else if (jsonProp.Name == "rebootInfo")
+                if (jsonProp.Name == "timeInfo" && jsonProp.Value.Type == JTokenType.Object)
                 {
                     Debug.WriteLine(jsonProp.Value.ToString());
-                    var rebootInfo = JsonConvert.DeserializeObject<Microsoft.Devices.Management.RebootInfo.GetResponse>(jsonProp.Value.ToString());
-                    RebootInfoModelToUI(rebootInfo);
+                    TimeReportedState.FromJson((JObject)jsonProp.Value);
                 }
-                else if (jsonProp.Name == "windowsUpdatePolicy")
+                else if (jsonProp.Name == TimeSvcReportedState.SectionName && jsonProp.Value.Type == JTokenType.Object)
                 {
                     Debug.WriteLine(jsonProp.Value.ToString());
-                    var info = JsonConvert.DeserializeObject<Microsoft.Devices.Management.WindowsUpdatePolicyConfiguration>(jsonProp.Value.ToString());
-                    WindowsUpdatePolicyConfigurationToUI(info);
+                    TimeSvcReportedState.FromJson((JObject)jsonProp.Value);
                 }
-                else if (jsonProp.Name == "windowsUpdates")
+                else if (jsonProp.Name == CertificatesDataContract.SectionName && jsonProp.Value.Type == JTokenType.Object)
                 {
                     Debug.WriteLine(jsonProp.Value.ToString());
-                    var info = JsonConvert.DeserializeObject<Microsoft.Devices.Management.WindowsUpdates.GetResponse>(jsonProp.Value.ToString());
-                    WindowsUpdatesConfigurationToUI(info);
+                    var reportedProperties = CertificatesDataContract.ReportedProperties.FromJsonObject((JObject)jsonProp.Value);
+                    CertificatesInfoToUI(reportedProperties);
                 }
-
+                else if (jsonProp.Name == DeviceInfoDataContract.SectionName)
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    if (jsonProp.Value is JObject)
+                    {
+                        DeviceInfoReportedState.FromJsonObject((JObject)jsonProp.Value);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Expected json object as a value for " + DeviceInfoReportedState.SectionName);
+                    }
+                }
+                else if (jsonProp.Name == ExternalStorageDataContract.SectionName)
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    if (jsonProp.Value is JObject)
+                    {
+                        var reportedProperties = ExternalStorageDataContract.ReportedProperties.FromJsonObject((JObject)jsonProp.Value);
+                        AzureStorageReportedConnectionString.Text = reportedProperties.connectionString;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Expected json object as a value for " + DeviceInfoReportedState.SectionName);
+                    }
+                }
+                else if (jsonProp.Name == DmAppStoreUpdateDataContract.SectionName)
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    if (jsonProp.Value is JObject)
+                    {
+                        DmAppStoreUpdateReportedState.FromJsonObject((JObject)jsonProp.Value);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Expected json object as a value for " + DmAppStoreUpdateDataContract.SectionName);
+                    }
+                }
+                else if (jsonProp.Name == RebootInfoDataContract.SectionName)
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    RebootInfoReportedState.FromJsonObject(jsonProp.Value);
+                }
+                else if (jsonProp.Name == RebootCmdDataContract.SectionName)
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    RebootCmdReportedState.FromJson(jsonProp.Value);
+                }
+                else if (jsonProp.Name == WindowsUpdatePolicyDataContract.SectionName)
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    WindowsUpdatePolicyReportedState.FromJsonObject(jsonProp.Value);
+                }
+                else if (jsonProp.Name == WindowsUpdatesDataContract.SectionName)
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    if (jsonProp.Value is JObject)
+                    {
+                        WindowsUpdatesConfigurationToUI((JObject)jsonProp.Value);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Expected json object as a value for " + WindowsUpdatesDataContract.SectionName);
+                    }
+                }
+                else if (jsonProp.Name == WindowsTelemetryDataContract.SectionName)
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    if (jsonProp.Value is JObject)
+                    {
+                        WindowsTelemetryReportedState.FromJsonObject((JObject)jsonProp.Value);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Expected json object as a value for " + WindowsTelemetryDataContract.SectionName);
+                    }
+                }
+                else if (jsonProp.Name == "apps")
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    TheAppsStatus.AppsStatusJsonToUI(jsonProp.Value);
+                }
+                else if (jsonProp.Name == "deviceHealthAttestation")
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    var jobj = JObject.Parse(jsonProp.Value.ToString());
+                    DeviceHealthAttestationReportedState.FromJson(jobj);
+                }
+                else if (jsonProp.Name == "wifi")
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    this.WifiReportedState.FromJson(jsonProp.Value);
+                }
+                else if (jsonProp.Name == "eventTracingCollectors")
+                {
+                    Debug.WriteLine(jsonProp.Value.ToString());
+                    this.ReportedDiagnosticLogs.FromJson((JObject)jsonProp.Value);
+                }
             }
         }
 
@@ -343,58 +338,11 @@ namespace DMDashboard
             ReadDTReported();
         }
 
-        private void OnExpandReboot(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(RebootGrid);
-        }
-
-        private void OnExpandFactoryReset(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(FactoryResetGrid);
-        }
-
-        private void OnExpandApplication(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(ApplicationGrid);
-        }
-
-        private void OnExpandDeviceInfo(object sender, RoutedEventArgs e)
-        {
-            ToggleUIElementVisibility(DeviceInfoGrid);
-        }
-
-        private void DeviceStatusModelToUI(Microsoft.Devices.Management.DeviceInfo deviceInfo)
-        {
-            DevInfoId.Text = deviceInfo.id;
-            DevInfoManufacturer.Text = deviceInfo.manufacturer;
-            DevInfoModel.Text = deviceInfo.model;
-            DevInfoDmVer.Text = deviceInfo.dmVer;
-            DevInfoLang.Text = deviceInfo.lang;
-            DevInfoType.Text = deviceInfo.type;
-            DevInfoOEM.Text = deviceInfo.oem;
-            DevInfoHwVer.Text = deviceInfo.hwVer;
-            DevInfoFwVer.Text = deviceInfo.fwVer;
-            DevInfoOSVer.Text = deviceInfo.osVer;
-            DevInfoPlatform.Text = deviceInfo.platform;
-            DevInfoProcessorType.Text = deviceInfo.processorType;
-            DevInfoRadioSwVer.Text = deviceInfo.radioSwVer;
-            DevInfoDisplayResolution.Text = deviceInfo.displayResolution;
-            DevInfoCommercializationOperator.Text = deviceInfo.commercializationOperator;
-            DevInfoProcessorArchitecture.Text = deviceInfo.processorArchitecture;
-            DevInfoName.Text = deviceInfo.name;
-            DevInfoTotalStorage.Text = deviceInfo.totalStorage;
-            DevInfoTotalMemory.Text = deviceInfo.totalMemory;
-            DevInfoSecureBootState.Text = deviceInfo.secureBootState;
-            DevInfoOSEdition.Text = deviceInfo.osEdition;
-            DevInfoBatteryStatus.Text = deviceInfo.batteryStatus;
-            DevInfoBatteryRemaining.Text = deviceInfo.batteryRemaining;
-            DevInfoBatteryRuntime.Text = deviceInfo.batteryRuntime;
-        }
 
         private async void RebootSystemAsync()
         {
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.immediateReboot", "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(RebootCmdDataContract.RebootCmdAsync, "{}", new TimeSpan(0, 0, 30), cancellationToken);
             MessageBox.Show("Reboot Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
@@ -405,16 +353,16 @@ namespace DMDashboard
 
         private async void FactoryResetAsync()
         {
-            var resetParams = new FactorResetParams();
+            var resetParams = new FactoryResetDataContract.ResetParams();
             resetParams.clearTPM = DesiredClearTPM.IsChecked == true;
             resetParams.recoveryPartitionGUID = DesiredRecoveryPartitionGUID.Text;
-            string resetParamsString = JsonConvert.SerializeObject(resetParams);
+            string resetParamsString = resetParams.ToJsonString();
 
             Debug.WriteLine("Reset params : " + resetParamsString);
 
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.factoryReset", resetParamsString, new TimeSpan(0, 0, 30), cancellationToken);
-            // ToDo: it'd be nice to show the result in the UI.
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(FactoryResetDataContract.StartFactoryResetAsync, resetParamsString, new TimeSpan(0, 0, 30), cancellationToken);
+            MessageBox.Show("FactoryReset Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
         private void OnFactoryReset(object sender, RoutedEventArgs e)
@@ -422,23 +370,23 @@ namespace DMDashboard
             FactoryResetAsync();
         }
 
-        private async void StartAppSelfUpdate()
+        private async void StartDmAppStoreUpdateAsync()
         {
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.startAppSelfUpdate", "{}", new TimeSpan(0, 0, 30), cancellationToken);
-            StartAppSelfUpdateResult.Text = result.Payload;
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(DmAppStoreUpdateDataContract.StartDmAppStoreUpdateAsync, "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            MessageBox.Show("FactoryReset Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
-        private void OnStartAppSelfUpdate(object sender, RoutedEventArgs e)
+        private void OnStartDmAppStoreUpdate(object sender, RoutedEventArgs e)
         {
-            StartAppSelfUpdate();
+            StartDmAppStoreUpdateAsync();
         }
 
         private async void UpdateDTReportedAsync()
         {
             CancellationToken cancellationToken = new CancellationToken();
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.reportAllDeviceProperties", "{}", new TimeSpan(0, 0, 30), cancellationToken);
-            // ToDo: it'd be nice to show the result in the UI.
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(CommonDataContract.ReportAllAsync, "{}", new TimeSpan(0, 0, 30), cancellationToken);
+            MessageBox.Show("UpdateDTReportedAsync Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
         }
 
         private void OnUpdateDTReported(object sender, RoutedEventArgs e)
@@ -446,312 +394,287 @@ namespace DMDashboard
             UpdateDTReportedAsync();
         }
 
-        private Microsoft.Devices.Management.TimeInfo.SetParams UIToTimeInfoModel()
+        private async Task UpdateTwinData(string jsonString)
         {
-            Microsoft.Devices.Management.TimeInfo.SetParams timeInfo = new Microsoft.Devices.Management.TimeInfo.SetParams();
-
-            ComboBoxItem ntpServerItem = (ComboBoxItem)DesiredNtpServer.SelectedItem;
-            timeInfo.ntpServer = (string)ntpServerItem.Content;
-
-            timeInfo.timeZoneBias = Int32.Parse(DesiredTimeZoneBias.Text);
-            timeInfo.timeZoneStandardName = DesiredTimeZoneStandardName.Text;
-            timeInfo.timeZoneStandardDate = DesiredTimeZoneStandardDate.Text;
-            timeInfo.timeZoneStandardBias = Int32.Parse(DesiredTimeZoneStandardBias.Text);
-            timeInfo.timeZoneDaylightName = DesiredTimeZoneDaylightName.Text;
-            timeInfo.timeZoneDaylightDate = DesiredTimeZoneDaylightDate.Text;
-            timeInfo.timeZoneDaylightBias = Int32.Parse(DesiredTimeZoneDaylightBias.Text);
-
-            return timeInfo;
-        }
-
-        private Microsoft.Devices.Management.RebootInfo.SetParams UIToRebootInfoModel()
-        {
-            var rebootInfo = new Microsoft.Devices.Management.RebootInfo.SetParams();
-            if (!String.IsNullOrEmpty(DesiredSingleRebootTime.Text))
-            {
-                rebootInfo.singleRebootTime = DateTime.Parse(DesiredSingleRebootTime.Text);
-            }
-            if (!String.IsNullOrEmpty(DesiredDailyRebootTime.Text))
-            {
-                rebootInfo.dailyRebootTime = DateTime.Parse(DesiredDailyRebootTime.Text);
-            }
-            return rebootInfo;
-        }
-
-        private void SetDesired(string sectionString)
-        {
-            string prefix = "{ \"properties\" : {\"desired\":{\"microsoft\":{\"management\":{";
-            string suffix = "}}}}}";
-            string jsonString = prefix + sectionString + suffix; // "{ \"properties\" : " + JsonConvert.SerializeObject(root) + "}";
             Debug.WriteLine("---- Desired Properties ----");
             Debug.WriteLine(jsonString);
 
             // Task t is to avoid the 'not awaited' warning.
-            Task t = _deviceTwin.UpdateTwinData(jsonString);
+            await _deviceTwin.UpdateTwinData(jsonString);
+        }
+
+        private async Task UpdateTwinData(string refreshingValue, string finalValue)
+        {
+            await UpdateTwinData(DTRootNodeString + refreshingValue + DTRootNodeSuffixString);
+            await UpdateTwinData(DTRootNodeString + finalValue + DTRootNodeSuffixString);
+
+            MessageBox.Show("Desired state sent to Device Twin!");
+        }
+
+        private async Task SetDesired(string sectionName, string sectionValueString)
+        {
+            string refreshingValue = "{ \"" + sectionName + "\" : " + DTRefreshing + " }";
+            string finalValue = "{ " + sectionValueString  + " }";
+
+            await UpdateTwinData(refreshingValue, finalValue);
         }
 
         private void OnSetTimeInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(UIToTimeInfoModel().ToJson());
+            SetDesired(TimeDesiredState.SectionName, TimeDesiredState.ToJson()).FireAndForget();
         }
 
-        private ExternalStorage UIToExternalStorageModel()
+        private void OnSetTimeService(object sender, RoutedEventArgs e)
         {
-            ExternalStorage externalStorage = new ExternalStorage();
-            externalStorage.connectionString = AzureStorageConnectionString.Text;
-            externalStorage.container = AzureStorageContainerName.Text;
-            return externalStorage;
+            SetDesired(TimeSvcDesiredState.SectionName, TimeSvcDesiredState.ToJson()).FireAndForget();
         }
 
         private void OnSetExternalStorageInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(UIToExternalStorageModel().ToJson());
-        }
-
-        private WindowsUpdatePolicyConfiguration UIToWindowsUpdatePolicyConfiguration()
-        {
-            var configuration = new WindowsUpdatePolicyConfiguration();
-
-            configuration.activeHoursStart = UInt32.Parse(DesiredActiveHoursStart.Text);
-            configuration.activeHoursEnd = UInt32.Parse(DesiredActiveHoursEnd.Text);
-            configuration.allowAutoUpdate = UInt32.Parse(DesiredAllowAutoUpdate.Text);
-            configuration.allowMUUpdateService = UInt32.Parse(DesiredAllowMUUpdateService.Text);
-            configuration.allowNonMicrosoftSignedUpdate = UInt32.Parse(DesiredAllowNonMicrosoftSignedUpdate.Text);
-
-            configuration.allowUpdateService = UInt32.Parse(DesiredAllowUpdateService.Text);
-            configuration.branchReadinessLevel = UInt32.Parse(DesiredBranchReadinessLevel.Text);
-            configuration.deferFeatureUpdatesPeriod = UInt32.Parse(DesiredDeferFeatureUpdatesPeriod.Text);
-            configuration.deferQualityUpdatesPeriod = UInt32.Parse(DesiredDeferQualityUpdatesPeriod.Text);
-            configuration.excludeWUDrivers = UInt32.Parse(DesiredExcludeWUDrivers.Text);
-
-            configuration.pauseFeatureUpdates = UInt32.Parse(DesiredPauseFeatureUpdates.Text);
-            configuration.pauseQualityUpdates = UInt32.Parse(DesiredPauseQualityUpdates.Text);
-            configuration.requireUpdateApproval = UInt32.Parse(DesiredRequireUpdateApproval.Text);
-            configuration.scheduledInstallDay = UInt32.Parse(DesiredScheduledInstallDay.Text);
-            configuration.scheduledInstallTime = UInt32.Parse(DesiredScheduledInstallTime.Text);
-
-            configuration.updateServiceUrl = DesiredUpdateServiceUrl.Text;
-
-            return configuration;
-        }
-
-        private void WindowsUpdatePolicyConfigurationToUI(WindowsUpdatePolicyConfiguration configuration)
-        {
-            ReportedActiveHoursStart.Text = configuration.activeHoursStart.ToString();
-            ReportedActiveHoursEnd.Text = configuration.activeHoursEnd.ToString();
-            ReportedAllowAutoUpdate.Text = configuration.allowAutoUpdate.ToString();
-            ReportedAllowMUUpdateService.Text = configuration.allowMUUpdateService.ToString();
-            ReportedAllowNonMicrosoftSignedUpdate.Text = configuration.allowNonMicrosoftSignedUpdate.ToString();
-
-            ReportedAllowUpdateService.Text = configuration.allowUpdateService.ToString();
-            ReportedBranchReadinessLevel.Text = configuration.branchReadinessLevel.ToString();
-            ReportedDeferFeatureUpdatesPeriod.Text = configuration.deferFeatureUpdatesPeriod.ToString();
-            ReportedDeferQualityUpdatesPeriod.Text = configuration.deferQualityUpdatesPeriod.ToString();
-            ReportedExcludeWUDrivers.Text = configuration.excludeWUDrivers.ToString();
-
-            ReportedPauseFeatureUpdates.Text = configuration.pauseFeatureUpdates.ToString();
-            ReportedPauseQualityUpdates.Text = configuration.pauseQualityUpdates.ToString();
-            ReportedRequireUpdateApproval.Text = configuration.requireUpdateApproval.ToString();
-            ReportedScheduledInstallDay.Text = configuration.scheduledInstallDay.ToString();
-            ReportedScheduledInstallTime.Text = configuration.scheduledInstallTime.ToString();
-
-            ReportedUpdateServiceUrl.Text = configuration.updateServiceUrl;
+            ExternalStorageDataContract.DesiredProperties desiredProperties = new ExternalStorageDataContract.DesiredProperties();
+            desiredProperties.connectionString = AzureStorageDesiredConnectionString.Text;
+            SetDesired(ExternalStorageDataContract.SectionName, desiredProperties.ToJsonString()).FireAndForget();
         }
 
         private void OnSetWindowsUpdatePolicyInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(UIToWindowsUpdatePolicyConfiguration().ToJson());
+            SetDesired(WindowsUpdatePolicyDesiredState.SectionName, WindowsUpdatePolicyDesiredState.ToJsonString()).FireAndForget();
         }
 
-        private Microsoft.Devices.Management.WindowsUpdates.SetParams UIToWindowsUpdatesConfiguration()
+        private void OnSetDiagnosticLogsInfo(object sender, RoutedEventArgs e)
         {
-            var configuration = new Microsoft.Devices.Management.WindowsUpdates.SetParams();
-
-            configuration.approved = DesiredApproved.Text;
-            
-            return configuration;
+            SetDesired(DesiredDiagnosticLogs.SectionName, DesiredDiagnosticLogs.ToJson()).FireAndForget();
         }
 
-        private void WindowsUpdatesConfigurationToUI(Microsoft.Devices.Management.WindowsUpdates.GetResponse configuration)
+        private void OnDeviceDeleteFile(object sender, RoutedEventArgs e)
         {
-            ReportedInstalled.Text = configuration.installed;
-            ReportedApproved.Text = configuration.approved;
-            ReportedFailed.Text = configuration.failed;
-            ReportedInstallable.Text = configuration.installable;
-            ReportedPendingReboot.Text = configuration.pendingReboot;
-            ReportedLastScanTime.Text = configuration.lastScanTime;
-            ReportedDeferUpgrade.IsChecked = configuration.deferUpgrade;
+            DeviceDeleteFile deviceDeleteFile = new DeviceDeleteFile(_deviceTwin);
+            deviceDeleteFile.Owner = this;
+            deviceDeleteFile.DataContext = null;
+            deviceDeleteFile.ShowDialog();
+        }
+
+        private void OnDeviceUploadFile(object sender, RoutedEventArgs e)
+        {
+            DeviceUploadFile deviceUploadFile = new DeviceUploadFile(_deviceTwin);
+            deviceUploadFile.Owner = this;
+            deviceUploadFile.DataContext = null;
+            deviceUploadFile.ShowDialog();
+        }
+
+        private WindowsUpdatesDataContract.DesiredProperties UIToWindowsUpdatesConfiguration()
+        {
+            WindowsUpdatesDataContract.DesiredProperties desiredProperties = new WindowsUpdatesDataContract.DesiredProperties();
+            desiredProperties.approved = DesiredApproved.Text;
+            return desiredProperties;
+        }
+
+        private void WindowsUpdatesConfigurationToUI(JObject root)
+        {
+            WindowsUpdatesDataContract.ReportedProperties reportedProperties = WindowsUpdatesDataContract.ReportedProperties.FromJsonObject(root);
+
+            ReportedInstalled.Text = reportedProperties.installed;
+            ReportedApproved.Text = reportedProperties.approved;
+            ReportedFailed.Text = reportedProperties.failed;
+            ReportedInstallable.Text = reportedProperties.installable;
+            ReportedPendingReboot.Text = reportedProperties.pendingReboot;
+            ReportedLastScanTime.Text = reportedProperties.lastScanTime;
+            ReportedDeferUpgrade.IsChecked = reportedProperties.deferUpgrade;
         }
 
         private void OnSetWindowsUpdatesInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(UIToWindowsUpdatesConfiguration().ToJson());
+            SetDesired(WindowsUpdatesDataContract.SectionName, UIToWindowsUpdatesConfiguration().ToJsonString()).FireAndForget();
         }
 
-        private Certificates.CertificateConfiguration UIToCertificateConfiguration()
+        private void OnSetWindowsTelemetry(object sender, RoutedEventArgs e)
         {
-            Certificates.CertificateConfiguration certificateConfiguration = new Certificates.CertificateConfiguration();
-            certificateConfiguration.rootCATrustedCertificates_Root = Desired_RootCATrustedCertificates_Root.FileNamesString;
-            certificateConfiguration.rootCATrustedCertificates_CA = Desired_RootCATrustedCertificates_CA.FileNamesString;
-            certificateConfiguration.rootCATrustedCertificates_TrustedPublisher = Desired_RootCATrustedCertificates_TrustedPublisher.FileNamesString;
-            certificateConfiguration.rootCATrustedCertificates_TrustedPeople = Desired_RootCATrustedCertificates_TrustedPeople.FileNamesString;
-            certificateConfiguration.certificateStore_CA_System = Desired_CertificateStore_CA_System.FileNamesString;
-            certificateConfiguration.certificateStore_Root_System = Desired_CertificateStore_Root_System.FileNamesString;
-            certificateConfiguration.certificateStore_My_User = Desired_CertificateStore_My_User.FileNamesString;
-            certificateConfiguration.certificateStore_My_System = Desired_CertificateStore_My_System.FileNamesString;
-            return certificateConfiguration;
+            SetDesired(WindowsTelemetryDataContract.SectionName, WindowsTelemetryDesiredState.ToJsonString()).FireAndForget();
+        }
+
+        private void PopulateCertificateList(
+            IEnumerable<CertificateSelector.CertificateSummary> certsToInstall,
+            IEnumerable<string> certsToUninstall,
+            List<CertificatesDataContract.CertificateInfo> desiredList)
+        {
+            if (desiredList == null)
+            {
+                return;
+            }
+
+            if (certsToInstall != null)
+            {
+                foreach (CertificateSelector.CertificateSummary certificateSummary in certsToInstall)
+                {
+                    CertificatesDataContract.CertificateInfo certificateInfo = new CertificatesDataContract.CertificateInfo();
+                    certificateInfo.Hash = certificateSummary.Hash;
+                    certificateInfo.StorageFileName = certificateSummary.StorageFileName;
+                    certificateInfo.State = CertificatesDataContract.JsonStateInstalled;
+                    desiredList.Add(certificateInfo);
+                }
+            }
+
+            if (certsToUninstall != null)
+            {
+                foreach (string hash in certsToUninstall)
+                {
+                    CertificatesDataContract.CertificateInfo certificateInfo = new CertificatesDataContract.CertificateInfo();
+                    certificateInfo.Hash = hash;
+                    certificateInfo.StorageFileName = "";
+                    certificateInfo.State = CertificatesDataContract.JsonStateUninstalled;
+                    desiredList.Add(certificateInfo);
+                }
+            }
+        }
+
+        private CertificatesDataContract.DesiredProperties UIToCertificateConfiguration()
+        {
+            CertificatesDataContract.DesiredProperties certificatesDesiredProperties = new CertificatesDataContract.DesiredProperties();
+
+            PopulateCertificateList(
+                Desired_RootCATrustedCertificates_Root.CertsToInstall,
+                Desired_RootCATrustedCertificates_Root.CertsToUninstall,
+                certificatesDesiredProperties.rootCATrustedCertificates_Root);
+
+            PopulateCertificateList(
+                Desired_RootCATrustedCertificates_CA.CertsToInstall,
+                Desired_RootCATrustedCertificates_CA.CertsToUninstall,
+                certificatesDesiredProperties.rootCATrustedCertificates_CA);
+
+            PopulateCertificateList(
+                Desired_RootCATrustedCertificates_TrustedPublisher.CertsToInstall,
+                Desired_RootCATrustedCertificates_TrustedPublisher.CertsToUninstall,
+                certificatesDesiredProperties.rootCATrustedCertificates_TrustedPublisher);
+
+            PopulateCertificateList(
+                Desired_RootCATrustedCertificates_TrustedPeople.CertsToInstall,
+                Desired_RootCATrustedCertificates_TrustedPeople.CertsToUninstall,
+                certificatesDesiredProperties.rootCATrustedCertificates_TrustedPeople);
+
+            PopulateCertificateList(
+                Desired_CertificateStore_CA_System.CertsToInstall,
+                Desired_CertificateStore_CA_System.CertsToUninstall,
+                certificatesDesiredProperties.certificateStore_CA_System);
+
+            PopulateCertificateList(
+                Desired_CertificateStore_Root_System.CertsToInstall,
+                Desired_CertificateStore_Root_System.CertsToUninstall,
+                certificatesDesiredProperties.certificateStore_Root_System);
+
+            PopulateCertificateList(
+                Desired_CertificateStore_My_User.CertsToInstall,
+                Desired_CertificateStore_My_User.CertsToUninstall,
+                certificatesDesiredProperties.certificateStore_My_User);
+
+            PopulateCertificateList(
+                Desired_CertificateStore_My_System.CertsToInstall,
+                Desired_CertificateStore_My_System.CertsToUninstall,
+                certificatesDesiredProperties.certificateStore_My_System);
+
+            return certificatesDesiredProperties;
         }
 
         private void OnSetCertificateConfiguration(object sender, RoutedEventArgs e)
         {
-            SetDesired(UIToCertificateConfiguration().ToJson());
+            CertificatesDataContract.DesiredProperties desiredProperties = UIToCertificateConfiguration();
+            string json = desiredProperties.ToJsonString();
+            Debug.WriteLine("certificates:");
+            Debug.WriteLine(json);
+
+            SetDesired(CertificatesDataContract.SectionName, json).FireAndForget();
         }
 
         private void OnSetRebootInfo(object sender, RoutedEventArgs e)
         {
-            SetDesired(UIToRebootInfoModel().ToJson());
+            SetDesired(RebootInfoDesiredState.SectionName, RebootInfoDesiredState.ToJsonString()).FireAndForget();
+        }
+
+        private void OnSetAppsConfiguration(object sender, RoutedEventArgs e)
+        {
+            SetDesired(TheAppsConfigurator.SectionName, TheAppsConfigurator.ToJson()).FireAndForget();
+        }
+
+        private void OnSetDeviceInfo(object sender, RoutedEventArgs e)
+        {
+            DeviceInfoDataContract.DesiredProperties desiredProperties = new DeviceInfoDataContract.DesiredProperties();
+            SetDesired(DeviceInfoDataContract.SectionName, desiredProperties.ToJsonString()).FireAndForget();
         }
 
         private void OnSetAllDesiredProperties(object sender, RoutedEventArgs e)
         {
             StringBuilder json = new StringBuilder();
 
-            json.Append(UIToTimeInfoModel().ToJson());
+            json.Append("{");
+            json.Append(TimeDesiredState.ToJson());
             json.Append(",");
-            json.Append(UIToExternalStorageModel().ToJson());
+            json.Append(UIToCertificateConfiguration().ToJsonString());
             json.Append(",");
-            json.Append(UIToCertificateConfiguration().ToJson());
+            json.Append(RebootInfoDesiredState.ToJsonString());
             json.Append(",");
-            json.Append(UIToRebootInfoModel().ToJson());
+            json.Append(WindowsUpdatePolicyDesiredState.ToJsonString());
             json.Append(",");
-            json.Append(UIToWindowsUpdatePolicyConfiguration().ToJson());
+            json.Append(UIToWindowsUpdatesConfiguration().ToJsonString());
             json.Append(",");
-            json.Append(UIToWindowsUpdatesConfiguration().ToJson());
+            json.Append(WindowsTelemetryDesiredState.ToJsonString());
+            json.Append(",");
+            json.Append(DeviceHealthAttestationDesiredState.ToJson());
+            json.Append(",");
+            json.Append(WifiDesiredState.ToJson());
+            json.Append("}");
 
-            SetDesired(json.ToString());
+            UpdateTwinData(DTRefreshing, json.ToString()).FireAndForget();
         }
 
-        private void OnExpandAppInstall(object sender, RoutedEventArgs e)
+        private async void UploadAppx(string connectionString, string container, string appxLocalPath, string dep0LocalPath, string dep1LocalPath, string certLocalPath)
         {
-            ToggleUIElementVisibility(AppInstallGrid);
-        }
+            // Retrieve storage account from connection string.
+            var storageAccount = CloudStorageAccount.Parse(connectionString);
 
-        private string Browse()
-        {
-            var fileDialog = new OpenFileDialog();
-            fileDialog.Filter = "appx files (*.appx)|*.appx|appxbundle files (*.appxbundle)|*.appxbundle";
-            fileDialog.RestoreDirectory = true;
+            // Create the blob client.
+            var blobClient = storageAccount.CreateCloudBlobClient();
 
-            var result = fileDialog.ShowDialog();
-            if (result != null && result.Value)
+            // Retrieve a reference to a container.
+            var containerRef = blobClient.GetContainerReference(container);
+
+            // Create the container if it doesn't already exist.
+            await containerRef.CreateIfNotExistsAsync();
+
+            // Appx
             {
-                return fileDialog.FileName;
+                var blob = containerRef.GetBlockBlobReference(new FileInfo(appxLocalPath).Name);
+                await blob.UploadFromFileAsync(appxLocalPath);
             }
 
-            return null;
-        }
-
-        private void OnAppxBrowse(object sender, RoutedEventArgs e)
-        {
-            var appxPath = Browse();
-            if (appxPath != null)
+            // Dep1
+            if (!string.IsNullOrEmpty(dep0LocalPath))
             {
-                AppAppxPath.Text = appxPath;
+                var blob = containerRef.GetBlockBlobReference(new FileInfo(dep0LocalPath).Name);
+                await blob.UploadFromFileAsync(dep0LocalPath);
+            }
+
+            // Dep2
+            if (!string.IsNullOrEmpty(dep1LocalPath))
+            {
+                var blob = containerRef.GetBlockBlobReference(new FileInfo(dep1LocalPath).Name);
+                await blob.UploadFromFileAsync(dep1LocalPath);
+            }
+
+            // Certificate
+            if (!string.IsNullOrEmpty(certLocalPath))
+            {
+                var blob = containerRef.GetBlockBlobReference(new FileInfo(certLocalPath).Name);
+                await blob.UploadFromFileAsync(certLocalPath);
             }
         }
 
-        private void OnDep1AppxBrowse(object sender, RoutedEventArgs e)
+        private async void DeviceHealthAttestationReportButtonAsync(object sender, RoutedEventArgs e)
         {
-            var appxPath = Browse();
-            if (appxPath != null)
-            {
-                AppDep1AppxPath.Text = appxPath;
-            }
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(DeviceHealthAttestationDataContract.ReportNowMethodName, "{}", new TimeSpan(0, 0, 30), new CancellationToken());
         }
 
-        private void OnDep2AppxBrowse(object sender, RoutedEventArgs e)
+        private void DeviceHealthAttestationSetInfoButtonAsync(object sender, RoutedEventArgs e)
         {
-            var appxPath = Browse();
-            if (appxPath != null)
-            {
-                AppDep2AppxPath.Text = appxPath;
-            }
-        }
-
-        private void AppInstallButtonActivation(object sender, TextChangedEventArgs e)
-        {
-            bool isAppxPathProvided = (!string.IsNullOrEmpty(AppAppxPath.Text) && File.Exists(AppAppxPath.Text));
-            bool isConnectionStringProvided = (!string.IsNullOrEmpty(AppConnectionString.Text));
-            bool isContainerProvided = (!string.IsNullOrEmpty(AppContainerName.Text));
-            AppInstallButton.IsEnabled = (isAppxPathProvided && isConnectionStringProvided && isContainerProvided);
-        }
-
-        private async void AppInstallAsync(object sender, RoutedEventArgs e)
-        {
-            var cxnstr = AppConnectionString.Text;
-            var container = AppContainerName.Text;
-            var pfn = AppPackageFamilyName.Text;
-            var appx = AppAppxPath.Text;
-            var dep1 = AppDep1AppxPath.Text;
-            var dep2 = AppDep2AppxPath.Text;
-
-            // copy local file to Azure
-            {
-                // Retrieve storage account from connection string.
-                var storageAccount = CloudStorageAccount.Parse(cxnstr);
-
-                // Create the blob client.
-                var blobClient = storageAccount.CreateCloudBlobClient();
-
-                // Retrieve a reference to a container.
-                var containerRef = blobClient.GetContainerReference(container);
-
-                // Create the container if it doesn't already exist.
-                await containerRef.CreateIfNotExistsAsync();
-
-                // Appx
-                {
-                    var blob = containerRef.GetBlockBlobReference(new FileInfo(appx).Name);
-                    await blob.UploadFromFileAsync(appx);
-                }
-
-                // Dep1
-                if (!string.IsNullOrEmpty(dep1))
-                {
-                    var blob = containerRef.GetBlockBlobReference(new FileInfo(dep1).Name);
-                    await blob.UploadFromFileAsync(dep1);
-                }
-
-                // Dep2
-                if (!string.IsNullOrEmpty(dep2))
-                {
-                    var blob = containerRef.GetBlockBlobReference(new FileInfo(dep2).Name);
-                    await blob.UploadFromFileAsync(dep2);
-                }
-            }
-
-
-            // Invoke DM App Install
-            CancellationToken cancellationToken = new CancellationToken();
-
-            var blobFormat = "{{\"ConnectionString\":\"{0}\",\"ContainerName\":\"{1}\",\"BlobName\":\"{2}\"}}";
-            var appJson = string.Format(blobFormat, cxnstr, container, new FileInfo(appx).Name);
-            var depsJson = "";
-            if (!string.IsNullOrEmpty(dep1))
-            {
-                depsJson += string.Format(blobFormat, cxnstr, container, new FileInfo(dep1).Name);
-
-                if (!string.IsNullOrEmpty(dep2))
-                {
-                    depsJson += ", ";
-                    depsJson += string.Format(blobFormat, cxnstr, container, new FileInfo(dep2).Name);
-                }
-            }
-
-            var jsonFormat = "{{\"PackageFamilyName\":\"{0}\",\"Appx\":{1},\"Dependencies\":[{2}]}}";
-            var json = string.Format(jsonFormat, pfn, appJson, depsJson);
-            var jo = JsonConvert.DeserializeObject(json);
-            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod("microsoft.management.appInstall", json, new TimeSpan(0, 0, 30), cancellationToken);
+            SetDesired(DeviceHealthAttestationDesiredState.SectionName, DeviceHealthAttestationDesiredState.ToJson()).FireAndForget();
         }
 
         private void OnExpandAzureStorageExplorer(object sender, RoutedEventArgs e)
@@ -771,10 +694,10 @@ namespace DMDashboard
             Debug.WriteLine(parametersJson);
 
             CancellationToken cancellationToken = new CancellationToken();
-            return await _deviceTwin.CallDeviceMethod("microsoft.management.getCertificateDetails", parametersJson, new TimeSpan(0, 0, 30), cancellationToken);
+            return await _deviceTwin.CallDeviceMethod(DMJSonConstants.DTWindowsIoTNameSpace + ".getCertificateDetails", parametersJson, new TimeSpan(0, 0, 30), cancellationToken);
         }
 
-        private void ShowCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        private void ShowCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateDetails certificateData)
         {
             CertificateDetails certificateDetails = new CertificateDetails();
             certificateDetails.Owner = this;
@@ -782,11 +705,11 @@ namespace DMDashboard
             certificateDetails.ShowDialog();
         }
 
-        private async void ExportCertificateDetailsAsync(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        private async void ExportCertificateDetailsAsync(CertificateSelector sender, CertificateSelector.CertificateDetails certificateData)
         {
             MessageBox.Show("Exporting certificate details from the device to Azure storage...");
             string targetFileName = certificateData.Hash + ".json";
-            DeviceMethodReturnValue result = await RequestCertificateDetailsAsync(AzureStorageConnectionString.Text, AzureStorageContainerName.Text, sender.CertificatesPath, certificateData.Hash, targetFileName);
+            DeviceMethodReturnValue result = await RequestCertificateDetailsAsync(AzureStorageDesiredConnectionString.Text, AzureStorageContainerName.Text, sender.CertificatesPath, certificateData.Hash, targetFileName);
             GetCertificateDetailsResponse response = JsonConvert.DeserializeObject<GetCertificateDetailsResponse>(result.Payload);
             if (response == null || response.Status != 0)
             {
@@ -795,7 +718,7 @@ namespace DMDashboard
             }
 
             CertificateExportDetails.CertificateExportDetailsData certificateExportDetailsData = new CertificateExportDetails.CertificateExportDetailsData();
-            certificateExportDetailsData.ConnectionString = AzureStorageConnectionString.Text;
+            certificateExportDetailsData.ConnectionString = AzureStorageDesiredConnectionString.Text;
             certificateExportDetailsData.ContainerName = AzureStorageContainerName.Text;
             certificateExportDetailsData.BlobName = targetFileName;
 
@@ -805,12 +728,66 @@ namespace DMDashboard
             certificateExportDetails.Show();
         }
 
-        private void ExportCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateData certificateData)
+        private void ExportCertificateDetails(CertificateSelector sender, CertificateSelector.CertificateDetails certificateData)
         {
             ExportCertificateDetailsAsync(sender, certificateData);
         }
 
-        private RegistryManager _registryManager;
+        private void OnSetWifiConfiguration(object sender, RoutedEventArgs e)
+        {
+            SetDesired(WifiDesiredState.SectionName, WifiDesiredState.ToJson()).FireAndForget();
+        }
+
+        public async void ExportWifiProfileDetails(string profileName, string storageConnectionString, string storageContainer, string blobName)
+        {
+            var details = new GetWifiProfileDetailsParams();
+            {
+                details.profileName = profileName;
+                details.connectionString = storageConnectionString;
+                details.containerName = storageContainer;
+                details.blobName = blobName;
+            }
+            var parametersJson = JsonConvert.SerializeObject(details);
+            Debug.WriteLine(parametersJson);
+
+            var cancellationToken = new CancellationToken();
+            DeviceMethodReturnValue result = await this._deviceTwin.CallDeviceMethod(DMJSonConstants.DTWindowsIoTNameSpace + ".getWifiDetails", parametersJson, new TimeSpan(0, 0, 30), cancellationToken);
+            System.Windows.MessageBox.Show("Get Wifi Profile Details Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
+        }
+
+        private void PopulateExternalStorageFromJson(JObject jRoot)
+        {
+            JToken jToken = jRoot.SelectToken("properties.desired." + DMJSonConstants.DTWindowsIoTNameSpace + ".externalStorage.connectionString");
+            if (jToken != null && jToken is JValue)
+            {
+                JValue jConnectionString = (JValue)jToken;
+                AzureStorageDesiredConnectionString.Text = (string)jConnectionString;
+            }
+        }
+
+        private void OnLoadProfile(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+            dlg.DefaultExt = ".json";
+            dlg.Filter = "json files (*.json)|*.json|All files (*.*)|*.*";
+            bool? result = dlg.ShowDialog();
+            if (result != true)
+            {
+                return;
+            }
+
+            object rootObject = JsonConvert.DeserializeObject(File.ReadAllText(dlg.FileName));
+            if (!(rootObject is JObject))
+            {
+                System.Windows.MessageBox.Show("Invalid json file content!");
+            }
+
+            JObject jRoot = (JObject)rootObject;
+            PopulateExternalStorageFromJson(jRoot);
+            TheAppsConfigurator.FromJson(jRoot);
+            DesiredDiagnosticLogs.FromJson(jRoot);
+        }
+
         private DeviceTwinAndMethod _deviceTwin;
     }
 }

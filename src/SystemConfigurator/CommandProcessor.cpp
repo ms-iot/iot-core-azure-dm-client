@@ -12,65 +12,106 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
 #include "stdafx.h"
+#include <fstream>
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMRequest.h"
 #include "..\SharedUtilities\SecurityAttributes.h"
+#include "..\DMTpm\TpmSupport.h"
 #include "CSPs\MdmProvision.h"
 #include "CSPs\CertificateInfo.h"
 #include "CSPs\CertificateManagement.h"
-#include "CSPs\RebootCSP.h"
-#include "CSPs\EnterpriseModernAppManagementCSP.h"
 #include "CSPs\CustomDeviceUiCsp.h"
-#include "TimeCfg.h"
+#include "CSPs\DeviceHealthAttestationCSP.h"
+#include "CSPs\EnterpriseModernAppManagementCSP.h"
+#include "CSPs\DiagnosticLogCSP.h"
+#include "CSPs\RebootCSP.h"
+#include "CSPs\WifiCsp.h"
+#include "CSPs\WindowsUpdatePolicyCSP.h"
 #include "AppCfg.h"
-#include "TpmSupport.h"
-
-#include <fstream>
+#include "DMStorage.h"
+#include "TimeCfg.h"
+#include "TimeService.h"
+#include "WindowsTelemetry.h"
 
 #include "Models\AllModels.h"
+
+#include "SystemConfiguratorProxyServer\SystemConfiguratorProxy.h"
 
 using namespace Microsoft::Devices::Management::Message;
 using namespace std;
 using namespace Windows::Data::Json;
+using namespace Windows::Foundation::Collections;
+
+//
+// This registry key/value pair needs to stay in sync with the one found here:
+//    https://github.com/ms-iot/iot-azure-dps-client/blob/master/src/IotDpsClient/DPSServiceImpl.cpp
+//
+const wchar_t* TpmSlotRegistrySubKey = L"SYSTEM\\CurrentControlSet\\Services\\iotdpsclient\\parameters";
+const wchar_t* TpmSlotPropertyName = L"tpm_slot";
+
+StringResponse^ ReportError(const string& context, const DMException& e)
+{
+    string debugMessage = "Error: " + context;
+    TRACEP(debugMessage.c_str(), e.what());
+    auto errorMessageCStr = Utils::MultibyteToWide(e.what());
+    auto responseMessage = ref new String(errorMessageCStr.c_str(), static_cast<unsigned int>(errorMessageCStr.length()));
+    return ref new StringResponse(ResponseStatus::Failure, responseMessage, DMMessageKind::ErrorResponse);
+}
+
+IResponse^ HandleExitDM(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    TRACE(L"Disconnecting RPC listener...");
+    SystemConfiguratorProxyDisconnect();
+
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
 
 IResponse^ HandleFactoryReset(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
+    auto resetRequest = dynamic_cast<FactoryResetRequest^>(request);
+    TRACEP(L"clearTPM = ", (resetRequest->clearTPM ? L"true" : L"false"));
+    TRACEP(L"recoveryPartitionGUID = ", resetRequest->recoveryPartitionGUID->Data());
+
+    // Clear the TPM if requested...
+    if (resetRequest->clearTPM)
     {
-        auto resetRequest = dynamic_cast<FactoryResetRequest^>(request);
-        TRACEP(L"clearTPM = ", (resetRequest->clearTPM ? L"true" : L"false"));
-        TRACEP(L"recoveryPartitionGUID = ", resetRequest->recoveryPartitionGUID->Data());
-
-        // Clear the TPM if requested...
-        if (resetRequest->clearTPM)
-        {
-            ClearTPM();
-        }
-
-        // Schedule the recovery...
-        unsigned long returnCode = 0;
-        string output;
-        wstring command = Utils::GetSystemRootFolder() + L"\\bcdedit.exe  /set {bootmgr} bootsequence {" + resetRequest->recoveryPartitionGUID->Data() + L"}";
-        TRACE(command.c_str());
-        Utils::LaunchProcess(command, returnCode, output);
-        if (returnCode != 0)
-        {
-            throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
-        }
-
-        // Reboot the device...
-        RebootCSP::ExecRebootNow(Utils::GetCurrentDateTimeString());
-
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+        Tpm::ClearTPM();
     }
-    catch (const DMException& e)
+
+    // Schedule the recovery...
+    unsigned long returnCode = 0;
+    string output;
+    wstring command = Utils::GetSystemRootFolder() + L"\\bcdedit.exe  /set {bootmgr} bootsequence {" + resetRequest->recoveryPartitionGUID->Data() + L"}";
+    TRACE(command.c_str());
+    Utils::LaunchProcess(command, returnCode, output);
+    if (returnCode != 0)
     {
-        TRACEP("ERROR DMCommand::HandleFactoryReset: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+        throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
     }
+
+    // Reboot the device...
+    RebootCSP::ExecRebootNow(Utils::GetCurrentDateTimeString());
+
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
+IResponse^ HandleGetWindowsTelemetry(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+    return WindowsTelemetry::Get();
+}
+
+IResponse^ HandleSetWindowsTelemetry(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+    WindowsTelemetry::Set(dynamic_cast<SetWindowsTelemetryRequest^>(request));
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetDeviceInfo(IRequest^ request)
@@ -186,17 +227,27 @@ IResponse^ HandleSetTimeInfo(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto setTimeInfoRequest = dynamic_cast<SetTimeInfoRequest^>(request);
-        TimeCfg::Set(setTimeInfoRequest);
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleSetTimeInfo: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    auto setTimeInfoRequest = dynamic_cast<SetTimeInfoRequest^>(request);
+    TimeCfg::Set(setTimeInfoRequest);
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
+IResponse^ HandleGetTimeService(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    auto timeServiceRequest = dynamic_cast<GetTimeServiceRequest^>(request);
+    TimeServiceData^ data = TimeService::GetState();
+    return ref new GetTimeServiceResponse(ResponseStatus::Success, data);
+}
+
+IResponse^ HandleSetTimeService(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    auto timeServiceRequest = dynamic_cast<SetTimeServiceRequest^>(request);
+    TimeService::SetState(timeServiceRequest->data);
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetCertificateConfiguration(IRequest^ request)
@@ -239,100 +290,131 @@ IResponse^ HandleSetCertificateConfiguration(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto setCertificateConfigurationRequest = dynamic_cast<SetCertificateConfigurationRequest^>(request);
-        CertificateConfiguration^ configuration = setCertificateConfigurationRequest->configuration;
+    auto setCertificateConfigurationRequest = dynamic_cast<SetCertificateConfigurationRequest^>(request);
+    CertificateConfiguration^ configuration = setCertificateConfigurationRequest->configuration;
 
-        CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/CA/System", configuration->certificateStore_CA_System->Data());
-        CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/Root/System", configuration->certificateStore_Root_System->Data());
-        CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/My/User", configuration->certificateStore_My_User->Data());
-        CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/My/System", configuration->certificateStore_My_System->Data());
+    CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/CA/System", configuration->certificateStore_CA_System->Data());
+    CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/Root/System", configuration->certificateStore_Root_System->Data());
+    CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/My/User", configuration->certificateStore_My_User->Data());
+    CertificateManagement::SyncCertificates(L"./Vendor/MSFT/CertificateStore/My/System", configuration->certificateStore_My_System->Data());
 
-        CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/Root", configuration->rootCATrustedCertificates_Root->Data());
-        CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/CA", configuration->rootCATrustedCertificates_CA->Data());
-        CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher", configuration->rootCATrustedCertificates_TrustedPublisher->Data());
-        CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople", configuration->rootCATrustedCertificates_TrustedPeople->Data());
+    CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/Root", configuration->rootCATrustedCertificates_Root->Data());
+    CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/CA", configuration->rootCATrustedCertificates_CA->Data());
+    CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPublisher", configuration->rootCATrustedCertificates_TrustedPublisher->Data());
+    CertificateManagement::SyncCertificates(L"./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople", configuration->rootCATrustedCertificates_TrustedPeople->Data());
 
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleSetCertificateConfiguration: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetCertificateDetails(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto getCertificateDetailsRequest = dynamic_cast<GetCertificateDetailsRequest^>(request);
-        wstring path = getCertificateDetailsRequest->path->Data();
-        wstring hash = getCertificateDetailsRequest->hash->Data();
-        TRACEP(L"path = ", path.c_str());
-        TRACEP(L"hash = ", hash.c_str());
-        CertificateInfo certificateInfo(path + L"/" + hash);
+    auto getCertificateDetailsRequest = dynamic_cast<GetCertificateDetailsRequest^>(request);
+    wstring path = getCertificateDetailsRequest->path->Data();
+    wstring hash = getCertificateDetailsRequest->hash->Data();
+    TRACEP(L"path = ", path.c_str());
+    TRACEP(L"hash = ", hash.c_str());
+    CertificateInfo certificateInfo(path + L"/" + hash);
 
-        GetCertificateDetailsResponse^ getCertificateDetailsResponse = ref new GetCertificateDetailsResponse(ResponseStatus::Success);
-        getCertificateDetailsResponse->issuedBy = ref new String(certificateInfo.GetIssuedBy().c_str());
-        getCertificateDetailsResponse->issuedTo = ref new String(certificateInfo.GetIssuedTo().c_str());
-        getCertificateDetailsResponse->validFrom = ref new String(certificateInfo.GetValidFrom().c_str());
-        getCertificateDetailsResponse->validTo = ref new String(certificateInfo.GetValidTo().c_str());
-        getCertificateDetailsResponse->base64Encoding = ref new String(certificateInfo.GetCertificateInBase64().c_str());
-        getCertificateDetailsResponse->templateName = ref new String(certificateInfo.GetTemplateName().c_str());
+    GetCertificateDetailsResponse^ getCertificateDetailsResponse = ref new GetCertificateDetailsResponse(ResponseStatus::Success);
+    getCertificateDetailsResponse->issuedBy = ref new String(certificateInfo.GetIssuedBy().c_str());
+    getCertificateDetailsResponse->issuedTo = ref new String(certificateInfo.GetIssuedTo().c_str());
+    getCertificateDetailsResponse->validFrom = ref new String(certificateInfo.GetValidFrom().c_str());
+    getCertificateDetailsResponse->validTo = ref new String(certificateInfo.GetValidTo().c_str());
+    getCertificateDetailsResponse->base64Encoding = ref new String(certificateInfo.GetCertificateInBase64().c_str());
+    getCertificateDetailsResponse->templateName = ref new String(certificateInfo.GetTemplateName().c_str());
 
-        return getCertificateDetailsResponse;
-    }
-    catch (const DMException& e)
+    return getCertificateDetailsResponse;
+}
+
+IResponse^ HandleGetWifiConfiguration(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    auto profiles = WifiCSP::GetProfiles();
+
+    auto configuration = ref new WifiConfiguration();
+    configuration->ReportToDeviceTwin = ref new Platform::String(L"yes");
+    for each (auto profile in profiles)
     {
-        TRACEP("ERROR DMCommand::HandleGetCertificateDetails: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+        auto profileConfig = ref new WifiProfileConfiguration();
+        profileConfig->Name = ref new Platform::String(profile.c_str());
+        TRACEP(L"Wifi profile found: ", profileConfig->Name->Data());
+        configuration->Profiles->Append(profileConfig);
     }
+    return ref new GetWifiConfigurationResponse(ResponseStatus::Success, configuration);
+}
+
+IResponse^ HandleSetWifiConfiguration(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    auto wifiRequest = dynamic_cast<SetWifiConfigurationRequest^>(request);
+    auto configuration = wifiRequest->Configuration;
+
+    if (configuration != nullptr)
+    {
+        for each (auto profile in configuration->Profiles)
+        {
+            std::wstring profileName = profile->Name->Data();
+            TRACEP(L"DMCommand::HandleSetWifiConfiguration handle profile: ", profileName);
+            TRACEP("DMCommand::HandleSetWifiConfiguration uninstall? ", profile->Uninstall);
+            if (profile->Uninstall)
+            {
+                WifiCSP::DeleteProfile(profileName);
+            }
+            else
+            {
+                std::wstring profileXml = profile->Xml->Data();
+                WifiCSP::AddProfile(profileName, profileXml);
+            }
+        }
+    }
+
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
+IResponse^ HandleGetWifiDetails(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    auto getWifiDetailsRequest = dynamic_cast<GetWifiDetailsRequest^>(request);
+    wstring profileName = getWifiDetailsRequest->profileName->Data();
+    auto xml = WifiCSP::GetProfile(profileName);
+
+    GetWifiDetailsResponse^ getWifiDetailsResponse = ref new GetWifiDetailsResponse(ResponseStatus::Success);
+    getWifiDetailsResponse->Name = getWifiDetailsRequest->profileName;
+    getWifiDetailsResponse->Xml = ref new Platform::String(xml.c_str());
+
+    return getWifiDetailsResponse;
 }
 
 IResponse^ HandleGetRebootInfo(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        GetRebootInfoResponse^ response = ref new GetRebootInfoResponse(ResponseStatus::Success);
-        response->singleRebootTime = ref new String(RebootCSP::GetSingleScheduleTime().data());
-        response->dailyRebootTime = ref new String(RebootCSP::GetDailyScheduleTime().data());
-        response->lastBootTime = ref new String(RebootCSP::GetLastRebootTime().data());
-        response->lastRebootCmdTime = ref new String(RebootCSP::GetLastRebootCmdTime().data());
-        return response;
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleGetRebootInfo: ", e.what());
-        return ref new GetRebootInfoResponse(ResponseStatus::Failure);
-    }
+    GetRebootInfoResponse^ response = ref new GetRebootInfoResponse(ResponseStatus::Success);
+    response->singleRebootTime = ref new String(RebootCSP::GetSingleScheduleTime().data());
+    response->dailyRebootTime = ref new String(RebootCSP::GetDailyScheduleTime().data());
+    response->lastBootTime = ref new String(RebootCSP::GetLastRebootTime().data());
+    response->lastRebootCmdTime = ref new String(RebootCSP::GetLastRebootCmdTime().data());
+    return response;
 }
 
 IResponse^ HandleSetRebootInfo(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto setRebootInfoRequest = dynamic_cast<SetRebootInfoRequest^>(request);
-        RebootCSP::SetSingleScheduleTime(setRebootInfoRequest->singleRebootTime->Data());
-        RebootCSP::SetDailyScheduleTime(setRebootInfoRequest->dailyRebootTime->Data());
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleSetRebootInfo: ", e.what());
-        return ref new GetRebootInfoResponse(ResponseStatus::Failure);
-    }
+    auto setRebootInfoRequest = dynamic_cast<SetRebootInfoRequest^>(request);
+    RebootCSP::SetSingleScheduleTime(setRebootInfoRequest->singleRebootTime->Data());
+    RebootCSP::SetDailyScheduleTime(setRebootInfoRequest->dailyRebootTime->Data());
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetTimeInfo(IRequest^ request)
 {
+    TRACE(__FUNCTION__);
     return TimeCfg::Get();
 }
 
@@ -340,17 +422,9 @@ IResponse^ HandleImmediateReboot(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto immediateRebootRequest = dynamic_cast<ImmediateRebootRequest^>(request);
-        RebootCSP::ExecRebootNow(immediateRebootRequest->lastRebootCmdTime->Data());
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleImmediateReboot: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    auto immediateRebootRequest = dynamic_cast<ImmediateRebootRequest^>(request);
+    RebootCSP::ExecRebootNow(immediateRebootRequest->lastRebootCmdTime->Data());
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleCheckUpdates(IRequest^ request)
@@ -358,95 +432,145 @@ IResponse^ HandleCheckUpdates(IRequest^ request)
     return ref new CheckForUpdatesResponse(ResponseStatus::Success, true);
 }
 
+void SetAppStartUpType(const wstring& pkgFamilyName, StartUpType startUpType)
+{
+    TRACE(__FUNCTION__);
+    TRACEP(L"Package Family Name: ", pkgFamilyName.c_str());
+
+    switch (startUpType)
+    {
+    case StartUpType::None:
+        if (CustomDeviceUiCSP::IsBackground(pkgFamilyName))
+        {
+            CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(pkgFamilyName);
+        }
+
+        if (CustomDeviceUiCSP::IsForeground(pkgFamilyName))
+        {
+            // If code ever reaches here, it means that we did not process the the settings in the correct order.
+            // The foreground app should always be set to a new one before the older one is set to 'none'.
+            throw DMExceptionWithErrorCode("Cannot remove the app from the foreground start-up list. Set the foreground startup app to some other app first!", -1);
+        }
+        break;
+    case StartUpType::Foreground:
+        CustomDeviceUiCSP::AddAsStartupApp(pkgFamilyName, false /*!background*/);
+        break;
+    case StartUpType::Background:
+        CustomDeviceUiCSP::AddAsStartupApp(pkgFamilyName, true /*background*/);
+        break;
+    }
+}
+
+StartUpType GetAppStartUpType(const wstring& pkgFamilyName)
+{
+    TRACE(__FUNCTION__);
+
+    if (CustomDeviceUiCSP::IsBackground(pkgFamilyName))
+    {
+        return StartUpType::Background;
+    }
+    else if (CustomDeviceUiCSP::IsForeground(pkgFamilyName))
+    {
+        return StartUpType::Foreground;
+    }
+    return StartUpType::None;
+}
+
 IResponse^ HandleInstallApp(IRequest^ request)
 {
-    try
-    {
-        auto appInstall = dynamic_cast<AppInstallRequest^>(request);
-        auto info = appInstall->AppInstallInfo;
+    TRACE(__FUNCTION__);
 
-        std::vector<wstring> deps;
-        for each (auto dep in info->Dependencies)
-        {
-            deps.push_back((wstring)dep->Data());
-        }
-        auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
-        auto appxPath = (wstring)info->AppxPath->Data();
+    auto appInstallRequest = dynamic_cast<AppInstallRequest^>(request);
+    auto info = appInstallRequest->data;
 
-        EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (Platform::Exception^ e)
+    std::vector<wstring> deps;
+    for each (auto dep in info->Dependencies)
     {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleInstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+        deps.push_back((wstring)dep->Data());
     }
+    auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
+    auto appxPath = (wstring)info->AppxPath->Data();
+    auto certFile = (wstring)info->CertFile->Data();
+    auto certStore = (wstring)info->CertStore->Data();
+    auto isSelfUpdate = info->IsDMSelfUpdate;
+
+    // ToDo: Need to either fix the CSP api, or just stick with the WinRT interface.
+    // EnterpriseModernAppManagementCSP::ApplicationInfo applicationInfo = EnterpriseModernAppManagementCSP::InstallApp(packageFamilyName, appxPath, deps);
+    ApplicationInfo applicationInfo = AppCfg::InstallApp(packageFamilyName, appxPath, deps, certFile, certStore, isSelfUpdate);
+
+    AppInstallResponseData^ responseData = ref new AppInstallResponseData();
+    responseData->pkgFamilyName = ref new String(applicationInfo.packageFamilyName.c_str());
+    responseData->name = ref new String(applicationInfo.name.c_str());
+    responseData->installDate = ref new String(applicationInfo.installDate.c_str());
+    responseData->version = ref new String(applicationInfo.version.c_str());
+    responseData->errorCode = applicationInfo.errorCode;
+    responseData->errorMessage = ref new String(applicationInfo.errorMessage.c_str());
+    responseData->pending = applicationInfo.pending;
+
+    if (!isSelfUpdate)
+    {
+        // Handle the startup state...
+        SetAppStartUpType(packageFamilyName, info->StartUp);
+        responseData->startUp = GetAppStartUpType(packageFamilyName);
+    }
+
+    return ref new AppInstallResponse(ResponseStatus::Success, responseData);
 }
 
 IResponse^ HandleUninstallApp(IRequest^ request)
 {
-    try
-    {
-        auto appUninstall = dynamic_cast<AppUninstallRequest^>(request);
-        auto info = appUninstall->AppUninstallInfo;
-        auto packageFamilyName = (wstring)info->PackageFamilyName->Data();
-        auto storeApp = info->StoreApp;
+    AppUninstallResponseData^ responseData = ref new AppUninstallResponseData();
+    responseData->errorCode = 0;
+    responseData->errorMessage = L"";
 
-        EnterpriseModernAppManagementCSP::UninstallApp(packageFamilyName, storeApp);
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (Platform::Exception^ e)
-    {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleUninstallApp: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    auto appUninstallRequest = dynamic_cast<AppUninstallRequest^>(request);
+    auto requestData = appUninstallRequest->data;
+    auto packageFamilyName = (wstring)requestData->PackageFamilyName->Data();
+
+    SetAppStartUpType(packageFamilyName, StartUpType::None);
+
+    // ToDo: Need to either fix the CSP api, or just stick with the WinRT interface.
+    // auto storeApp = info->StoreApp;
+    // EnterpriseModernAppManagementCSP::UninstallApp(packageFamilyName, storeApp);
+    AppCfg::UninstallApp(packageFamilyName.c_str());
+    responseData->errorCode = 0;
+    responseData->errorMessage = L"";
+    return ref new AppUninstallResponse(ResponseStatus::Success, responseData);
 }
 
 IResponse^ HandleTransferFile(IRequest^ request)
 {
-    try
-    {
-        auto transferRequest = dynamic_cast<AzureFileTransferRequest^>(request);
-        auto info = transferRequest->AzureFileTransferInfo;
-        auto upload = info->Upload;
-        auto localPath = (wstring)info->LocalPath->Data();
-        auto appLocalDataPath = (wstring)info->AppLocalDataPath->Data();
+    TRACE(__FUNCTION__);
 
-        std::ifstream  src((upload) ? localPath : appLocalDataPath, std::ios::binary);
-        std::ofstream  dst((!upload) ? localPath : appLocalDataPath, std::ios::binary);
-        dst << src.rdbuf();
+    auto transferRequest = dynamic_cast<AzureFileTransferRequest^>(request);
+    auto info = transferRequest->AzureFileTransferInfo;
+    auto upload = info->Upload;
+    auto relativeLocalPath = (wstring)info->RelativeLocalPath->Data();
+    auto appLocalDataPath = (wstring)info->AppLocalDataPath->Data();
 
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (Platform::Exception^ e)
-    {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleTransferFile: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    auto localPathBase = Utils::GetDmUserFolder();
+    auto localPath = localPathBase + relativeLocalPath;
+
+    TRACEP(L"Local path     = ", localPath.c_str());
+    TRACEP(L"App local path = ", appLocalDataPath.c_str());
+
+    std::ifstream  src((upload) ? localPath : appLocalDataPath, std::ios::binary);
+    std::ofstream  dst((!upload) ? localPath : appLocalDataPath, std::ios::binary);
+    dst << src.rdbuf();
+
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleAppLifecycle(IRequest^ request)
 {
-    try
-    {
-        auto appLifecycle = dynamic_cast<AppLifecycleRequest^>(request);
-        auto info = appLifecycle->AppLifecycleInfo;
-        auto appId = (wstring)info->AppId->Data();
-        bool start = info->Start;
+    auto appLifecycle = dynamic_cast<AppLifecycleRequest^>(request);
+    auto info = appLifecycle->AppLifecycleInfo;
+    auto appId = (wstring)info->AppId->Data();
+    bool start = info->Start;
 
-        if (start) AppCfg::StartApp(appId);
-        else AppCfg::StopApp(appId);
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (Platform::Exception^ e)
-    {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleAppLifecycle: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    if (start) AppCfg::StartApp(appId);
+    else AppCfg::StopApp(appId);
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleStartApp(IRequest^ request)
@@ -461,53 +585,37 @@ IResponse^ HandleStopApp(IRequest^ request)
 
 IResponse^ HandleAddRemoveAppForStartup(StartupAppInfo^ info, DMMessageKind tag, bool add)
 {
-    try
-    {
-        auto appId = (wstring)info->AppId->Data();
-        auto isBackgroundApp = info->IsBackgroundApplication;
+    TRACE(__FUNCTION__);
 
-        if (add) { CustomDeviceUiCSP::AddAsStartupApp(appId, isBackgroundApp); }
-        else { CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(appId); }
-        return ref new StatusCodeResponse(ResponseStatus::Success, tag);
-    }
-    catch (Platform::Exception^ e)
+    auto pkgFamilyName = (wstring)info->AppId->Data();
+
+    TRACEP(L"pkgFamilyName = ", pkgFamilyName.c_str());
+
+    auto isBackgroundApp = info->IsBackgroundApplication;
+
+    if (add)
     {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, tag);
+        CustomDeviceUiCSP::AddAsStartupApp(pkgFamilyName, isBackgroundApp);
     }
+    else
+    {
+        CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(pkgFamilyName);
+    }
+    return ref new StatusCodeResponse(ResponseStatus::Success, tag);
 }
 
 IResponse^ HandleAddStartupApp(IRequest^ request)
 {
-    try
-    {
-        auto startupApp = dynamic_cast<AddStartupAppRequest^>(request);
-        auto info = startupApp->StartupAppInfo;
-        return HandleAddRemoveAppForStartup(info, request->Tag, true);
-    }
-    catch (Platform::Exception^ e)
-    {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleAddAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    auto startupApp = dynamic_cast<AddStartupAppRequest^>(request);
+    auto info = startupApp->StartupAppInfo;
+    return HandleAddRemoveAppForStartup(info, request->Tag, true);
 }
 
 IResponse^ HandleRemoveStartupApp(IRequest^ request)
 {
-    try
-    {
-        auto startupApp = dynamic_cast<RemoveStartupAppRequest^>(request);
-        auto info = startupApp->StartupAppInfo;
-        return HandleAddRemoveAppForStartup(info, request->Tag, false);
-    }
-    catch (Platform::Exception^ e)
-    {
-        std::wstring failure(e->Message->Data());
-        TRACEP(L"ERROR DMCommand::HandleRemoveAppForStartup: ", Utils::ConcatString(failure.c_str(), e->HResult));
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    auto startupApp = dynamic_cast<RemoveStartupAppRequest^>(request);
+    auto info = startupApp->StartupAppInfo;
+    return HandleAddRemoveAppForStartup(info, request->Tag, false);
 }
 
 IResponse^ HandleGetStartupForegroundApp(IRequest^ request)
@@ -529,205 +637,98 @@ IResponse^ HandleListApps(IRequest^ request)
 {
     TRACE(__FUNCTION__);
     auto json = EnterpriseModernAppManagementCSP::GetInstalledApps();
-    auto jsonMap = JsonObject::Parse(ref new Platform::String(json.c_str()));
+    JsonObject^ jsonMap = JsonObject::Parse(ref new Platform::String(json.c_str()));
+
+    // Inject the StartUp property.
+    for each (auto pair in jsonMap)
+    {
+        auto pfn = pair->Key;
+        auto properties = jsonMap->GetNamedObject(pfn);
+        wstring packageFamilyName = properties->GetNamedString("PackageFamilyName")->Data();
+        properties->Insert(L"StartUp", JsonValue::CreateNumberValue(static_cast<double>(GetAppStartUpType(packageFamilyName))));
+    }
+
     return ref new ListAppsResponse(ResponseStatus::Success, jsonMap);
 }
 
 IResponse^ HandleTpmGetServiceUrl(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-    try
-    {
-        uint32_t logicalDeviceId = dynamic_cast<TpmGetServiceUrlRequest^>(request)->LogicalDeviceId;
-        std::string serviceUrl = GetServiceUrl(logicalDeviceId);
-        auto serviceUrlW = Utils::MultibyteToWide(serviceUrl.c_str());
-        return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(serviceUrlW.c_str()), request->Tag);
-    }
-    catch (...)
-    {
-        TRACE(L"HandleTpmGetServiceUrl failed");
-        return ref new StringResponse(ResponseStatus::Failure, L"", request->Tag);
-    }
+    unsigned long logicalDeviceId = 0;
+    Utils::TryReadRegistryValue(TpmSlotRegistrySubKey, TpmSlotPropertyName, logicalDeviceId);
+    TRACEP(L"logicalDeviceId=", logicalDeviceId);
+
+    std::string serviceUrl = Tpm::GetServiceUrl((uint32_t)logicalDeviceId);
+    auto serviceUrlW = Utils::MultibyteToWide(serviceUrl.c_str());
+    return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(serviceUrlW.c_str()), request->Tag);
 }
 
 IResponse^ HandleTpmGetSASToken(IRequest^ request)
 {
     TRACE(__FUNCTION__);
-    try
-    {
-        uint32_t logicalDeviceId = dynamic_cast<TpmGetSASTokenRequest^>(request)->LogicalDeviceId;
-        TRACEP(L"logicalDeviceId=", logicalDeviceId);
-        std::string sasToken = GetSASToken(logicalDeviceId);
-        auto sasTokenW = Utils::MultibyteToWide(sasToken.c_str());
-        return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(sasTokenW.c_str()), request->Tag);
-    }
-    catch (...)
-    {
-        TRACE(L"HandleTpmGetSASToken failed");
-        return ref new StringResponse(ResponseStatus::Failure, L"", request->Tag);
-    }
+    unsigned long logicalDeviceId = 0;
+    Utils::TryReadRegistryValue(TpmSlotRegistrySubKey, TpmSlotPropertyName, logicalDeviceId);
+    TRACEP(L"logicalDeviceId=", logicalDeviceId);
+    
+    std::string sasToken = Tpm::GetSASToken(logicalDeviceId);
+    auto sasTokenW = Utils::MultibyteToWide(sasToken.c_str());
+    return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(sasTokenW.c_str()), request->Tag);
 }
 
 IResponse^ HandleGetWindowsUpdatePolicy(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    unsigned int activeHoursStart = static_cast<unsigned int>(-1);
-    unsigned int activeHoursEnd = static_cast<unsigned int>(-1);
-    unsigned int allowAutoUpdate = static_cast<unsigned int>(-1);
-    unsigned int allowMUUpdateService = static_cast<unsigned int>(-1);
-    unsigned int allowNonMicrosoftSignedUpdate = static_cast<unsigned int>(-1);
-
-    unsigned int allowUpdateService = static_cast<unsigned int>(-1);
-    unsigned int branchReadinessLevel = static_cast<unsigned int>(-1);
-    unsigned int deferFeatureUpdatesPeriod = static_cast<unsigned int>(-1);    // in days
-    unsigned int deferQualityUpdatesPeriod = static_cast<unsigned int>(-1);    // in days
-    unsigned int excludeWUDrivers = static_cast<unsigned int>(-1);
-
-    unsigned int pauseFeatureUpdates = static_cast<unsigned int>(-1);
-    unsigned int pauseQualityUpdates = static_cast<unsigned int>(-1);
-    unsigned int requireUpdateApproval = static_cast<unsigned int>(-1);
-    unsigned int scheduledInstallDay = static_cast<unsigned int>(-1);
-    unsigned int scheduledInstallTime = static_cast<unsigned int>(-1);
-
-    wstring updateServiceUrl = L"<error>";
-
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ActiveHoursStart", activeHoursStart);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ActiveHoursEnd", activeHoursEnd);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowAutoUpdate", allowAutoUpdate);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowMUUpdateService", allowMUUpdateService);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowNonMicrosoftSignedUpdate", allowNonMicrosoftSignedUpdate);
-
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/AllowUpdateService", allowUpdateService);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/BranchReadinessLevel", branchReadinessLevel);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferFeatureUpdatesPeriodInDays", deferFeatureUpdatesPeriod);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/DeferQualityUpdatesPeriodInDays", deferQualityUpdatesPeriod);
-    // MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ExcludeWUDrivers", excludeWUDrivers);
-
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseFeatureUpdates", pauseFeatureUpdates);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/PauseQualityUpdates", pauseQualityUpdates);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/RequireUpdateApproval", requireUpdateApproval);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallDay", scheduledInstallDay);
-    MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallTime", scheduledInstallTime);
-
-    MdmProvision::TryGetString(L"./Device/Vendor/MSFT/Policy/Result/Update/UpdateServiceUrl", updateServiceUrl);
-
-    auto configuration = ref new WindowsUpdatePolicyConfiguration();
-    configuration->activeHoursStart = activeHoursStart;
-    configuration->activeHoursEnd = activeHoursEnd;
-    configuration->allowAutoUpdate = allowAutoUpdate;
-    configuration->allowMUUpdateService = allowMUUpdateService;
-    configuration->allowNonMicrosoftSignedUpdate = allowNonMicrosoftSignedUpdate;
-
-    configuration->allowUpdateService = allowUpdateService;
-    configuration->branchReadinessLevel = branchReadinessLevel;
-    configuration->deferFeatureUpdatesPeriod = deferFeatureUpdatesPeriod;
-    configuration->deferQualityUpdatesPeriod = deferQualityUpdatesPeriod;
-    configuration->excludeWUDrivers = excludeWUDrivers;
-
-    configuration->pauseFeatureUpdates = pauseFeatureUpdates;
-    configuration->pauseQualityUpdates = pauseQualityUpdates;
-    configuration->requireUpdateApproval = requireUpdateApproval;
-    configuration->scheduledInstallDay = scheduledInstallDay;
-    configuration->scheduledInstallTime = scheduledInstallTime;
-
-    configuration->updateServiceUrl = ref new String(updateServiceUrl.c_str());
-    return ref new GetWindowsUpdatePolicyResponse(ResponseStatus::Success, configuration);
+    return WindowsUpdatePolicyCSP::Get(request);
 }
 
 IResponse^ HandleSetWindowsUpdatePolicy(IRequest^ request)
 {
-    // ToDo: We need have a consistent policy on whether we:
-    // - apply all or nothing.
-    // - apply as much as we can and report and error.
+    TRACE(__FUNCTION__);
 
-    try
-    {
-        auto updatePolicyRequest = dynamic_cast<SetWindowsUpdatePolicyRequest^>(request);
-        assert(updatePolicyRequest->configuration != nullptr);
-
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursStart", static_cast<int>(updatePolicyRequest->configuration->activeHoursStart));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ActiveHoursEnd", static_cast<int>(updatePolicyRequest->configuration->activeHoursEnd));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowAutoUpdate", static_cast<int>(updatePolicyRequest->configuration->allowAutoUpdate));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowMUUpdateService", static_cast<int>(updatePolicyRequest->configuration->allowMUUpdateService));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowNonMicrosoftSignedUpdate", static_cast<int>(updatePolicyRequest->configuration->allowNonMicrosoftSignedUpdate));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/AllowUpdateService", static_cast<int>(updatePolicyRequest->configuration->allowUpdateService));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/BranchReadinessLevel", static_cast<int>(updatePolicyRequest->configuration->branchReadinessLevel));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferFeatureUpdatesPeriodInDays", static_cast<int>(updatePolicyRequest->configuration->deferFeatureUpdatesPeriod));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/DeferQualityUpdatesPeriodInDays", static_cast<int>(updatePolicyRequest->configuration->deferQualityUpdatesPeriod));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ExcludeWUDrivers", static_cast<int>(updatePolicyRequest->configuration->excludeWUDrivers));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseFeatureUpdates", static_cast<int>(updatePolicyRequest->configuration->pauseFeatureUpdates));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/PauseQualityUpdates", static_cast<int>(updatePolicyRequest->configuration->pauseQualityUpdates));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/RequireUpdateApproval", static_cast<int>(updatePolicyRequest->configuration->requireUpdateApproval));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallDay", static_cast<int>(updatePolicyRequest->configuration->scheduledInstallDay));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/ScheduledInstallTime", static_cast<int>(updatePolicyRequest->configuration->scheduledInstallTime));
-        MdmProvision::RunSet(L"./Device/Vendor/MSFT/Policy/Config/Update/UpdateServiceUrl", wstring(updatePolicyRequest->configuration->updateServiceUrl->Data()));
-
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
-    {
-        TRACEP("ERROR DMCommand::HandleSetWindowsUpdatePolicy: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
-    }
+    return WindowsUpdatePolicyCSP::Set(request);
 }
 
 IResponse^ HandleGetWindowsUpdateRebootPolicy(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto configuration = ref new WindowsUpdateRebootPolicyConfiguration();
+    auto configuration = ref new WindowsUpdateRebootPolicyConfiguration();
 
-        wstring value;
-        if (ERROR_SUCCESS == Utils::TryReadRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed, value))
-        {
-            configuration->allow = value == IoTDMRegistryTrue;
-        }
-        else
-        {
-            // default is to allow rebooting.
-            configuration->allow = true;
-        }
-
-        return ref new GetWindowsUpdateRebootPolicyResponse(ResponseStatus::Success, configuration);
-    }
-    catch (const DMException& e)
+    wstring value;
+    if (ERROR_SUCCESS == Utils::TryReadRegistryValue(IoTDMRegistryRoot, RegWindowsUpdateRebootAllowed, value))
     {
-        TRACEP("ERROR DMCommand::HandleGetWindowsUpdateRebootPolicy: ", e.what());
-        return ref new GetWindowsUpdateRebootPolicyResponse(ResponseStatus::Failure, ref new WindowsUpdateRebootPolicyConfiguration());
+        configuration->allow = value == RegTrue;
     }
+    else
+    {
+        // default is to allow rebooting.
+        configuration->allow = true;
+    }
+
+    return ref new GetWindowsUpdateRebootPolicyResponse(ResponseStatus::Success, configuration);
 }
 
 IResponse^ HandleSetWindowsUpdateRebootPolicy(IRequest^ request)
 {
     TRACE(__FUNCTION__);
 
-    try
-    {
-        auto windowsUpdateRebootPolicy = dynamic_cast<SetWindowsUpdateRebootPolicyRequest^>(request);
-        assert(windowsUpdateRebootPolicy != nullptr);
+    auto windowsUpdateRebootPolicy = dynamic_cast<SetWindowsUpdateRebootPolicyRequest^>(request);
+    assert(windowsUpdateRebootPolicy != nullptr);
 
-        unsigned long returnCode;
-        string output;
-        wstring command = Utils::GetSystemRootFolder() + L"\\ApplyUpdate.exe ";
-        command += windowsUpdateRebootPolicy->configuration->allow ? L"-blockrebootoff" : L"-blockrebooton";
-        Utils::LaunchProcess(command, returnCode, output);
-        if (returnCode != 0)
-        {
-            throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
-        }
-        Utils::WriteRegistryValue(IoTDMRegistryRoot, IoTDMRegistryWindowsUpdateRebootAllowed,
-            windowsUpdateRebootPolicy->configuration->allow ? IoTDMRegistryTrue : IoTDMRegistryFalse);
-
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
+    unsigned long returnCode;
+    string output;
+    wstring command = Utils::GetSystemRootFolder() + L"\\ApplyUpdate.exe ";
+    command += windowsUpdateRebootPolicy->configuration->allow ? L"-blockrebootoff" : L"-blockrebooton";
+    Utils::LaunchProcess(command, returnCode, output);
+    if (returnCode != 0)
     {
-        TRACEP("ERROR DMCommand::HandleSetWindowsUpdateRebootPolicy: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+        throw DMExceptionWithErrorCode("Error: ApplyUpdate.exe returned an error code.", returnCode);
     }
+    Utils::WriteRegistryValue(IoTDMRegistryRoot, RegWindowsUpdateRebootAllowed,
+        windowsUpdateRebootPolicy->configuration->allow ? RegTrue : RegFalse);
+
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
 IResponse^ HandleGetWindowsUpdates(IRequest^ request)
@@ -764,20 +765,89 @@ IResponse^ HandleGetWindowsUpdates(IRequest^ request)
 
 IResponse^ HandleSetWindowsUpdates(IRequest^ request)
 {
-    try
-    {
-        auto windowsUpdatesRequest = dynamic_cast<SetWindowsUpdatesRequest^>(request);
-        assert(windowsUpdatesRequest != nullptr);
+    TRACE(__FUNCTION__);
 
-        MdmProvision::RunAdd(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", windowsUpdatesRequest->configuration->approved->Data());
+    auto windowsUpdatesRequest = dynamic_cast<SetWindowsUpdatesRequest^>(request);
+    assert(windowsUpdatesRequest != nullptr);
 
-        return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
-    }
-    catch (const DMException& e)
+    MdmProvision::RunAdd(L"./Device/Vendor/MSFT/Update/ApprovedUpdates", windowsUpdatesRequest->configuration->approved->Data());
+
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
+IResponse^ HandleDeviceHealthAttestationVerifyHealth(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    auto verifyHealthRequest = dynamic_cast<DeviceHealthAttestationVerifyHealthRequest^>(request);
+    assert(verifyHealthRequest != nullptr);
+
+    DeviceHealthAttestationCSP::SetHASEndpoint(verifyHealthRequest->HealthAttestationServerEndpoint->Data());
+    DeviceHealthAttestationCSP::ExecVerifyHealth();
+
+    auto healthAttestationStatus = DeviceHealthAttestationCSP::GetStatus();
+    for (int i = 0; i < 5 && healthAttestationStatus == 1 /*HEALTHATTESTATION_CERT_RETRIEVAL_REQUESTED*/; i++)
     {
-        TRACEP("ERROR DMCommand::HandleSetWindowsUpdates: ", e.what());
-        return ref new StatusCodeResponse(ResponseStatus::Failure, request->Tag);
+        /* HEALTHATTESTATION_CERT_RETRIEVAL_REQUESTED signifies that the call on the node VerifyHealth 
+            has been triggered and now the OS is trying to retrieve DHA-EncBlob from DHA-Server.*/
+        Sleep(200);
+        healthAttestationStatus = DeviceHealthAttestationCSP::GetStatus();
     }
+
+    if (healthAttestationStatus != 3 /*HEALTHATTESTATION_CERT_RETRIEVAL_COMPLETE*/)
+    {
+        wstringstream ws;
+        ws << L"VerifyHealth failed: 0x" << hex << healthAttestationStatus;
+        auto errorMessageCStr = ws.str();
+        auto errorMessage = ref new String(errorMessageCStr.c_str(), static_cast<unsigned int>(errorMessageCStr.length()));
+        return ref new StringResponse(ResponseStatus::Failure, errorMessage, DMMessageKind::ErrorResponse);
+    }
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
+IResponse^ HandleDeviceHealthAttestationGetReport(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    auto certificateRequest = dynamic_cast<DeviceHealthAttestationGetReportRequest^>(request);
+    assert(certificateRequest != nullptr);
+
+    DeviceHealthAttestationCSP::SetNonce(certificateRequest->Nonce->Data());
+    auto certificateCStr = DeviceHealthAttestationCSP::GetCertificate();
+    auto certificate = ref new Platform::String(certificateCStr.c_str(), static_cast<unsigned int>(certificateCStr.length()));
+    auto correlationIdCStr = DeviceHealthAttestationCSP::GetCorrelationId();
+    auto correlationId = ref new Platform::String(correlationIdCStr.c_str(), static_cast<unsigned int>(correlationIdCStr.length()));
+
+    return ref new DeviceHealthAttestationGetReportResponse(certificate, correlationId);
+}
+
+IResponse^ HandleGetEventTracingConfiguration(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+    return DiagnosticLogCSP::HandleGetEventTracingConfiguration(request);
+}
+
+IResponse^ HandleSetEventTracingConfiguration(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+    return DiagnosticLogCSP::HandleSetEventTracingConfiguration(request);
+}
+
+IResponse^ HandleGetDMFolders(IRequest^ request)
+{
+    return DMStorage::HandleGetDMFolders(request);
+}
+
+IResponse^ HandleGetDMFiles(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+    return DMStorage::HandleGetDMFiles(request);
+}
+
+IResponse^ HandleDeleteDMFile(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+    return DMStorage::HandleDeleteDMFile(request);
 }
 
 // Get request and produce a response
@@ -803,86 +873,48 @@ IResponse^ ProcessCommand(IRequest^ request)
     }
 }
 
-class PipeConnection
+void EnsureErrorsLogged(const function<void()>& func)
 {
-public:
+    TRACE(__FUNCTION__);
 
-    PipeConnection() :
-        _pipeHandle(NULL)
-    {}
+    ErrorResponse^ error;
 
-    void Connect(HANDLE pipeHandle)
+    try
     {
-        TRACE("Connecting to pipe...");
-        if (pipeHandle == NULL || pipeHandle == INVALID_HANDLE_VALUE)
-        {
-            throw DMException("Error: Cannot connect using an invalid pipe handle.");
-        }
-        if (!ConnectNamedPipe(pipeHandle, NULL))
-        {
-            throw DMExceptionWithErrorCode("ConnectNamedPipe Error", GetLastError());
-        }
-        _pipeHandle = pipeHandle;
+        func();
+    }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        error = CreateErrorResponse(ErrorSubSystem::DeviceManagement, e.ErrorCode(), e.what());
+    }
+    catch (const exception& e)  // Note that DMException is just 'exception' with some trace statements.
+    {
+        error = CreateErrorResponse(ErrorSubSystem::DeviceManagement, static_cast<int>(DeviceManagementErrors::GenericError), e.what());
+    }
+    catch (Platform::Exception^ e)
+    {
+        error = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, e->HResult, e->Message);
+    }
+    catch (...)
+    {
+        error = ref new ErrorResponse(ErrorSubSystem::DeviceManagement, static_cast<int>(DeviceManagementErrors::GenericError), L"Unknown exception!");
     }
 
-    ~PipeConnection()
+    if (error)
     {
-        if (_pipeHandle != NULL)
-        {
-            TRACE("Disconnecting from pipe...");
-            DisconnectNamedPipe(_pipeHandle);
-        }
+        // We can't do anything but log it...
+        TRACE(L"Error encountered!");
+        TRACEP(L"  Error Code   : ", error->ErrorCode);
+        TRACEP(L"  Error Message: ", error->ErrorMessage->Data());
     }
-private:
-    HANDLE _pipeHandle;
-};
+}
 
 void Listen()
 {
     TRACE(__FUNCTION__);
 
-    SecurityAttributes sa(GENERIC_WRITE | GENERIC_READ);
-
-    TRACE("Creating pipe...");
-    Utils::AutoCloseHandle pipeHandle = CreateNamedPipeW(
-        PipeName,
-        PIPE_ACCESS_DUPLEX,
-        PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-        PIPE_UNLIMITED_INSTANCES,
-        PipeBufferSize,
-        PipeBufferSize,
-        NMPWAIT_USE_DEFAULT_WAIT,
-        sa.GetSA());
-
-    if (pipeHandle.Get() == INVALID_HANDLE_VALUE)
+    EnsureErrorsLogged([&]()
     {
-        throw DMExceptionWithErrorCode("CreateNamedPipe Error", GetLastError());
-    }
-
-    while (true)
-    {
-        PipeConnection pipeConnection;
-        TRACE("Waiting for a client to connect...");
-        pipeConnection.Connect(pipeHandle.Get());
-        TRACE("Client connected...");
-
-        auto request = Blob::ReadFromNativeHandle(pipeHandle.Get64());
-        TRACE("Request received...");
-        TRACEP(L"    ", Utils::ConcatString(L"request tag:", (uint32_t)request->Tag));
-        TRACEP(L"    ", Utils::ConcatString(L"request version:", request->Version));
-
-        try
-        {
-            IResponse^ response = ProcessCommand(request->MakeIRequest());
-            response->Serialize()->WriteToNativeHandle(pipeHandle.Get64());
-        }
-        catch (const DMException& ex)
-        {
-            TRACE("DMExeption was thrown from ProcessCommand()...");
-            auto response = ref new StringResponse(ResponseStatus::Failure, ref new String(std::wstring(Utils::MultibyteToWide(ex.what())).c_str()), DMMessageKind::ErrorResponse);
-            response->Serialize()->WriteToNativeHandle(pipeHandle.Get64());
-        }
-
-        // ToDo: How do we exit this loop gracefully?
-    }
+        SystemConfiguratorProxyStart();
+    });
 }

@@ -127,8 +127,60 @@ bool ISO8601DateTimeFromString(const wstring& dateTimeString, ISO8601DateTime& d
     return true;
 }
 
-wstring StringFromISO8601DateTime(const ISO8601DateTime& dateTime)
+void ToUTC(const ISO8601DateTime& in, ISO8601DateTime& out)
 {
+    if (in.zoneHour == 0 && in.zoneMinute == 0)
+    {
+        memcpy(&out, &in, sizeof(out));
+        return;
+    }
+
+    tm tsBase = { 0 };
+    tsBase.tm_year = in.year - 1900;
+    tsBase.tm_mon = in.month - 1; // 0 based
+    tsBase.tm_mday = in.day;
+    tsBase.tm_hour = in.hour;
+    tsBase.tm_min = in.minute;
+    tsBase.tm_sec = in.second;
+    tsBase.tm_isdst = 0;
+
+    time_t tBase = _mkgmtime32(&tsBase);
+
+    time_t tDelta = 0;
+    if (in.zoneHour > 0)
+        tDelta = -1 * (abs(in.zoneHour) * 60 * 60 + in.zoneMinute * 60);
+    else
+        tDelta = (abs(in.zoneHour) * 60 * 60 + in.zoneMinute * 60);
+
+    time_t tUtc = tBase + tDelta;
+
+    tm result;
+    gmtime_s(&result, &tUtc);
+
+    out.year = static_cast<unsigned short>(result.tm_year + 1900);
+    out.month = static_cast<unsigned short>(result.tm_mon + 1); // 0 based
+    out.day = static_cast<unsigned short>(result.tm_mday);
+    out.hour = static_cast<unsigned short>(result.tm_hour);
+    out.minute = static_cast<unsigned short>(result.tm_min);
+    out.second = static_cast<unsigned short>(result.tm_sec);
+    out.milliseconds = 0;
+    out.zoneHour = 0;
+    out.zoneMinute = 0;
+}
+
+
+wstring StringFromISO8601DateTime(const ISO8601DateTime& sourceDateTime, bool utc)
+{
+    ISO8601DateTime dateTime;
+    if (utc)
+    {
+        ToUTC(sourceDateTime, dateTime);
+    }
+    else
+    {
+        dateTime = sourceDateTime ;
+    }
+
     basic_ostringstream<wchar_t> formattedTime;
     formattedTime
         << setw(4) << setfill(L'0') << dateTime.year
@@ -205,13 +257,13 @@ wstring ISO8601FromSystemTime(const SYSTEMTIME& dateTime)
     return formattedTime.str();
 }
 
-wstring CanonicalizeDateTime(const wstring& dateTimeString)
+wstring CanonicalizeDateTime(const wstring& dateTimeString, bool utc)
 {
     Utils::ISO8601DateTime dateTime;
     if (!Utils::ISO8601DateTimeFromString(dateTimeString, dateTime))
     {
         throw DMException("Error: failed to parse date time! ", dateTimeString.c_str());
     }
-    return Utils::StringFromISO8601DateTime(dateTime);
+    return Utils::StringFromISO8601DateTime(dateTime, utc);
 }
 }

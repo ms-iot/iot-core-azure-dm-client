@@ -1,25 +1,40 @@
-## Report Adll Device Properties
+# Report All Device Properties
 
-The **Report Adll Device Properties** operation is initiated by the device receiving the `microsoft.management.reportAllDeviceProperties` method.
+When a desired device management property changes in the device twin, the device management client gets notified and does two things:
 
-## Input Payload 
+- Applies the new desired state.
+- Reads the current device state (that corresponds to the desired state) and reports it to the device twin.
+
+For example, if the operator sets the time zone to be <i>Mountain Time</i>, the device management client will:
+
+- Set the time zone to Mountain Time.
+- Read the time zone from the device, and report it to the device twin.
+
+The operator (or more specifically, the code running on in the Portal) can then compare the desired state to the reported state and decide whether the device is compliant or not.
+
+This is a conservative reporting approach and is meant to report only the properties that are configured (rather than reporting everything the device can report).
+
+Should the operator want to force the device to report all its properties, `windows.reportAllAsync` method can be invoked.
+
+## windows.reportAllAsync
+
+Reports all properties supported by the Windows IoT Azure Device Client.
+
+#### Input Payload 
 Input payload is empty
 
-## Output Payload
-The device responds immediately with the following JSON payload:
+#### Output Payload
+
+This method is asynchronous, so it returns immediately and sets the <i>Status Object</i> to `pending`. For more details on the <i>Status Object</i>, see [Status Reporting](status-reporting.md).
 
 <pre>
-"response" : value (<i>See below</i>)
+{
+    "status" : {
+        &lt;<i>Status Object</i>&gt;
+    }
+}
 </pre>
 
-Possible `"response"` values are: 
-- `"success"` - The request was accepted and scheduled. The device will attempt to report all properties momentarily (note: the attempt might fail, see below).
-- `"failure"` - The device failed to schedule reporting all the properties.
+----
 
-**Examples:**
-
-Successful response:
-
-```
-"response" : "success"
-```
+[Home Page](../README.md) | [Library Reference](library-reference.md)

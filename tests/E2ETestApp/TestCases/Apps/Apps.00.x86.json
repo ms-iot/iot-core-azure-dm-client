@@ -1,0 +1,190 @@
+{
+  "scenario": [
+    {
+      "name": "00",
+      "type": "deviceTwin",
+      "description": "install toaster app v1.0.0.0.",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "externalStorage": {
+                "connectionString": "<azure storage connection string>"
+              },
+              "apps": {
+                "23983CETAthensQuality.IoTToasterSample_8whstpt5232x0": {
+                  "pkgFamilyName": "23983CETAthensQuality.IoTToasterSample_8whstpt5232x0",
+                  "version": "1.0.0.0",
+                  "startUp": "foreground",
+                  "appxSource": "appx-x86\\Toaster_1.0.0.0_x86_Debug.appx",
+                  "depsSources": "appx-x86\\Microsoft.NET.CoreRuntime.1.1.appx;appx-x86\\Microsoft.VCLibs.x86.Debug.14.00.appx",
+                  "certSource": "appx-x86\\Toaster_1.0.0.0_x86_Debug.cer",
+                  "certStore": "./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
+                }
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "externalStorage": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "connectionString": "<ignore>"
+                },
+                "apps": {
+                  "23983CETAthensQuality.IoTToasterSample_8whstpt5232x0": {
+                    "pkgFamilyName": "23983CETAthensQuality.IoTToasterSample_8whstpt5232x0",
+                    "version": "1.0.0.0",
+                    "startUp": "foreground",
+                    "installDate": ""
+                  },
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "01",
+      "type": "deviceTwin",
+      "description": "upgrade toaster app to v1.0.1.0.",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "externalStorage": {
+                "connectionString": "<azure storage connection string>"
+              },
+              "apps": {
+                "23983CETAthensQuality.IoTToasterSample_8whstpt5232x0": {
+                  "pkgFamilyName": "23983CETAthensQuality.IoTToasterSample_8whstpt5232x0",
+                  "version": "1.0.1.0",
+                  "startUp": "foreground",
+                  "appxSource": "appx-x86\\Toaster_1.0.1.0_x86_Debug.appx",
+                  "depsSources": "appx-x86\\Microsoft.NET.CoreRuntime.1.1.appx;appx-x86\\Microsoft.VCLibs.x86.Debug.14.00.appx",
+                  "certSource": "appx-x86\\Toaster_1.0.1.0_x86_Debug.cer",
+                  "certStore": "./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"
+                }
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "externalStorage": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "connectionString": "<ignore>"
+                },
+                "apps": {
+                  "23983CETAthensQuality.IoTToasterSample_8whstpt5232x0": {
+                    "pkgFamilyName": "23983CETAthensQuality.IoTToasterSample_8whstpt5232x0",
+                    "version": "1.0.1.0",
+                    "startUp": "foreground",
+                    "installDate": ""
+                  },
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "03",
+      "type": "deviceTwin",
+      "description": "Set the start-up back to the default app",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "apps": {
+                "IoTCoreDefaultApp_1w720vyc4ccym": {
+                  "pkgFamilyName": "IoTCoreDefaultApp_1w720vyc4ccym",
+                  "version": "1.0.1708.2002",
+                  "startUp": "foreground"
+                }
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "apps": {
+                  "IoTCoreDefaultApp_1w720vyc4ccym": {
+                    "pkgFamilyName": "IoTCoreDefaultApp_1w720vyc4ccym",
+                    "version": "1.0.1708.2002",
+                    "startUp": "foreground",
+                    "installDate": ""
+                  },
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "04",
+      "type": "deviceTwin",
+      "description": "uninstalling the toaster app",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "apps": {
+                "23983CETAthensQuality.IoTToasterSample_8whstpt5232x0": {
+                  "pkgFamilyName": "23983CETAthensQuality.IoTToasterSample_8whstpt5232x0",
+                  "version": "not installed"
+                }
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "absent": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "apps": {
+                  "23983CETAthensQuality.IoTToasterSample_8whstpt5232x0": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

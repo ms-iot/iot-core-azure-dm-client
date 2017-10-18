@@ -13,13 +13,19 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\CSPs">
-      <UniqueIdentifier>{ad88108f-b013-4ddd-b76e-6559122b0c17}</UniqueIdentifier>
+    <Filter Include="Source Files\Handlers">
+      <UniqueIdentifier>{324ff037-2026-4068-9a7c-31b008a6624d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\CSPs">
+    <Filter Include="Source Files\Handlers\CSPs">
       <UniqueIdentifier>{06f27b65-3d0c-4430-a2c1-81e0204c7e9e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\CSPs\PrivateAPIs">
+    <Filter Include="Header Files\Handlers">
+      <UniqueIdentifier>{353fa894-329a-4433-9f8e-735d8b45517f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Handlers\CSPs">
+      <UniqueIdentifier>{ad88108f-b013-4ddd-b76e-6559122b0c17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Handlers\CSPs\PrivateAPIs">
       <UniqueIdentifier>{06d05780-4583-4485-8a5d-06da12cf3db1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -43,46 +49,73 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\EnterpriseModernAppManagementCSP.h">
-      <Filter>Header Files\CSPs</Filter>
+      <Filter>Header Files\Handlers\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\MdmProvision.h">
-      <Filter>Header Files\CSPs</Filter>
+      <Filter>Header Files\Handlers\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\RebootCSP.h">
-      <Filter>Header Files\CSPs</Filter>
+      <Filter>Header Files\Handlers\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\RemoteWipeCSP.h">
-      <Filter>Header Files\CSPs</Filter>
-    </ClInclude>
-    <ClInclude Include="TimeCfg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CSPs\CustomDeviceUiCsp.h">
-      <Filter>Source Files\CSPs</Filter>
+      <Filter>Header Files\Handlers\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\WifiCSP.h">
-      <Filter>Header Files\CSPs</Filter>
-    </ClInclude>
-    <ClInclude Include="AppCfg.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Handlers\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\CertificateStoreCSP.h">
-      <Filter>Header Files\CSPs</Filter>
+      <Filter>Header Files\Handlers\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\CertificateInfo.h">
-      <Filter>Header Files\CSPs</Filter>
+      <Filter>Header Files\Handlers\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\ClientCertificateInstallCSP.h">
-      <Filter>Header Files\CSPs</Filter>
+      <Filter>Header Files\Handlers\CSPs</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\PrivateAPIs\WinSDKRS2.h">
-      <Filter>Header Files\CSPs\PrivateAPIs</Filter>
+      <Filter>Header Files\Handlers\CSPs\PrivateAPIs</Filter>
     </ClInclude>
     <ClInclude Include="CSPs\CertificateManagement.h">
-      <Filter>Header Files\CSPs</Filter>
+      <Filter>Header Files\Handlers\CSPs</Filter>
     </ClInclude>
-    <ClInclude Include="TpmSupport.h">
+    <ClInclude Include="CSPs\DeviceHealthAttestationCSP.h">
+      <Filter>Header Files\Handlers\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\CustomDeviceUiCsp.h">
+      <Filter>Header Files\Handlers\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\DiagnosticLogCSP.h">
+      <Filter>Header Files\Handlers\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="ServiceManager.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CSPs\WindowsUpdatePolicyCSP.h">
+      <Filter>Header Files\Handlers\CSPs</Filter>
+    </ClInclude>
+    <ClInclude Include="SystemConfiguratorProxyServer\SystemConfiguratorProxy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AppCfg.h">
+      <Filter>Header Files\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="AppInfo.h">
+      <Filter>Header Files\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="DMStorage.h">
+      <Filter>Header Files\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeCfg.h">
+      <Filter>Header Files\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsTelemetry.h">
+      <Filter>Header Files\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeService.h">
+      <Filter>Header Files\Handlers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -99,43 +132,70 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\EnterpriseModernAppManagementCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
+      <Filter>Source Files\Handlers\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\MdmProvision.cpp">
-      <Filter>Source Files\CSPs</Filter>
+      <Filter>Source Files\Handlers\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\RebootCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
+      <Filter>Source Files\Handlers\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\RemoteWipeCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
-    </ClCompile>
-    <ClCompile Include="TimeCfg.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Handlers\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp">
-      <Filter>Source Files\CSPs</Filter>
+      <Filter>Source Files\Handlers\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\WifiCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
-    </ClCompile>
-    <ClCompile Include="AppCfg.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Handlers\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\CertificateStoreCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
+      <Filter>Source Files\Handlers\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\CertificateInfo.cpp">
-      <Filter>Source Files\CSPs</Filter>
+      <Filter>Source Files\Handlers\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\ClientCertificateInstallCSP.cpp">
-      <Filter>Source Files\CSPs</Filter>
-    </ClCompile>
-    <ClCompile Include="TpmSupport.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Handlers\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\CertificateManagement.cpp">
-      <Filter>Source Files\CSPs</Filter>
+      <Filter>Source Files\Handlers\CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\DeviceHealthAttestationCSP.cpp">
+      <Filter>Source Files\Handlers\CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\DiagnosticLogCSP.cpp">
+      <Filter>Source Files\Handlers\CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="ServiceManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSPs\WindowsUpdatePolicy.cpp">
+      <Filter>Source Files\Handlers\CSPs</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemConfiguratorProxyServer\SystemConfiguratorProxy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AppCfg.cpp">
+      <Filter>Source Files\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="DMStorage.cpp">
+      <Filter>Source Files\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeCfg.cpp">
+      <Filter>Source Files\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsTelemetry.cpp">
+      <Filter>Source Files\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeService.cpp">
+      <Filter>Source Files\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Platform)\$(Configuration)\SystemConfiguratorProxy_s.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

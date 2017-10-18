@@ -22,64 +22,25 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <time.h>
 #include <sstream>
 #include <windows.h>
+#include "StringUtils.h"
+#include "AutoCloseHandle.h"
+#include "Constants.h"
 
-#define IoTDMRegistryRoot L"Software\\Microsoft\\IoTDM"
-#define IoTDMRegistryLastRebootCmd L"LastRebootCmd"
-#define IoTDMRegistryWindowsUpdateRebootAllowed L"WindowsUpdateRebootAllowed"
-#define IoTDMRegistryTrue L"True"
-#define IoTDMRegistryFalse L"False"
+#define IoTDMSihostExe L"sihost.exe"
+
 
 namespace Utils
 {
     typedef std::function<void(std::vector<std::wstring>&, std::wstring&)>& ELEMENT_HANDLER;
+    typedef std::function<void(HANDLE, PTOKEN_USER)> TOKEN_HANDLER;
 
-    // Sid helper
-    std::wstring GetSidForAccount(const wchar_t* userAccount);
 
-    // String helpers
-    std::string WideToMultibyte(const wchar_t* s);
-    std::wstring MultibyteToWide(const char* s);
-
-    template<class T>
-    void SplitString(const std::basic_string<T> &s, T delim, std::vector<std::basic_string<T>>& tokens)
-    {
-        std::basic_stringstream<T> ss;
-        ss.str(s);
-        std::basic_string<T> item;
-        while (getline<T>(ss, item, delim))
-        {
-            tokens.push_back(item);
-        }
-    }
-
-    template<class T>
-    T TrimString(const T& s, const T& chars)
-    {
-        T trimmedString;
-
-        // trim leading characters
-        size_t startpos = s.find_first_not_of(chars);
-        if (T::npos != startpos)
-        {
-            trimmedString = s.substr(startpos);
-        }
-
-        // trim trailing characters
-        size_t endpos = trimmedString.find_last_not_of(chars);
-        if (T::npos != endpos)
-        {
-            trimmedString = trimmedString.substr(0, endpos + 1);
-        }
-        return trimmedString;
-    }
-
-    template<class CharType, class ParamType>
-    std::basic_string<CharType> ConcatString(const CharType* s, ParamType param)
-    {
-        std::basic_ostringstream<CharType> messageStream;
-        messageStream << s << param;
-        return messageStream.str();
-    }
+    // User helper
+    void GetShellUserInfo(TOKEN_HANDLER handler);
+    std::wstring GetDmUserSid();
+    std::wstring GetDmUserName();
+    std::wstring GetDmUserFolder();
+    std::wstring GetDmTempFolder();
 
     // Replaces invalid characters (like .) with _ so that the string can be used
     // as a json property name.
@@ -99,8 +60,13 @@ namespace Utils
 
     // Registry helpers
     void WriteRegistryValue(const std::wstring& subKey, const std::wstring& propName, const std::wstring& propValue);
+    void WriteRegistryValue(const std::wstring& subKey, const std::wstring& propName, unsigned long propValue);
+
     LSTATUS TryReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, std::wstring& propValue);
+    LSTATUS TryReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, unsigned long& propValue);
+
     std::wstring ReadRegistryValue(const std::wstring& subKey, const std::wstring& propName);
+    std::wstring ReadRegistryValue(const std::wstring& subKey, const std::wstring& propName, const std::wstring& propDefaultValue);
 
     // File helpers
     bool FileExists(const std::wstring& fullFileName);
@@ -108,6 +74,8 @@ namespace Utils
 
     // Process helpers
     void LaunchProcess(const std::wstring& commandString, unsigned long& returnCode, std::string& output);
+    std::wstring GetProcessExePath(DWORD processID);
+    bool IsProcessRunning(const std::wstring& processName);
 
     // Threading helpers
     class JoiningThread
@@ -135,54 +103,56 @@ namespace Utils
         std::thread _thread;
     };
 
-    class AutoCloseHandle
+    class AutoCloseSID : public AutoCloseBase<PSID>
     {
     public:
-        AutoCloseHandle() :
-            _handle(NULL)
+        AutoCloseSID() :
+            AutoCloseBase(NULL, [](PSID h) { CloseHandle(h); return TRUE; })
         {}
 
-        AutoCloseHandle(HANDLE&& handle) :
-            _handle(handle)
-        {
-            handle = NULL;
-        }
-
-        HANDLE operator=(HANDLE&& handle)
-        {
-            _handle = handle;
-            handle = NULL;
-            return _handle;
-        }
-
-        HANDLE Get() { return _handle; }
-        uint64_t Get64() { return reinterpret_cast<uint64_t>(_handle); }
-        HANDLE* GetAddress() { return &_handle; }
-
-        BOOL Close()
-        {
-            BOOL result = TRUE;
-            if (_handle != NULL)
-            {
-                result = CloseHandle(_handle);
-                _handle = NULL;
-            }
-            return result;
-        }
-
-        ~AutoCloseHandle()
-        {
-            Close();
-        }
+        AutoCloseSID(PSID&& handle) :
+            AutoCloseBase(std::move(handle), [](PSID h) { FreeSid(h); return TRUE; })
+        {}
 
     private:
-        AutoCloseHandle(const AutoCloseHandle &);            // prevent copy
-        AutoCloseHandle& operator=(const AutoCloseHandle&);  // prevent assignment
+        AutoCloseSID(const AutoCloseSID &);            // prevent copy
+        AutoCloseSID& operator=(const AutoCloseSID&);  // prevent assignment
+    };
 
-        HANDLE _handle;
+    class AutoCloseACL : public AutoCloseBase<PACL>
+    {
+    public:
+        AutoCloseACL() :
+            AutoCloseBase(NULL, [](PSID h) { CloseHandle(h); return TRUE; })
+        {}
+
+        AutoCloseACL(PACL&& handle) :
+            AutoCloseBase(std::move(handle), [](PACL h) { LocalFree(h); return TRUE; })
+        {}
+
+    private:
+        AutoCloseACL(const AutoCloseACL &);            // prevent copy
+        AutoCloseACL& operator=(const AutoCloseACL&);  // prevent assignment
+    };
+
+    class AutoCloseServiceHandle : public AutoCloseBase<SC_HANDLE>
+    {
+    public:
+        AutoCloseServiceHandle() :
+            AutoCloseBase(NULL, [](SC_HANDLE h) { CloseServiceHandle(h); return TRUE; })
+        {}
+
+        AutoCloseServiceHandle(SC_HANDLE&& handle) :
+            AutoCloseBase(std::move(handle), [](SC_HANDLE h) { CloseServiceHandle(h); return TRUE; })
+        {}
+
+    private:
+        AutoCloseServiceHandle(const AutoCloseServiceHandle&);            // prevent copy
+        AutoCloseServiceHandle& operator=(const AutoCloseServiceHandle&);  // prevent assignment
     };
 
     void LoadFile(const std::wstring& fileName, std::vector<char>& buffer);
+    void Base64ToBinary(const std::wstring& encrypted, std::vector<char>& decrypted);
     std::wstring ToBase64(std::vector<char>& buffer);
     std::wstring FileToBase64(const std::wstring& fileName);
 }

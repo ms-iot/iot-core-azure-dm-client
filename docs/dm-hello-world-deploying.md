@@ -3,13 +3,8 @@
 
 After completing the [Coding](dm-hello-world-coding.md) section, we now can start deployment.
 
-The DM application depends on two other components that need to be on the device. Both components are built when the library is built (see [Building the Library](building-the-library.md)).
+The DM application depends on two other components that need to be on the device. Both components are built when the library is built (see [Building the Device Management Binaries](building-the-dm-binaries.md)).
 In a production scenario, they will be part of the OS image (see [Production Device Setup](production-device-setup.md)). For our development scenario, however, we can install them manually as follows:
-
-- **CommProxy.exe**
-  - Copy CommProxy.exe to the device system folder `c:\windows\system32`.
-  - Whilelist CommProxy.exe:
-      - `reg.exe ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\EmbeddedMode\ProcessLauncher" /v AllowedExecutableFilesList /t REG_MULTI_SZ /d "c:\windows\system32\commproxy.exe\0"`
 
 - **SystemConfigurator.exe**
   - Copy SystemConfigurator.exe to the device system folder `c:\windows\system32`.
@@ -24,3 +19,7 @@ In a production scenario, they will be part of the OS image (see [Production Dev
 **Next Step**:
 
 - Managing the [Managing the Device](dm-hello-world-managing.md).
+
+----
+
+[Home Page](../README.md) | [DM Hello World Application](dm-hello-world-overview.md)
