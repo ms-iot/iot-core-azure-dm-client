@@ -8,6 +8,10 @@ Below are the steps necessary to build and run the tests:
 - Deploy systemconfigurator.exe to the device and register/start the service.
 - Create a nuget using the flavor you have built (i.e. debug or release).
 - Add the nuget to the E2ETestApp.
+- If you are running scenarios that depend on Azure storage, under E2ETestApp/TestInfrastructure/TestParameters.cs, fill in the parameters necessary (like Azure storage connection string, etc). Those scenarios are:
+  - Application install scenarios.
+  - Certificate install scenarios.
+  - WiFi profile install scenarios.
 - Build the E2ETestApp.
 - Deploy E2ETestApp using Visual Studio (F5).
 - Select the tests you want to run and click Execute.

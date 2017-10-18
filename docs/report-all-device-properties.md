@@ -1,6 +1,6 @@
 ## Report All Device Properties
 
-The **Report All Device Properties** operation is initiated by the device receiving the `microsoft.management.reportAllDeviceProperties` method.
+The **Report All Device Properties** operation is initiated by the device receiving the `windows.reportAllAsync` method.
 
 ## Input Payload 
 Input payload is empty

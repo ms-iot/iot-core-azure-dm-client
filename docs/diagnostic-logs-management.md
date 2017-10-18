@@ -98,7 +98,8 @@ Below is what the schema looks like:
     "traceLogFileMode" : "sequential"|"circular",
     "logFileSizeLimitMB" : <i>limit</i>,
     "logFileFolder" : "<i>collectorFolderName</i>",
-    "started" : "yes" | "no",
+    "logFileName": "<i>logFileName</i>",
+    "started" : true|false,
     "guid00" : {provider configuration object},
     "guid01" : {provider configuration object}
 }
@@ -107,9 +108,10 @@ Below is what the schema looks like:
 - `"traceLogFileMode"`: specifies the log file logging mode. Allowed values are `"sequential"` or `"circular"`. Note that when it is set to `"sequential"`, logging will stop after the file reaches out its set limit.
 - `"logFileSizeLimitMB"`: specifies the limit for the log file in megabytes. The default value is 4, and the acceptable range is 1-2048.
 - `"collectorFolderName"`: specifies the relative path to the user's data folder where the log files of that collector will be saved once collection stops. The folder name cannot include `\` (The files can later be enumerated and uploaded to Azure Storage. See below for more details).
+- `"logFileName"`: specifies the name of the log file to be generated. If the value of this property is an empty string, a default one will be generated (collector_name_time_stamp).
 - `"started"`: specifies whether the collector should be active (i.e. collecting) or not. Its value is applied everytime the DM client service starts, or the property changes.
-  - If this is set to `"yes"`, the collector will be started (if it is not already).
-  - If this is set to `"no"`, the collector will be stopped, and a file will be saved in <i>logFileFolder</i> (if it is already running).
+  - If this is set to `true`, the collector will be started (if it is not already).
+  - If this is set to `false`, the collector will be stopped, and a file will be saved in <i>logFileFolder</i> (if it is already running).
 - `"guid00"`: specifies the <i>provider configuration object</i> for this guid. See below for more details.
 
 ### Provider Configuration Objectwindows
@@ -125,8 +127,8 @@ Below is what the schema looks like:
 
 - `"traceLevel"`: specifies the level of detail included in the trace log. Allowed values are `"critical"`, `"error"`, `"warning"`, `"information"`, and `"verbose"`.
 - `"keywords"`: specifies the provider keywords to be used as MatchAnyKeyword for this provider.
-- `"enabled": specifies if this provider is enabled in the trace session. Allowed values are `true` or `false`.
-- `"type"`: specifies that this object is a provider object for the DM client. The only allowed value is `provider`.
+- `"enabled"`: specifies if this provider is enabled in the trace session. Allowed values are `true` or `false`.
+- `"type"`: specifies that this object is a provider object for the DM client. The only allowed value is `"provider"`.
 
 ## Reporting
 
@@ -144,7 +146,7 @@ The reporting for `"detailed"` looks like this:
             "traceLogFileMode" : "sequentual"|"circular"",
             "logFileSizeLimitMB" : "4",
             "logFileFolder" : "collectorFolderName",
-            "started" : "yes"|"no",
+            "started" : true|false,
             "guid00" : {
                 "traceLevel": "critical"|"error"|"warning"|"information"|"verbose",
                 "keywords" : "",
