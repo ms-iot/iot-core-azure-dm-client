@@ -430,8 +430,34 @@ namespace Microsoft.Devices.Management
             JObject windowsObj = new JObject();
             foreach (var handler in this._desiredPropertyMap.Values)
             {
+                StatusSection statusSection = new StatusSection(StatusSection.StateType.Pending);
+                await ReportStatusAsync(handler.PropertySectionName, statusSection);
+
                 // TODO: how do we ensure that only Reported=yes sections report results?
-                windowsObj[handler.PropertySectionName] = await handler.GetReportedPropertyAsync();
+                try
+                {
+                    windowsObj[handler.PropertySectionName] = await handler.GetReportedPropertyAsync();
+
+                    statusSection.State = StatusSection.StateType.Completed;
+                    Logger.Log(statusSection.ToString(), LoggingLevel.Information);
+                    await ReportStatusAsync(handler.PropertySectionName, statusSection);
+                }
+                catch (Error e)
+                {
+                    statusSection.State = StatusSection.StateType.Failed;
+                    statusSection.TheError = e;
+
+                    Logger.Log(statusSection.ToString(), LoggingLevel.Error);
+                    await ReportStatusAsync(handler.PropertySectionName, statusSection);
+                }
+                catch (Exception e)
+                {
+                    statusSection.State = StatusSection.StateType.Failed;
+                    statusSection.TheError = new Error(ErrorSubSystem.Unknown, e.HResult, e.Message);
+
+                    Logger.Log(statusSection.ToString(), LoggingLevel.Error);
+                    await ReportStatusAsync(handler.PropertySectionName, statusSection);
+                }
             }
 
             Dictionary<string, object> collection = new Dictionary<string, object>();

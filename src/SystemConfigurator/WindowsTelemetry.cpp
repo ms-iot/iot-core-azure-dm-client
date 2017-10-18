@@ -103,7 +103,7 @@ GetWindowsTelemetryResponse^ WindowsTelemetry::Get()
     }
     else
     {
-        throw DMExceptionWithErrorCode(ERROR_DM_WINDOWS_TELEMETRY_MISSING_LEVEL);
+        throw DMExceptionWithErrorCode("Error: User setting for Windows telemetry level is not defined.", ERROR_DM_WINDOWS_TELEMETRY_MISSING_LEVEL);
     }
 
     return ref new GetWindowsTelemetryResponse(ResponseStatus::Success, data);
