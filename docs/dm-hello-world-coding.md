@@ -166,13 +166,12 @@ using Windows.Foundation.Diagnostics;
   - And of course, add the implementation for `OnDesiredPropertyUpdate` - which will handle Device Twin desired property changes.
 
 <pre>
-    public Task OnDesiredPropertyUpdated(TwinCollection desiredProperties, object userContext)
+    public async Task OnDesiredPropertyUpdated(TwinCollection twinProperties, object userContext)
     {
-        // Let the device management client process properties specific to device management
-        this.deviceManagementClient.ApplyDesiredStateAsync(desiredProperties);
+        Dictionary&lt;string, object&gt; desiredProperties = AzureIoTHubDeviceTwinProxy.DictionaryFromTwinCollection(twinProperties);
 
-        // Application developer can process all the top-level nodes here
-        return Task.CompletedTask;
+        // Let the device management client process properties specific to device management
+        await this.deviceManagementClient.ApplyDesiredStateAsync(desiredProperties);
     }
 </pre>
 

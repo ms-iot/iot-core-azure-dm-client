@@ -50,6 +50,15 @@ The DM client consists of:
 #### Developer's Box
 
 - Visual Studio 2017 ([download](https://www.visualstudio.com/downloads)).
+  - Make sure the following is selected:
+    - VC++ 2017 v141 toolset (x86, x64)
+    - Visual C++ compilers and libraries for ARM.
+    - Visual C++ 2017 redistributable update.
+    - Visual C++ runtime for UWP.
+    - Visual Studio C++ Core Features
+    - Visual C++ ATL support
+    - Windows 10 SDK (10.0.15063.0) for Desktop
+    - Windows 10 SDK (10.0.15063.0) for UWP
 
 #### Device
 
