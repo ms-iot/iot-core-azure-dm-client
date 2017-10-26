@@ -15,7 +15,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 #include <thread>
 #include <atomic>
-#include <future>
 #include "..\SharedUtilities\Utils.h"
 
 class DMService
@@ -74,17 +73,7 @@ private:
 
     // threads
     Utils::JoiningThread _workerThread;
-    // Utils::JoiningThread _connectionRenewerThread;
-
-    // TaskQueue _taskQueue;
 
     // Synchronization between worker thread and main thread for exiting...
     std::atomic<bool> _stopSignaled;
-    bool _renewConnectionString;
-
-    // Azure proxy
-    // AzureProxy _cloudProxy;
-
-    // Models
-    // ModelManager _modelManager;
 };
