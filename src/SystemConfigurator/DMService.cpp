@@ -94,8 +94,7 @@ void WINAPI DMService::ServiceCtrlHandler(DWORD ctrl)
 }
 
 DMService::DMService(const wstring& serviceName) :
-    _stopSignaled(false),
-    _renewConnectionString(false)
+    _stopSignaled(false)
 {
     TRACE(__FUNCTION__);
     assert(serviceName.size() != 0);
