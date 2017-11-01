@@ -201,14 +201,14 @@ For a full documentation on what each field does, see the [Update CSP](https://m
 <pre>
     <b>Methods</b>:
     public static DeviceManagement CreateWithoutAzure();
-    public async Task<WindowsUpdateStatus> GetWindowsUpdateStatusAsync();
+    public async Task<DeviceManagement.WindowsUpdateStatus> GetWindowsUpdateStatusAsync();
 </pre>
 
 Sample:
 
 <pre>
     DeviceManagement dm = DeviceManagement.CreateWithoutAzure();
-    WindowsUpdateStatus status = await dm.ReportWindowsUpdateStatusAsync();
+    DeviceManagement.WindowsUpdateStatus status = await dm.GetWindowsUpdateStatusAsync();
     bool pending = !String.IsNullOrEmpty(status.pendingReboot);
 </pre>
 
