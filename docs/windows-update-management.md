@@ -169,6 +169,50 @@ The device current state of the **Windows Updates** can be inspected through the
 
 For a full documentation on what each field does, see the [Update CSP](https://msdn.microsoft.com/en-us/windows/hardware/commercialize/customize/mdm/update-csp) MSDN page.
 
+#### .Net API
+
+<pre>
+    <b>Namespace</b>:
+    Microsoft.Devices.Management
+</pre>
+
+<pre>
+    <b>Data Structure</b>:
+    public class DeviceManagement
+    {
+        public struct WindowsUpdateStatus
+        {
+            public string installed;
+            public string approved;
+            public string failed;
+            public string installable;
+            public string pendingReboot;
+            public string lastScanTime;
+            public bool deferUpgrade;
+        }
+    }
+</pre>
+
+<pre>
+    <b>Class</b>:
+    DeviceManagement
+</pre>
+
+<pre>
+    <b>Methods</b>:
+    public static DeviceManagement CreateWithoutAzure();
+    public async Task<WindowsUpdateStatus> GetWindowsUpdateStatusAsync();
+</pre>
+
+Sample:
+
+<pre>
+    DeviceManagement dm = DeviceManagement.CreateWithoutAzure();
+    WindowsUpdateStatus status = await dm.ReportWindowsUpdateStatusAsync();
+    bool pending = !String.IsNullOrEmpty(status.pendingReboot);
+</pre>
+
+
 ----
 
 [Home Page](../README.md) | [Library Reference](library-reference.md)
