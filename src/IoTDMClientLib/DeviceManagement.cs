@@ -49,7 +49,7 @@ namespace Microsoft.Devices.Management
             return DeviceManagement;
         }
 
-        public async Task<WindowsUpdateStatus> ReportWindowsUpdateStatusAsync()
+        public async Task<WindowsUpdateStatus> GetWindowsUpdateStatusAsync()
         {
             var request = new Message.GetWindowsUpdatesRequest();
             Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse;
