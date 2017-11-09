@@ -140,7 +140,6 @@
     <ClInclude Include="CSPs\MdmProvision.h" />
     <ClInclude Include="CSPs\PrivateAPIs\WinSDKRS2.h" />
     <ClInclude Include="CSPs\RebootCSP.h" />
-    <ClInclude Include="CSPs\RemoteWipeCSP.h" />
     <ClInclude Include="CSPs\WifiCSP.h" />
     <ClInclude Include="CSPs\WindowsUpdatePolicyCSP.h" />
     <ClInclude Include="DMService.h" />
@@ -172,7 +171,6 @@
     <ClCompile Include="CSPs\EnterpriseModernAppManagementCSP.cpp" />
     <ClCompile Include="CSPs\MdmProvision.cpp" />
     <ClCompile Include="CSPs\RebootCSP.cpp" />
-    <ClCompile Include="CSPs\RemoteWipeCSP.cpp" />
     <ClCompile Include="CSPs\WifiCSP.cpp" />
     <ClCompile Include="CSPs\WindowsUpdatePolicy.cpp">
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>

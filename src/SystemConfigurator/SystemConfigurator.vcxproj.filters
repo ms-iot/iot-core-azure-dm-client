@@ -57,9 +57,6 @@
     <ClInclude Include="CSPs\RebootCSP.h">
       <Filter>Header Files\Handlers\CSPs</Filter>
     </ClInclude>
-    <ClInclude Include="CSPs\RemoteWipeCSP.h">
-      <Filter>Header Files\Handlers\CSPs</Filter>
-    </ClInclude>
     <ClInclude Include="CSPs\WifiCSP.h">
       <Filter>Header Files\Handlers\CSPs</Filter>
     </ClInclude>
@@ -138,9 +135,6 @@
       <Filter>Source Files\Handlers\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\RebootCSP.cpp">
-      <Filter>Source Files\Handlers\CSPs</Filter>
-    </ClCompile>
-    <ClCompile Include="CSPs\RemoteWipeCSP.cpp">
       <Filter>Source Files\Handlers\CSPs</Filter>
     </ClCompile>
     <ClCompile Include="CSPs\CustomDeviceUiCsp.cpp">
