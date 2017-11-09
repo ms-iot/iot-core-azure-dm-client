@@ -16,7 +16,9 @@ To leverage these items on your IotCore device, follow these steps (steps below 
 1. Install [Visual Studio 2017 Update 2](https://www.visualstudio.com/downloads) or later (be sure UWP features are enabled).
 1. Setup your IotCore device using [IoT Dashboard](https://docs.microsoft.com/en-us/windows/iot-core/connect-your-device/iotdashboard).
 1. Download the [iot-core-azure-dm-client code](https://github.com/ms-iot/iot-core-azure-dm-client) from github and open **IoTDM.sln** in Visual Studio.
-    + Update samples\Toaster\ConnectionStringProvider.cs to use appropriate IotHub device connection string.
+    + Ensure that the Toaster application can connect to IoTHub:
+      + You can hardcode the IoTHub device string in the code (see iot-core-azure-dm-client\samples\ToasterApp\MainPage.xaml.cs @ GetConnectionStringAsync()).
+      + Or, you can store the connection string into the TPM (using the web portal, for example) and let the Toaster application retrieve it from there and use it to connect.
 1. Configure the Toaster project as the StartUp project by selecting Toaster in the Solution Explorer and selecting **Set as StartUp Project** in the Project  menu (this option is also available in the Solution Explorer's right click context menu).
 1. Set the target configuration/architecture as required by your device and **Build > Rebuild Solution**
 1. Deploy to your device by selecting Remote Machine, entering your device's IP address (or name), and **Build > Deploy Solution**.
