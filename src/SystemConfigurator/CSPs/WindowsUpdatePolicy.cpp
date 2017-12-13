@@ -311,6 +311,13 @@ void WindowsUpdatePolicyCSP::HandleSetDesiredProperties(WindowsUpdatePolicyConfi
     //
     WindowsUpdatePolicyConfiguration^ activeDesiredState = GetActiveDesiredState();
 
+    if (activeDesiredState == nullptr || activeDesiredState->policy == nullptr)
+    {
+        // This would take place if 'data' does not have a policy, or it has no active fields.
+        // The trace should have information on what toke place.
+        return;
+    }
+
     if (activeDesiredState->policy->source != data->policy->source)
     {
         // No need to apply this set...
