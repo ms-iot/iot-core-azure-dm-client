@@ -59,6 +59,8 @@ The DM client consists of:
     - Visual C++ ATL support
     - Windows 10 SDK (10.0.15063.0) for Desktop
     - Windows 10 SDK (10.0.15063.0) for UWP
+    - Windows 10 SDK (10.0.16299.0) for UWP  (*For DMController*)
+
 
 #### Device
 
