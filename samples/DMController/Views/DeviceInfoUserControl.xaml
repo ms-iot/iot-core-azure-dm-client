@@ -1,0 +1,89 @@
+﻿<UserControl
+    x:Class="DMController.Views.DeviceInfoUserControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DMController.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <ScrollViewer HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto" VerticalScrollMode="Disabled" VerticalScrollBarVisibility="Hidden">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" MinWidth="30"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition  Width="Auto" MinWidth="30"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition  Width="Auto" MinWidth="30"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition  Width="Auto" MinWidth="30"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition  Width="*" MinWidth="30"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <!--Device Info-->
+        <TextBlock x:Name="DeviceInfoTitle" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="9" Text="Device Info" Style="{ThemeResource SubheaderTextBlockStyle}" Foreground="#a5ce00" />
+        <StackPanel Grid.Row="0" Grid.Column="9" Orientation="Horizontal" HorizontalAlignment="Right" >
+            <Button x:Name="DeviceInfoUpdateButton"  Grid.Row="0" Grid.Column="9" Background="#a5ce00" Margin="5,0" Click="DeviceInfoUpdateButton_ClickAsync">
+                <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource TitleTextBlockStyle}"/>
+            </Button>
+            <Button x:Name="DeviceReportAllButton" HorizontalAlignment="Right" Margin="5,0" Click="DeviceReportAllButton_Click" Content="Get All Device Properties" FontSize="18"/>
+        </StackPanel>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Id" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Manufacturer" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Model" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="DM Ver." Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="5" Grid.Column="0" Text="Language" Margin="30,5,0,5"/>
+        <TextBlock x:Name="DeviceId" Grid.Row="1" Grid.Column="1" Text="-"  Foreground="#FF0078D7" Margin="5" />
+        <TextBlock x:Name="DeviceManufactuer" Grid.Row="2" Grid.Column="1" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock x:Name="DeviceModel" Grid.Row="3" Grid.Column="1" Text="-" Foreground="#FF0078D7" Margin="5" />
+        <TextBlock x:Name="DeviceDmVer" Grid.Row="4" Grid.Column="1" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock x:Name="DeviceLang" Grid.Row="5" Grid.Column="1" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock Grid.Row="1" Grid.Column="2" Text="Type" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="2" Grid.Column="2" Text="OEM" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="3" Grid.Column="2" Text="Hardware Ver." Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="4" Grid.Column="2" Text="Firmware Ver." Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="5" Grid.Column="2" Text="OS Ver." Margin="30,5,0,5"/>
+        <TextBlock x:Name="DeviceType" Grid.Row="1" Grid.Column="3" Text="-"  Foreground="#FF0078D7" Margin="5"/>
+        <TextBlock x:Name="DeviceOEM" Grid.Row="2" Grid.Column="3" Text="-" Foreground="#FF0078D7" Margin="5"/>
+        <TextBlock x:Name="DeviceHwVer" Grid.Row="3" Grid.Column="3" Text="-" Foreground="#FF0078D7" Margin="5"/>
+        <TextBlock x:Name="DeviceSwVer" Grid.Row="4" Grid.Column="3" Text="-" Foreground="#FF0078D7" Margin="5"/>
+        <TextBlock x:Name="DeviceOsVer" Grid.Row="5" Grid.Column="3" Text="-" Foreground="#FF0078D7" Margin="5"/>
+        <TextBlock Grid.Row="1" Grid.Column="4" Text="Platform" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="2" Grid.Column="4" Text="Processor Type" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="3" Grid.Column="4" Text="RadioSw Ver." Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="4" Grid.Column="4" Text="Display Resolution" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="5" Grid.Column="4" Text="Commercialization Op." Margin="30,5,0,5"/>
+        <TextBlock x:Name="DevicePlatform" Grid.Row="1" Grid.Column="5" Text="-" Foreground="#FF0078D7" Margin="5"/>
+        <TextBlock x:Name="DeviceProcessorType" Grid.Row="2" Grid.Column="5" Text="-"  Foreground="#FF0078D7" Margin="5" />
+        <TextBlock x:Name="DeviceRadioSwVer" Grid.Row="3" Grid.Column="5" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock x:Name="DeviceDisplayResolution" Grid.Row="4" Grid.Column="5" Text="-" Foreground="#FF0078D7" Margin="5" />
+        <TextBlock x:Name="DeviceCommercializationOpe" Grid.Row="5" Grid.Column="5" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock Grid.Row="1" Grid.Column="6" Text="Prcessor Architecture" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="2" Grid.Column="6" Text="Name" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="3" Grid.Column="6" Text="Total Storage" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="4" Grid.Column="6" Text="Total Memory" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="5" Grid.Column="6" Text="Secure Boot State" Margin="30,5,0,5"/>
+        <TextBlock x:Name="DeviceProcessorArch" Grid.Row="1" Grid.Column="7" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock x:Name="DeviceName" Grid.Row="2" Grid.Column="7" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock x:Name="DeviceStorage" Grid.Row="3" Grid.Column="7" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock x:Name="DeviceMemory" Grid.Row="4" Grid.Column="7" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock x:Name="DeviceSecureBoot" Grid.Row="5" Grid.Column="7" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock Grid.Row="1" Grid.Column="8" Text="OS Edition" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="2" Grid.Column="8" Text="Battery Status" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="3" Grid.Column="8" Text="Battery Remaining" Margin="30,5,0,5"/>
+        <TextBlock Grid.Row="4" Grid.Column="8" Text="Battery Runtime" Margin="30,5,0,5"/>
+        <TextBlock x:Name="DeviceOsEdition" Grid.Row="1" Grid.Column="9" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock x:Name="DeviceBatteryStatus" Grid.Row="2" Grid.Column="9" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock x:Name="DeviceBatteryRemain" Grid.Row="3" Grid.Column="9" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+        <TextBlock x:Name="DeviceBatteryRuntime" Grid.Row="4" Grid.Column="9" Text="-" Foreground="#FF0078D7"  Margin="5"/>
+    </Grid>
+    </ScrollViewer>
+</UserControl>

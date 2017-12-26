@@ -1,0 +1,173 @@
+﻿<UserControl
+    x:Class="DMController.Views.ApplicationsUserControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DMController.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="#242424">
+        <ScrollViewer HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Horizontal">
+                <Grid Margin="10" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="List Apps" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,0,10,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Horizontal" Margin="0,5">
+                            <Button x:Name="RequestAppsButton" Grid.Row="0" Content="Get Apps" Click="RequestAppsButton_ClickAsync"  Margin="0,0,5,0"/>
+                            <Button x:Name="ListAppsButton" Grid.Row="0" Content="List Apps" Click="ListAppsButton_ClickAsync"/>
+                        </StackPanel>
+                        <ListView x:Name="AppsListView" Grid.Row="1"  Margin="0,5" IsItemClickEnabled="True" ItemClick="ListViewApps_ItemClick" >
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding PackageFamilyName}" Style="{ThemeResource BaseTextBlockStyle}" />
+                                        <TextBlock Grid.Row="1" Grid.Column="0"  Text="App Version: " Margin="0,0,5,0"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="0"  Text="Install Date: " Margin="0,0,5,0" />
+                                        <TextBlock Grid.Row="3" Grid.Column="0"  Text="Startup: " Margin="0,0,5,0" />
+                                        <TextBlock Grid.Row="1" Grid.Column="1"  Text="{Binding Version}" />
+                                        <TextBlock Grid.Row="2" Grid.Column="1"  Text="{Binding InstallDate}" />
+                                        <TextBlock Grid.Row="3" Grid.Column="1"  Text="{Binding StartUp}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="BorderBrush" Value="DimGray"/>
+                                    <Setter Property="BorderThickness" Value="0,1,0,0"/>
+                                    <Setter Property="Padding" Value="5"/>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
+                    </Grid>
+                </Grid>
+                <Grid Padding="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Add / Update Apps" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,0,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="300"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <ComboBox Margin="0,5" SelectionChanged="InstallAppArch_SelectionChanged" >
+                            <x:String >ARM</x:String>
+                            <x:String >x64</x:String>
+                        </ComboBox>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Package Family: " VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Version: " VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Startup: " VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Appx Source: " VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Deps Source: " VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Cert Source: " VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Cert Store: " VerticalAlignment="Center"/>
+                        <TextBox x:Name="AppPackageInput" Grid.Row="1" Grid.Column="1" Margin="5" Text="DMClientOverview_jv0mnc6v5g12j"/>
+                        <TextBox x:Name="AppVersionInput" Grid.Row="2" Grid.Column="1" Margin="5" Text="1.0.0.0"/>
+                        <ComboBox x:Name="AppStartupCombox" Grid.Row="3" Grid.Column="1" Margin="5" Width="290">
+                            <x:String>none</x:String>
+                            <x:String>foreground</x:String>
+                            <x:String>background</x:String>
+                        </ComboBox>
+                        <TextBox x:Name="AppAppxSourceInput" Grid.Row="4" Grid.Column="1" Margin="5" Text="dmappx-arm\\DMClientOverview_1.0.0.0_ARM_Debug.appx"/>
+                        <TextBox x:Name="AppDepsSourceInput" Grid.Row="5" Grid.Column="1" Margin="5" Text="dmappx-arm\\Microsoft.NET.CoreRuntime.1.1.appx;dmappx-arm\\Microsoft.VCLibs.ARM.Debug.14.00.appx"/>
+                        <TextBox x:Name="AppCertSourceInput" Grid.Row="6" Grid.Column="1" Margin="5" Text="dmappx-arm\\DMClientOverview_1.0.0.0_ARM_Debug.cer"/>
+                        <TextBox x:Name="AppCertStoreInput" Grid.Row="7" Grid.Column="1" Margin="5" Text="./Device/Vendor/MSFT/RootCATrustedCertificates/TrustedPeople"/>
+                        <Button x:Name="EditAppButton"  Grid.Row="8" Grid.Column="1" Click="EditAppButton_ClickAsync"  HorizontalAlignment="Right" Margin="5">
+                            <TextBlock Text="&#xE930;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+
+                </Grid>
+                <Grid Padding="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Start / Stop App" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,0,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="300"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Package Family: " VerticalAlignment="Center"/>
+                        <TextBox x:Name="PackageFamilyInput1" Grid.Row="0" Grid.Column="1" Margin="5" PlaceholderText="23983CETAthensQuality.IoTToasterSample_8whstpt5232x0"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Action: " VerticalAlignment="Center"/>
+                        <ComboBox x:Name="StartStopCombobox"  Grid.Row="1" Grid.Column="1" Margin="5">
+                            <x:String>start</x:String>
+                            <x:String>stop</x:String>
+                        </ComboBox>
+                        <Button x:Name="StartStopAppButton"  Grid.Row="2" Grid.Column="1" Click="StartStopAppButton_Click"  HorizontalAlignment="Right" Margin="5">
+                            <TextBlock Text="&#xE930;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+                <Grid Padding="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Uninstall App" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,0,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="300"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Package Family: " VerticalAlignment="Center"/>
+                        <TextBox x:Name="PackageFamilyInput2" Grid.Row="0" Grid.Column="1" Margin="5" PlaceholderText="23983CETAthensQuality.IoTToasterSample_8whstpt5232x0"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Version: " VerticalAlignment="Center"/>
+                        <TextBox x:Name="VersionInput" Grid.Row="1" Grid.Column="1" Margin="5" PlaceholderText=""/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Startup: " VerticalAlignment="Center"/>
+                        <TextBox x:Name="StartupInput" Grid.Row="2" Grid.Column="1" Margin="5" PlaceholderText=""/>
+                        <Button x:Name="UninstallAppButton"  Grid.Row="3" Grid.Column="1" Click="UninstallAppButton_ClickAsync"  HorizontalAlignment="Right" Margin="5">
+                            <TextBlock Text="&#xE930;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+        
+    </Grid>
+</UserControl>

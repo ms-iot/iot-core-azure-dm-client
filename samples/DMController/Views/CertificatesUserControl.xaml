@@ -1,0 +1,205 @@
+﻿<UserControl
+    x:Class="DMController.Views.CertificatesUserControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DMController.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" >
+
+    <Grid  Background="#242424">
+        <ScrollViewer HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Horizontal">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="List Certificates" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DimGray" Padding="0,10,10,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button x:Name="ListCertificateButton" Grid.Row="8" Click="ListCertificateButton_ClickAsync" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5">
+                            <TextBlock Text="&#xE753;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                        <StackPanel Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="DimGray">
+                            <TextBlock Text="Root" Style="{ThemeResource BaseTextBlockStyle}"  Margin="0,5"/>
+                            <ListView x:Name="RootCertsListView" IsItemClickEnabled="True" Margin="0,5" ItemClick="ListViewCerts_ItemClick" >
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding HashName}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" BorderThickness="0,0,0,1" BorderBrush="DimGray">
+                            <TextBlock Text="CA" Style="{ThemeResource BaseTextBlockStyle}"  Margin="0,5"/>
+                            <ListView x:Name="CACertsListView" IsItemClickEnabled="True" Margin="0,5" ItemClick="ListViewCerts_ItemClick">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding HashName}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" BorderThickness="0,0,0,1" BorderBrush="DimGray">
+                            <TextBlock Text="TrustedPublisher" Style="{ThemeResource BaseTextBlockStyle}"  Margin="0,5"/>
+                            <ListView x:Name="TrustedPublisherCertsListView" IsItemClickEnabled="True" Margin="0,5" ItemClick="ListViewCerts_ItemClick">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding HashName}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                        <StackPanel Grid.Row="3" BorderThickness="0,0,0,1" BorderBrush="DimGray">
+                            <TextBlock Text="TrustedPeople" Style="{ThemeResource BaseTextBlockStyle}"  Margin="0,5"/>
+                            <ListView x:Name="TrustedPeopleCertsListView" IsItemClickEnabled="True" Margin="0,5" ItemClick="ListViewCerts_ItemClick">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding HashName}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                        <StackPanel Grid.Row="4" BorderThickness="0,0,0,1" BorderBrush="DimGray">
+                            <TextBlock Text="CA/System" Style="{ThemeResource BaseTextBlockStyle}"  Margin="0,5"/>
+                            <ListView x:Name="CASysCertsListView" IsItemClickEnabled="True" Margin="0,5" ItemClick="ListViewCerts_ItemClick">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding HashName}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                        <StackPanel Grid.Row="5" BorderThickness="0,0,0,1" BorderBrush="DimGray">
+                            <TextBlock Text="Root/System" Style="{ThemeResource BaseTextBlockStyle}"  Margin="0,5"/>
+                            <ListView x:Name="RootSysCertsListView" IsItemClickEnabled="True" Margin="0,5" ItemClick="ListViewCerts_ItemClick">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding HashName}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                        <StackPanel Grid.Row="6" BorderThickness="0,0,0,1" BorderBrush="DimGray">
+                            <TextBlock Text="My/User" Style="{ThemeResource BaseTextBlockStyle}"  Margin="0,5"/>
+                            <ListView x:Name="MyUserCertsListView" IsItemClickEnabled="True" Margin="0,5" >
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding HashName}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                        <StackPanel Grid.Row="7" BorderThickness="0,0,0,1" BorderBrush="DimGray">
+                            <TextBlock Text="My/System" Style="{ThemeResource BaseTextBlockStyle}"  Margin="0,5"/>
+                            <ListView x:Name="MySysCertsListView" IsItemClickEnabled="True" Margin="0,5" >
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding HashName}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Install Certificate" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,0,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Certificate Hash: " VerticalAlignment="Center"/>
+                        <TextBox x:Name="CertHashInstallInput" Grid.Row="0" Grid.Column="1" Margin="5" PlaceholderText="09de264388ccf8607966266135da76e0b8d7798b"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="File Name: " VerticalAlignment="Center"/>
+                        <TextBox x:Name="CertFileNameInput" Grid.Row="1" Grid.Column="1" Margin="5" PlaceholderText="certificates\\mycertificate.cer"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Certificate Stores: " VerticalAlignment="Center"/>
+                        <ComboBox x:Name="CertPathInstallCombobox" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" Margin="5"/>
+                        <Button x:Name="InstallCertButton"  Grid.Row="3" Grid.Column="1"  HorizontalAlignment="Right" Margin="5" Click="InstallCertButton_ClickAsync">
+                            <TextBlock Text="&#xE930;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Uninstall Certificate" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,0,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Certificate Hash: " VerticalAlignment="Center"/>
+                        <TextBox x:Name="CertHashUninstallInput" Grid.Row="0" Grid.Column="1" Margin="5" PlaceholderText="09de264388ccf8607966266135da76e0b8d7798b"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Certificate Stores: " VerticalAlignment="Center"/>
+                        <ComboBox x:Name="CertPathUninstallCombobox" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" Margin="5"/>
+                        <Button x:Name="UninstallCertButton"  Grid.Row="2" Grid.Column="1"  HorizontalAlignment="Right" Margin="5" Click="UninstallCertButton_ClickAsync">
+                            <TextBlock Text="&#xE930;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Get Certificate Detail" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,0,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Certificate Hash: " VerticalAlignment="Center"/>
+                        <TextBox x:Name="CertHashDetailInput" Grid.Row="0" Grid.Column="1" Margin="5"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="CSP Path: " VerticalAlignment="Center"/>
+                        <TextBox x:Name="CertCSPPathInput" Grid.Row="1" Grid.Column="1" Margin="5"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Storage Container Name: " VerticalAlignment="Center"/>
+                        <TextBox x:Name="ContainerNameInput" Grid.Row="2" Grid.Column="1" Margin="5" PlaceholderText="containerName"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Output File Name: " VerticalAlignment="Center"/>
+                        <TextBox x:Name="DetailOutputFilenameInput" Grid.Row="3" Grid.Column="1" Margin="5" PlaceholderText="blobFileName"/>
+                        <Button x:Name="DetailCertButton"  Grid.Row="4" Grid.Column="1"  HorizontalAlignment="Right" Margin="5" Click="DetailCertButton_Click">
+                            <TextBlock Text="&#xE930;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+
+</UserControl>

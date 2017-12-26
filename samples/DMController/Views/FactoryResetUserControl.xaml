@@ -1,0 +1,67 @@
+﻿<UserControl
+    x:Class="DMController.Views.FactoryResetUserControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DMController.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid  Background="#242424">
+        <ScrollViewer HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Horizontal">
+                <!--<Grid Margin="10" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Read Status" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,10,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Last Status Time:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="FactoryResetTime" Grid.Row="0" Grid.Column="1" Margin="5" IsReadOnly="True" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Last State"  VerticalAlignment="Center" />
+                        <TextBox x:Name="FactoryResetState" Grid.Row="1" Grid.Column="1"  Margin="5" IsReadOnly="True" />
+                        <Button x:Name="GetFactoryStatus" Grid.Row="2" Grid.Column="1" Click="GetFactoryStatus_ClickAsync"  Margin="0,5" HorizontalAlignment="Right">
+                            <TextBlock Text="&#xE753;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+                </Grid>-->
+                <Grid Margin="10" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Start Factory Reset" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,10,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Recovery Partition GUID:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="RecoveryPartitionGUIDInput" Grid.Row="0" Grid.Column="1" Margin="5 " PlaceholderText="66F49469-6F65-4E1D-9891-2EB2E83C8B85"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Clear TPM:"  VerticalAlignment="Center" />
+                        <CheckBox x:Name="ClearTPMChckbx" Grid.Row="1" Grid.Column="1"/>
+                        
+                        <Button x:Name="SetFactoryStatusButton" Grid.Row="2" Grid.Column="1" Click="SetFactoryStatusButton_Click"  Margin="0,5" HorizontalAlignment="Right">
+                            <TextBlock Text="&#xE930;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

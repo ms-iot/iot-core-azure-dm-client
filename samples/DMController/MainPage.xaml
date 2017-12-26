@@ -1,0 +1,183 @@
+﻿<Page
+    x:Class="DMController.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="using:DMController.Views"
+    mc:Ignorable="d">
+    
+    <!--Style Setter for Pivot-->
+    <Page.Resources>
+        <Style TargetType="PivotHeaderItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="PivotHeaderItem">
+                        <Grid>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="SelectionStates">
+                                    <VisualState x:Name="Selected">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter"
+                                       Storyboard.TargetProperty="Foreground">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#FF0078D7" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedLine"
+                                       Storyboard.TargetProperty="Background">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#FF0078D7" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Unselected">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedLine"
+                                       Storyboard.TargetProperty="Background">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Black" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      Margin="{TemplateBinding Padding}" FontSize="{TemplateBinding FontSize}" FontFamily="{TemplateBinding FontFamily}"
+                                      FontWeight="{TemplateBinding FontWeight}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                                <ContentPresenter.RenderTransform>
+                                    <TranslateTransform x:Name="ContentPresenterTranslateTransform" />
+                                </ContentPresenter.RenderTransform>
+                            </ContentPresenter>
+                            <Border x:Name="SelectedLine" Height="2" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="10,0" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+    
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Background="#FF0078D7" Padding="10,5">
+            <TextBlock Style="{ThemeResource HeaderTextBlockStyle}">Azure IoT Device Management</TextBlock>
+        </Grid>
+        <Grid Grid.Row="1" Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+                <local:DeviceInfoUserControl x:Name="DeviceInfo"/>
+            </Grid>
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions> 
+                <TextBlock Grid.Row="0" Text="Management Features" Style="{ThemeResource SubheaderTextBlockStyle}" Foreground="#a5ce00" />
+                <Pivot Grid.Row="1"  RequestedTheme="Default">
+                    <PivotItem Header="Applications" Margin="10">
+                        <local:ApplicationsUserControl  x:Name="Applications"/>
+                    </PivotItem>
+                    <PivotItem Header="Windows Telemetry">
+                        <local:WindowsTelemetryUserControl x:Name="WindowsTelemetry"/>
+                    </PivotItem>
+                    <PivotItem Header="Windows Update">
+                        <local:WindowsUpdateUserControl  x:Name="WindowsUpdate"/>
+                    </PivotItem>
+                    <PivotItem Header="Reboot">
+                        <local:RebootUserControl x:Name="Reboot"/>
+                    </PivotItem>
+                    <PivotItem Header="Time Settings">
+                        <local:TimeUserControl x:Name="TimeSettings"/>
+                    </PivotItem>
+                    <PivotItem Header="Certificates">
+                        <local:CertificatesUserControl x:Name="Certificates"/>
+                    </PivotItem>
+                    <PivotItem Header="Diagnostic Logs">
+                        <local:DiagnosticLogsUserControl x:Name="DiagnosticLogs"/>
+                    </PivotItem>
+                    <PivotItem Header="Factory Reset">
+                        <local:FactoryResetUserControl x:Name="FactoryReset"/>
+                    </PivotItem>
+                    <PivotItem Header="WiFi Settings">
+                        <local:WifiUserControl x:Name="Wifi"/>
+                    </PivotItem>
+                    <PivotItem Header="Device Health Attestation">
+                        <local:DHAUserControl x:Name="DHA"/>
+                    </PivotItem>
+                </Pivot>
+            </Grid>
+        </Grid>
+        <StackPanel Grid.Row="2" Background="#FF0078D7">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="10,0">
+                    <Button x:Name="DeviceRefreshButton" Padding="5"  Click="DeviceRefreshButton_Click" Background="#a5ce00" >
+                        <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                    </Button>
+                    <TextBlock Text="Device:" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="10,10,0,0" />
+                </StackPanel>
+                <ComboBox Grid.Column="1" x:Name="DeviceCombobox" Width="200" Margin="10" SelectionChanged="DeviceComboBox_SelectionChanged" HorizontalAlignment="Stretch"/>
+                <TextBlock Grid.Column="2" x:Name="DeviceConnectionStatus" Margin="10" VerticalAlignment="Center" />
+                <Button  Grid.Column="3"  x:Name="DeleteDeviceButton" Padding="5" Margin="10" HorizontalAlignment="Right" Click="DeleteDeviceButton_ClickAsync" IsEnabled="False">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        <TextBlock Text=" Device" Style="{ThemeResource BodyTextBlockStyle}"/>
+                    </StackPanel>
+                </Button>
+                <StackPanel  Grid.Column="4"  Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="TestStartAppButton" Padding="5" Click="TestStartAppButton_Click" Margin="10,0" >
+                        <TextBlock Text="&#xE008;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                    </Button>
+                    <Button x:Name="TestStopAppButton" Padding="5" Click="TestStopAppButton_Click">
+                        <TextBlock Text="&#xE711;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                    </Button>
+                    <Button x:Name="SettingsButton" Padding="5" Margin="10" Click="SettingsButton_Click" Background="#a5ce00" >
+                        <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+            <Grid x:Name="SettingsGrid">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock  Grid.Row="0" Grid.Column="0" Text="IoT Hub Connection String:" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="10,5" />
+                <TextBox
+                        x:Name="IoTHubConnTextBox"
+                        PlaceholderText="HostName=xxxxx.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=xxxxx"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        Margin="10,5"
+                        Grid.Row="0" Grid.Column="1"
+                    />
+                <TextBlock  Grid.Row="1" Grid.Column="0" Text="Storage Connection String:" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="10,5" />
+                <TextBox
+                        x:Name="StorageConnTextBox"
+                        PlaceholderText="DefaultEndpointsProtocol=https;AccountName=xxxxx;AccountKey=xxxxx;EndpointSuffix=core.windows.net"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        Margin="10,5"
+                        Grid.Row="1" Grid.Column="1"
+                    />
+                <Button x:Name="SettingsSaveButton"  Grid.Row="2" Grid.Column="1" Background="#a5ce00" Click="SettingsSaveButton_Click"  HorizontalAlignment="Right" Margin="10,5">
+                    <TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                </Button>
+            </Grid>
+        </StackPanel>
+    </Grid>
+</Page>
