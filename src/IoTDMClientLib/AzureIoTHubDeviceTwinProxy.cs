@@ -57,6 +57,8 @@ namespace Microsoft.Devices.Management
                         // No need to do anything, this is the expectation
                         break;
 
+                    case ConnectionStatusChangeReason.Expired_SAS_Token:
+                    case ConnectionStatusChangeReason.Bad_Credential:
                     case ConnectionStatusChangeReason.Retry_Expired:
                         await InternalRefreshConnectionAsync();
                         break;
@@ -66,8 +68,6 @@ namespace Microsoft.Devices.Management
                         break;
 
                     case ConnectionStatusChangeReason.Communication_Error:
-                    case ConnectionStatusChangeReason.Expired_SAS_Token:
-                    case ConnectionStatusChangeReason.Bad_Credential:
                     case ConnectionStatusChangeReason.Device_Disabled:
                         // These are not implemented in the Azure SDK
                         break;
