@@ -4,10 +4,11 @@ A **Device Factory Reset** re-applies a pre-stored Windows image (from the recov
 
 The **Device Factory Reset** operation is initiated by either:
 
-- The application calling `StartFactoryResetAsync()`. 
+- The application calling `DeviceManagementClient.StartFactoryResetAsync()`. 
+- The application calling `DeviceManagement.StartFactoryResetAsync()`. 
 - The operator invoking the Azure direct method `windows.startFactoryResetAsync`.
 
-### StartFactoryResetAsync()
+### DeviceManagementClient.StartFactoryResetAsync()
 
 <pre>
     <b>Namespace</b>:
@@ -24,12 +25,47 @@ The **Device Factory Reset** operation is initiated by either:
     public async Task StartFactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
 </pre>
 
+Notes:
+
+- `DeviceManagementClient.StartFactoryResetAsync()` requires a connection to IoT Hub and it will update the device twin with its status.
+
 **Example**
 
 <pre>
     async Task OnRebootClicked(DeviceManagementClient dmClient)
     {
-        await dmClient.StartFactoryResetAsync(true, "recoveryPartitionGUID");
+        await dmClient.StartFactoryResetAsync(true, "&lt;<i>recoveryPartitionGUID</i>&gt;");
+    }
+</pre>
+
+### DeviceManagement.StartFactoryResetAsync()
+
+<pre>
+    <b>Namespace</b>:
+	Microsoft.Devices.Management
+</pre>
+
+<pre>
+    <b>Class</b>:
+    DeviceManagement
+</pre>
+
+<pre>
+    <b>Methods</b>:
+    public async Task StartFactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
+</pre>
+
+Notes:
+
+- `DeviceManagement.StartFactoryResetAsync()` does not require a connection to IoT Hub and it will not update the device twin with its status.
+
+**Example**
+
+<pre>
+    async Task OnRebootClicked(DeviceManagementClient dmClient)
+    {
+        DeviceManagement dm = DeviceManagement.CreateWithoutAzure();
+        await dm.StartFactoryResetAsync(true, "&lt;<i>recoveryPartitionGUID</i>&gt;");
     }
 </pre>
 

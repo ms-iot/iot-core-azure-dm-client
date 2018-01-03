@@ -52,7 +52,7 @@ namespace Microsoft.Devices.Management
         public async Task<WindowsUpdateStatus> GetWindowsUpdateStatusAsync()
         {
             var request = new Message.GetWindowsUpdatesRequest();
-            Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await this._systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse;
+            Message.GetWindowsUpdatesResponse windowsUpdatesResponse = await _systemConfiguratorProxy.SendCommandAsync(request) as Message.GetWindowsUpdatesResponse;
 
             WindowsUpdateStatus status;
             status.approved = windowsUpdatesResponse.configuration.approved;
@@ -63,6 +63,15 @@ namespace Microsoft.Devices.Management
             status.failed = windowsUpdatesResponse.configuration.failed;
             status.deferUpgrade = windowsUpdatesResponse.configuration.deferUpgrade; 
             return status;
+        }
+
+        public async Task StartFactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
+        {
+            var request = new Message.FactoryResetRequest();
+            request.clearTPM = clearTPM;
+            request.recoveryPartitionGUID = recoveryPartitionGUID;
+
+            await _systemConfiguratorProxy.SendCommandAsync(request);
         }
 
         // Data members
