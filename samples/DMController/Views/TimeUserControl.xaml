@@ -1,0 +1,216 @@
+﻿<UserControl
+    x:Class="DMController.Views.TimeUserControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DMController.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" >
+
+    <Grid  Background="#242424">
+        <ScrollViewer HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Horizontal">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Read Time Info" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,10,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="NTP Server:"  VerticalAlignment="Center"  />
+                        <TextBox x:Name="NtpServer" Grid.Row="0" Grid.Column="1" Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Time:"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="LocalTime" Grid.Row="1" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Disable Dynamic Daylight Time:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="DynamicDaylightTime" Grid.Row="2" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Zone Key Name:"  VerticalAlignment="Center"  />
+                        <TextBox x:Name="TimezoneKeyName" Grid.Row="3" Grid.Column="1" Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Bias:"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="TimeZoneBias" Grid.Row="4" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Standard Name:"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="TimeZoneStandardName" Grid.Row="5" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--" />
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Standard Date:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="TimeZoneStandardDate" Grid.Row="6" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Standard Bias:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="TimeZoneStandardBias" Grid.Row="7" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Standard Day of Week:"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="TimeZoneStandardDayOfWeek" Grid.Row="8" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="9" Grid.Column="0" Text="Daylight Name:"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="TimeZoneDaylightName" Grid.Row="9" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--" />
+                        <TextBlock Grid.Row="10" Grid.Column="0" Text="Daylight Date:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="TimeZoneDaylightDate" Grid.Row="10" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="11" Grid.Column="0" Text="Daylight Bias:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="TimeZoneDaylightBias" Grid.Row="11" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="12" Grid.Column="0" Text="Daylight Day of Week:"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="TimeZoneDaylightDayOfWeek" Grid.Row="12" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <Button x:Name="GetTimeInfoButton"  Grid.Row="13" Grid.Column="1" Click="GetTimeInfoButton_ClickAsync"  Margin="0,5" HorizontalAlignment="Right">
+                            <TextBlock Text="&#xE753;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Update Time Info" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,10,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="NTP Server:"  VerticalAlignment="Center"  />
+                        <ComboBox x:Name="NtpServerCombobox" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Margin="5" SelectedIndex="0"  HorizontalAlignment="Stretch" >
+                            <x:String>time.windows.com</x:String>
+                            <x:String>pool.ntp.org</x:String>
+                        </ComboBox>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Time Zone:"  VerticalAlignment="Center"/>
+                        <ComboBox x:Name="TimeZoneCombobox" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="5" HorizontalAlignment="Stretch" SelectionChanged="TimeZoneInput_SelectionChanged">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DisplayName}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="Disable Dynamic Daylight Time:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="DynamicDaylightTimeInput" Grid.Row="2" Grid.Column="2"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="Zone Key Name:"  VerticalAlignment="Center"  />
+                        <TextBox x:Name="TimezoneKeyNameInput" Grid.Row="3" Grid.Column="2" Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="Bias:"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="TimeZoneBiasInput" Grid.Row="4" Grid.Column="2"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="5" Grid.Column="1" Text="Standard Name:"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="TimeZoneStandardNameInput" Grid.Row="5" Grid.Column="2"  Margin="5" IsReadOnly="True" Text="--" />
+                        <TextBlock Grid.Row="6" Grid.Column="1" Text="Standard Date:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="TimeZoneStandardDateInput" Grid.Row="6" Grid.Column="2"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="7" Grid.Column="1" Text="Standard Bias:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="TimeZoneStandardBiasInput" Grid.Row="7" Grid.Column="2"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="8" Grid.Column="1" Text="Standard Day of Week:"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="TimeZoneStandardDayOfWeekInput" Grid.Row="8" Grid.Column="2"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="9" Grid.Column="1" Text="Daylight Name:"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="TimeZoneDaylightNameInput" Grid.Row="9" Grid.Column="2"  Margin="5" IsReadOnly="True" Text="--" />
+                        <TextBlock Grid.Row="10" Grid.Column="1" Text="Daylight Date:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="TimeZoneDaylightDateInput" Grid.Row="10" Grid.Column="2"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="11" Grid.Column="1" Text="Daylight Bias:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="TimeZoneDaylightBiasInput" Grid.Row="11" Grid.Column="2"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="12" Grid.Column="1" Text="Daylight Day of Week:"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="TimeZoneDaylightDayOfWeekInput" Grid.Row="12" Grid.Column="2"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <Button x:Name="SetTimeInfoButton" Grid.Row="13" Grid.Column="2" Click="SetTimeInfoButton_ClickAsync" HorizontalAlignment="Right" Margin="5">
+                            <TextBlock Text="&#xE930;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Read Time Service" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,10,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Enabled:"  VerticalAlignment="Center"  />
+                        <TextBox x:Name="Enabled" Grid.Row="0" Grid.Column="1" Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Startup:"  VerticalAlignment="Center"/>
+                        <TextBox x:Name="Startup" Grid.Row="1" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Started:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="Started" Grid.Row="2" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Priority:"  VerticalAlignment="Center"  />
+                        <TextBox x:Name="SourcePriority" Grid.Row="3" Grid.Column="1" Margin="5" IsReadOnly="True" Text="--"/>
+                        <Button x:Name="GetTimeSettingButton"  Grid.Row="4" Grid.Column="1" Click="GetTimeSettingButton_ClickAsync"  Margin="0,5" HorizontalAlignment="Right">
+                            <TextBlock Text="&#xE753;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Update Time Service" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,10,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Enabled:"  VerticalAlignment="Center"/>
+                        <ComboBox x:Name="EnabledCombobox" Grid.Row="0" Grid.Column="1" Margin="5" SelectedIndex="0" HorizontalAlignment="Stretch">
+                            <x:String>Yes</x:String>
+                            <x:String>No</x:String>
+                        </ComboBox>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Startup:"  VerticalAlignment="Center"/>
+                        <ComboBox x:Name="StartupCombobox" Grid.Row="1" Grid.Column="1"  Margin="5" SelectedIndex="0" HorizontalAlignment="Stretch">
+                            <x:String>Auto</x:String>
+                            <x:String>Manual</x:String>
+                        </ComboBox>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Started:"  VerticalAlignment="Center"/>
+                        <ComboBox x:Name="StartedCombobox" Grid.Row="2" Grid.Column="1"  Margin="5" SelectedIndex="0" HorizontalAlignment="Stretch">
+                            <x:String>Yes</x:String>
+                            <x:String>No</x:String>
+                        </ComboBox>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Priority:"  VerticalAlignment="Center"/>
+                        <ComboBox x:Name="SourcePriorityCombobox" Grid.Row="3" Grid.Column="1" Margin="5" SelectedIndex="0" HorizontalAlignment="Stretch">
+                            <x:String>Local</x:String>
+                            <x:String>Remote</x:String>
+                        </ComboBox>
+                        <Button x:Name="SetTimeSettingButton" Grid.Row="4" Grid.Column="2" Click="SetTimeSettingButton_ClickAsync" HorizontalAlignment="Right" Margin="5">
+                            <TextBlock Text="&#xE930;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

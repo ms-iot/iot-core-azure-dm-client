@@ -1,0 +1,106 @@
+﻿<UserControl
+    x:Class="DMController.Views.RebootUserControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DMController.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid  Background="#242424">
+        <ScrollViewer HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Horizontal">
+                <Grid Margin="10" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Reboot Command" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,10,10,0">
+                        <StackPanel VerticalAlignment="Top">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="20"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Reboot Now:"  Grid.Row="0" Grid.Column="0" Margin="0,10,0,0"/>
+                                <Button x:Name="RebootButton" Grid.Row="0" Grid.Column="1" Click="RebootButton_Click" HorizontalAlignment="Right" Margin="5">
+                                    <TextBlock Text="&#xE930;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                                </Button>
+                                <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" BorderThickness="0,1,0,0" BorderBrush="DimGray"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Last Response:"  VerticalAlignment="Center" />
+                                <TextBox Grid.Row="2" Grid.Column="1" x:Name="ReportedResponseText" Margin="5" IsReadOnly="True" Text="--"/>
+                                <Button x:Name="GetRebootResponseButton" Grid.Row="3" Grid.Column="1" Click="GetRebootResponseButton_ClickAsync"  Margin="0,5" HorizontalAlignment="Right">
+                                    <TextBlock Text="&#xE753;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+                <Grid Margin="10" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Read Reboot Info" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,10,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Last Reboot Time:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="RebootInfoLastRebootTime" Grid.Row="0" Grid.Column="1" Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Single Reboot Time:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="RebootInfoSingleReboot" Grid.Row="1" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Daily Reboot Time:"  VerticalAlignment="Center" />
+                        <TextBox x:Name="RebootInfoDailyReboot" Grid.Row="2" Grid.Column="1"  Margin="5" IsReadOnly="True" Text="--"/>
+                        <Button x:Name="GetRebootInfoButton" Grid.Row="4" Grid.Column="1" Click="GetRebootInfoButton_ClickAsync"  Margin="0,5" HorizontalAlignment="Right">
+                            <TextBlock Text="&#xE753;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+                <Grid Margin="10" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Schedule Reboot" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,10,0"/>
+                    <Grid Grid.Row="1" BorderThickness="0,0,1,0" BorderBrush="DarkGray" Padding="0,10,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <CheckBox Grid.Row="0" Grid.Column="0" x:Name="RebootInfoSingleChkbx"  Content="Single Reboot Time (UTC):" IsChecked="False" Click="RebootInfoSingleChkbx_Click"/>
+                        <DatePicker Grid.Row="0"  Grid.Column="1" x:Name="RebootInfoSingleRebootDateInput" Margin="5"  IsEnabled="False"/>
+                        <TimePicker Grid.Row="0"  Grid.Column="2" x:Name="RebootInfoSingleRebootTimeInput" Margin="5"  IsEnabled="False"/>
+                        <CheckBox Grid.Row="1" Grid.Column="0" x:Name="RebootInfoDailyChkbx"  Content="Daily Reboot Time (UTC):" IsChecked="False" Click="RebootInfoDailyChkbx_Click"/>
+                        <DatePicker Grid.Row="1"  Grid.Column="1" x:Name="RebootInfoDailyRebootDateInput" Margin="5" IsEnabled="False"/>
+                        <TimePicker Grid.Row="1"  Grid.Column="2" x:Name="RebootInfoDailyRebootTimeInput" Margin="5"  IsEnabled="False"/>
+                        <Button  Grid.Row="2" Grid.Column="2" Margin="0,5" HorizontalAlignment="Right" x:Name="SetScheduleRebootButton" Click="SetScheduleRebootButton_ClickAsync">
+                            <TextBlock Text="&#xE930;" FontFamily="Segoe MDL2 Assets" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                        </Button>
+                    </Grid>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -7,6 +7,7 @@ Here is a high level description of what is there:
 1. **Toaster** - a foreground UI *Device Application* representing a fictional smart toaster.  In this case, device management is a part of the *Device Application*.  This is a UWP app that can be deployed from Visual Studio (using either Build > Deploy Solution or F5).
 1. **IoTDMBackground** - a Background Application enabling simple device managment independent of any UI app.  In this case the *Device Application* is totally separated from the device management.  This is a UWP Background Application that can be deployed from Visual Studio (using either Build > Deploy Solution or F5).
 1. **DMDashboard** - a *Device Management Dashboard* allowing registered smart toasters to be managed.  This is a .NET desktop application that can be built using Visual Studio.
+1. **DMController** - a *Device Management Dashboard in UWP* allowing registered smart toasters to be managed.  This is an UWP application that can be built using Visual Studio with Windows 10 SDK (10.0.16299.0) for UWP.
 
 ## Running the Samples
 
@@ -39,6 +40,7 @@ To leverage these items on your IotCore device, follow these steps (steps below 
 1. From **Visual Studio**, use F5 to launch Toaster app.  This should bring the **Toaster** app to your device and start it.
 1. Run **DMDashboard** on your desktop by launching DMDashboard.exe
     + DMDashboard can trigger reboot in device, get and change time info, get and change device status, and install an App by using Azure blob storage.
+    + For UWP version of DMDashboard app, run **DMController**.
 
 For production environments, see [OEM Device Setup](oem-device-setup.md).
 

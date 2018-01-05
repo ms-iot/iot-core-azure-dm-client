@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2002
+VisualStudioVersion = 15.0.27004.2006
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SystemConfigurator", "SystemConfigurator\SystemConfigurator.vcxproj", "{CBBD687C-3B2A-4216-8F74-754A72E05D7F}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -64,6 +64,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E2ETestApp", "..\tests\E2ETestApp\E2ETestApp.csproj", "{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DMTpm", "DMTpm\DMTpm.vcxitems", "{0ED4709A-5A05-4540-8E56-B63C91AABBE8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMController", "..\samples\DMController\DMController.csproj", "{EE31B45A-52B9-4001-8648-A0130B48E44A}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -262,6 +264,24 @@ Global
 		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Release|x64.Deploy.0 = Release|x64
 		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Release|x86.ActiveCfg = Release|x86
 		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1}.Release|x86.Deploy.0 = Release|x86
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Debug|ARM.ActiveCfg = Debug|ARM
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Debug|ARM.Build.0 = Debug|ARM
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Debug|ARM.Deploy.0 = Debug|ARM
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Debug|x64.ActiveCfg = Debug|x64
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Debug|x64.Build.0 = Debug|x64
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Debug|x64.Deploy.0 = Debug|x64
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Debug|x86.ActiveCfg = Debug|x86
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Debug|x86.Build.0 = Debug|x86
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Debug|x86.Deploy.0 = Debug|x86
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Release|ARM.ActiveCfg = Release|ARM
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Release|ARM.Build.0 = Release|ARM
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Release|ARM.Deploy.0 = Release|ARM
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Release|x64.ActiveCfg = Release|x64
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Release|x64.Build.0 = Release|x64
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Release|x64.Deploy.0 = Release|x64
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Release|x86.ActiveCfg = Release|x86
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Release|x86.Build.0 = Release|x86
+		{EE31B45A-52B9-4001-8648-A0130B48E44A}.Release|x86.Deploy.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -283,6 +303,7 @@ Global
 		{0213712B-62E6-5546-8D25-79B90244FFA9} = {48F869F6-CAD1-4DCA-90C3-231BC4ACC10F}
 		{1FDF4DA4-0FAF-4D7D-A1D4-F5C29BB0EEB1} = {ACADCA61-EDB4-4D41-A868-FEAEFBC8ED43}
 		{0ED4709A-5A05-4540-8E56-B63C91AABBE8} = {48F869F6-CAD1-4DCA-90C3-231BC4ACC10F}
+		{EE31B45A-52B9-4001-8648-A0130B48E44A} = {54FDFBB1-7B54-47C3-A032-053F92FBE87C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BAE6F03E-2C81-4A40-A64C-A635433C2207}
