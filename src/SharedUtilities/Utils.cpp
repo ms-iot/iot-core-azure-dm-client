@@ -45,55 +45,71 @@ using namespace Windows::System::Profile;
 
 namespace Utils
 {
-    void GetShellUserInfo(TOKEN_HANDLER handler)
+    void GetShellUserInfo(TOKEN_HANDLER handler, unsigned int attemptCount, unsigned int attemptDelay)
     {
-        PROCESSENTRY32 entry;
-        entry.dwSize = sizeof(PROCESSENTRY32);
+        TRACE(__FUNCTION__);
 
-        AutoCloseHandle snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
-        if (!snapshot.Get())
-        {
-            throw DMExceptionWithErrorCode("Error: Failed to create snapshot...", E_FAIL);
-        }
+        do {
+            PROCESSENTRY32 entry;
+            entry.dwSize = sizeof(PROCESSENTRY32);
 
-        if (Process32First(snapshot.Get(), &entry) == TRUE)
-        {
-            while (Process32Next(snapshot.Get(), &entry) == TRUE)
+            AutoCloseHandle snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+            if (!snapshot.Get())
             {
-                if (_wcsicmp(entry.szExeFile, IoTDMSihostExe) == 0)
+                throw DMExceptionWithErrorCode("Error: Failed to create snapshot...", E_FAIL);
+            }
+
+            if (Process32First(snapshot.Get(), &entry) == TRUE)
+            {
+                while (Process32Next(snapshot.Get(), &entry) == TRUE)
                 {
-                    AutoCloseHandle processHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID);
-                    if (processHandle.Get() == INVALID_HANDLE_VALUE) continue;
-
-                    AutoCloseHandle processTokenHandle;
-                    auto error = OpenProcessToken(processHandle.Get(), TOKEN_ALL_ACCESS, processTokenHandle.GetAddress());
-                    if (FAILED(error))
+                    if (_wcsicmp(entry.szExeFile, IoTDMSihostExe) == 0)
                     {
-                        TRACEP(L"OpenProcessToken failed. Code: ", error);
-                        continue;
+                        AutoCloseHandle processHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID);
+                        if (processHandle.Get() == INVALID_HANDLE_VALUE) continue;
+
+                        AutoCloseHandle processTokenHandle;
+                        auto error = OpenProcessToken(processHandle.Get(), TOKEN_ALL_ACCESS, processTokenHandle.GetAddress());
+                        if (FAILED(error))
+                        {
+                            TRACEP(L"OpenProcessToken failed. Code: ", error);
+                            continue;
+                        }
+
+                        BYTE buffer[SECURITY_MAX_SID_SIZE];
+                        PTOKEN_USER tokenUser = reinterpret_cast<PTOKEN_USER>(buffer);
+                        DWORD tokenUserSize = sizeof(buffer);
+                        if (!GetTokenInformation(processTokenHandle.Get(), TokenUser, tokenUser, tokenUserSize, &tokenUserSize))
+                        {
+                            TRACEP(L"GetTokenInformation(TokenUser) failed. Code: ", GetLastError());
+                            continue;
+                        }
+
+                        handler(processTokenHandle.Get(), tokenUser);
+
+                        return;
                     }
-
-                    BYTE buffer[SECURITY_MAX_SID_SIZE];
-                    PTOKEN_USER tokenUser = reinterpret_cast<PTOKEN_USER>(buffer);
-                    DWORD tokenUserSize = sizeof(buffer);
-                    if (!GetTokenInformation(processTokenHandle.Get(), TokenUser, tokenUser, tokenUserSize, &tokenUserSize))
-                    {
-                        TRACEP(L"GetTokenInformation(TokenUser) failed. Code: ", GetLastError());
-                        continue;
-                    }
-
-                    handler(processTokenHandle.Get(), tokenUser);
-
-                    return;
                 }
             }
-        }
+
+            --attemptCount;
+            if (attemptCount == 0)
+            {
+                break;
+            }
+
+            TRACE("GetShellUserInfo: no user process found. Retrying...");
+            ::Sleep(attemptDelay);
+
+        } while (true);
 
         throw DMExceptionWithErrorCode("GetShellUserInfo: no user process found.", E_FAIL);
     }
 
     wstring GetDmUserSid() 
     {
+        TRACE(__FUNCTION__);
+
         wstring sid(L"");
         GetShellUserInfo([&sid](HANDLE /*token*/, PTOKEN_USER tokenUser) {
             WCHAR *pCOwner = NULL;
@@ -113,6 +129,8 @@ namespace Utils
 
     wstring GetDmUserName() 
     {
+        TRACE(__FUNCTION__);
+
         wstring name(L"");
         GetShellUserInfo([&name](HANDLE /*token*/, PTOKEN_USER tokenUser) {
             DWORD cchDomainName = 0, cchAccountName = 0;
@@ -160,6 +178,8 @@ namespace Utils
 
     wstring GetDmUserFolder()
     {
+        TRACE(__FUNCTION__);
+
         // this works on IoT Core and IoT Enterprise (not IoT Enterprise 
         // Mobile ... SHGetFolderPath not implemented there)
         wstring folder(L"");
@@ -175,7 +195,7 @@ namespace Utils
             {
                 TRACEP(L"SHGetFolderPath failed. Code: ", hr);
             }
-        });
+        }, 10 /*attempts*/, 2000 /*2 sec*/); // The SiHostExe might not have started.
 
         return folder;
     }

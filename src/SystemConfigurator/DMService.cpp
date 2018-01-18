@@ -263,6 +263,8 @@ void DMService::ServiceWorkerThread(void* context)
 
 static VOID CALLBACK CleanupTemporaryFiles(PVOID /*ParameterPtr*/, BOOLEAN)
 {
+    TRACE(__FUNCTION__);
+
     // handle garbage collection
     wstring gcFolder = Utils::GetDmUserFolder();
     if (filesystem::exists(gcFolder))
