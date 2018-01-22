@@ -302,6 +302,11 @@ namespace Microsoft.Devices.Management
             await _windowsUpdatePolicyHandler.SetRingAsync(state);
         }
 
+        public async Task<WindowsUpdatePolicyDataContract.WUProperties> GetWindowsUpdatePolicyAsync()
+        {
+            return await _windowsUpdatePolicyHandler.GetWindowsUpdatePolicyAsync();
+        }
+
         public async Task<WindowsUpdateRingState> GetWindowsUpdateRingAsync()
         {
             return await _windowsUpdatePolicyHandler.GetRingAsync();
