@@ -45,15 +45,17 @@ namespace IoTDMClient
         }
         public static BlobInfo BlobInfoFromSource(string connectionString, string containerAndFile)
         {
-            string[] sourceParts = containerAndFile.Split('\\');
-            if (sourceParts.Length != 2)
+            char[] separators = { '\\', '/' };
+            int separatorIndex = containerAndFile.IndexOfAny(separators);
+            if (separatorIndex == -1 || separatorIndex == 0 || separatorIndex == containerAndFile.Length - 1)
             {
-                throw new Exception("container name is missing in: " + containerAndFile);
+                throw new Exception("unexpected container/blob name: " + containerAndFile);
             }
+
             IoTDMClient.BlobInfo info = new IoTDMClient.BlobInfo();
             info.ConnectionString = connectionString;
-            info.ContainerName = sourceParts[0];
-            info.BlobName = sourceParts[1];
+            info.ContainerName = containerAndFile.Substring(0, separatorIndex);
+            info.BlobName = containerAndFile.Substring(separatorIndex + 1);
             return info;
         }
     }
