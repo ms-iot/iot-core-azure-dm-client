@@ -654,8 +654,18 @@ IResponse^ HandleListApps(IRequest^ request)
 IResponse^ HandleTpmGetServiceUrl(IRequest^ request)
 {
     TRACE(__FUNCTION__);
+
+    TpmGetServiceUrlRequest^ urlTokenRequest = dynamic_cast<TpmGetServiceUrlRequest^>(request);
+
     unsigned long logicalDeviceId = 0;
-    Utils::TryReadRegistryValue(TpmSlotRegistrySubKey, TpmSlotPropertyName, logicalDeviceId);
+    if (urlTokenRequest->Slot >= 0)
+    {
+        logicalDeviceId = static_cast<unsigned long>(urlTokenRequest->Slot);
+    }
+    else
+    {
+        Utils::TryReadRegistryValue(TpmSlotRegistrySubKey, TpmSlotPropertyName, logicalDeviceId);
+    }
     TRACEP(L"logicalDeviceId=", logicalDeviceId);
 
     std::string serviceUrl = Tpm::GetServiceUrl((uint32_t)logicalDeviceId);
@@ -666,11 +676,21 @@ IResponse^ HandleTpmGetServiceUrl(IRequest^ request)
 IResponse^ HandleTpmGetSASToken(IRequest^ request)
 {
     TRACE(__FUNCTION__);
+
+    TpmGetSASTokenRequest^ sasTokenRequest = dynamic_cast<TpmGetSASTokenRequest^>(request);
+
     unsigned long logicalDeviceId = 0;
-    Utils::TryReadRegistryValue(TpmSlotRegistrySubKey, TpmSlotPropertyName, logicalDeviceId);
+    if (sasTokenRequest->Slot >= 0)
+    {
+        logicalDeviceId = static_cast<unsigned long>(sasTokenRequest->Slot);
+    }
+    else
+    {
+        Utils::TryReadRegistryValue(TpmSlotRegistrySubKey, TpmSlotPropertyName, logicalDeviceId);
+    }
     TRACEP(L"logicalDeviceId=", logicalDeviceId);
-    
-    std::string sasToken = Tpm::GetSASToken(logicalDeviceId);
+
+    std::string sasToken = Tpm::GetSASToken(logicalDeviceId, sasTokenRequest->Expiration);
     auto sasTokenW = Utils::MultibyteToWide(sasToken.c_str());
     return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(sasTokenW.c_str()), request->Tag);
 }
