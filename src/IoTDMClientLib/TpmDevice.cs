@@ -12,31 +12,29 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-using Microsoft.Azure.Devices.Shared;
-using Microsoft.Devices.Management.Message;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using Microsoft.Devices.Management;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Devices.Management
 {
     public class TpmDevice
     {
-        SystemConfiguratorProxy systemConfiguratorProxy;
+        private struct ServiceUrlParts
+        {
+            public string HostName;
+            public string DeviceId;
+        }
 
         public TpmDevice()
         {
-            this.systemConfiguratorProxy = new SystemConfiguratorProxy();
+            this._systemConfiguratorProxy = new SystemConfiguratorProxy();
         }
 
-        private async Task<string> GetServiceUrlPart(int i)
+        private async Task<ServiceUrlParts> GetServiceUrlParts(int slot = -1)
         {
-            var serviceUrl = await GetHeldData();
+            var result = await this._systemConfiguratorProxy.SendCommandAsync(new Message.TpmGetServiceUrlRequest(slot));
+            var serviceUrl = (result as Message.StringResponse).Response;
             var parts = serviceUrl.Split('/');
 
             if (parts.Length != 2)
@@ -44,49 +42,31 @@ namespace Microsoft.Devices.Management
                 throw new Exception("Unable to parse service Url in TPM");
             }
 
-            return parts[i];
+            ServiceUrlParts serviceUrlParts = new ServiceUrlParts();
+            serviceUrlParts.HostName = parts[0];
+            serviceUrlParts.DeviceId = parts[1];
+            return serviceUrlParts;
         }
 
-        public Task<string> GetHostNameAsync() => GetServiceUrlPart(0);
-
-        public Task<string> GetDeviceIdAsync() => GetServiceUrlPart(1);
-
-        public async Task<string> GetSASTokenAsync(uint validity = 3600)
+        public async Task<string> GetSASTokenAsync(int slot = -1, uint validity = 3600)
         {
-            var result = await RunProxyAndGetResult(new Message.TpmGetSASTokenRequest(validity));
+            var result = await this._systemConfiguratorProxy.SendCommandAsync(new Message.TpmGetSASTokenRequest(slot, validity));
             return (result as Message.StringResponse).Response;
         }
 
-        public async Task<string> GetConnectionStringAsync(uint validity = 3600)
+        public async Task<string> GetConnectionStringAsync(int slot = -1, uint validity = 3600)
         {
-            string deviceId = await GetDeviceIdAsync();
-            string hostName = await GetHostNameAsync();
-            string sasToken = await GetSASTokenAsync(validity);
+            ServiceUrlParts serviceUrlParts = await GetServiceUrlParts(slot);
+            string sasToken = await GetSASTokenAsync(slot, validity);
+
             string connectionString = "";
-            if ((hostName.Length > 0) && (deviceId.Length > 0) && (sasToken.Length > 0))
+            if ((serviceUrlParts.HostName.Length > 0) && (serviceUrlParts.DeviceId.Length > 0) && (sasToken.Length > 0))
             {
-                connectionString = "HostName=" + hostName + ";DeviceId=" + deviceId + ";SharedAccessSignature=" + sasToken;
+                connectionString = "HostName=" + serviceUrlParts.HostName + ";DeviceId=" + serviceUrlParts.DeviceId + ";SharedAccessSignature=" + sasToken;
             }
             return connectionString;
         }
 
-        string heldData = "";
-
-        private async Task<string> GetHeldData()
-        {
-            if (heldData == string.Empty)
-            {
-                // Not retrieved yet, retrieve
-                var result = await RunProxyAndGetResult(new Message.TpmGetServiceUrlRequest());
-                heldData = (result as Message.StringResponse).Response;
-            }
-            return heldData;
-        }
-
-        private async Task<IResponse> RunProxyAndGetResult(IRequest request)
-        {
-            return await this.systemConfiguratorProxy.SendCommandAsync(request);
-        }
-
+        SystemConfiguratorProxy _systemConfiguratorProxy;
     }
 }

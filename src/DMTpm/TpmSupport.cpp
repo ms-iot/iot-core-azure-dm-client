@@ -71,11 +71,11 @@ std::string Tpm::GetServiceUrl(int logicalId)
     throw DMException("cannot parse Limpet response. Is TPM supported?");
 }
 
-std::string Tpm::GetSASToken(int logicalId)
+std::string Tpm::GetSASToken(int logicalId, unsigned int durationInSeconds)
 {
     TRACE(__FUNCTION__);
 
-    const std::string response = RunLimpet(to_wstring(logicalId) + L" -ast");
+    const std::string response = RunLimpet(to_wstring(logicalId) + L" -ast " + to_wstring(durationInSeconds));
 
     // There is a bug in Limpet that produces the entire connection string and not only the SAS token
     // Work around by extracting the actual connection string

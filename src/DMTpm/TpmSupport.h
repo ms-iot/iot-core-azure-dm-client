@@ -26,7 +26,7 @@ public:
     static void ImportSymetricIdentity(int logicalId, const std::string& hostageFile);
     static void EvictHmacKey(int logicalId);
     static std::string GetServiceUrl(int logicalId);
-    static std::string GetSASToken(int logicalId);
+    static std::string GetSASToken(int logicalId, unsigned int durationInSeconds);
     static void ClearTPM();
 private:
     static std::string Tpm::RunLimpet(const std::wstring& params);
