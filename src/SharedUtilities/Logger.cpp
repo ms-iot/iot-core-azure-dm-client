@@ -18,14 +18,11 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include <iostream> 
 #include <iomanip>
-#include <filesystem>
 #include "StringUtils.h"
 #include "Logger.h"
 #include "ETWLogger.h"
 
 using namespace std;
-using namespace std::tr2::sys;
-using namespace std::experimental;
 
 Utils::ETWLogger gETWLogger;
 
