@@ -15,6 +15,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "stdafx.h"
 #include "CommandProcessor.h"
 #include "DMService.h"
+#include "Utils.h"
 #include "..\SharedUtilities\Logger.h"
 #ifdef _DEBUG
 #include "..\SharedUtilities\Impersonator.h"
@@ -27,9 +28,21 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SERVICE_ACCOUNT          L"NT AUTHORITY\\SYSTEM"
 #define SERVICE_PASSWORD         L""
 
+using namespace std;
+
 [Platform::MTAThread]
 int wmain(int argc, wchar_t *argv[])
 {
+    //
+    // HKLM\\Software\\Microsoft\\IoTDM
+    //   DebugLogFile
+    //
+    wstring logFileName;
+    if (ERROR_SUCCESS == Utils::TryReadRegistryValue(IoTDMRegistryRoot, RegDebugLogFile, logFileName))
+    {
+        gLogger.SetLogFileName(logFileName);
+    }
+
     TRACE("Entering wmain...");
 
     if ((argc > 1) && ((*argv[1] == L'-' || (*argv[1] == L'/'))))

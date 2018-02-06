@@ -65,3 +65,5 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RegWindowsUpdatePolicyEarlyAdopter L"EarlyAdopter"
 #define RegWindowsUpdatePolicyPreview L"Preview"
 #define RegWindowsUpdatePolicyGeneralAvailability L"GeneralAvailability"
+
+#define RegDebugLogFile L"DebugLogFile"

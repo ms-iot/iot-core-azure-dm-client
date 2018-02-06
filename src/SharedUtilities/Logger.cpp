@@ -72,6 +72,18 @@ void Logger::Log(Utils::ETWLogger::LoggingLevel level, const wchar_t* msg)
         wcout << messageWithTime;
     }
 
+    if (_logFileName.size() != 0)
+    {
+        lock_guard<mutex> guard(_mutex);
+
+        wofstream logFile(_logFileName.c_str(), std::ofstream::out | std::ofstream::app);
+        if (logFile)
+        {
+            logFile << messageWithTime.c_str();
+            logFile.close();
+        }
+    }
+
     gETWLogger.Log(msg, level);
 }
 
@@ -98,4 +110,9 @@ void Logger::Log(Utils::ETWLogger::LoggingLevel level, const char*  msg, int par
 {
     wstring s = Utils::MultibyteToWide(msg);
     Log<int>(level, s.c_str(), param);
+}
+
+void Logger::SetLogFileName(const wstring& logFileName)
+{
+    _logFileName = logFileName;
 }

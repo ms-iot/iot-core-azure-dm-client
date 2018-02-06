@@ -25,6 +25,7 @@ class Logger
 {
 public:
     Logger(bool console);
+    void SetLogFileName(const std::wstring& logFileName);
 
     // Legacy (no logging level; defaults to information)
     void Log(const char*  message);
@@ -59,6 +60,7 @@ public:
 private:
     std::mutex _mutex;
 
+    std::wstring _logFileName;
     bool _console;
 };
 
