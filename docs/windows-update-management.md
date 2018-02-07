@@ -3,7 +3,7 @@
 The **Windows Update Management** allows control over the following aspects:
 
 - "**How**"
-  - How the updates are applied (time, source, etc). This is grouped under **Windows Update Policy** and **Windows Update Reboot Policy**.
+  - How the updates are applied (time, source, etc). This is grouped under **Windows Update Policy** and [**Windows Update Reboot Policy**](reboot-management.md).
   - The policy is split into two because the update reboot policy is more likely to be set independently of of the rest of the update policies.
 - "**What**"
   - What updates are installed, installable, pending, etc. This is group under **Windows Updates**.
