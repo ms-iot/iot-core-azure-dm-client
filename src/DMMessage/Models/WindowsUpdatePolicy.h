@@ -19,12 +19,14 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DMMessageKind.h"
 #include "StatusCodeResponse.h"
 #include "Blob.h"
-#include "ModelHelper.h"
 #include "Policy.h"
 
 using namespace Platform;
 using namespace Platform::Metadata;
 using namespace Windows::Data::Json;
+
+static String^ JsonReportProperties = L"reportProperties";
+static String^ JsonPayload = L"payload";
 
 namespace Microsoft { namespace Devices { namespace Management { namespace Message
 {
@@ -297,18 +299,20 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
         virtual Blob^ Serialize()
         {
-            return DeviceTwinReportedConfiguration<GetWindowsUpdatePolicyResponse>::Serialize(this, (uint32_t)Tag, [](JsonObject^ reportPropertiesObject, GetWindowsUpdatePolicyResponse^ configObject)
-            {
-                configObject->data->ToJsonObject(reportPropertiesObject);
-            });
+            JsonObject^ jsonObject = ref new JsonObject();
+            jsonObject->Insert(JsonReportProperties, JsonValue::CreateStringValue(ReportToDeviceTwin));
+            jsonObject->Insert(JsonPayload, data->ToJsonObject(ref new JsonObject()));
+            return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
         }
 
         static GetWindowsUpdatePolicyResponse^ Deserialize(Platform::String^ str)
         {
-            return DeviceTwinReportedConfiguration<GetWindowsUpdatePolicyResponse>::Deserialize(str, [](JsonObject^ reportPropertiesObject, GetWindowsUpdatePolicyResponse^ configObject)
-            {
-                configObject->data = WindowsUpdatePolicyConfiguration::FromJsonObject(reportPropertiesObject);
-            });
+            JsonObject^ jsonObject = JsonObject::Parse(str);
+
+            auto result = ref new GetWindowsUpdatePolicyResponse();
+            result->ReportToDeviceTwin = jsonObject->Lookup(JsonReportProperties)->GetString();
+            result->data = WindowsUpdatePolicyConfiguration::FromJsonObject(jsonObject->Lookup(JsonPayload)->GetObject());
+            return result;
         }
 
         [Windows::Foundation::Metadata::DefaultOverloadAttribute]
