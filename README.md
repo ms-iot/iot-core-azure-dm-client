@@ -44,6 +44,7 @@ The DM client consists of:
   - [Creating IoT Hub](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-csharp-csharp-getstarted)
 - [Sample Applications](docs/samples.md)
 - [DM Application Creation Walk-through](docs/dm-hello-world-overview.md)
+- [Exposing New Configuration Walk-through](docs/exposing-new-configuration.md)
 
 ### System Requirements
 
