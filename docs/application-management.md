@@ -65,7 +65,7 @@ Each app is identified by its `"packageFamilyId"` - which is its package family 
        - `"foreground"`: this application is the foreground application. Only one application can have `"startUp"` set to this value. When switching from foreground application to another, both application must appear in the same transaction. The order is not relevant though as the DM client re-orders them.
        - `"background"`: this application is a background task. Any number of applications can be set as background tasks.
     - `"appxSource": "container\appPackage.appx"`
-       - The appx package file name in the Azure blob storage. The access to the blob storage is performed as described [here](external-storage.md). The value of this property cannot be empty or null if the app is to be installed on the device.
+       - The appx package file name in the Azure blob storage. The access to the blob storage is performed as described [here](external-storage.md). The value of this property cannot be empty or null if the app is to be installed on the device. Note that this must be an appx package - and not a bundle. In upgrade scenarios, the appx version must be greater than the one already present.
     - `"depsSources": "container\dep0.appx;container\dep1.appx"`
        - The semi-colon separated relative paths (in Azure Storage) of dependencies.
     - `"certSource" : "container\certificate.cer"`
