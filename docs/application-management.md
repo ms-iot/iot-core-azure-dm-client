@@ -57,7 +57,7 @@ Each app is identified by its `"packageFamilyId"` - which is its package family 
          - If the desired version is older than the one installed, the installed application will be uninstalled and the specified one will be installed. Applicable settings will be processed afterwards.
          - If the desired version is new than the one install, the specified one will installed on top of the existing one. Applicable settings will be processed.
          - <b>Note</b>: Installing a new application from the store is not supported.
-         - <b>Note</b>: Update applications other than the DM application from the store is not supported.
+         - <b>Note</b>: Updating applications other than the DM application from the store is not supported. This is because the update mechanism allows only self-update. For more details on what APIs are used in the implementation, see the [StoreContext](https://docs.microsoft.com/en-us/uwp/api/windows.services.store.storecontext) class.
        - `"?"` : This indicates that the status of this application is to be reported.
        - `"not installed"` : This indicates that the specified application should not be installed on the device. If it is already installed, the DM client will uninstall it.
     - `"startUp"`: the start-up designation of this application. Possible values are:
@@ -65,7 +65,7 @@ Each app is identified by its `"packageFamilyId"` - which is its package family 
        - `"foreground"`: this application is the foreground application. Only one application can have `"startUp"` set to this value. When switching from foreground application to another, both application must appear in the same transaction. The order is not relevant though as the DM client re-orders them.
        - `"background"`: this application is a background task. Any number of applications can be set as background tasks.
     - `"appxSource": "container\appPackage.appx"`
-       - The appx package file name in the Azure blob storage. The access to the blob storage is performed as described [here](external-storage.md). The value of this property cannot be empty or null if the app is to be installed on the device. Note that this must be an appx package - and not a bundle. In upgrade scenarios, the appx version must be greater than the one already present.
+       - The appx package file name in the Azure blob storage. The access to the blob storage is performed as described [here](external-storage.md). The value of this property cannot be empty or null if the app is to be installed on the device. Note that this must be an appx package - and not a bundle. In the upgrade scenario, the new appx version must be greater than the one already present. For more details on the requirements, see the [PackageManager](https://docs.microsoft.com/en-us/uwp/api/Windows.Management.Deployment.PackageManager) class.
     - `"depsSources": "container\dep0.appx;container\dep1.appx"`
        - The semi-colon separated relative paths (in Azure Storage) of dependencies.
     - `"certSource" : "container\certificate.cer"`
