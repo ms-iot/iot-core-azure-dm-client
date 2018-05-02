@@ -267,6 +267,7 @@ static VOID CALLBACK CleanupTemporaryFiles(PVOID /*ParameterPtr*/, BOOLEAN)
 
     // handle garbage collection
     wstring gcFolder = Utils::GetDmUserFolder();
+
     if (filesystem::exists(gcFolder))
     {
         auto now = filesystem::file_time_type::clock::now();
@@ -274,6 +275,9 @@ static VOID CALLBACK CleanupTemporaryFiles(PVOID /*ParameterPtr*/, BOOLEAN)
 
         for (auto& item : filesystem::directory_iterator(gcFolder))
         {
+            TRACE(L"GC: Removing...");
+            TRACE(item.path().c_str());
+
             // skip directories
             if (!filesystem::is_regular_file(item)) continue;
 
@@ -285,10 +289,21 @@ static VOID CALLBACK CleanupTemporaryFiles(PVOID /*ParameterPtr*/, BOOLEAN)
             if (duration_cast<hours>(now - writeTime).count() < HOURS_UNTIL_GC) continue;
 
             // delete file
-            filesystem::remove(item.path());
+            try
+            {
+                filesystem::remove(item.path());
+            }
+            catch (const exception& e)
+            {
+                TRACE(L"GC: Failed to remove file.");
+                TRACE(e.what());
+            }
+            catch (...)
+            {
+                TRACE(L"GC: Failed to remove file.");
+            }
         }
     }
-
 }
 
 void DMService::ServiceWorkerThreadHelper(void)
