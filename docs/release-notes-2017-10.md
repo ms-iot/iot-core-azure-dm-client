@@ -9,6 +9,7 @@ For the IoT Enterprise sku, the following extra setup steps need to take place:
 1. Limpet.exe is present at c:\windows\system32 (copy from an IoT Core image system folder).
 2. xperf.exe is present at c:\windows\system32 (copy from an IoT Core image system folder).
 3. [Embedded Mode](https://docs.microsoft.com/en-us/windows/iot-core/develop-your-app/embeddedmode) is enabled.
+4. Make sure the architecture of SystemConfigurator matches the OS architecture (i.e. on x64 OSes, deploy the x64 SystemConfigurator).
 
 ## Windows IoT Azure DM Client
 
