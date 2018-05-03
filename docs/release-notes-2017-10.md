@@ -88,10 +88,10 @@ The features can be split into three main categories:
 |                        | Configure time service                   |Y|Y|Y|
 | | | | | |
 | [WiFi Settings](wifi-management.md)                             | | | | |
-|                        | Add WiFi profiles. |Y|Y|Y|
-|                        | List installed WiFi profiles. |Y|Y|Y|
-|                        | Delete installed WiFi profiles. |Y|Y|Y|
-|                        | Export/Upload WiFi profiles. |Y|Y|Y|
+|                        | Add WiFi profiles. |Y|Y| |
+|                        | List installed WiFi profiles. |Y|Y| |
+|                        | Delete installed WiFi profiles. |Y|Y| |
+|                        | Export/Upload WiFi profiles. |Y|Y| |
 | | | | | |
 | [Windows Telemetry](windows-telemetry-management.md)            | | | | |
 |                        | Configure the level of Windows telemetry being sent out of the device. |Y|Y|Y|
