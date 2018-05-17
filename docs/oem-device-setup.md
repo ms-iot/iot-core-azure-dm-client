@@ -40,6 +40,7 @@ will allow you to further secure this channel.  More information about Custom Ca
 <pre>
     c:\windows\system32\systemconfigurator.exe -install
     c:\windows\system32\sc.exe config systemconfigurator start=auto
+	c:\windows\system32\sc.exe failure systemconfigurator reset= 0 actions= restart/0/restart/0/restart/0
     net start systemconfigurator
 </pre>
 
