@@ -174,6 +174,16 @@ namespace Microsoft.Devices.Management
 
     public class Logger
     {
+        /// <summary>
+        /// Custom log function, used alongside <see cref="LoggingChannel"/>. 
+        /// 
+        /// <see cref="Debug.WriteLine"/>is used if this is not set. 
+        /// </summary>
+        public static Action<string, LoggingLevel> CustomLog { get; set; }
+
+        /// <summary>
+        /// Logs to <see cref="Constants.ETWChannelName"/> and either to <see cref="Debug.WriteLine"/> or <see cref="CustomLog"/>
+        /// </summary>
         public static void Log(string message, LoggingLevel level)
         {
             /*
@@ -193,8 +203,16 @@ namespace Microsoft.Devices.Management
 
             using (var channel = new LoggingChannel(Constants.ETWChannelName, null /*default options*/, new Guid(Constants.ETWGuid)))
             {
-                Debug.WriteLine("[" + Constants.ETWChannelName + "]    [" + level.ToString() + "]    " + message);
                 channel.LogMessage(message, level);
+            }
+
+            if (CustomLog != null)
+            {
+                CustomLog(message, level);
+            }
+            else
+            {
+                Debug.WriteLine("[" + Constants.ETWChannelName + "]    [" + level.ToString() + "]    " + message);
             }
         }
     }
