@@ -1,4 +1,16 @@
 # Release Notes - October 2017
+
+## Target IoT Skus
+
+This release targets both the **IoT Core** and the **IoT Enterprise** skus. However, not all features are supported on IoT Enterprise.
+
+For the IoT Enterprise sku, the following extra setup steps need to take place:
+
+1. Limpet.exe is present at c:\windows\system32 (copy from an IoT Core image system folder).
+2. xperf.exe is present at c:\windows\system32 (copy from an IoT Core image system folder).
+3. [Embedded Mode](https://docs.microsoft.com/en-us/windows/iot-core/develop-your-app/embeddedmode) is enabled.
+4. Make sure the architecture of SystemConfigurator matches the OS architecture (i.e. on x64 OSes, deploy the x64 SystemConfigurator).
+
 ## Windows IoT Azure DM Client
 
 This page contains a summary of all features the current Windows IoT Azure DM Client offers.
@@ -32,62 +44,65 @@ The features can be split into three main categories:
 
 **Note:** The json schema has changed for all features, even those which existing in the 2017 April release.
 
-| Area | Supported Actions | New in Oct. 2017 |
-|:----|-----|-----|
-| [Application Management](application-management.md)               | |
-|                        | Add/Update an arbitrary application (inc. self) | |
-|                        | List store/non-store applications        |Y|
-|                        | Configure startup applications           |Y|
-|                        | Configure startup background applications|Y|
-|                        | Start/stop applications                  |Y|
-|                        | Uninstall applications                   |Y|
-| | | |
-| [Certificate Management](certificate-management.md)               | |
-|                        | Add a certificate                        | |
-|                        | List certificates                        | |
-|                        | Export and Upload certificates           | |
-|                        | Delete certificates                      |Y|
-| | | |
-| [Device Health Attestation](device-health-attestation.md)       | | |
-|                        | Configure and trigger device Health Attestation remotely. |Y|
-| | | |
-| [Device Info](device-info.md)                                   | | |
-|                        | Retrieve the device info.                |Y|
-| | | |
-| [Diagnostic Logs](diagnostic-logs-management.md)                | | |
-|                        | Configure ETW collectors for any number of providers. |Y|
-|                        | Start/Stop collecting ETW.               |Y|
-|                        | Upload generated ETW files.              |Y|
-|                        | Delete generated ETW files from the device. |Y|
-| | | |
-| [Factory Reset](device-factory-reset.md)                        | | |
-|                        | Reset the device and optionally clear the TPM. |Y|
-| | | |
-| [Reboot Management](reboot-management.md)                       | | |
-|                        | Schedule reboots                         | |
-|                        | Trigger immediate reboots                | |
-|                        | Retrieve last reboot info                | |
-|                        | Block system reboots                     | |
-| | | |
-| [Time Settings](time-management.md)                             | | |
-|                        | Configure dynamic time zone              |Y|
-|                        | Configure custom time zone               | |
-|                        | Configure time server                    | |
-|                        | Configure time service                   |Y|
-| | | |
-| [WiFi Settings](wifi-management.md)                             | | |
-|                        | Add WiFi profiles. |Y|
-|                        | List installed WiFi profiles. |Y|
-|                        | Delete installed WiFi profiles. |Y|
-|                        | Export/Upload WiFi profiles. |Y|
-| | | |
-| [Windows Telemetry](windows-telemetry-management.md)            | | |
-|                        | Configure the level of Windows telemetry being sent out of the device. |Y|
-| | | |
-| [Windows Update](windows-update-management.md)                  | | |
-|                        | Configure 'how' updates are installed    | |
-|                        | Configure 'what' updates are installed   | |
+| Area | Supported Actions | New in Oct. 2017 | IoT Core | IoT Enterprise |
+|:----|-----|-----|-----|-----|
+| [Application Management](application-management.md)               | | | | |
+|                        | Add/Update an arbitrary application (inc. self) | |Y| |
+|                        | List store/non-store applications        |Y|Y| |
+|                        | Configure startup applications           |Y|Y| |
+|                        | Configure startup background applications|Y|Y| |
+|                        | Start/stop applications                  |Y|Y| |
+|                        | Uninstall applications                   |Y|Y| |
+| | | | | |
+| [Certificate Management](certificate-management.md)               | | | |
+|                        | Add a certificate                        | |Y|Y|
+|                        | List certificates                        | |Y|Y|
+|                        | Export and Upload certificates           | |Y|Y|
+|                        | Delete certificates                      |Y|Y|Y|
+| | | | | |
+| [Device Health Attestation](device-health-attestation.md)       | | | | |
+|                        | Configure and trigger device Health Attestation remotely. |Y|Y| |
+| | | | | |
+| [Device Info](device-info.md)                                   | | | | |
+|                        | Retrieve the device info.                |Y|Y|Y|
+| | | | | |
+| [Diagnostic Logs](diagnostic-logs-management.md)                | | | | |
+|                        | Configure ETW collectors for any number of providers. |Y|Y|Y*|
+|                        | Start/Stop collecting ETW.               |Y|Y|Y|
+|                        | Upload generated ETW files.              |Y|Y|Y|
+|                        | Delete generated ETW files from the device. |Y|Y|Y|
+| | | | | |
+| [Factory Reset](device-factory-reset.md)                        | | | | |
+|                        | Reset the device and optionally clear the TPM. |Y|Y| |
+| | | | | |
+| [Reboot Management](reboot-management.md)                       | | | | |
+|                        | Schedule reboots                         | |Y|Y|
+|                        | Trigger immediate reboots                | |Y|Y|
+|                        | Retrieve last reboot info                | |Y|Y|
+|                        | Block system reboots                     | |Y|Y|
+| | | | | |
+| [Time Settings](time-management.md)                             | | | | |
+|                        | Configure dynamic time zone              |Y|Y|Y|
+|                        | Configure custom time zone               | |Y|Y|
+|                        | Configure time server                    | |Y|Y|
+|                        | Configure time service                   |Y|Y|Y|
+| | | | | |
+| [WiFi Settings](wifi-management.md)                             | | | | |
+|                        | Add WiFi profiles. |Y|Y| |
+|                        | List installed WiFi profiles. |Y|Y| |
+|                        | Delete installed WiFi profiles. |Y|Y| |
+|                        | Export/Upload WiFi profiles. |Y|Y| |
+| | | | | |
+| [Windows Telemetry](windows-telemetry-management.md)            | | | | |
+|                        | Configure the level of Windows telemetry being sent out of the device. |Y|Y|Y|
+| | | | | |
+| [Windows Update](windows-update-management.md)                  | | | | |
+|                        | Configure 'how' updates are installed    | |Y|Y**|
+|                        | Configure 'what' updates are installed   | |Y|Y|
 
+  '*' xperf.exe needs to be copied/installed to c:\windows\system32 on the IoT Enterprise sku.
+
+  '**' Fails when setting the ring for the IoT Enterprise sku.
 
 ## Patterns
 
