@@ -35,11 +35,14 @@ will allow you to further secure this channel.  More information about Custom Ca
 
 - To configure the `SystemConfigurator` service, create a cmd file and invoke it from the main configuration script `OEMCustomization.cmd` (which is called on every boot).
 
+- Please also see example [AzureDM.Services.wm.xml](https://github.com/ms-iot/iot-adk-addonkit/blob/master/Source-arm/Packages/AzureDM.Services/AzureDM.Services.wm.xml) and [Create Windows Universal OEM Packages](https://docs.microsoft.com/en-us/windows-hardware/manufacture/iot/create-packages)
+
 #### DMSetup.cmd
 
 <pre>
     c:\windows\system32\systemconfigurator.exe -install
     c:\windows\system32\sc.exe config systemconfigurator start=auto
+	c:\windows\system32\sc.exe failure systemconfigurator reset= 0 actions= restart/0/restart/0/restart/0
     net start systemconfigurator
 </pre>
 
