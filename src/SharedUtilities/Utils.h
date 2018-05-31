@@ -59,6 +59,7 @@ namespace Utils
     void ReadXmlStructData(const std::wstring& resultSyncML, ELEMENT_HANDLER handler);
 
     // Registry helpers
+    bool RegistryKeyExists(const std::wstring& subKey);
     void WriteRegistryValue(const std::wstring& subKey, const std::wstring& propName, const std::wstring& propValue);
     void WriteRegistryValue(const std::wstring& subKey, const std::wstring& propName, unsigned long propValue);
 

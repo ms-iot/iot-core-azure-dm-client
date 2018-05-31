@@ -35,4 +35,6 @@ private:
 
     static void HandleSetDesiredProperties(
         Microsoft::Devices::Management::Message::WindowsUpdatePolicyConfiguration^ data);
+
+    static bool IsRingSupported();
 };

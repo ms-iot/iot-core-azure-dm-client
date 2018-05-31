@@ -1,0 +1,59 @@
+{
+  "scenario": [
+    {
+      "name": "00",
+      "type": "deviceTwin",
+      "description": "our windows update policy test case!",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "windowsUpdatePolicy": {
+                "applyProperties": {
+                  "activeHoursStart": 1,
+                  "activeHoursEnd": 2,
+                  "allowAutoUpdate": 1,
+                  "allowUpdateService": 0,
+                  "branchReadinessLevel": 16,
+                  "deferFeatureUpdatesPeriod": 30,
+                  "deferQualityUpdatesPeriod": 15,
+                  "pauseFeatureUpdates": 0,
+                  "pauseQualityUpdates": 0,
+                  "scheduledInstallDay": 3,
+                  "scheduledInstallTime": 2,
+                  "sourcePriority": "remote"
+                },
+                "reportProperties": "yes"
+              }
+
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "windowsUpdatePolicy": {
+                  "activeHoursStart": 1,
+                  "activeHoursEnd": 2,
+                  "allowAutoUpdate": 1,
+                  "allowUpdateService": 0,
+                  "branchReadinessLevel": 16,
+                  "deferFeatureUpdatesPeriod": 30,
+                  "deferQualityUpdatesPeriod": 15,
+                  "pauseFeatureUpdates": 0,
+                  "pauseQualityUpdates": 0,
+                  "scheduledInstallDay": 3,
+                  "scheduledInstallTime": 2,
+                  "sourcePriority": "remote"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

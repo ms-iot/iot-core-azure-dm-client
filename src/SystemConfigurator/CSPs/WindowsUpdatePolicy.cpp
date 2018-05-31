@@ -32,6 +32,19 @@ using namespace Utils;
 const wchar_t* WURingRegistrySubKey = L"SYSTEM\\Platform\\DeviceTargetingInfo";
 const wchar_t* WURingPropertyName = L"TargetRing";
 
+bool WindowsUpdatePolicyCSP::IsRingSupported()
+{
+    static bool checked = false;
+    static bool supported = false;
+
+    if (!checked)
+    {
+        supported = RegistryKeyExists(WURingRegistrySubKey);
+        checked = true;
+    }
+    return supported;
+}
+
 IResponse^ WindowsUpdatePolicyCSP::Get(IRequest^ request)
 {
     TRACE(__FUNCTION__);
@@ -71,7 +84,14 @@ IResponse^ WindowsUpdatePolicyCSP::Get(IRequest^ request)
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallDay", scheduledInstallDay);
     MdmProvision::TryGetNumber<unsigned int>(L"./Device/Vendor/MSFT/Policy/Result/Update/ScheduledInstallTime", scheduledInstallTime);
 
-    Utils::TryReadRegistryValue(WURingRegistrySubKey, WURingPropertyName, ring);
+    if (IsRingSupported())
+    {
+        Utils::TryReadRegistryValue(WURingRegistrySubKey, WURingPropertyName, ring);
+    }
+    else
+    {
+        ring = L"<ring setting is not supported>";
+    }
 
     Utils::TryReadRegistryValue(IoTDMRegistryRoot, RegWindowsUpdatePolicySectionReporting, reportToDeviceTwin);
 
@@ -162,7 +182,17 @@ void WindowsUpdatePolicyCSP::SaveState(WindowsUpdatePolicyConfiguration^ data)
         Utils::WriteRegistryValue(registryRoot, RegWindowsUpdateScheduledInstallTime, data->scheduledInstallTime);
 
     if (data->activeFields & (unsigned int)ActiveFields::Ring)
-        Utils::WriteRegistryValue(registryRoot, RegWindowsUpdatePolicyRing, data->ring->Data());
+    {
+        if (IsRingSupported())
+        {
+            Utils::WriteRegistryValue(registryRoot, RegWindowsUpdatePolicyRing, data->ring->Data());
+        }
+        else
+        {
+            // Ring is not supported on IoT Enterprise.
+            throw DMExceptionWithErrorCode("Ring is not supported on this platform.", ERROR_DM_WINDOWS_UPDATE_POLICY_RING_NOT_SUPPORTED);
+        }
+    }
 }
 
 WindowsUpdatePolicyConfiguration^ WindowsUpdatePolicyCSP::GetActiveDesiredState()
@@ -276,8 +306,10 @@ WindowsUpdatePolicyConfiguration^ WindowsUpdatePolicyCSP::GetActiveDesiredState(
         TRACE("Found all Windows Update attributes in the registry.");
 
         WindowsUpdatePolicyConfiguration^ activeData = ref new WindowsUpdatePolicyConfiguration();
-        activeData->ring = ref new String(ring.c_str());
+
         activeData->activeFields = activeFields;
+
+        activeData->ring = ref new String(ring.c_str());
         activeData->activeHoursEnd = activeHoursEnd;
         activeData->activeHoursStart = activeHoursStart;
         activeData->allowAutoUpdate = allowAutoUpdate;
@@ -361,24 +393,32 @@ void WindowsUpdatePolicyCSP::HandleSetDesiredProperties(WindowsUpdatePolicyConfi
 
     if (activeFields & (unsigned int)ActiveFields::Ring)
     {
-        wstring registryRoot = L"MACHINE";
-        wstring registryKey = registryRoot + L"\\" + WURingRegistrySubKey;
-        wstring propertyValue = activeDesiredState->ring->Data();
-
-        PermissionsManager::ModifyProtected(registryKey, SE_REGISTRY_KEY, [propertyValue]()
+        if (IsRingSupported())
         {
-            TRACEP(L"........Writing registry: key name: ", WURingRegistrySubKey);
-            TRACEP(L"........Writing registry: key value: ", propertyValue.c_str());
-            Utils::WriteRegistryValue(WURingRegistrySubKey, WURingPropertyName, propertyValue);
-        });
+            wstring registryRoot = L"MACHINE";
+            wstring registryKey = registryRoot + L"\\" + WURingRegistrySubKey;
+            wstring propertyValue = activeDesiredState->ring->Data();
+
+            PermissionsManager::ModifyProtected(registryKey, SE_REGISTRY_KEY, [propertyValue]()
+            {
+                TRACEP(L"........Writing registry: key name: ", WURingRegistrySubKey);
+                TRACEP(L"........Writing registry: key value: ", propertyValue.c_str());
+                Utils::WriteRegistryValue(WURingRegistrySubKey, WURingPropertyName, propertyValue);
+            });
+        }
+        else
+        {
+            // Ring is not supported on IoT Enterprise.
+            throw DMExceptionWithErrorCode("Ring is not supported on this platform.", ERROR_DM_WINDOWS_UPDATE_POLICY_RING_NOT_SUPPORTED);
+        }
     }
 }
 
 IResponse^ WindowsUpdatePolicyCSP::Set(IRequest^ request)
 {
-    // ToDo: We need have a consistent policy on whether we:
+    // ToDo: We need to have a consistent policy on whether we:
     // - apply all or nothing.
-    // - apply as much as we can and report and error.
+    // - apply as much as we can and report an error.
 
     auto updatePolicyRequest = dynamic_cast<SetWindowsUpdatePolicyRequest^>(request);
     WindowsUpdatePolicyConfiguration^ data = updatePolicyRequest->data;
