@@ -597,6 +597,18 @@ namespace Utils
         RegCloseKey(hKey);
     }
 
+    bool RegistryKeyExists(const wstring& subKey)
+    {
+        HKEY keyHandle = NULL;
+        LONG result = RegOpenKey(HKEY_LOCAL_MACHINE, subKey.c_str(), &keyHandle);
+        if (result == ERROR_SUCCESS)
+        {
+            RegCloseKey(keyHandle);
+            return true;
+        }
+        return false;
+    }
+
     LSTATUS TryReadRegistryValue(const wstring& subKey, const wstring& propName, wstring& propValue)
     {
         DWORD dataSize = 0;

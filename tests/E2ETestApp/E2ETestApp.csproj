@@ -129,7 +129,7 @@
     <Content Include="TestCases\RebootInfo\RebootInfo.00.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestCases\WindowsUpdatePolicy\WindowsUpdatePolicy.Ring.00.json">
+    <Content Include="TestCases\WindowsUpdatePolicy\WindowsUpdatePolicy.IoTCoreOnly.Ring.00.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="TestCases\TimeInfo\TimeInfo.00.json">
@@ -166,6 +166,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="TestCases\DeviceInfo\DeviceInfo.MBM.00.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestCases\WindowsUpdatePolicy\WindowsUpdatePolicy.NoRing.00.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
