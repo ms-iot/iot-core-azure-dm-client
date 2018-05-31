@@ -102,7 +102,7 @@ The features can be split into three main categories:
 
   '*' xperf.exe needs to be copied/installed to c:\windows\system32 on the IoT Enterprise sku.
 
-  '**' 'ring' is not support on the IoT Enterprise sku.
+  '**' 'ring' is not supported on the IoT Enterprise sku.
 
 ## Patterns
 
