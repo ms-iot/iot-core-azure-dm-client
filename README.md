@@ -74,3 +74,4 @@ The DM client consists of:
 - [OEM Device Setup](docs/oem-device-setup.md)
 - [Library Reference](docs/library-reference.md)
 - [Device Provisioning Service(DPS) Client](<https://github.com/ms-iot/iot-azure-dps-client>)
+- [Azure Device Management Certification](docs/azure-dm-certification.md)
