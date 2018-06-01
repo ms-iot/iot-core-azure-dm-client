@@ -157,6 +157,9 @@ namespace Microsoft.Devices.Management
             deviceManagementClient.AddPropertyHandler(deviceManagementClient._certificateHandler);
             await deviceTwin.SetMethodHandlerAsync(MethodGetCertificateDetails, deviceManagementClient._certificateHandler.GetCertificateDetailsHandlerAsync);
 
+            var clearReportedPropertiesHandler = new ClearReportedPropertiesHandler(clientCallback);
+            await deviceManagementClient.AddDirectMethodHandlerAsync(clearReportedPropertiesHandler);
+
             return deviceManagementClient;
         }
 
@@ -168,6 +171,15 @@ namespace Microsoft.Devices.Management
         public void SignalOperationComplete()
         {
             _deviceTwin.SignalOperationComplete();
+        }
+
+        // IClientHandlerCallBack.ReportPropertiesAsync
+        public async Task ClearReportedProperties()
+        {
+            Dictionary<string, object> collection = new Dictionary<string, object>();
+            collection[DMJSonConstants.DTWindowsIoTNameSpace] = null;
+
+            await _deviceTwin.ReportProperties(collection);
         }
 
         // IClientHandlerCallBack.ReportPropertiesAsync

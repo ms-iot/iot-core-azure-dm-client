@@ -1,0 +1,76 @@
+{
+  "scenario": [
+    {
+      "name": "00",
+      "type": "deviceTwin",
+      "description": "our first test case!",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "rebootInfo": {
+                "singleRebootTime": "2016-10-10T17:00:00Z",
+                "dailyRebootTime": "2016-10-10T17:00:00Z"
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "rebootInfo": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "lastBootTime": "<ignore>",
+                  "singleRebootTime": "2016-10-10T17:00:00Z",
+                  "dailyRebootTime": "2016-10-10T17:00:00Z"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "01",
+      "type": "deviceTwin",
+      "description": "our second test case!",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "rebootInfo": {
+                "singleRebootTime": "2017-11-10T07:00:00Z",
+                "dailyRebootTime": "2017-12-10T08:00:00Z"
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "rebootInfo": {
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  },
+                  "lastBootTime": "<ignore>",
+                  "singleRebootTime": "2017-11-10T07:00:00Z",
+                  "dailyRebootTime": "2017-12-10T08:00:00Z"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
