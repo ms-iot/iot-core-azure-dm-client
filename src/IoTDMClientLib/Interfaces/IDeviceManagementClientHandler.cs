@@ -22,6 +22,8 @@ namespace Microsoft.Devices.Management
 {
     internal interface IClientHandlerCallBack
     {
+        Task ClearReportedProperties();
+
         Task ReportPropertiesAsync(string propertyName, JToken properties);
 
         Task SendMessageAsync(string message, IDictionary<string, string> properties);
