@@ -89,28 +89,33 @@ namespace DMValidator
                 ReportError(logger, "Missing " + Constants.TCJsonOutput);
                 return null;
             }
-            else
-            {
-                JObject deviceTwin = null;
-                if (JsonHelpers.TryGetObject(output, Constants.TCJsonMethodDeviceTwin, out deviceTwin))
-                {
-                    if (JsonHelpers.TryGetObject(deviceTwin, Constants.TCJsonOutputPresent, out expectedPresentReportedState))
-                    {
-                        expectedPresentReportedState = (JObject)expectedPresentReportedState.DeepClone();
-                    }
 
-                    if (JsonHelpers.TryGetObject(deviceTwin, Constants.TCJsonOutputAbsent, out expectedAbsentReportedState))
-                    {
-                        expectedAbsentReportedState = (JObject)expectedAbsentReportedState.DeepClone();
-                    }
-                }
-                JsonHelpers.TryGetObject(output, Constants.TCJsonMethodReturnJson, out returnJson);
-                JsonHelpers.TryGetValue(output, Constants.TCJsonMethodReturnCode, out returnCode);
+            int delay = 0;
+            if (!JsonHelpers.TryGetInt(output, Constants.TCJsonDelay, out delay))
+            {
+                delay = DefaultDelay;
             }
+
+            JObject deviceTwin = null;
+            if (JsonHelpers.TryGetObject(output, Constants.TCJsonMethodDeviceTwin, out deviceTwin))
+            {
+                if (JsonHelpers.TryGetObject(deviceTwin, Constants.TCJsonOutputPresent, out expectedPresentReportedState))
+                {
+                    expectedPresentReportedState = (JObject)expectedPresentReportedState.DeepClone();
+                }
+
+                if (JsonHelpers.TryGetObject(deviceTwin, Constants.TCJsonOutputAbsent, out expectedAbsentReportedState))
+                {
+                    expectedAbsentReportedState = (JObject)expectedAbsentReportedState.DeepClone();
+                }
+            }
+            JsonHelpers.TryGetObject(output, Constants.TCJsonMethodReturnJson, out returnJson);
+            JsonHelpers.TryGetValue(output, Constants.TCJsonMethodReturnCode, out returnCode);
 
             DirectMethodTestCase testCase = new DirectMethodTestCase();
             testCase._name = name;
             testCase._description = description;
+            testCase._delay = delay;
             testCase._methodName = methodName;
             testCase._parameters = input;
             testCase._expectedPresentReportedState = expectedPresentReportedState;
@@ -151,7 +156,7 @@ namespace DMValidator
                     result &= TestCaseHelpers.VerifyPropertiesPresent("returnValue", _expectedReturnJson, actualReturnJson, errorList);
                 }
 
-                result &= await VerifyDeviceTwin(logger, client, testParameters, 15 /*after 15 seconds*/);
+                result &= await VerifyDeviceTwin(logger, client, testParameters, _delay);
             }
             return result;
         }

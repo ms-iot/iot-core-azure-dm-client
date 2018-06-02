@@ -22,6 +22,8 @@ namespace DMValidator
 {
     abstract class TestCase
     {
+        protected const int DefaultDelay = 15;
+
         public string Name
         {
             get
@@ -96,6 +98,7 @@ namespace DMValidator
         }
 
         // Common properties...
+        protected int _delay;
         protected string _name;
         protected string _description;
         protected JObject _expectedPresentReportedState;
