@@ -122,7 +122,7 @@ namespace DMValidator
 
         public override async Task<bool> Execute(ILogger logger, IoTHubManager client, TestParameters testParameters)
         {
-            logger.Log(LogLevel.Information, "            Executing test case (" + _name + ")...");
+            logger.Log(LogLevel.Information, "    Executing test case: " + _name);
 
             JObject resolvedParameters = (JObject)testParameters.ResolveParameters(_parameters);
 
@@ -130,10 +130,8 @@ namespace DMValidator
             string resultString = ret.Payload;
             int resultCode = ret.Status;
 
-            logger.Log(LogLevel.Information, "Analyzing results...");
-            logger.Log(LogLevel.Verbose, "Final Result:");
-            logger.Log(LogLevel.Verbose, "resultString: " + resultString);
-            logger.Log(LogLevel.Verbose, "resultCode  : " + resultCode);
+            logger.Log(LogLevel.Verbose, "      resultString: " + resultString);
+            logger.Log(LogLevel.Verbose, "      resultCode  : " + resultCode);
 
             List<string> errorList = new List<string>();
             bool result = true;
@@ -142,7 +140,7 @@ namespace DMValidator
             {
                 string msg = "Unexpected return code: Expected [" + _expectedReturnCode + "], Actual [" + resultCode + "]";
                 errorList.Add(msg);
-                Debug.WriteLine(msg);
+                logger.Log(LogLevel.Error, "      " + msg);
                 result = false;
             }
             else
