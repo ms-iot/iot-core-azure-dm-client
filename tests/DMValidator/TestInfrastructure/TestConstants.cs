@@ -33,6 +33,7 @@ namespace DMValidator
         public const string TCJsonDescription = "description";
         public const string TCJsonInput = "input";
         public const string TCJsonOutput = "output";
+        public const string TCJsonDelay = "delay";
         public const string TCJsonOutputPresent = "present";
         public const string TCJsonOutputAbsent = "absent";
 

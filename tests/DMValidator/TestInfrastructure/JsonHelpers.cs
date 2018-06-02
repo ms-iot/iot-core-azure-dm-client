@@ -41,6 +41,28 @@ namespace DMValidator
             return false;
         }
 
+        public static bool TryGetInt(JObject obj, string propertyName, out int propertyValue)
+        {
+            propertyValue = 0;
+
+            if (obj == null)
+            {
+                return false;
+            }
+
+            JToken token = obj[propertyName];
+            if (token is JValue)
+            {
+                JValue jValue = (JValue)token;
+                if (jValue.Type == JTokenType.Integer)
+                {
+                    propertyValue = (int)jValue;
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static bool TryGetObject(JObject obj, string propertyName, out JObject propertyValue)
         {
             propertyValue = null;

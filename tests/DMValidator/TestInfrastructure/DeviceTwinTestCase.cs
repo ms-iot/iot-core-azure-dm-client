@@ -75,6 +75,12 @@ namespace DMValidator
                 return null;
             }
 
+            int delay = 0;
+            if (!JsonHelpers.TryGetInt(output, Constants.TCJsonDelay, out delay))
+            {
+                delay = DefaultDelay;
+            }
+
             JObject expectedPresentReportedState = null;
             if (JsonHelpers.TryGetObject(output, Constants.TCJsonOutputPresent, out expectedPresentReportedState))
             {
@@ -90,6 +96,7 @@ namespace DMValidator
             DeviceTwinTestCase testCase = new DeviceTwinTestCase();
             testCase._name = name;
             testCase._description = description;
+            testCase._delay = delay;
             testCase._desiredState = input;
             testCase._expectedPresentReportedState = expectedPresentReportedState;
             testCase._expectedAbsentReportedState = expectedAbsentReportedState;
@@ -112,7 +119,7 @@ namespace DMValidator
                 throw new Exception("Unexpected format!");
             }
 
-            return await VerifyDeviceTwin(logger, client, testParameters, 15 /*after 15 seconds*/);
+            return await VerifyDeviceTwin(logger, client, testParameters, _delay);
         }
 
         protected JObject _desiredState;
