@@ -98,6 +98,7 @@ namespace DMValidator
 
         public override async Task<bool> Execute(ILogger logger, IoTHubManager client, TestParameters testParameters)
         {
+            logger.Log(LogLevel.Information, "    Executing test case: " + _name);
 
             JObject resolvedDesiredState = (JObject)testParameters.ResolveParameters(_desiredState);
             JToken desiredNode = resolvedDesiredState[Constants.JsonPropertiesRoot][Constants.JsonDesiredRoot];

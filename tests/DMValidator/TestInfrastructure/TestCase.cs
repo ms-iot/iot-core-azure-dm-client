@@ -43,11 +43,11 @@ namespace DMValidator
         {
             if (result)
             {
-                logger.Log(LogLevel.Information, "Test " + _name + " succeeded!");
+                logger.Log(LogLevel.Information, "    Test " + _name + " succeeded!");
             }
             else
             {
-                logger.Log(LogLevel.Information, "Test " + _name + " Failed!");
+                logger.Log(LogLevel.Information, "    Test " + _name + " Failed!");
             }
         }
 
@@ -55,7 +55,7 @@ namespace DMValidator
 
         protected async Task<bool> VerifyDeviceTwin(ILogger logger, IoTHubManager client, TestParameters testParameters, int seconds)
         {
-            logger.Log(LogLevel.Information, "Waiting " + seconds + " seconds for the device twin to be updated...");
+            logger.Log(LogLevel.Information, "      Waiting " + seconds + " seconds for the device twin to be updated...");
             await Task.Delay(seconds * 1000);
 
             DeviceData deviceData = await client.GetDeviceData(testParameters.IoTHubDeviceId);

@@ -30,7 +30,7 @@ namespace DMValidator
 
         public static async Task<bool> Run(ILogger logger, string scenarioFileName, TestParameters testParameters)
         {
-            logger.Log(LogLevel.Information, "Reading test scenario: " + scenarioFileName);
+            logger.Log(LogLevel.Information, "  Loading and parsing test scenario...");
 
             string jsonString = File.ReadAllText(scenarioFileName);
             object deserializedObject = JsonConvert.DeserializeObject(jsonString);
@@ -120,7 +120,7 @@ namespace DMValidator
 
         private async Task<bool> ClearDeviceTwin(ILogger logger, IoTHubManager client, TestParameters testParameters)
         {
-            logger.Log(LogLevel.Information, "Clearing device: " + testParameters.IoTHubDeviceId);
+            logger.Log(LogLevel.Information, "    Clearing device: " + testParameters.IoTHubDeviceId);
 
             // Clear reboot info
             await client.UpdateDesiredProperties(testParameters.IoTHubDeviceId, Constants.JsonRebootInfo, null);
@@ -133,13 +133,13 @@ namespace DMValidator
                 return false;
             }
 
-            logger.Log(LogLevel.Information, "Cleared the device twin successfully");
+            logger.Log(LogLevel.Information, "    Cleared the device twin successfully");
             return true;
         }
 
         private async Task<bool> Execute(ILogger logger, TestParameters testParameters)
         {
-            logger.Log(LogLevel.Information, "          Executing test scenario (" + _scenarioFileName + ").");
+            logger.Log(LogLevel.Information, "  Executing test cases...");
 
             IoTHubManager client = new IoTHubManager(testParameters.IoTHubConnectionString);
 
