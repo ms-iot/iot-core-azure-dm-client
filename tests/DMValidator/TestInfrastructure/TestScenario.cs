@@ -122,7 +122,10 @@ namespace DMValidator
         {
             logger.Log(LogLevel.Information, "Clearing device: " + testParameters.IoTHubDeviceId);
 
+            // Clear reboot info
             await client.UpdateDesiredProperties(testParameters.IoTHubDeviceId, Constants.JsonRebootInfo, null);
+
+            // Tell the device to clear its reported properties...
             DeviceMethodReturnValue ret = await client.InvokeDirectMethod(testParameters.IoTHubDeviceId, Constants.JsonClearReportedCmd, Constants.JsonDirectMethodEmptyParams);
             if (ret.Status != IoTHubManager.DirectMethodSuccessCode)
             {

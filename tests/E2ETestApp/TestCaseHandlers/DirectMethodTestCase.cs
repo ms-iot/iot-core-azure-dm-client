@@ -102,12 +102,12 @@ namespace E2ETestApp
                 JObject deviceTwin = null;
                 if (JsonHelpers.TryGetObject(output, Constants.TCJsonMethodDeviceTwin, out deviceTwin))
                 {
-                    if (JsonHelpers.TryGetObject(output, Constants.TCJsonOutputPresent, out expectedPresentReportedState))
+                    if (JsonHelpers.TryGetObject(deviceTwin, Constants.TCJsonOutputPresent, out expectedPresentReportedState))
                     {
                         expectedPresentReportedState = (JObject)expectedPresentReportedState.DeepClone();
                     }
 
-                    if (JsonHelpers.TryGetObject(output, Constants.TCJsonOutputAbsent, out expectedAbsentReportedState))
+                    if (JsonHelpers.TryGetObject(deviceTwin, Constants.TCJsonOutputAbsent, out expectedAbsentReportedState))
                     {
                         expectedAbsentReportedState = (JObject)expectedAbsentReportedState.DeepClone();
                     }

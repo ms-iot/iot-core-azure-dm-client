@@ -13,9 +13,9 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using System.Windows;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace DMValidator
@@ -53,8 +53,52 @@ namespace DMValidator
 
         public abstract Task<bool> Execute(ILogger logger, IoTHubManager client, TestParameters testParameters);
 
+        protected async Task<bool> VerifyDeviceTwin(ILogger logger, IoTHubManager client, TestParameters testParameters, int seconds)
+        {
+            logger.Log(LogLevel.Information, "Waiting " + seconds + " seconds for the device twin to be updated...");
+            await Task.Delay(seconds * 1000);
+
+            DeviceData deviceData = await client.GetDeviceData(testParameters.IoTHubDeviceId);
+
+            JObject reportedProperties = (JObject)JsonConvert.DeserializeObject(deviceData.reportedPropertiesJson);
+
+            logger.Log(LogLevel.Verbose, "---- Final Result:");
+            logger.Log(LogLevel.Verbose, reportedProperties.ToString());
+
+            List<string> errorList = new List<string>();
+            bool result = true;
+
+            logger.Log(LogLevel.Verbose, "---- Expected Present Result:");
+            if (_expectedPresentReportedState != null)
+            {
+                JObject expectedPresentReported = (JObject)_expectedPresentReportedState[Constants.JsonPropertiesRoot][Constants.JsonReportedRoot];
+                if (expectedPresentReported != null)
+                {
+                    logger.Log(LogLevel.Verbose, expectedPresentReported.ToString());
+                    result &= TestCaseHelpers.VerifyPropertiesPresent(Constants.JsonDeviceTwin, expectedPresentReported, reportedProperties, errorList);
+                }
+            }
+
+            logger.Log(LogLevel.Verbose, "---- Expected Absent Result:");
+            if (_expectedAbsentReportedState != null)
+            {
+                JObject expectedAbsentReported = (JObject)_expectedAbsentReportedState[Constants.JsonPropertiesRoot][Constants.JsonReportedRoot];
+                if (expectedAbsentReported != null)
+                {
+                    logger.Log(LogLevel.Verbose, expectedAbsentReported.ToString());
+                    result &= TestCaseHelpers.VerifyPropertiesAbsent(expectedAbsentReported, reportedProperties, errorList);
+                }
+            }
+
+            ReportResult(logger, result, errorList);
+
+            return result;
+        }
+
         // Common properties...
         protected string _name;
         protected string _description;
+        protected JObject _expectedPresentReportedState;
+        protected JObject _expectedAbsentReportedState;
     }
 }

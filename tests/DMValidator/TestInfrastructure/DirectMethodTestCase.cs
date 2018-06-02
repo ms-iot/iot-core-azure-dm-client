@@ -17,7 +17,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DMValidator
@@ -95,12 +94,12 @@ namespace DMValidator
                 JObject deviceTwin = null;
                 if (JsonHelpers.TryGetObject(output, Constants.TCJsonMethodDeviceTwin, out deviceTwin))
                 {
-                    if (JsonHelpers.TryGetObject(output, Constants.TCJsonOutputPresent, out expectedPresentReportedState))
+                    if (JsonHelpers.TryGetObject(deviceTwin, Constants.TCJsonOutputPresent, out expectedPresentReportedState))
                     {
                         expectedPresentReportedState = (JObject)expectedPresentReportedState.DeepClone();
                     }
 
-                    if (JsonHelpers.TryGetObject(output, Constants.TCJsonOutputAbsent, out expectedAbsentReportedState))
+                    if (JsonHelpers.TryGetObject(deviceTwin, Constants.TCJsonOutputAbsent, out expectedAbsentReportedState))
                     {
                         expectedAbsentReportedState = (JObject)expectedAbsentReportedState.DeepClone();
                     }
@@ -121,15 +120,46 @@ namespace DMValidator
             return testCase;
         }
 
-        public override Task<bool> Execute(ILogger logger, IoTHubManager client, TestParameters testParameters)
+        public override async Task<bool> Execute(ILogger logger, IoTHubManager client, TestParameters testParameters)
         {
-            return Task.FromResult<bool>(true);
+            logger.Log(LogLevel.Information, "            Executing test case (" + _name + ")...");
+
+            JObject resolvedParameters = (JObject)testParameters.ResolveParameters(_parameters);
+
+            DeviceMethodReturnValue ret = await client.InvokeDirectMethod(testParameters.IoTHubDeviceId, _methodName, resolvedParameters.ToString());
+            string resultString = ret.Payload;
+            int resultCode = ret.Status;
+
+            logger.Log(LogLevel.Information, "Analyzing results...");
+            logger.Log(LogLevel.Verbose, "Final Result:");
+            logger.Log(LogLevel.Verbose, "resultString: " + resultString);
+            logger.Log(LogLevel.Verbose, "resultCode  : " + resultCode);
+
+            List<string> errorList = new List<string>();
+            bool result = true;
+
+            if (_expectedReturnCode != resultCode)
+            {
+                string msg = "Unexpected return code: Expected [" + _expectedReturnCode + "], Actual [" + resultCode + "]";
+                errorList.Add(msg);
+                Debug.WriteLine(msg);
+                result = false;
+            }
+            else
+            {
+                JObject actualReturnJson = (JObject)JsonConvert.DeserializeObject(resultString);
+                if (_expectedReturnJson != null)
+                {
+                    result &= TestCaseHelpers.VerifyPropertiesPresent("returnValue", _expectedReturnJson, actualReturnJson, errorList);
+                }
+
+                result &= await VerifyDeviceTwin(logger, client, testParameters, 15 /*after 15 seconds*/);
+            }
+            return result;
         }
 
         private string _methodName;
         private JObject _parameters;
-        private JObject _expectedPresentReportedState;
-        private JObject _expectedAbsentReportedState;
         private JObject _expectedReturnJson;
         private int _expectedReturnCode;
     }
