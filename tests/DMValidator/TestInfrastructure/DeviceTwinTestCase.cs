@@ -14,9 +14,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 using System;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -113,48 +111,9 @@ namespace DMValidator
                 throw new Exception("Unexpected format!");
             }
 
-            int seconds = 15;
-            logger.Log(LogLevel.Information, "Waiting " + seconds + " seconds for the device twin to be updated...");
-            await Task.Delay(seconds * 1000);
-
-            DeviceData deviceData = await client.GetDeviceData(testParameters.IoTHubDeviceId);
-
-            JObject desiredProperties = (JObject)JsonConvert.DeserializeObject(deviceData.desiredPropertiesJson);
-            JObject reportedProperties = (JObject)JsonConvert.DeserializeObject(deviceData.reportedPropertiesJson);
-
-            logger.Log(LogLevel.Verbose, "---- Final Result:");
-            logger.Log(LogLevel.Verbose, reportedProperties.ToString());
-
-            JObject expectedWindowsReported = (JObject)_expectedPresentReportedState[Constants.JsonPropertiesRoot][Constants.JsonReportedRoot];
-
-            List<string> errorList = new List<string>();
-            bool result = true;
-
-            logger.Log(LogLevel.Verbose, "---- Expected Present Result:");
-            if (expectedWindowsReported != null)
-            {
-                logger.Log(LogLevel.Verbose, expectedWindowsReported.ToString());
-                result &= TestCaseHelpers.VerifyPropertiesPresent(Constants.JsonDeviceTwin, expectedWindowsReported, reportedProperties, errorList);
-            }
-
-            logger.Log(LogLevel.Verbose, "---- Expected Absent Result:");
-            if (_expectedAbsentReportedState != null)
-            {
-                JObject expectedAbsentReported = (JObject)_expectedAbsentReportedState[Constants.JsonPropertiesRoot][Constants.JsonReportedRoot];
-                if (expectedAbsentReported != null)
-                {
-                    logger.Log(LogLevel.Verbose, expectedAbsentReported.ToString());
-                    result &= TestCaseHelpers.VerifyPropertiesAbsent(expectedAbsentReported, reportedProperties, errorList);
-                }
-            }
-
-            ReportResult(logger, result, errorList);
-
-            return result;
+            return await VerifyDeviceTwin(logger, client, testParameters, 15 /*after 15 seconds*/);
         }
 
         protected JObject _desiredState;
-        protected JObject _expectedPresentReportedState;
-        protected JObject _expectedAbsentReportedState;
     }
 }

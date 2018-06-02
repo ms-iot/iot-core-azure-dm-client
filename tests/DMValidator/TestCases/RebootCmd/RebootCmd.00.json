@@ -1,0 +1,37 @@
+{
+  "scenario": [
+    {
+      "name": "00",
+      "type": "directMethod",
+      "directMethodName": "windows.rebootAsync",
+      "description": "our reboot cmd 01 test case!",
+      "input": {},
+      "output": {
+        "deviceTwin": {
+          "present": {
+            "properties": {
+              "reported": {
+                "windows": {
+                  "rebootCmd": {
+                    "lastChange": {
+                      "time": "<ignore>",
+                      "state": "completed"
+                    },
+                    "response": "scheduled"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "returnJson": {
+          "lastChange": {
+            "time": "<ignore>",
+            "state": "pending"
+          }
+        },
+        "returnCode": 0
+      }
+    }
+  ]
+}
