@@ -62,49 +62,7 @@ const wchar_t* JsonTraceLevelWarning = L"warning";
 const wchar_t* JsonTraceLevelInformation = L"information";
 const wchar_t* JsonTraceLevelVerbose = L"verbose";
 
-// ToDo: Need to follow-up on this and remove the work around.
-//       The problem is that in order to add a new provider to
-//       the CPS, xperf.exe need to be running.
-class XperfWorkAround
-{
-public:
-    XperfWorkAround(const wstring& providerGuid) :
-        _xperfExe(L"C:\\windows\\system32\\xperf.exe"),
-        _xperfSession(L"DMAddProviderSession")
-    {
-        _dummyEtlFileName = Utils::GetDmUserFolder() + L"\\DMAddProviderSession.etl";
-        _dummyXperfStartCmd = _xperfExe + L" -start " + _xperfSession + L" -f " + _dummyEtlFileName + L" -on " + providerGuid;
-        _dummyXperfStopCmd += _xperfExe + L" -stop " + _xperfSession;
-    }
 
-    void Start()
-    {
-        unsigned long returnCode = 0;
-        string output;
-        Utils::LaunchProcess(_dummyXperfStartCmd, returnCode, output);
-    }
-
-    void Stop()
-    {
-        unsigned long returnCode = 0;
-        string output;
-        Utils::LaunchProcess(_dummyXperfStopCmd, returnCode, output);
-
-        DeleteFile(_dummyEtlFileName.c_str());
-    }
-
-    ~XperfWorkAround()
-    {
-        Stop();
-    }
-
-private:
-    wstring _dummyEtlFileName;
-    wstring _xperfExe;
-    wstring _xperfSession;
-    wstring _dummyXperfStartCmd;
-    wstring _dummyXperfStopCmd;
-};
 
 IResponse^ DiagnosticLogCSP::HandleGetEventTracingConfiguration(IRequest^ request)
 {
@@ -416,15 +374,7 @@ void DiagnosticLogCSP::ApplyCollectorConfiguration(const wstring& cspRoot, Colle
         // Is the provider already part of this CSP collector configuration?
         if (wstring::npos == providersString.find(provider->Guid->Data()))
         {
-            // ToDo: Need to follow-up on this and remove the work around.
-            //       The problem is that in order to add a new provider to
-            //       the CPS, xperf.exe need to be running.
-            XperfWorkAround xperfWorkAround(provider->Guid->Data());
-            xperfWorkAround.Start();
-
             MdmProvision::RunAddTyped(providerCSPPath, CSPNodeType);
-
-            xperfWorkAround.Stop();
         }
 
         int traceLevel = 0;
