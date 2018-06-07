@@ -27,6 +27,8 @@ This repo holds the ***Windows IoT Azure DM Client*** open source SDK + runtime 
 
 ### [October 2017 - Full Feature List](docs/release-notes-2017-10.md)
 
+### [June 2018 - Full Feature List](docs/release-notes-2018-06.md)
+
 ### Overview
 
 The *Windows IoT Azure DM Client* integrates tightly with the user's application on the device. This integration allows some interaction scenarios between the remote configuration and the application business logic.
