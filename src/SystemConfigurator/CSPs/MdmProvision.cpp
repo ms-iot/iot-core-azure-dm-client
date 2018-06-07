@@ -128,14 +128,18 @@ void MdmProvision::RunSyncML(const wstring&, const wstring& requestSyncML, wstri
 
     TRACEP(L"Response: ", outputSyncML.c_str());
 
-    wstring returnCodeString;
-    Utils::ReadXmlValue(outputSyncML, STATUS_XML_PATH, returnCodeString);
+    vector<wstring> resultCodes;
+    Utils::ReadXmlValues(outputSyncML, STATUS_XML_PATH, resultCodes);
 
-    unsigned int returnCode = stoi(returnCodeString);
-    if (returnCode >= 300)
+    // Check the result of all reported commands...
+    for (const wstring& s : resultCodes)
     {
-        ReportError(requestSyncML, outputSyncML, returnCode);
-        throw DMExceptionWithErrorCode(returnCode);
+        unsigned int returnCode = stoi(s);
+        if (returnCode >= 300)
+        {
+            ReportError(requestSyncML, outputSyncML, returnCode);
+            throw DMExceptionWithErrorCode(returnCode);
+        }
     }
 }
 
@@ -159,7 +163,17 @@ void MdmProvision::RunAdd(const wstring& sid, const wstring& path, const wstring
         )";
 
     wstring resultSyncML;
-    RunSyncML(sid, requestSyncML, resultSyncML);
+    try
+    {
+        RunSyncML(sid, requestSyncML, resultSyncML);
+    }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        if (e.ErrorCode() != OMA_DM_ERROR_ALREADY_EXISTS)
+        {
+            throw;
+        }
+    }
 }
 
 void MdmProvision::RunAddData(const wstring& sid, const wstring& path, const wstring& value, const wstring& type)
@@ -188,7 +202,18 @@ void MdmProvision::RunAddData(const wstring& sid, const wstring& path, const wst
         )";
 
     wstring resultSyncML;
-    RunSyncML(sid, requestSyncML, resultSyncML);
+
+    try
+    {
+        RunSyncML(sid, requestSyncML, resultSyncML);
+    }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        if (e.ErrorCode() != OMA_DM_ERROR_ALREADY_EXISTS)
+        {
+            throw;
+        }
+    }
 }
 
 void MdmProvision::RunAddTyped(const wstring& sid, const wstring& path, const wstring& type)
@@ -214,7 +239,18 @@ void MdmProvision::RunAddTyped(const wstring& sid, const wstring& path, const ws
         )";
 
     wstring resultSyncML;
-    RunSyncML(sid, requestSyncML, resultSyncML);
+
+    try
+    {
+        RunSyncML(sid, requestSyncML, resultSyncML);
+    }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        if (e.ErrorCode() != OMA_DM_ERROR_ALREADY_EXISTS)
+        {
+            throw;
+        }
+    }
 }
 
 void MdmProvision::RunAddDataBase64(const wstring& sid, const std::wstring& path, const std::wstring& value)

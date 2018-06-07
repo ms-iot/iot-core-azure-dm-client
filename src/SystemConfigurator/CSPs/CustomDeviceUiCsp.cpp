@@ -26,13 +26,44 @@ using namespace Windows::Data::Json;
 // https://msdn.microsoft.com/en-us/library/windows/hardware/dn904956(v=vs.85).aspx
 //
 
+bool CustomDeviceUiCSP::IsCustomUISupported()
+{
+    TRACE(__FUNCTION__);
+
+    wstring sid = Utils::GetDmUserSid();
+
+    static bool supported = true;
+    static bool checked = false;
+
+    if (!checked)
+    {
+        try
+        {
+            wstring appId = MdmProvision::RunGetString(
+                sid.c_str(),
+                L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData");
+        }
+        catch (const DMExceptionWithErrorCode& e)
+        {
+            if (e.ErrorCode() == OMA_DM_ERROR_NOT_FOUND)
+            {
+                supported = false;
+            }
+            else
+            {
+                throw;
+            }
+        }
+    }
+
+    checked = true;
+    return supported;
+}
+
 wstring CustomDeviceUiCSP::GetStartupAppId()
 {
     TRACE(__FUNCTION__);
-#ifdef IOT_ENTERPRISE
-    // TODO: need Enterprise solution
-    wstring appId = L"";
-#else
+
     // REQUEST
     //    ./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData
     //
@@ -47,24 +78,34 @@ wstring CustomDeviceUiCSP::GetStartupAppId()
     //            <Data>23983CETAthensQuality.IoTCoreSmartDisplay_7grdn1j1n8awe!App</Data>
     //        </Item>
     //    </Results>
-        
-    wstring sid = Utils::GetDmUserSid();
-    auto appId = MdmProvision::RunGetString(
-        sid.c_str(),
-        L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData");
 
-    appId = Utils::TrimString(appId, L"!App");
-#endif // IOT_ENTERPRISE
+    wstring appId = L"";
+
+    wstring sid = Utils::GetDmUserSid();
+
+    try
+    {
+        appId = MdmProvision::RunGetString(
+            sid.c_str(),
+            L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData");
+        appId = Utils::TrimString(appId, L"!App");
+    }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        if (e.ErrorCode() != OMA_DM_ERROR_NOT_FOUND)
+        {
+            // Forward...
+            throw;
+        }
+    }
+
     return appId;
 }
 
 wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
 {
     TRACE(__FUNCTION__);
-#ifdef IOT_ENTERPRISE
-    // TODO: need Enterprise solution
-    auto data = ref new Windows::Data::Json::JsonArray();
-#else
+
     // REQUEST
     //    ./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch?list=Struct
     // RESPONSE
@@ -88,8 +129,8 @@ wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
     //        </Item>
     //    </Results>
 
-    
     auto data = ref new Windows::Data::Json::JsonArray();
+
     // use std::function to pass lambda that captures something
     std::function<void(std::vector<std::wstring>&, std::wstring&)> valueHandler =
         [data](vector<wstring>& uriTokens, wstring& /*value*/) {
@@ -102,20 +143,30 @@ wstring CustomDeviceUiCSP::GetBackgroundTasksToLaunch()
             data->Append(JsonValue::CreateStringValue(aumid));
         }
     };
-    MdmProvision::RunGetStructData(
-        L"./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch?list=Struct",
-        valueHandler);
-#endif // IOT_ENTERPRISE
+
+    try
+    {
+        MdmProvision::RunGetStructData(
+            L"./Vendor/MSFT/CustomDeviceUI/BackgroundTaskstoLaunch?list=Struct",
+            valueHandler);
+    }
+    catch (const DMExceptionWithErrorCode& e)
+    {
+        if (e.ErrorCode() != OMA_DM_ERROR_NOT_FOUND)
+        {
+            // Forward...
+            throw;
+        }
+    }
+
     return data->Stringify()->Data();
 }
 
 void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add)
 {
     TRACE(__FUNCTION__);
-#ifdef IOT_ENTERPRISE
-    // TODO: need Enterprise solution
-#else
-    const wchar_t* syncML_forApp = LR"(
+
+    const wchar_t* syncML_forForegroundApp = LR"(
   <SyncBody>      
         <%s>
           <CmdID>1</CmdID>
@@ -156,7 +207,7 @@ void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add
     }
 
     const wchar_t *action = (backgroundApplication) ? ((add) ? L"Add" : L"Delete") : L"Replace";
-    const wchar_t *syncML = (backgroundApplication) ? syncML_forBackgroundApp : syncML_forApp;
+    const wchar_t *syncML = (backgroundApplication) ? syncML_forBackgroundApp : syncML_forForegroundApp;
 
     wstring cspAppId = appId + L"!App";
     size_t bufsize = _scwprintf(syncML, action, cspAppId.c_str(), action);
@@ -169,48 +220,30 @@ void HandleStartupApp(const wstring& appId, bool backgroundApplication, bool add
     wstring output;
     wstring sid = Utils::GetDmUserSid();
     MdmProvision::RunSyncML(sid, buff.data(), output);
-#endif // IOT_ENTERPRISE
 }
 
 void CustomDeviceUiCSP::AddAsStartupApp(const wstring& appId, bool backgroundApplication)
 {
     TRACE(__FUNCTION__);
-#ifdef IOT_ENTERPRISE
-#else
     HandleStartupApp(appId, backgroundApplication, true /*add*/);
-#endif // IOT_ENTERPRISE
 }
 
 void CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(const wstring& appId)
 {
     TRACE(__FUNCTION__);
-#ifdef IOT_ENTERPRISE
-    // TODO: need Enterprise solution
-#else
-    HandleStartupApp(appId, true, false /*replace/delete*/);
-#endif // IOT_ENTERPRISE
+    HandleStartupApp(appId, true /*background*/, false /*replace/delete*/);
 }
 
 bool CustomDeviceUiCSP::IsForeground(const std::wstring& pkgFamilyName)
 {
     TRACE(__FUNCTION__);
-#ifdef IOT_ENTERPRISE
-    // TODO: need Enterprise solution
-    return false;
-#else
     wstring forgroundAppId = CustomDeviceUiCSP::GetStartupAppId();
     return forgroundAppId == pkgFamilyName;
-#endif // IOT_ENTERPRISE
 }
 
 bool CustomDeviceUiCSP::IsBackground(const std::wstring& pkgFamilyName)
 {
     TRACE(__FUNCTION__);
-#ifdef IOT_ENTERPRISE
-    // TODO: need Enterprise solution
-    return false;
-#else
     wstring backgroundTasks = CustomDeviceUiCSP::GetBackgroundTasksToLaunch();
     return wstring::npos != backgroundTasks.find(pkgFamilyName);
-#endif // IOT_ENTERPRISE
 }

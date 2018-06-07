@@ -520,9 +520,17 @@ namespace Microsoft.Devices.Management
                         {
                             case AppxStartUpType.None:
                                 {
-                                    Logger.Log("            Removing app from background apps.", LoggingLevel.Verbose);
-                                    StartupAppInfo startupAppInfo = new StartupAppInfo(desiredState.packageFamilyName, true /*background*/);
-                                    await RemoveStartupAppAsync(startupAppInfo);
+                                    bool background = installedAppInfo.StartUp == StartUpType.Background;
+                                    if (background)
+                                    {
+                                        Logger.Log("            Removing app from background apps.", LoggingLevel.Verbose);
+                                        StartupAppInfo startupAppInfo = new StartupAppInfo(desiredState.packageFamilyName, background);
+                                        await RemoveStartupAppAsync(startupAppInfo);
+                                    }
+                                    else
+                                    {
+                                        Logger.Log("            App is no longer marked to be start-up app. Change takes effect when another app is set to be the start-up app.", LoggingLevel.Verbose);
+                                    }
                                 }
                                 break;
                             case AppxStartUpType.Foreground:

@@ -224,7 +224,6 @@ ApplicationInfo AppCfg::InstallAppInternal(const wstring& packageFamilyName, con
     return BuildOperationResult(packageFamilyName);
 }
 
-
 ApplicationInfo AppCfg::InstallApp(const wstring& packageFamilyName, const wstring& appxLocalPath, const vector<wstring>& dependentPackages, const wstring& certFileName, const wstring& certStore, bool isDMSelfUpdate)
 {
     TRACE(__FUNCTION__);

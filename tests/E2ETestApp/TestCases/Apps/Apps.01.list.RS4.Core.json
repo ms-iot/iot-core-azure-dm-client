@@ -1,0 +1,57 @@
+{
+  "scenario": [
+    {
+      "name": "00",
+      "type": "deviceTwin",
+      "description": "list all apps.",
+      "input": {
+        "properties": {
+          "desired": {
+            "windows": {
+              "apps": {
+                "?": {
+                  "store": true,
+                  "nonStore": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "output": {
+        "present": {
+          "properties": {
+            "reported": {
+              "windows": {
+                "apps": {
+                  "16454Windows10IOTCore_IOTCoreDefaultApplication_rz84sjny4rf58": {
+                    "pkgFamilyName": "16454Windows10IOTCore.IOTCoreDefaultApplication_rz84sjny4rf58",
+                    "version": "3.0.0.0",
+                    "startUp": "foreground",
+                    "installDate": ""
+                  },
+                  "IoTOnboardingTask-uwp_1w720vyc4ccym": {
+                    "pkgFamilyName": "IoTOnboardingTask-uwp_1w720vyc4ccym",
+                    "version": "1.0.1712.21001",
+                    "startUp": "background",
+                    "installDate": ""
+                  },
+                  "b114014e-9082-498f-91a8-02b370fdbab8_h70s91gmznnxg": {
+                    "pkgFamilyName": "b114014e-9082-498f-91a8-02b370fdbab8_h70s91gmznnxg",
+                    "version": "1.0.1.0",
+                    "startUp": "none",
+                    "installDate": ""
+                  },
+                  "lastChange": {
+                    "time": "<ignore>",
+                    "state": "completed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

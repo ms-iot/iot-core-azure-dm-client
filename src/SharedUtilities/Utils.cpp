@@ -370,8 +370,8 @@ namespace Utils
             }
         }
     }
-    
-    void ReadXmlValue(IStream* resultSyncML, const wstring& targetXmlPath, wstring& value)
+
+    void ReadXmlValues(IStream* resultSyncML, const wstring& targetXmlPath, vector<wstring>& values)
     {
         ComPtr<IXmlReader> xmlReader;
 
@@ -400,10 +400,8 @@ namespace Utils
         wstring currentPath;
 
         // Read until there are no more nodes
-        bool valueFound = false;
-        bool pathFound = false;
         XmlNodeType nodeType;
-        while (S_OK == (hr = xmlReader->Read(&nodeType)) && !valueFound)
+        while (S_OK == (hr = xmlReader->Read(&nodeType)))
         {
             switch (nodeType)
             {
@@ -445,10 +443,6 @@ namespace Utils
                     {
                         currentPath += it + L"\\";
                     }
-                    if (targetXmlPath == currentPath)
-                    {
-                        pathFound = true;
-                    }
                 }
             }
             break;
@@ -488,18 +482,20 @@ namespace Utils
 
                 if (targetXmlPath == currentPath)
                 {
-                    value = valueText;
-                    valueFound = true;
+                    values.push_back(valueText);
+                    currentPath = L"";  // reset.
                 }
             }
             break;
             }
         }
 
-        if (!pathFound)
+        if (values.size() == 0)
         {
-            TRACEP(L"Error: Failed to read: ", targetXmlPath.c_str());
-            throw DMException("ReadXmlValue: path not found");
+            string msg;
+            msg += "Failed to read: ";
+            msg += Utils::WideToMultibyte(targetXmlPath.c_str());
+            throw DMException(msg.c_str());
         }
     }
 
@@ -522,7 +518,7 @@ namespace Utils
         // GlobalFree(buffer);
     }
 
-    void ReadXmlValue(const wstring& resultSyncML, const wstring& targetXmlPath, wstring& value)
+    void ReadXmlValues(const wstring& resultSyncML, const wstring& targetXmlPath, vector<wstring>& values)
     {
         DWORD bufferSize = static_cast<DWORD>(resultSyncML.size() * sizeof(resultSyncML[0]));
         char* buffer = (char*)GlobalAlloc(GMEM_FIXED, bufferSize);
@@ -535,10 +531,33 @@ namespace Utils
             GlobalFree(buffer);
             throw DMExceptionWithErrorCode(hr);
         }
-        ReadXmlValue(dataStream.Get(), targetXmlPath, value);
+        ReadXmlValues(dataStream.Get(), targetXmlPath, values);
 
         // GlobalFree() is not needed since 'delete on release' is enabled.
         // GlobalFree(buffer);
+    }
+
+    void ReadXmlValue(const wstring& resultSyncML, const wstring& targetXmlPath, wstring& value)
+    {
+        vector<wstring> values;
+        ReadXmlValues(resultSyncML, targetXmlPath, values);
+        if (values.size() > 1)
+        {
+            string msg;
+            msg += "Found multiple instances of ";
+            msg += Utils::WideToMultibyte(targetXmlPath.c_str());
+
+            throw DMException(msg.c_str());
+        }
+        if (values.size() == 0)
+        {
+            string msg;
+            msg += "Found no instances of ";
+            msg += Utils::WideToMultibyte(targetXmlPath.c_str());
+
+            throw DMException(msg.c_str());
+        }
+        value = values[0];
     }
 
     void WriteRegistryValue(const wstring& subKey, const wstring& propName, const wstring& propValue)

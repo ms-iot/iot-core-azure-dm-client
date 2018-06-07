@@ -17,6 +17,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DMException.h"
 #include <windows.h>
 
+#if 0
 class SecurityAttributes
 {
 public:
@@ -30,3 +31,5 @@ private:
     PACL _ACL;
     PSECURITY_DESCRIPTOR _SD;
 };
+
+#endif

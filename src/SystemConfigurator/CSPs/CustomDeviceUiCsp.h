@@ -20,6 +20,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class CustomDeviceUiCSP
 {
 public:
+    static bool IsCustomUISupported();
     static std::wstring GetStartupAppId();
     static std::wstring GetBackgroundTasksToLaunch();
     static bool IsForeground(const std::wstring& appId);

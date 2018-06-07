@@ -18,6 +18,10 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "..\SharedUtilities\DMException.h"
 #include "..\SharedUtilities\Utils.h"
 
+// OMA DM Errors
+static const int OMA_DM_ERROR_NOT_FOUND = 404;
+static const int OMA_DM_ERROR_ALREADY_EXISTS = 418;
+
 class MdmProvision
 {
 public:

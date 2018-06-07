@@ -56,6 +56,7 @@ namespace Utils
 
     // Xml helpers
     void ReadXmlValue(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::wstring& value);
+    void ReadXmlValues(const std::wstring& resultSyncML, const std::wstring& targetXmlPath, std::vector<std::wstring>& values);
     void ReadXmlStructData(const std::wstring& resultSyncML, ELEMENT_HANDLER handler);
 
     // Registry helpers

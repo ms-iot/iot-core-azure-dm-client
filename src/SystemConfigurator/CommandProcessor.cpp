@@ -17,7 +17,6 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include "..\SharedUtilities\Logger.h"
 #include "..\SharedUtilities\DMRequest.h"
-#include "..\SharedUtilities\SecurityAttributes.h"
 #include "..\DMTpm\TpmSupport.h"
 #include "CSPs\MdmProvision.h"
 #include "CSPs\CertificateInfo.h"
@@ -435,6 +434,16 @@ IResponse^ HandleCheckUpdates(IRequest^ request)
 void SetAppStartUpType(const wstring& pkgFamilyName, StartUpType startUpType)
 {
     TRACE(__FUNCTION__);
+
+    if (!CustomDeviceUiCSP::IsCustomUISupported())
+    {
+        if (startUpType != StartUpType::None)
+        {
+            throw DMExceptionWithErrorCode("Cannot set a startup application on this sku.", -1);
+        }
+        return;
+    }
+
     TRACEP(L"Package Family Name: ", pkgFamilyName.c_str());
 
     switch (startUpType)
@@ -464,6 +473,11 @@ void SetAppStartUpType(const wstring& pkgFamilyName, StartUpType startUpType)
 StartUpType GetAppStartUpType(const wstring& pkgFamilyName)
 {
     TRACE(__FUNCTION__);
+
+    if (!CustomDeviceUiCSP::IsCustomUISupported())
+    {
+        return StartUpType::None;
+    }
 
     if (CustomDeviceUiCSP::IsBackground(pkgFamilyName))
     {
@@ -587,6 +601,11 @@ IResponse^ HandleAddRemoveAppForStartup(StartupAppInfo^ info, DMMessageKind tag,
 {
     TRACE(__FUNCTION__);
 
+    if (!CustomDeviceUiCSP::IsCustomUISupported())
+    {
+        throw DMExceptionWithErrorCode("Cannot set a startup application on this sku.", -1);
+    }
+
     auto pkgFamilyName = (wstring)info->AppId->Data();
 
     TRACEP(L"pkgFamilyName = ", pkgFamilyName.c_str());
@@ -599,7 +618,11 @@ IResponse^ HandleAddRemoveAppForStartup(StartupAppInfo^ info, DMMessageKind tag,
     }
     else
     {
-        CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(pkgFamilyName);
+        if (isBackgroundApp)
+        {
+            CustomDeviceUiCSP::RemoveBackgroundApplicationAsStartupApp(pkgFamilyName);
+        }
+        // Foreground apps are not removed - they are replaced.
     }
     return ref new StatusCodeResponse(ResponseStatus::Success, tag);
 }
@@ -621,6 +644,12 @@ IResponse^ HandleRemoveStartupApp(IRequest^ request)
 IResponse^ HandleGetStartupForegroundApp(IRequest^ request)
 {
     TRACE(__FUNCTION__);
+
+    if (!CustomDeviceUiCSP::IsCustomUISupported())
+    {
+        throw DMExceptionWithErrorCode("Cannot set a startup application on this sku.", -1);
+    }
+
     auto appId = CustomDeviceUiCSP::GetStartupAppId();
     return ref new GetStartupForegroundAppResponse(ResponseStatus::Success, ref new Platform::String(appId.c_str()));
 }
@@ -628,6 +657,12 @@ IResponse^ HandleGetStartupForegroundApp(IRequest^ request)
 IResponse^ HandleListStartupBackgroundApps(IRequest^ request)
 {
     TRACE(__FUNCTION__);
+
+    if (!CustomDeviceUiCSP::IsCustomUISupported())
+    {
+        throw DMExceptionWithErrorCode("Cannot set a startup application on this sku.", -1);
+    }
+
     auto json = CustomDeviceUiCSP::GetBackgroundTasksToLaunch();
     auto jsonArray = JsonArray::Parse(ref new Platform::String(json.c_str()));
     return ref new ListStartupBackgroundAppsResponse(ResponseStatus::Success, jsonArray);

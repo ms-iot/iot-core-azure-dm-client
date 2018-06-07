@@ -18,7 +18,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "SecurityAttributes.h"
 
 using namespace std;
-
+#if 0
 SecurityAttributes::SecurityAttributes(DWORD permissions) : _everyoneSID(nullptr), _ACL(nullptr), _SD(nullptr)
 {
     SID_IDENTIFIER_AUTHORITY SIDAuthWorld = SECURITY_WORLD_SID_AUTHORITY;
@@ -83,3 +83,5 @@ LPSECURITY_ATTRIBUTES SecurityAttributes::GetSA()
 {
     return &_securityAttributes;
 }
+
+#endif
