@@ -43,7 +43,7 @@ The features can be split into three main categories:
 ## Area-Specific Features
 
 | Area | Supported Actions | IoT Core | IoT Enterprise |
-|:----|-----|-----|-----|-----|
+|:----|-----|-----|-----|
 | [Application Management](application-management.md)               | | | |
 |                        | Add/Update an arbitrary application (inc. self) |Y|Y|
 |                        | List store/non-store applications        |Y|Y|
@@ -86,10 +86,10 @@ The features can be split into three main categories:
 |                        | Configure time service                   |Y|Y|
 | | | | |
 | [WiFi Settings](wifi-management.md)                             | | | |
-|                        | Add WiFi profiles. |Y| |
-|                        | List installed WiFi profiles. |Y| |
-|                        | Delete installed WiFi profiles. |Y| |
-|                        | Export/Upload WiFi profiles. |Y| |
+|                        | Add WiFi profiles. |Y|Y|
+|                        | List installed WiFi profiles. |Y|Y|
+|                        | Delete installed WiFi profiles. |Y|Y|
+|                        | Export/Upload WiFi profiles. |Y|Y|
 | | | | |
 | [Windows Telemetry](windows-telemetry-management.md)            | | | |
 |                        | Configure the level of Windows telemetry being sent out of the device. |Y|Y|
