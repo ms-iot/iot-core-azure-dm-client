@@ -1,8 +1,8 @@
-# Device Health Attestation Architecture
+# Windows IoT Device Health Attestation Architecture
 
 ## Overview
 
-Device health attestation enables the operator to assess if a device is booted to a trusted and compliant state, and take appropriate remedial actions if necessary.  
+Windows IoT Device Health Attestation enables the operator to assess if a device is booted to a trusted and compliant state, and take appropriate remedial actions if necessary through [Azure IoT Hub Device Management](../README.md).
 
 ## Requirements
 
