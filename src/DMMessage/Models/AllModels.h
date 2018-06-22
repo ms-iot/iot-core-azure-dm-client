@@ -30,6 +30,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "FileTransfer.h"
 #include "ListApps.h"
 #include "Reboot.h"
+#include "RemoteWipe.h"
 #include "StartupApp.h"
 #include "StatusCodeResponse.h"
 #include "StringResponse.h"

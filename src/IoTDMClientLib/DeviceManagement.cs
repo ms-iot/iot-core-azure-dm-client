@@ -74,6 +74,14 @@ namespace Microsoft.Devices.Management
             await _systemConfiguratorProxy.SendCommandAsync(request);
         }
 
+        public async Task StartRemoteWipeAsync(bool clearTPM)
+        {
+            var request = new Message.RemoteWipeRequest();
+            request.clearTPM = clearTPM;
+
+            await _systemConfiguratorProxy.SendCommandAsync(request);
+        }
+
         // Data members
         ISystemConfiguratorProxy _systemConfiguratorProxy;
     }

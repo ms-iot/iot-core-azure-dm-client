@@ -114,6 +114,7 @@
     <ClInclude Include="Models\ModelHelper.h" />
     <ClInclude Include="Models\Policy.h" />
     <ClInclude Include="Models\Reboot.h" />
+    <ClInclude Include="Models\RemoteWipe.h" />
     <ClInclude Include="Models\StartupApp.h" />
     <ClInclude Include="Models\StatusCodeResponse.h" />
     <ClInclude Include="Models\StringListResponse.h" />

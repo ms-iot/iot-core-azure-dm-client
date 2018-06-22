@@ -106,6 +106,9 @@ namespace Microsoft.Devices.Management
             deviceManagementClient._factoryResetHandler = new FactoryResetHandler(clientCallback, systemConfiguratorProxy);
             await deviceManagementClient.AddDirectMethodHandlerAsync(deviceManagementClient._factoryResetHandler);
 
+            deviceManagementClient._remoteWipeHandler = new RemoteWipeHandler(clientCallback, systemConfiguratorProxy);
+            await deviceManagementClient.AddDirectMethodHandlerAsync(deviceManagementClient._remoteWipeHandler);
+
             deviceManagementClient._windowsUpdatePolicyHandler = new WindowsUpdatePolicyHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsUpdatePolicyHandler);
 
@@ -287,6 +290,11 @@ namespace Microsoft.Devices.Management
         public async Task StartFactoryResetAsync(bool clearTPM, string recoveryPartitionGUID)
         {
             await _factoryResetHandler.StartFactoryResetAsync(clearTPM, recoveryPartitionGUID);
+        }
+
+        public async Task StartRemoteWipeAsync(bool clearTPM)
+        {
+            await _remoteWipeHandler.StartRemoteWipeAsync(clearTPM);
         }
 
         public async Task SetWindowsTelemetryLevelAsync(WindowsTelemetryLevel level)
@@ -499,6 +507,7 @@ namespace Microsoft.Devices.Management
         ISystemConfiguratorProxy _systemConfiguratorProxy;
         CertificateHandler _certificateHandler;
         FactoryResetHandler _factoryResetHandler;
+        RemoteWipeHandler _remoteWipeHandler;
         WindowsUpdatePolicyHandler _windowsUpdatePolicyHandler;
         RebootCmdHandler _rebootCmdHandler;
         ExternalStorageHandler _externalStorageHandler;
