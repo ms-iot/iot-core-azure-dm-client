@@ -204,6 +204,8 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="300"/>
@@ -211,12 +213,15 @@
                                     <ColumnDefinition Width="400"/>
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Desired" />
-                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Reported" />
+                                <Button Grid.Row="0" Grid.Column="1" Margin="3" Width="100" HorizontalAlignment="Left" Content="Start Scan" Click="OnWUStartInteractiveScan"/>
+                                <Button Grid.Row="1" Grid.Column="1" Margin="3" Width="100" HorizontalAlignment="Left" Content="Restart" Click="OnWURestartDevice"/>
 
-                                <local:WindowsUpdatePolicyDesiredStateControl Grid.Row="1" Grid.Column="1" Margin="3" x:Name="WindowsUpdatePolicyDesiredState"/>
-                                <local:WindowsUpdatePolicyReportedStateControl Grid.Row="1" Grid.Column="2" Margin="3" x:Name="WindowsUpdatePolicyReportedState" />
-                                <Button Grid.Row="2" Grid.Column="1" Margin="3" Content="Set Windows Update Policy" Click="OnSetWindowsUpdatePolicyInfo" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="Desired" />
+                                <TextBlock Grid.Row="2" Grid.Column="2" Text="Reported" />
+
+                                <local:WindowsUpdatePolicyDesiredStateControl Grid.Row="3" Grid.Column="1" Margin="3" x:Name="WindowsUpdatePolicyDesiredState"/>
+                                <local:WindowsUpdatePolicyReportedStateControl Grid.Row="3" Grid.Column="2" Margin="3" x:Name="WindowsUpdatePolicyReportedState" />
+                                <Button Grid.Row="4" Grid.Column="1" Margin="3" Content="Set Windows Update Policy" Click="OnSetWindowsUpdatePolicyInfo" />
                             </Grid>
                         </StackPanel>
                         <Border BorderThickness="2" Margin="2" BorderBrush="DarkGray" Width="600" Height="1" />
@@ -762,7 +767,7 @@
                 </Grid>
             </Grid>
         </Grid>
-        <Grid Grid.Row="2" Grid.Column="0">
+        <Grid Grid.Row="2" Grid.Column="0" Visibility="Collapsed">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>

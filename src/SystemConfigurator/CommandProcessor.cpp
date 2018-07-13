@@ -122,6 +122,28 @@ IResponse^ HandleRemoteWipe(IRequest^ request)
     return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
+IResponse^ HandleUsoClientCmd(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    auto resetRequest = dynamic_cast<UsoClientCmdRequest^>(request);
+    TRACEP(L"cmd = ", resetRequest->cmd->Data());
+
+    unsigned long returnCode = 0;
+    string output;
+
+    if (resetRequest->cmd == L"startInteractiveScan")
+    {
+        Utils::LaunchProcess(L"c:\\windows\\system32\\usoclient.exe StartInteractiveScan", returnCode, output);
+    }
+    else if (resetRequest->cmd == L"restartDevice")
+    {
+        Utils::LaunchProcess(L"c:\\windows\\system32\\usoclient.exe RestartDevice", returnCode, output);
+    }
+
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
 IResponse^ HandleGetWindowsTelemetry(IRequest^ request)
 {
     TRACE(__FUNCTION__);

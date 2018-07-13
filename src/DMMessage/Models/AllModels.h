@@ -38,6 +38,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "TimeInfo.h"
 #include "TimeService.h"
 #include "TpmRequests.h"
+#include "UsoClientCmd.h"
 #include "WifiConfiguration.h"
 #include "WifiDetails.h"
 #include "WindowsTelemetry.h"

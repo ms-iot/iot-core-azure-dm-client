@@ -122,6 +122,7 @@
     <ClInclude Include="Models\TimeInfo.h" />
     <ClInclude Include="Models\TimeService.h" />
     <ClInclude Include="Models\TpmRequests.h" />
+    <ClInclude Include="Models\UsoClientCmd.h" />
     <ClInclude Include="Models\WifiConfiguration.h" />
     <ClInclude Include="Models\WifiDetails.h" />
     <ClInclude Include="Models\WindowsTelemetry.h" />

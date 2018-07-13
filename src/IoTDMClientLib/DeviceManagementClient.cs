@@ -109,6 +109,9 @@ namespace Microsoft.Devices.Management
             deviceManagementClient._remoteWipeHandler = new RemoteWipeHandler(clientCallback, systemConfiguratorProxy);
             await deviceManagementClient.AddDirectMethodHandlerAsync(deviceManagementClient._remoteWipeHandler);
 
+            deviceManagementClient._usoClientCmdHandler = new UsoClientCmdHandler(clientCallback, systemConfiguratorProxy);
+            await deviceManagementClient.AddDirectMethodHandlerAsync(deviceManagementClient._usoClientCmdHandler);
+
             deviceManagementClient._windowsUpdatePolicyHandler = new WindowsUpdatePolicyHandler(clientCallback, systemConfiguratorProxy);
             deviceManagementClient.AddPropertyHandler(deviceManagementClient._windowsUpdatePolicyHandler);
 
@@ -295,6 +298,11 @@ namespace Microsoft.Devices.Management
         public async Task StartRemoteWipeAsync(bool clearTPM)
         {
             await _remoteWipeHandler.StartRemoteWipeAsync(clearTPM);
+        }
+
+        public async Task StartUsoClientCmdAsync(string cmd)
+        {
+            await _usoClientCmdHandler.UsoClientCmdAsync(cmd);
         }
 
         public async Task SetWindowsTelemetryLevelAsync(WindowsTelemetryLevel level)
@@ -508,6 +516,7 @@ namespace Microsoft.Devices.Management
         CertificateHandler _certificateHandler;
         FactoryResetHandler _factoryResetHandler;
         RemoteWipeHandler _remoteWipeHandler;
+        UsoClientCmdHandler _usoClientCmdHandler;
         WindowsUpdatePolicyHandler _windowsUpdatePolicyHandler;
         RebootCmdHandler _rebootCmdHandler;
         ExternalStorageHandler _externalStorageHandler;

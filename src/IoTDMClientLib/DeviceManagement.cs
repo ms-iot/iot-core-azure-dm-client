@@ -15,6 +15,7 @@ THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Windows.Foundation.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.Devices.Management.DMDataContract;
 
 namespace Microsoft.Devices.Management
 {
@@ -78,6 +79,22 @@ namespace Microsoft.Devices.Management
         {
             var request = new Message.RemoteWipeRequest();
             request.clearTPM = clearTPM;
+
+            await _systemConfiguratorProxy.SendCommandAsync(request);
+        }
+
+        public async Task UsoStartInteractiveScanAsync()
+        {
+            var request = new Message.UsoClientCmdRequest();
+            request.cmd = UsoClientCmdDataContract.JsonStartInteractiveScan;
+
+            await _systemConfiguratorProxy.SendCommandAsync(request);
+        }
+
+        public async Task UsoRestartDeviceAsync()
+        {
+            var request = new Message.UsoClientCmdRequest();
+            request.cmd = UsoClientCmdDataContract.JsonRestartDevice;
 
             await _systemConfiguratorProxy.SendCommandAsync(request);
         }
