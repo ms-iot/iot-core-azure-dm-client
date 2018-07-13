@@ -788,7 +788,7 @@ namespace DMDashboard
             DesiredDiagnosticLogs.FromJson(jRoot);
         }
 
-        private async void StartUscClientCmdAsync(string cmd)
+        private async void StartUsoClientCmdAsync(string cmd)
         {
             var cmdParams = new UsoClientCmdDataContract.CmdParams();
             cmdParams.cmd = cmd;
@@ -803,12 +803,12 @@ namespace DMDashboard
 
         private void OnWUStartInteractiveScan(object sender, RoutedEventArgs e)
         {
-            StartUscClientCmdAsync(UsoClientCmdDataContract.JsonStartInteractiveScan);
+            StartUsoClientCmdAsync(UsoClientCmdDataContract.JsonStartInteractiveScan);
         }
 
         private void OnWURestartDevice(object sender, RoutedEventArgs e)
         {
-            StartUscClientCmdAsync(UsoClientCmdDataContract.JsonRestartDevice);
+            StartUsoClientCmdAsync(UsoClientCmdDataContract.JsonRestartDevice);
         }
 
         private DeviceTwinAndMethod _deviceTwin;
