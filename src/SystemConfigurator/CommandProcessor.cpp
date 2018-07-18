@@ -100,6 +100,50 @@ IResponse^ HandleFactoryReset(IRequest^ request)
     return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
 }
 
+IResponse^ HandleRemoteWipe(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    auto resetRequest = dynamic_cast<RemoteWipeRequest^>(request);
+    TRACEP(L"clearTPM = ", (resetRequest->clearTPM ? L"true" : L"false"));
+
+    // Clear the TPM if requested...
+    if (resetRequest->clearTPM)
+    {
+        Tpm::ClearTPM();
+    }
+
+    // Schedule the remote wipe...
+    MdmProvision::RunExec(L"./Vendor/MSFT/RemoteWipe/doWipe");
+
+    // Reboot the device...
+    RebootCSP::ExecRebootNow(Utils::GetCurrentDateTimeString());
+
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
+IResponse^ HandleUsoClientCmd(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    auto resetRequest = dynamic_cast<UsoClientCmdRequest^>(request);
+    TRACEP(L"cmd = ", resetRequest->cmd->Data());
+
+    unsigned long returnCode = 0;
+    string output;
+
+    if (resetRequest->cmd == L"startInteractiveScan")
+    {
+        Utils::LaunchProcess(L"c:\\windows\\system32\\usoclient.exe StartInteractiveScan", returnCode, output);
+    }
+    else if (resetRequest->cmd == L"restartDevice")
+    {
+        Utils::LaunchProcess(L"c:\\windows\\system32\\usoclient.exe RestartDevice", returnCode, output);
+    }
+
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
 IResponse^ HandleGetWindowsTelemetry(IRequest^ request)
 {
     TRACE(__FUNCTION__);

@@ -140,8 +140,10 @@ As the method executes, it will also update the device twin with its current sta
 "reported" : {
     "windows" : {
         "factoryReset": {
-            "time" : "<i>time stamp</i>",
-            "state": "pending",
+            "lastChange": {
+                "time" : "<i>time stamp</i>",
+                "state": "pending"
+            }
         }
     }
 }
@@ -153,8 +155,10 @@ And then, upon success, it will be changed to:
 "reported" : {
     "windows" : {
         "factoryReset": {
-            "time" : "<i>time stamp</i>",
-            "state": "committed",
+            "lastChange": {
+                "time" : "<i>time stamp</i>",
+                "state": "completed"
+            }
         }
     }
 }

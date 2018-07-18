@@ -51,3 +51,5 @@ MODEL_REQDEF(   GetDMFiles,                  111, GetDMFilesRequest,            
 MODEL_REQDEF(   DeleteDMFile,                112, DeleteDMFileRequest,                  StatusCodeResponse )
 MODEL_ALLDEF(   GetWindowsTelemetry,         120, GetWindowsTelemetryRequest,           GetWindowsTelemetryResponse )
 MODEL_REQDEF(   SetWindowsTelemetry,         121, SetWindowsTelemetryRequest,           StatusCodeResponse )
+MODEL_REQDEF(   RemoteWipe,                  122, RemoteWipeRequest,                    StatusCodeResponse )
+MODEL_REQDEF(   UsoClientCmd,                123, UsoClientCmdRequest,                  StatusCodeResponse )

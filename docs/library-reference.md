@@ -69,6 +69,7 @@ Certain device management operations are initiated by desired properties set fro
 - [Device Health Attestation](device-health-attestation.md)
 - [Diagnostics Logs](diagnostic-logs-management.md)
 - [Reboot Management](reboot-management.md)
+- [Remote Wipe](remote-wipe.md)
 - [Time Management](time-management.md)
 - [WiFi](wifi-management.md)
 - [Windows Telemetry Management](windows-telemetry-management.md)

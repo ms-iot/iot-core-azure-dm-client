@@ -788,6 +788,30 @@ namespace DMDashboard
             DesiredDiagnosticLogs.FromJson(jRoot);
         }
 
+        private async void StartUsoClientCmdAsync(string cmd)
+        {
+            var cmdParams = new UsoClientCmdDataContract.CmdParams();
+            cmdParams.cmd = cmd;
+            string cmdParamsString = cmdParams.ToJsonString();
+
+            Debug.WriteLine("Cmd params : " + cmdParamsString);
+
+            CancellationToken cancellationToken = new CancellationToken();
+            DeviceMethodReturnValue result = await _deviceTwin.CallDeviceMethod(UsoClientCmdDataContract.StartUsoClientCmdAsync, cmdParamsString, new TimeSpan(0, 0, 30), cancellationToken);
+            MessageBox.Show("FactoryReset Command Result:\nStatus: " + result.Status + "\nReason: " + result.Payload);
+        }
+
+        private void OnWUStartInteractiveScan(object sender, RoutedEventArgs e)
+        {
+            StartUsoClientCmdAsync(UsoClientCmdDataContract.JsonStartInteractiveScan);
+        }
+
+        private void OnWURestartDevice(object sender, RoutedEventArgs e)
+        {
+            StartUsoClientCmdAsync(UsoClientCmdDataContract.JsonRestartDevice);
+        }
+
         private DeviceTwinAndMethod _deviceTwin;
+
     }
 }

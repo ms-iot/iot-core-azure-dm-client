@@ -105,9 +105,11 @@
     <Compile Include="Handlers\FactoryResetHandler.cs" />
     <Compile Include="Handlers\RebootCmdHandler.cs" />
     <Compile Include="Handlers\RebootInfoHandler.cs" />
+    <Compile Include="Handlers\RemoteWipeHandler.cs" />
     <Compile Include="Handlers\StorageHandler.cs" />
     <Compile Include="Handlers\TimeServiceHandler.cs" />
     <Compile Include="Handlers\TimeSettingsHandler.cs" />
+    <Compile Include="Handlers\UsoClientCmdHandler.cs" />
     <Compile Include="Handlers\WindowsTelemetryHandler.cs" />
     <Compile Include="Handlers\WindowsUpdatesHandler.cs" />
     <Compile Include="Interfaces\IDeviceManagementClientHandler.cs" />
