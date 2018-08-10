@@ -186,7 +186,7 @@ namespace Microsoft.Devices.Management
 
         async Task IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)
         {
-            Logger.Log("AzureIoTHubDeviceTwinProxy.SetMethodHandlerAsync", LoggingLevel.Information);
+            Logger.Log($"AzureIoTHubDeviceTwinProxy.SetMethodHandlerAsync: {methodName}", LoggingLevel.Information);
 
             try
             {
