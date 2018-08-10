@@ -41,8 +41,6 @@ namespace DMDashboard
         {
             class CertificateJsonData
             {
-                public int Status { get; set; }
-                public int Tag { get; set; }
                 public string base64Encoding { get; set; }
                 public string issuedBy { get; set; }
                 public string issuedTo { get; set; }
