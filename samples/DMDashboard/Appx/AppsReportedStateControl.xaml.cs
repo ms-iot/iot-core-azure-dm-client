@@ -25,11 +25,16 @@ namespace DMDashboard
         {
             set
             {
-                foreach (AppReportedState state in (AppReportedState[])value)
+                ControlList.Children.Clear();
+
+                if (value != null)
                 {
-                    AppReportedStateControl appReportedStateControl = new AppReportedStateControl();
-                    appReportedStateControl.DataContext = state;
-                    ControlList.Children.Add(appReportedStateControl);
+                    foreach (AppReportedState state in (AppReportedState[])value)
+                    {
+                        AppReportedStateControl appReportedStateControl = new AppReportedStateControl();
+                        appReportedStateControl.DataContext = state;
+                        ControlList.Children.Add(appReportedStateControl);
+                    }
                 }
             }
         }
@@ -37,6 +42,11 @@ namespace DMDashboard
         public AppsReportedStateControl()
         {
             InitializeComponent();
+        }
+
+        public void Clear()
+        {
+            AppsStatusData = null;
         }
 
         public void AppsStatusJsonToUI(JToken token)

@@ -151,6 +151,12 @@ namespace DMDashboard
                 ConnectedProperties.IsEnabled = true;
             }
             SelectedDeviceName.Text = deviceIdString;
+
+            // ToDo: There should be an easy mechanism to enumerate all sub-controls and clear them all 
+            //       (or populate them with information from the device twin).
+            //
+            TheAppsStatus.Clear();
+            TheAppsConfigurator.Clear();
         }
 
         private async void OnManageAppLifeCycle(string appLifeCycleAction, string packageFamilyName)

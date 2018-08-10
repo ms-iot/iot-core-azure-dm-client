@@ -35,11 +35,15 @@ namespace DMDashboard
             set
             {
                 ControlList.Children.Clear();
-                for (int i = 0; i < value.Count; ++i)
+
+                if (value != null)
                 {
-                    AppDesiredStateControl appDesiredStateControl = new AppDesiredStateControl();
-                    appDesiredStateControl.DataContext = value[i];
-                    ControlList.Children.Add(appDesiredStateControl);
+                    for (int i = 0; i < value.Count; ++i)
+                    {
+                        AppDesiredStateControl appDesiredStateControl = new AppDesiredStateControl();
+                        appDesiredStateControl.DataContext = value[i];
+                        ControlList.Children.Add(appDesiredStateControl);
+                    }
                 }
             }
         }
@@ -47,6 +51,11 @@ namespace DMDashboard
         public AppsDesiredStateControl()
         {
             InitializeComponent();
+        }
+
+        public void Clear()
+        {
+            AppsConfigurations = null;
         }
 
         public string ToJson()

@@ -83,8 +83,8 @@ To report other applications that are already installed, use the `"?"` as descri
     "windows" : {
         "apps" : {
             "?" : {
-                "store" : <i>true|false</i>
-                "nonStore" : <i>true|false</i>,
+                "store" : <i>true|false</i>,
+                "nonStore" : <i>true|false</i>
             }
         }
     }
