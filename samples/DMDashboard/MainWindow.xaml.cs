@@ -98,28 +98,35 @@ namespace DMDashboard
 
         private async void ListDevices(string connectionString)
         {
-            RegistryManager registryManager = RegistryManager.CreateFromConnectionString(connectionString);
-
             // Avoid duplicates in the list
             DeviceListBox.ItemsSource = null;
-
-            // Populate devices.
-            IEnumerable<Device> devices;
-            if (DeviceIdToPopulate != DeviceIdHintText && !string.IsNullOrWhiteSpace(DeviceIdToPopulate))
-            {
-                devices = new List<Device> { await registryManager.GetDeviceAsync(DeviceIdToPopulate) };
-            }
-            else
-            {
-                devices = await registryManager.GetDevicesAsync(NumberOfDevicesToPopulate);
-            }
-
-            
             List<string> deviceIds = new List<string>();
-            foreach (var device in devices)
+
+            try
             {
-                Debug.WriteLine("->" + device.Id);
-                deviceIds.Add(device.Id);
+                RegistryManager registryManager = RegistryManager.CreateFromConnectionString(connectionString);
+
+                // Populate devices.
+                IEnumerable<Device> devices;
+                if (DeviceIdToPopulate != DeviceIdHintText && !string.IsNullOrWhiteSpace(DeviceIdToPopulate))
+                {
+                    devices = new List<Device> { await registryManager.GetDeviceAsync(DeviceIdToPopulate) };
+                }
+                else
+                {
+                    devices = await registryManager.GetDevicesAsync(NumberOfDevicesToPopulate);
+                }
+
+                foreach (var device in devices)
+                {
+                    Debug.WriteLine("->" + device.Id);
+                    deviceIds.Add(device.Id);
+                }
+            }
+            catch(Exception e)
+            {
+                MessageBox.Show(e.Message, "Connection Error");
+                return;
             }
 
             deviceIds.Sort();
