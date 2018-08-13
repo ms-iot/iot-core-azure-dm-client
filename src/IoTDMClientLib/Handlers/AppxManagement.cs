@@ -622,7 +622,9 @@ namespace Microsoft.Devices.Management
                         throw new Error(ErrorCodes.CANNOT_REVERT_DM_APPLICATION, "Reverting to an older version of the device management application (" + desiredState.packageFamilyName + ") is not supported.");
                     }
                     // Note that UninstallAppAsync will throw if it fails - and correctly avoid launching the install...
-                    await UninstallAppAsync(installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);
+                    await UninstallAppAsync(installedAppInfo,
+                        packageFamilyId: desiredState.packageFamilyId, 
+                        packageFamilyName: desiredState.packageFamilyName);
                     await InstallAppFromAzureAsync(installedAppInfo, connectionString, desiredState, isSelf);
                 }
             }
@@ -705,7 +707,10 @@ namespace Microsoft.Devices.Management
                     break;
                 case AppDesiredAction.Uninstall:
                     {
-                        await UninstallAppAsync(installedAppInfo, desiredState.packageFamilyId, desiredState.packageFamilyId);
+                        await UninstallAppAsync(installedAppInfo, 
+                            packageFamilyId: desiredState.packageFamilyId, 
+                            packageFamilyName: desiredState.packageFamilyName);
+
                     }
                     break;
                 case AppDesiredAction.Query:
