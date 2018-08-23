@@ -30,7 +30,7 @@
     <ProjectGuid>{CBBD687C-3B2A-4216-8F74-754A72E05D7F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>SystemConfigurator</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <!-- Common -->
