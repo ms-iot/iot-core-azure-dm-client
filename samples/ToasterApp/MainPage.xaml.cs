@@ -19,7 +19,9 @@ using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using Windows.Foundation.Diagnostics;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -30,6 +32,8 @@ namespace Toaster
     public sealed partial class MainPage : Page
     {
         DeviceManagementClient deviceManagementClient;
+        private EventWaitHandle _iotHubOfflineEvent;
+        private DeviceClient _deviceClient;
 
         private async Task EnableDeviceManagementUiAsync(bool enable)
         {
@@ -48,6 +52,8 @@ namespace Toaster
 
             PackageVersion version = Package.Current.Id.Version;
             ApplicationVersion.Text = string.Format("{0}.{1}.{2}.{3}", version.Major, version.Minor, version.Build, version.Revision);
+
+            _iotHubOfflineEvent = new EventWaitHandle(true, EventResetMode.AutoReset);
 
 #pragma warning disable 4014
             // DM buttons will be enabled when we have created the DM client
@@ -69,7 +75,7 @@ namespace Toaster
             {
                 try
                 {
-                    connectionString = await tpmDevice.GetConnectionStringAsync();
+                    connectionString = "HostName=gmilekaiothub02.azure-devices.net;DeviceId=bart;SharedAccessKey=gW3wSa8moY38yvGRHOIC1hDmFv+HnWSVIOdFhUx65K4="; //  await tpmDevice.GetConnectionStringAsync();
                     break;
                 }
                 catch (Exception)
@@ -83,14 +89,14 @@ namespace Toaster
             return connectionString;
         }
 
-        private async Task ResetConnectionAsync(DeviceClient existingConnection)
+        private async Task ResetConnectionAsync()
         {
             Logger.Log("ResetConnectionAsync start", LoggingLevel.Verbose);
             // Attempt to close any existing connections before
             // creating a new one
-            if (existingConnection != null)
+            if (_deviceClient != null)
             {
-                await existingConnection.CloseAsync().ContinueWith((t) =>
+                await _deviceClient.CloseAsync().ContinueWith((t) =>
                 {
                     var e = t.Exception;
                     if (e != null)
@@ -107,11 +113,14 @@ namespace Toaster
 
             // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
             // as well as device management
-            var newDeviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
+            _deviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
+
+            // For testing connection failure, we can use a short time-out.
+            // _deviceClient.OperationTimeoutInMilliseconds = 5000;
 
             // IDeviceTwin abstracts away communication with the back-end.
             // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
-            IDeviceTwin deviceTwin = new AzureIoTHubDeviceTwinProxy(newDeviceClient, ResetConnectionAsync, Logger.Log);
+            IDeviceTwin deviceTwin = new AzureIoTHubDeviceTwinProxy(_deviceClient, _iotHubOfflineEvent, Logger.Log);
 
             // IDeviceManagementRequestHandler handles device management-specific requests to the app,
             // such as whether it is OK to perform a reboot at any givem moment, according the app business logic
@@ -125,7 +134,7 @@ namespace Toaster
 
             // Set the callback for desired properties update. The callback will be invoked
             // for all desired properties -- including those specific to device management
-            await newDeviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdated, null);
+            await _deviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdated, null);
 
             // Tell the deviceManagementClient to sync the device with the current desired state.
             await this.deviceManagementClient.ApplyDesiredStateAsync();
@@ -133,24 +142,30 @@ namespace Toaster
             Logger.Log("ResetConnectionAsync end", LoggingLevel.Verbose);
         }
 
-        private async Task InitializeDeviceClientAsync()
+        private void InitializeDeviceClientAsync()
         {
-            while (true)
-            {
-                try
+            IAsyncAction asyncAction = Windows.System.Threading.ThreadPool.RunAsync(
+                async (workItem) =>
                 {
-                    await ResetConnectionAsync(null);
-                    break;
-                }
-                catch (Exception e)
-                {
-                    var msg = "InitializeDeviceClientAsync exception: " + e.Message + "\n" + e.StackTrace;
-                    System.Diagnostics.Debug.WriteLine(msg);
-                    Logger.Log(msg, LoggingLevel.Error);
-                }
+                    while (true)
+                    {
+                        _iotHubOfflineEvent.WaitOne();
+                        try
+                        {
+                            await ResetConnectionAsync();
+                        }
+                        catch (Exception e)
+                        {
+                            _iotHubOfflineEvent.Set();
 
-                await Task.Delay(5 * 60 * 1000);
-            }
+                            var msg = "InitializeDeviceClientAsync exception: " + e.Message + "\n" + e.StackTrace;
+                            System.Diagnostics.Debug.WriteLine(msg);
+                            Logger.Log(msg, LoggingLevel.Error);
+                        }
+
+                        await Task.Delay(1 * 60 * 1000);
+                    }
+                });
         }
 
         public async Task OnDesiredPropertyUpdated(TwinCollection twinProperties, object userContext)

@@ -40,12 +40,6 @@ namespace Microsoft.Devices.Management
             await new Task(() => { return; });
         }
 
-        Task IDeviceTwin.RefreshConnectionAsync()
-        {
-            // Reconnect if needed
-            return Task.CompletedTask;
-        }
-
         Task IDeviceTwin.SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler)
         {
             throw new NotImplementedException();

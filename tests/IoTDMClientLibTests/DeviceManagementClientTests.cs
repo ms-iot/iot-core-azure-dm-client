@@ -27,11 +27,6 @@ namespace IoTDMClientLibTests
 
     class TwinMockup : IDeviceTwin
     {
-        Task IDeviceTwin.RefreshConnectionAsync()
-        {
-            throw new NotImplementedException();
-        }
-
         async Task<Dictionary<string, object>> IDeviceTwin.GetDesiredPropertiesAsync()
         {
             return null;

@@ -199,11 +199,6 @@ namespace Mock.Lib
             }
         }
 
-        async Task IDeviceTwin.RefreshConnectionAsync()
-        {
-            await InternalRefreshConnectionAsync();
-        }
-
         private async Task InternalRefreshConnectionAsync()
         {
             while (true)

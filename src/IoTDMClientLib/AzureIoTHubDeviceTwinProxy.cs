@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation.Diagnostics;
 using Windows.Networking.Connectivity;
@@ -31,18 +32,17 @@ namespace Microsoft.Devices.Management
     // This IDeviceTwin represents the actual Azure IoT Device Twin
     public class AzureIoTHubDeviceTwinProxy : IDeviceTwin
     {
-        DeviceClient deviceClient;
-
         public delegate void LogAsync(string message, LoggingLevel level);
-        LogAsync logAsyncHandler;
-
         public delegate Task ResetConnectionAsync(DeviceClient existingClient);
-        ResetConnectionAsync resetConnectionAsyncHandler;
 
-        public AzureIoTHubDeviceTwinProxy(DeviceClient deviceClient, ResetConnectionAsync resetConnectionAsyncHandler, LogAsync logAsyncHandler = null)
+        private DeviceClient deviceClient;
+        private LogAsync logAsyncHandler;
+        private EventWaitHandle iotHubOfflineEvent;
+
+        public AzureIoTHubDeviceTwinProxy(DeviceClient deviceClient, EventWaitHandle iotHubOfflineEvent, LogAsync logAsyncHandler = null)
         {
             this.deviceClient = deviceClient;
-            this.resetConnectionAsyncHandler = resetConnectionAsyncHandler;
+            this.iotHubOfflineEvent = iotHubOfflineEvent;
             this.logAsyncHandler = logAsyncHandler;
 
             this.deviceClient.SetConnectionStatusChangesHandler(async (ConnectionStatus status, ConnectionStatusChangeReason reason) =>
@@ -61,7 +61,7 @@ namespace Microsoft.Devices.Management
                     case ConnectionStatusChangeReason.Bad_Credential:
                     case ConnectionStatusChangeReason.Retry_Expired:
                     case ConnectionStatusChangeReason.No_Network:
-                        await InternalRefreshConnectionAsync();
+                        InternalRefreshConnection();
                         break;
 
                     case ConnectionStatusChangeReason.Client_Close:
@@ -107,7 +107,12 @@ namespace Microsoft.Devices.Management
             catch (IotHubCommunicationException e)
             {
                 logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
-                await InternalRefreshConnectionAsync();
+                InternalRefreshConnection();
+            }
+            catch (TimeoutException e)
+            {
+                logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
+                InternalRefreshConnection();
             }
             catch (Exception e)
             {
@@ -138,7 +143,12 @@ namespace Microsoft.Devices.Management
             catch (IotHubCommunicationException e)
             {
                 logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
-                await InternalRefreshConnectionAsync();
+                InternalRefreshConnection();
+            }
+            catch (TimeoutException e)
+            {
+                logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
+                InternalRefreshConnection();
             }
             catch (Exception e)
             {
@@ -176,7 +186,12 @@ namespace Microsoft.Devices.Management
             catch (IotHubCommunicationException e)
             {
                 logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
-                await InternalRefreshConnectionAsync();
+                InternalRefreshConnection();
+            }
+            catch (TimeoutException e)
+            {
+                logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
+                InternalRefreshConnection();
             }
             catch (Exception e)
             {
@@ -199,7 +214,12 @@ namespace Microsoft.Devices.Management
             catch (IotHubCommunicationException e)
             {
                 logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
-                await InternalRefreshConnectionAsync();
+                InternalRefreshConnection();
+            }
+            catch (TimeoutException e)
+            {
+                logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
+                InternalRefreshConnection();
             }
             catch (Exception e)
             {
@@ -219,33 +239,10 @@ namespace Microsoft.Devices.Management
             }
         }
 
-        async Task IDeviceTwin.RefreshConnectionAsync()
+        private void InternalRefreshConnection()
         {
-            await InternalRefreshConnectionAsync();
-        }
-
-        private async Task InternalRefreshConnectionAsync()
-        {
-            while (true)
-            {
-                try
-                {
-                    await WaitForInternet();
-
-                    var devicTwinImpl = this;
-                    await devicTwinImpl.resetConnectionAsyncHandler(devicTwinImpl.deviceClient);
-                    break;
-                }
-                catch (IotHubCommunicationException e)
-                {
-                    logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
-                }
-                catch (Exception e)
-                {
-                    logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
-                }
-                await Task.Delay(5 * 60 * 1000);
-            }
+            Logger.Log("InternalRefreshConnection", LoggingLevel.Information);
+            this.iotHubOfflineEvent.Set();
         }
 
         async Task IDeviceTwin.SendMessageAsync(string messageContent, IDictionary<string, string> properties)
@@ -265,7 +262,12 @@ namespace Microsoft.Devices.Management
             catch (IotHubCommunicationException e)
             {
                 logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
-                await InternalRefreshConnectionAsync();
+                InternalRefreshConnection();
+            }
+            catch (TimeoutException e)
+            {
+                logAsyncHandler?.Invoke(e.ToString(), LoggingLevel.Error);
+                InternalRefreshConnection();
             }
             catch (Exception e)
             {
