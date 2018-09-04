@@ -75,7 +75,7 @@ namespace Toaster
             {
                 try
                 {
-                    connectionString = "HostName=gmilekaiothub02.azure-devices.net;DeviceId=bart;SharedAccessKey=gW3wSa8moY38yvGRHOIC1hDmFv+HnWSVIOdFhUx65K4="; //  await tpmDevice.GetConnectionStringAsync();
+                    connectionString = await tpmDevice.GetConnectionStringAsync();
                     break;
                 }
                 catch (Exception)
