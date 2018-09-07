@@ -32,9 +32,6 @@ namespace Microsoft.Devices.Management
 
         Task SetMethodHandlerAsync(string methodName, Func<string, Task<string>> methodHandler);
 
-        // This API is called when the connection has expired (such as when SAS token has expired)
-        Task RefreshConnectionAsync();
-
         Task SendMessageAsync(string message, IDictionary<string, string> properties);
 
         void SignalOperationComplete();
