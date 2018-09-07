@@ -371,7 +371,7 @@ namespace Utils
         }
     }
 
-    void ReadXmlValues(IStream* resultSyncML, const wstring& targetXmlPath, vector<wstring>& values)
+    void ReadXmlValues(IStream* resultSyncML, const wstring& targetXmlPath, vector<wstring>& values, bool optional)
     {
         ComPtr<IXmlReader> xmlReader;
 
@@ -490,7 +490,7 @@ namespace Utils
             }
         }
 
-        if (values.size() == 0)
+        if (values.size() == 0 && !optional)
         {
             string msg;
             msg += "Failed to read: ";
@@ -518,7 +518,7 @@ namespace Utils
         // GlobalFree(buffer);
     }
 
-    void ReadXmlValues(const wstring& resultSyncML, const wstring& targetXmlPath, vector<wstring>& values)
+    void ReadXmlValues(const wstring& resultSyncML, const wstring& targetXmlPath, vector<wstring>& values, bool optional)
     {
         DWORD bufferSize = static_cast<DWORD>(resultSyncML.size() * sizeof(resultSyncML[0]));
         char* buffer = (char*)GlobalAlloc(GMEM_FIXED, bufferSize);
@@ -531,7 +531,7 @@ namespace Utils
             GlobalFree(buffer);
             throw DMExceptionWithErrorCode(hr);
         }
-        ReadXmlValues(dataStream.Get(), targetXmlPath, values);
+        ReadXmlValues(dataStream.Get(), targetXmlPath, values, optional);
 
         // GlobalFree() is not needed since 'delete on release' is enabled.
         // GlobalFree(buffer);
@@ -539,8 +539,15 @@ namespace Utils
 
     void ReadXmlValue(const wstring& resultSyncML, const wstring& targetXmlPath, wstring& value)
     {
+        ReadXmlValue(resultSyncML, targetXmlPath, value, false /*not optional*/);
+    }
+
+    void ReadXmlValue(const wstring& resultSyncML, const wstring& targetXmlPath, wstring& value, bool optional)
+    {
+        value = L"";
+
         vector<wstring> values;
-        ReadXmlValues(resultSyncML, targetXmlPath, values);
+        ReadXmlValues(resultSyncML, targetXmlPath, values, optional);
         if (values.size() > 1)
         {
             string msg;
@@ -549,15 +556,21 @@ namespace Utils
 
             throw DMException(msg.c_str());
         }
-        if (values.size() == 0)
+        if (values.size() == 1)
         {
-            string msg;
-            msg += "Found no instances of ";
-            msg += Utils::WideToMultibyte(targetXmlPath.c_str());
-
-            throw DMException(msg.c_str());
+            value = values[0];
         }
-        value = values[0];
+        else
+        {
+            if (!optional)
+            {
+                string msg;
+                msg += "Found no instances of ";
+                msg += Utils::WideToMultibyte(targetXmlPath.c_str());
+
+                throw DMException(msg.c_str());
+            }
+        }
     }
 
     void WriteRegistryValue(const wstring& subKey, const wstring& propName, const wstring& propValue)

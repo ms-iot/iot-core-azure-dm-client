@@ -129,7 +129,7 @@ void MdmProvision::RunSyncML(const wstring&, const wstring& requestSyncML, wstri
     TRACEP(L"Response: ", outputSyncML.c_str());
 
     vector<wstring> resultCodes;
-    Utils::ReadXmlValues(outputSyncML, STATUS_XML_PATH, resultCodes);
+    Utils::ReadXmlValues(outputSyncML, STATUS_XML_PATH, resultCodes, false /*not optional*/);
 
     // Check the result of all reported commands...
     for (const wstring& s : resultCodes)
@@ -283,6 +283,11 @@ void MdmProvision::RunDelete(const std::wstring& sid, const std::wstring& path)
 
 wstring MdmProvision::RunGetString(const wstring& sid, const wstring& path)
 {
+    return RunGetString(sid, path, false /*not optional*/);
+}
+
+wstring MdmProvision::RunGetString(const wstring& sid, const wstring& path, bool optional)
+{
     wstring requestSyncML = LR"(
         <SyncBody>
             <Get>
@@ -305,7 +310,7 @@ wstring MdmProvision::RunGetString(const wstring& sid, const wstring& path)
     RunSyncML(sid, requestSyncML, resultSyncML);
 
     wstring value;
-    Utils::ReadXmlValue(resultSyncML, RESULTS_XML_PATH, value);
+    Utils::ReadXmlValue(resultSyncML, RESULTS_XML_PATH, value, optional);
     return value;
 }
 
@@ -618,7 +623,13 @@ void MdmProvision::RunDelete(const std::wstring& path)
 wstring MdmProvision::RunGetString(const wstring& path)
 {
     // empty sid is okay for device-wide CSPs.
-    return RunGetString(L"", path);
+    return RunGetString(L"", path, false /*not optional*/);
+}
+
+wstring MdmProvision::RunGetString(const wstring& path, bool optional)
+{
+    // empty sid is okay for device-wide CSPs.
+    return RunGetString(L"", path, optional);
 }
 
 bool MdmProvision::TryGetString(const wstring& path, wstring& value)
