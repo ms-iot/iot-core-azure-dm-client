@@ -65,6 +65,48 @@ if %errorlevel% == 1 (
 
 (see more samples on authoring OEMCustomization.cmd [here](https://github.com/ms-iot/iot-adk-addonkit/blob/master/Source-arm/Products/))
 
+## Device time considerations
+
+- In order for the device managagement library to be able to connect to the Azure IoT Hub, it is necessary that the oem device's time settings are configured properly. Certain devices (for example Raspberry Pi) lack the support for persistent time settings. This can however be configured by including an addition to the product's OEMCustomization.cmd as follows:
+
+<pre>
+    REM Force time sync on boot
+	w32tm /resync /force
+</pre>
+
+- This addition assumes network connectivity on boot. A scheduled task could be added to force a time synchronisation periodically, for example:
+
+#### OEMCustomization.cmd
+
+<pre>
+@echo off 
+REM OEM Customization Script file 
+REM This script if included in the image, is called everytime the system boots. 
+
+reg query HKLM\Software\IoT /v FirstBootDone >nul 2>&1 
+
+if %errorlevel% == 1 ( 
+     REM Enable Administrator User 
+     net user Administrator p@ssw0rd /active:yes 
+     call DMSetup.cmd
+	 
+     REM Resync with time server every hour	
+     schtasks /Create /SC HOURLY /TN TimeSyncEveryHour /TR "w32tm /resync /force" /RU "SYSTEM"
+	 
+     reg add HKLM\Software\IoT /v FirstBootDone /t REG_DWORD /d 1 /f >nul 2>&1 
+) 
+
+REM Force time sync on boot
+w32tm /resync /force
+</pre>
+
+- It is advisable to set the correct timezone for the device as well, since Windows IoT Core defaults to US Pacific timezone, for example:
+
+<pre>
+     tzutil /s "W. Europe Standard Time"
+</pre>
+
+
 ----
 
 [Home Page](../README.md)
