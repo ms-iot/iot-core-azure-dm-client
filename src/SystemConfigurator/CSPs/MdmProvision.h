@@ -39,6 +39,7 @@ public:
 
     static void RunGetStructData(const std::wstring& path, Utils::ELEMENT_HANDLER handler);
     static std::wstring RunGetString(const std::wstring& sid, const std::wstring& path);
+    static std::wstring RunGetString(const std::wstring& sid, const std::wstring& path, bool optional);
     static std::wstring RunGetBase64(const std::wstring& sid, const std::wstring& path);
     static unsigned int RunGetUInt(const std::wstring& sid, const std::wstring& path);
     static bool RunGetBool(const std::wstring& sid, const std::wstring& path);
@@ -62,6 +63,7 @@ public:
     static void RunDelete(const std::wstring& path);
 
     static std::wstring RunGetString(const std::wstring& path);
+    static std::wstring RunGetString(const std::wstring& path, bool optional);
     static bool TryGetString(const std::wstring& path, std::wstring& value);
     static std::wstring RunGetBase64(const std::wstring& path);
     static unsigned int RunGetUInt(const std::wstring& path);

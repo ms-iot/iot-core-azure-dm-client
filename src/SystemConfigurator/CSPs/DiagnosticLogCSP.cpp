@@ -364,7 +364,7 @@ void DiagnosticLogCSP::ApplyCollectorConfiguration(const wstring& cspRoot, Colle
     MdmProvision::RunSet(collectorCSPPath + L"/TraceLogFileMode", collector->CSPConfiguration->TraceLogFileMode == L"sequential" ? 1 : 2);
 
     // Capture which providers are already part of this CSP collector configuration...
-    wstring providersString = MdmProvision::RunGetString(providersCSPPath);
+    wstring providersString = MdmProvision::RunGetString(providersCSPPath, true /*optional*/);
 
     // Iterate though each desired provider and add/apply its settings...
     for each (ProviderConfiguration^ provider in collector->CSPConfiguration->Providers)
