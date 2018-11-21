@@ -35,7 +35,7 @@ will allow you to further secure this channel.  More information about Custom Ca
 
 - To configure the `SystemConfigurator` service, create a cmd file and invoke it from the main configuration script `OEMCustomization.cmd` (which is called on every boot).
 
-- Please also see example [AzureDM.Services.wm.xml](https://github.com/ms-iot/iot-adk-addonkit/blob/master/Source-arm/Packages/AzureDM.Services/AzureDM.Services.wm.xml) and [Create Windows Universal OEM Packages](https://docs.microsoft.com/en-us/windows-hardware/manufacture/iot/create-packages)
+- Please also see example [AzureDM.Services.wm.xml](https://github.com/ms-iot/iot-adk-addonkit/blob/master/Workspace/Source-x64/Packages/AzureDM.Services/AzureDM.Services.wm.xml) and [Create Windows Universal OEM Packages](https://docs.microsoft.com/en-us/windows-hardware/manufacture/iot/create-packages)
 
 #### DMSetup.cmd
 
@@ -63,7 +63,7 @@ if %errorlevel% == 1 (
 ) 
 </pre>
 
-(see more samples on authoring OEMCustomization.cmd [here](https://github.com/ms-iot/iot-adk-addonkit/blob/master/Source-arm/Products/))
+(see more samples on authoring OEMCustomization.cmd [here](https://github.com/ms-iot/iot-adk-addonkit/tree/master/Workspace/Source-arm/Products))
 
 ## Device time considerations
 
