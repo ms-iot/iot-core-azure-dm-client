@@ -189,7 +189,7 @@ namespace Utils
             if (SUCCEEDED(hr))
             {
                 folder = szPath;
-                folder += L"\\Temp\\";
+                folder += L"\\Temp\\IotDm\\";
             }
             else
             {

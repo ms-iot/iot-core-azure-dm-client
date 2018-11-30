@@ -93,6 +93,9 @@ int wmain(int argc, wchar_t *argv[])
         TRACE(L"");
         TRACE(L"Running service...");
 
+        auto userFolder = Utils::GetDmUserFolder();
+        Utils::EnsureFolderExists(userFolder);
+
         DMService service(SERVICE_NAME);
         DMService::Run(service);
     }
