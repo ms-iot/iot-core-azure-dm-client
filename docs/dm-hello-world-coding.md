@@ -25,6 +25,9 @@
 - If you are using VS 2015, from Solution Explorer, open `project.json`.
   - Update the version number of `Microsoft.NETCore.UniversalWindowsPlatform` to `"5.2.2"`.
   - Note: If you are using VS 2017, ignore this step.
+- In Visual Studio, `Tools | NuGet Package Manager | Package Manager Settings`.
+    - Expand the `NuGet Package Manager` node and select `Package Sources`.
+    - Under `Available package sources`, add the path to the nuget package you have just built (for the example above, it'll be: c:\iot-core-azure-dm-client\nuget).
 - In Visual Studio, open `Tools | NuGet Package Manager | Package Manager Console`. In the NuGet console:
   - Run `Install-Package Microsoft.Azure.Devices.Client -Version 1.4.0`
     - Note: 1.4.1 and 1.4.2 cause a build error ([open issue](https://github.com/ms-iot/iot-core-azure-dm-client/issues/174)).
