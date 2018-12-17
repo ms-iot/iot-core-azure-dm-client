@@ -8,6 +8,7 @@
 
 #### Create A New Project
 - Open Visual Studio, create a new `Blank App (Universal Windows)` C# Project. Let's name it `DMHelloWorld`.
+- Make sure it is building using **SDK min version 16299**.
 
 #### Add the systemManagement Capability
 - Expand the project node in the Solution Explorer.
@@ -39,6 +40,7 @@
 
 - In MainPage.xaml.cs, add the following namespaces:
 <pre>
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
@@ -70,7 +72,9 @@ using Windows.Foundation.Diagnostics;
 - Now, let's code the part that connects the app to Azure, and wires in the DM library:
 
 <pre>
-    DeviceManagementClient deviceManagementClient;
+    private DeviceManagementClient _deviceManagementClient;
+    private EventWaitHandle _iotHubOfflineEvent;
+    private DeviceClient _deviceClient;
 
     private async Task&lt;string&gt; GetConnectionStringAsync()
     {
@@ -96,15 +100,14 @@ using Windows.Foundation.Diagnostics;
         return connectionString;
     }
 
-    private async Task ResetConnectionAsync(DeviceClient existingConnection)
+    private async Task ResetConnectionAsync()
     {
         Logger.Log("ResetConnectionAsync start", LoggingLevel.Verbose);
-
         // Attempt to close any existing connections before
         // creating a new one
-        if (existingConnection != null)
+        if (_deviceClient != null)
         {
-            await existingConnection.CloseAsync().ContinueWith((t) =>
+            await _deviceClient.CloseAsync().ContinueWith((t) =>
             {
                 var e = t.Exception;
                 if (e != null)
@@ -121,11 +124,11 @@ using Windows.Foundation.Diagnostics;
 
         // Create DeviceClient. Application uses DeviceClient for telemetry messages, device twin
         // as well as device management
-        var newDeviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
+        _deviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
 
         // IDeviceTwin abstracts away communication with the back-end.
         // AzureIoTHubDeviceTwinProxy is an implementation of Azure IoT Hub
-        IDeviceTwin deviceTwin = new AzureIoTHubDeviceTwinProxy(newDeviceClient, ResetConnectionAsync, Logger.Log);
+        IDeviceTwin deviceTwin = new AzureIoTHubDeviceTwinProxy(_deviceClient, _iotHubOfflineEvent, Logger.Log);
 
         // IDeviceManagementRequestHandler handles device management-specific requests to the app,
         // such as whether it is OK to perform a reboot at any givem moment, according the app business logic
@@ -133,36 +136,42 @@ using Windows.Foundation.Diagnostics;
         IDeviceManagementRequestHandler appRequestHandler = new AppDeviceManagementRequestHandler(this);
 
         // Create the DeviceManagementClient, the main entry point into device management
-        this.deviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwin, appRequestHandler);
+        this._deviceManagementClient = await DeviceManagementClient.CreateAsync(deviceTwin, appRequestHandler);
 
         // Set the callback for desired properties update. The callback will be invoked
         // for all desired properties -- including those specific to device management
-        await newDeviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdated, null);
+        await _deviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyUpdated, null);
 
-        // Tell the deviceManagementClient to sync the device with the current desired state.
-        await this.deviceManagementClient.ApplyDesiredStateAsync();
+        // Tell the _deviceManagementClient to sync the device with the current desired state.
+        await this._deviceManagementClient.ApplyDesiredStateAsync();
 
         Logger.Log("ResetConnectionAsync end", LoggingLevel.Verbose);
     }
 
-    private async Task InitializeDeviceClientAsync()
+    private void InitializeDeviceClientAsync()
     {
-        while (true)
-        {
-            try
+        IAsyncAction asyncAction = Windows.System.Threading.ThreadPool.RunAsync(
+            async (workItem) =>
             {
-                await ResetConnectionAsync(null);
-                break;
-            }
-            catch (Exception e)
-            {
-                var msg = "InitializeDeviceClientAsync exception: " + e.Message + "\n" + e.StackTrace;
-                System.Diagnostics.Debug.WriteLine(msg);
-                Logger.Log(msg, LoggingLevel.Error);
-            }
+                while (true)
+                {
+                    _iotHubOfflineEvent.WaitOne();
+                    try
+                    {
+                        await ResetConnectionAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        _iotHubOfflineEvent.Set();
 
-            await Task.Delay(5 * 60 * 1000);
-        }
+                        var msg = "InitializeDeviceClientAsync exception: " + e.Message + "\n" + e.StackTrace;
+                        System.Diagnostics.Debug.WriteLine(msg);
+                        Logger.Log(msg, LoggingLevel.Error);
+                    }
+
+                    await Task.Delay(5 * 60 * 1000);
+                }
+            });
     }
 </pre>
 
@@ -174,7 +183,7 @@ using Windows.Foundation.Diagnostics;
         Dictionary&lt;string, object&gt; desiredProperties = AzureIoTHubDeviceTwinProxy.DictionaryFromTwinCollection(twinProperties);
 
         // Let the device management client process properties specific to device management
-        await this.deviceManagementClient.ApplyDesiredStateAsync(desiredProperties);
+        await this._deviceManagementClient.ApplyDesiredStateAsync(desiredProperties);
     }
 </pre>
 
@@ -184,6 +193,9 @@ using Windows.Foundation.Diagnostics;
     public MainPage()
     {
         this.InitializeComponent();
+
+        _iotHubOfflineEvent = new EventWaitHandle(true, EventResetMode.AutoReset);
+
         this.InitializeDeviceClientAsync();
     }
 </pre>
