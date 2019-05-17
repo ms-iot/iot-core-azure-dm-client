@@ -80,7 +80,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <CompileAsWinRT>true</CompileAsWinRT>
-      <AdditionalUsingDirectories Condition="'$(MSBuildToolsVersion)' == '15.0'">$(WindowsSdkDir)\UnionMetadata\10.0.15063.0;$(VSInstallDir)\Common7\IDE\VC\vcpackages;$(WindowsSdkDir)\UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
+      <AdditionalUsingDirectories Condition="'$(MSBuildToolsVersion)' == '15.0'">$(WindowsSDK_UnionMetadataPath);$(VSInstallDir)Common7\IDE\VC\vcpackages;$(WindowsSdkDir)UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <AdditionalUsingDirectories Condition="'$(MSBuildToolsVersion)' == '14.0'">$(VCInstallDir)\vcpackages;$(WindowsSdkDir)\UnionMetadata;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory);..\DMMessage;$(OutDir)</AdditionalIncludeDirectories>

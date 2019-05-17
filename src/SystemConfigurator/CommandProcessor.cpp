@@ -774,6 +774,28 @@ IResponse^ HandleTpmGetSASToken(IRequest^ request)
     return ref new StringResponse(ResponseStatus::Success, ref new Platform::String(sasTokenW.c_str()), request->Tag);
 }
 
+IResponse^ HandleTpmSetServiceUrl(IRequest^ request)
+{
+    TRACE(__FUNCTION__);
+
+    TpmSetServiceUrlRequest^ urlTokenRequest = dynamic_cast<TpmSetServiceUrlRequest^>(request);
+
+    unsigned long logicalDeviceId = 0;
+    if (urlTokenRequest->Slot >= 0)
+    {
+        logicalDeviceId = static_cast<unsigned long>(urlTokenRequest->Slot);
+    }
+    else
+    {
+        Utils::TryReadRegistryValue(TpmSlotRegistrySubKey, TpmSlotPropertyName, logicalDeviceId);
+    }
+    std::string serviceUrl = Utils::WideToMultibyte(urlTokenRequest->ServiceUrl->Data());
+    TRACEP(L"logicalDeviceId=", logicalDeviceId);
+
+    Tpm::StoreServiceUrl((uint32_t)logicalDeviceId, serviceUrl);
+    return ref new StatusCodeResponse(ResponseStatus::Success, request->Tag);
+}
+
 IResponse^ HandleGetWindowsUpdatePolicy(IRequest^ request)
 {
     TRACE(__FUNCTION__);

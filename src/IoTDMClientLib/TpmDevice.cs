@@ -67,6 +67,32 @@ namespace Microsoft.Devices.Management
             return connectionString;
         }
 
+        public async Task<bool> SetConnectionInfoAsync(int slot, string serviceHostname, string deviceId)
+        {
+            ServiceUrlParts serviceUrlParts = new ServiceUrlParts();
+            serviceUrlParts.HostName = serviceHostname;
+            serviceUrlParts.DeviceId = deviceId;
+            bool isSuccess = await SetServiceUrlParts(slot, serviceUrlParts);
+            return isSuccess;
+        }
+
+        private async Task<bool> SetServiceUrlParts(int slot, ServiceUrlParts serviceUrlParts)
+        {
+            bool isSuccess = false;
+            String serviceUrl = serviceUrlParts.HostName + "/" + serviceUrlParts.DeviceId;
+
+            var result = await this._systemConfiguratorProxy.SendCommandAsync(new Message.TpmSetServiceUrlRequest(slot, serviceUrl));
+            var status = (result as Message.StatusCodeResponse).Status;
+
+            if (status != Message.ResponseStatus.Success)
+            {
+                throw new Exception("Unable to set service Url in TPM");
+            }
+
+            isSuccess = true;
+            return isSuccess;
+        }
+
         SystemConfiguratorProxy _systemConfiguratorProxy;
     }
 }
