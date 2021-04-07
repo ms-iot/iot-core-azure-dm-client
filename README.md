@@ -1,5 +1,9 @@
 # Managing Windows IoT Devices through Azure IoT Hub
 
+## Announcement - April 4th, 2021
+
+This repository is being marked as Archived. Please refer to the new Windows Azure DM Client [https://github.com/ms-iot/azure-client-tools](https://github.com/ms-iot/azure-client-tools).
+
 ## Announcement - January 10th, 2019
 
 We have released a new version of the Windows Azure DM Client at [https://github.com/ms-iot/azure-client-tools](https://github.com/ms-iot/azure-client-tools). It will eventually replace the code in this repo. Check-out the new version, and let us know what you think!
