@@ -41,7 +41,8 @@ bool CustomDeviceUiCSP::IsCustomUISupported()
         {
             wstring appId = MdmProvision::RunGetString(
                 sid.c_str(),
-                L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData");
+                L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData",
+				false /*optional*/);
         }
         catch (const DMExceptionWithErrorCode& e)
         {
@@ -87,7 +88,8 @@ wstring CustomDeviceUiCSP::GetStartupAppId()
     {
         appId = MdmProvision::RunGetString(
             sid.c_str(),
-            L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData");
+            L"./Vendor/MSFT/CustomDeviceUI/StartupAppID?list=StructData",
+			false /*optional*/);
         appId = Utils::TrimString(appId, L"!App");
     }
     catch (const DMExceptionWithErrorCode& e)
