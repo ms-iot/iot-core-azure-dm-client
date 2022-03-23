@@ -30,6 +30,7 @@ MODEL_ALLDEF(   GetDeviceInfo,                40, GetDeviceInfoRequest,         
 MODEL_REQDEF(   TpmGetServiceUrl,             41, TpmGetServiceUrlRequest,              StringResponse )
 MODEL_REQDEF(   TpmGetSASToken,               42, TpmGetSASTokenRequest,                StringResponse )
 MODEL_TAGONLY(  ErrorResponse,                43, ErrorResponse,                        ErrorResponse )
+MODEL_REQDEF(   TpmSetServiceUrl,             44, TpmSetServiceUrlRequest,              StatusCodeResponse )
 MODEL_ALLDEF(   GetCertificateConfiguration,  50, GetCertificateConfigurationRequest,   GetCertificateConfigurationResponse )
 MODEL_REQDEF(   SetCertificateConfiguration,  51, SetCertificateConfigurationRequest,   StatusCodeResponse )
 MODEL_ALLDEF(   GetCertificateDetails,        52, GetCertificateDetailsRequest,         GetCertificateDetailsResponse )

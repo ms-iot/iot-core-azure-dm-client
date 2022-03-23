@@ -13,6 +13,9 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// mark the following symbol definition to disable device provisioning
+//#define ENABLE_AUTO_DEVICE_PROVISIONING
+
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Devices.Management;
@@ -24,6 +27,13 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.ApplicationModel.Background;
 using Windows.Foundation.Diagnostics;
+
+#if ENABLE_AUTO_DEVICE_PROVISIONING
+using Microsoft.Azure.Devices.Provisioning.Security;
+using Microsoft.Azure.Devices.Provisioning.Client;
+using Microsoft.Azure.Devices.Provisioning.Client.Transport;
+using System.Net;
+#endif
 
 // The Background Application template is documented at http://go.microsoft.com/fwlink/?LinkID=533884&clcid=0x409
 
@@ -131,6 +141,40 @@ namespace IoTDMBackground
                 {
                     while (true)
                     {
+#if ENABLE_AUTO_DEVICE_PROVISIONING
+                        // Hands-on Lab: 
+                        //      Implement logics to filter conditions which require to 
+                        //      run device provisioning before reset IoT Hub connection
+                        //      In this lab, we simply check if there's connection info setup in TPM,
+                        //      if there's one, we'll move on to reset IoT hub connection,
+                        //      if there's none in TPM, we'll do device provisioning to register this device (a valid connection info will then be store in TPM).
+                        string deviceConnectionString = null;
+
+                        // check if there's any valid connection info setup in TPM
+                        try
+                        {
+                            var tpmDevice = new TpmDevice();
+                            deviceConnectionString = await tpmDevice.GetConnectionStringAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine("GetConnectionStringAsync Exception: " + ex.Message);
+                        }
+                        if (String.IsNullOrEmpty(deviceConnectionString) || String.IsNullOrWhiteSpace(deviceConnectionString))
+                        {
+                            // there's no connection info stored in TPM, must run device provisioning...
+                            var registrationStatus = await RunDeviceProvisioning();
+                            switch (registrationStatus)
+                            {
+                            case ProvisioningRegistrationStatusType.Assigned:
+                                break;
+                            default:
+                                // with these conditions, retry provisioning with a longer delay interval...
+                                await Task.Delay(60 * 60 * 1000); // 60 minutes
+                                continue;
+                            }
+                        }
+#endif
                         _iotHubOfflineEvent.WaitOne();
                         try
                         {
@@ -150,6 +194,53 @@ namespace IoTDMBackground
                 });
         }
 
+#if ENABLE_AUTO_DEVICE_PROVISIONING
+        private const string GlobalDeviceEndpoint = "global.azure-devices-provisioning.net";
+        private static string s_idScope = "0ne0002C696";
+
+        private async Task<ProvisioningRegistrationStatusType> RunDeviceProvisioning()
+        {
+            ProvisioningRegistrationStatusType registrationStatus = ProvisioningRegistrationStatusType.Failed;
+            string registrationId = Dns.GetHostName().ToLower();
+            using(var security = new SecurityProviderTpmHsm(registrationId))
+            using(var transport = new ProvisioningTransportHandlerHttp())
+            {
+                Logger.Log($"ProvisioningClient RegisterAsync({registrationId})... ", LoggingLevel.Verbose);
+                ProvisioningDeviceClient provClient =
+                    ProvisioningDeviceClient.Create(GlobalDeviceEndpoint,s_idScope,security,transport);
+
+                try
+                { 
+                    DeviceRegistrationResult result = await provClient.RegisterAsync().ConfigureAwait(false);
+
+                    Logger.Log($"ProvisioningClient RegisterAsync Result = {result.Status}", LoggingLevel.Verbose);
+                    Logger.Log($"ProvisioningClient AssignedHub: {result.AssignedHub}; DeviceID: {result.DeviceId}", LoggingLevel.Information);
+
+                    if(result.Status == ProvisioningRegistrationStatusType.Assigned)
+                    {
+                        // The symmetric key of the assigned device identity is stored in TPM (this is done in ProvisioningDeviceClient.RegisterAsync()), 
+                        // for this use case (DM sample), we will need to store some other connection properties 
+                        // such as device Id and IoT Hub hostname in TPM for later use to establish IoTHub connection
+                        try
+                        { 
+                            var tpmDevice = new TpmDevice();
+                            await tpmDevice.SetConnectionInfoAsync(-1, result.AssignedHub, result.DeviceId);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log($"SetConnectionInfoAsync Error: Fail to set service Url in TPM. Exception: {ex.Message}", LoggingLevel.Error);
+                        }
+                    }
+                    registrationStatus = result.Status;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"ProvisioningClient Exception: {ex.Message}", LoggingLevel.Error);
+                }
+            }
+            return registrationStatus;
+        }
+#endif
         public async void Run(IBackgroundTaskInstance taskInstance)
         {
             _deferral = taskInstance.GetDeferral();

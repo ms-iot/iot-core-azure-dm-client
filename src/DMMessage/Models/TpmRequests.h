@@ -97,4 +97,42 @@ namespace Microsoft { namespace Devices { namespace Management { namespace Messa
 
     };
 
+    public ref class TpmSetServiceUrlRequest sealed : public IRequest
+    {
+        int32_t slot;
+        String^ serviceUrl;
+
+    public:
+        TpmSetServiceUrlRequest(int32_t slot, String^ serviceUrl) : slot(slot), serviceUrl(serviceUrl) {}
+
+        virtual Blob^ Serialize() {
+            JsonObject^ jsonObject = ref new JsonObject();
+            jsonObject->Insert("Slot", JsonValue::CreateNumberValue(slot));
+            jsonObject->Insert("ServiceUrl", JsonValue::CreateStringValue(serviceUrl));
+            return SerializationHelper::CreateBlobFromJson((uint32_t)Tag, jsonObject);
+        }
+
+        static IDataPayload^ Deserialize(Blob^ blob) {
+            assert(blob->Tag == DMMessageKind::TpmSetServiceUrl);
+            String^ str = SerializationHelper::GetStringFromBlob(blob);
+            JsonObject^ jsonObject = JsonObject::Parse(str);
+            int32_t slot = (int32_t)jsonObject->Lookup("Slot")->GetNumber();
+            String^ serviceUrl = (String^ )jsonObject->Lookup("ServiceUrl")->GetString();
+            return ref new TpmSetServiceUrlRequest(slot, serviceUrl);
+        }
+
+        virtual property DMMessageKind Tag {
+            DMMessageKind get();
+        }
+
+        property int Slot {
+            int get() { return slot; }
+        }
+
+        property String ^ServiceUrl {
+            String^ get() { return serviceUrl; }
+        }
+
+    };
+
 }}}}
